@@ -1,0 +1,2 @@
+# Tikon
+Roma ri ajtikonela'.
