@@ -1,0 +1,16 @@
+*Soil Organic Matter daily output file
+
+*DSSAT Cropping System Model Ver. 4.6.0.043 -develop      MAR 14, 2015; 09:55:50
+                                                                                
+*RUN   1        : NO MUCUNA TOPS, MAIZE     MZCER046 EBPL8501    1              
+ MODEL          : MZCER046 - Maize                                              
+ EXPERIMENT     : EBPL8501 MZ MAIZE RESPONSE TO MUCUNA GREEN MANURE, BRAZIL     
+ DATA PATH      : C:\DSSAT45\maize\                                             
+ TREATMENT  1   : NO MUCUNA TOPS, MAIZE     MZCER046                            
+  
+@YEAR DOY   DAS    OMAC    SCDD    SOCD    SC0D    SCTD   SOMCT    LCTD    ONAC    SNDD    SOND    SN0D    SNTD   SOMNT    LNTD
+ 1984 356     0       0   14729  120601       0  120601  120201   400.4    0.00  1472.9 12029.1    0.00 12029.1 12020.1    9.01
+ 1984 357     1       0   14728  120584       0  120584  120198   385.4    0.00  1472.8 12028.9    0.00 12028.9 12019.8    9.09
+ 1984 358     2       0   14728  120567       0  120567  120195   371.3    0.00  1472.8 12028.7    0.00 12028.7 12019.5    9.12
+ 1984 359     3       0   14727  120549       0  120549  120193   356.2    0.00  1472.7 12028.4    0.00 12028.4 12019.3    9.13
+ 1984 360     4       0   14727  120533       0  120533  120190   343.1    0.00  1472.7 12028.1    0.00 12028.1 12019.0    9.10

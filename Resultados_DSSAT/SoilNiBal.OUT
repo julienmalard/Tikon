@@ -1,0 +1,10 @@
+*SOIL INORGANIC N BALANCE
+
+*DSSAT Cropping System Model Ver. 4.6.0.043 -develop      MAR 14, 2015; 09:55:50
+                                                                                
+*RUN   1        : NO MUCUNA TOPS, MAIZE     MZCER046 EBPL8501    1              
+ MODEL          : MZCER046 - Maize                                              
+ EXPERIMENT     : EBPL8501 MZ MAIZE RESPONSE TO MUCUNA GREEN MANURE, BRAZIL     
+ DATA PATH      : C:\DSSAT45\maize\                                             
+ TREATMENT  1   : NO MUCUNA TOPS, MAIZE     MZCER046                            
+  
