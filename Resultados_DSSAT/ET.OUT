@@ -1,0 +1,17 @@
+*SOIL-PLANT-ATMOSPHERE MODULE OUTPUT FILE
+
+*DSSAT Cropping System Model Ver. 4.6.0.043 -develop      MAR 14, 2015; 09:55:50
+                                                                                
+*RUN   1        : NO MUCUNA TOPS, MAIZE     MZCER046 EBPL8501    1              
+ MODEL          : MZCER046 - Maize                                              
+ EXPERIMENT     : EBPL8501 MZ MAIZE RESPONSE TO MUCUNA GREEN MANURE, BRAZIL     
+ DATA PATH      : C:\DSSAT45\maize\                                             
+ TREATMENT  1   : NO MUCUNA TOPS, MAIZE     MZCER046                            
+  
+!                                                                                                                                                Soil evaporation (mm/d) by soil depth (cm):
+!                                                                                                                                                0-5    5-15   15-30   30-45   45-60   60-75   75-90  90-105 105-120
+@YEAR DOY   DAS   SRAA  TMAXA  TMINA   EOAA   EOPA   EOSA   ETAA   EPAA   ESAA   EFAA   EMAA    EOAC    ETAC    EPAC    ESAC    EFAC    EMAC    ES1D    ES2D    ES3D    ES4D    ES5D    ES6D    ES7D    ES8D    ES9D
+ 1984 357     1   9.30  25.40  16.60  2.348  0.000  2.348  2.348  0.000  2.348  0.000  0.000    2.35    2.35    0.00    2.35    0.00    0.00   0.619   0.467   0.371   0.254   0.191   0.149   0.114   0.096   0.088
+ 1984 358     2  21.90  28.60  16.00  5.763  0.000  5.763  5.763  0.000  5.763  0.000  0.000    8.11    8.11    0.00    8.11    0.00    0.00   1.537   1.176   0.914   0.605   0.464   0.364   0.270   0.226   0.208
+ 1984 359     3  14.80  24.00  17.80  3.718  0.000  3.718  3.718  0.000  3.718  0.000  0.000   11.83   11.83    0.00   11.83    0.00    0.00   0.927   0.760   0.601   0.401   0.309   0.251   0.180   0.151   0.139
+ 1984 360     4  17.00  26.60  18.40  4.407  0.000  4.407  4.407  0.000  4.407  0.000  0.000   16.24   16.24    0.00   16.24    0.00    0.00   1.136   0.908   0.707   0.466   0.359   0.289   0.208   0.174   0.160

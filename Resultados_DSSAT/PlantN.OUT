@@ -1,0 +1,11 @@
+*PLANT N OUTPUT FILE
+
+*DSSAT Cropping System Model Ver. 4.6.0.043 -develop      MAR 14, 2015; 09:55:50
+                                                                                
+*RUN   1        : NO MUCUNA TOPS, MAIZE     MZCER046 EBPL8501    1              
+ MODEL          : MZCER046 - Maize                                              
+ EXPERIMENT     : EBPL8501 MZ MAIZE RESPONSE TO MUCUNA GREEN MANURE, BRAZIL     
+ DATA PATH      : C:\DSSAT45\maize\                                             
+ TREATMENT  1   : NO MUCUNA TOPS, MAIZE     MZCER046                            
+  
+@YEAR DOY   DAS   DAP   CNAD   GNAD   VNAD   GN%D   VN%D   NUPC   LNAD   SNAD   LN%D   SN%D   RN%D   SNN0C   SNN1C
