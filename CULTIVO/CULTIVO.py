@@ -1,18 +1,44 @@
-import subprocess
-
+import subprocess, os
 
 class Cultivo(object):
-    def __init__(self, nombre, variedad, suelo, meteo):  # Cada parámetro debe ser un objeto Python correspondiente
+    # Cada parámetro en "__init__" debe ser un objeto Python correspondiente
+    def __init__(self, nombre, variedad, suelo, meteo, fecha_siembra, modelo={}):
         self.nombre = nombre
         self.variedad = variedad
         self.suelo = suelo
         self.meteo = meteo
-        self.fecha_init = fecha_init
+        self.fecha_init = fecha_siembra
+        self.modelo = modelo  # El modelo exterior que se utilizará para el cultivo
+
+        # Variables_suelos.csv contiene información sobre los modelos disponibles
+        modelos = {}
+        with open(os.path.join(os.getcwd(), "CULTIVO\\Modelos_pl.csv")) as d:
+            for núm_línea, línea in enumerate(d):
+                if núm_línea == 0:
+                    variables = línea.replace("\n", "").split(';')
+                else:
+                    datos = línea.replace("\n", "").split(';')
+                    cultivo = datos[0]
+                    cul_modelo = datos[variables.index('Modelo')]
+                    if cultivo not in modelos.keys():  # SI el cultivo todavía no existe en el diccionario
+                        modelos[cultivo] = {}
+                        modelos[cultivo][cul_modelo] = dict(comanda=datos[variables.index('comanda')],
+                                                        programa=datos[variables.index('Programa')])
+                    else:
+                        modelos[cultivo][cul_modelo]["comanda"].append(variables.index('comanda'))
+                        modelos[cultivo][cul_modelo]["programa"].append(variables.index('Programa'))
+        if not len(self.modelo):
+            if self.variedad in modelos:
+                self.modelo = modelos[self.variedad]["Modelo"][0]
+            self.programa = modelos[self.variedad][self.modelo]["programa"][0]
+            self.comanda = modelos[self.variedad][self.modelo]["comanda"][0]
 
     def ejec(self, tiempo_init, carpeta_egr):  # Este cree un sub-proceso con el modelo del cultivo
-        if programa == "DSSAT":
-            comanda = "C:\DSSAT45\\" + comanda + " B " + carpeta_ingr
-        elif programa == "CropSyst":
+        if not os.path.isdir(carpeta_egr):
+            os.makedirs(carpeta_egr)
+        if self.programa == "DSSAT":
+            comanda = "C:\DSSAT45\\" + self.comanda + " B " + carpeta_ingr
+        elif self.programa == "CropSyst":
             # Sería chévere incluir un módulo para CropSyst, un dia, en el futuro...
             return "Falta un módulo para CropSyst."
         else:
