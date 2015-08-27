@@ -1,0 +1,1 @@
+{[ECO]:>6} {[ECONAME]:<17} {[MG]:>2} {[TM]:>2} {[PP-SS]:>5} {[PL-EM]:>5} {[EM-V1]:>5} {[V1-JU]:>5} {[JU-R0]:>5} {[PM06]:>5} {[PM09]:>5} {[LNHSH]:>5} {[R7-R8]:>5} {[FL-VS]:>5} {[TRIFL]:>5} {[RWDTH]:>5} {[RHGHT]:>5} {[R1PPO]:>5} {[OPTBI]:>5} {[SLOBI]:>5}

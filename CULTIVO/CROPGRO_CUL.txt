@@ -1,0 +1,1 @@
+{[VAR]:>6} {[VARNAME]:<15} {[EXPNO]:>6} {[ECO]:>6} {[CSDL]:>5} {[PPSEN]:>5} {[EM-FL]:>5} {[FL-SH]:>5} {[FL-SD]:>5} {[SD-PM]:>5} {[FL-LF]:>5} {[LFMAX]:>5} {[SLAVR]:>5} {[SIZLF]:>5} {[XFRT]:>5} {[WTPSD]:>5} {[SFDUR]:>5} {[SDPDV]:>5} {[PODUR]:>5} {[THRSH]:>5} {[SDPRO]:>5} {[SDLIP]:>5}

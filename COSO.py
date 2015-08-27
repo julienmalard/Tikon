@@ -1,4 +1,5 @@
 import os, shutil
+# import Bayesiano.CALIB
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
 Tikon que representa un aspecto físico del ambiente y que tiene datos. Incluye
@@ -9,27 +10,29 @@ su calibración.
 
 
 class Coso(object):
-    def __init__(self, nombre, carpeta="", reinit=False, dic={}, dic_incert={}):
-        self.nombre = nombre
+    def __init__(simismo, nombre, carpeta="", reinit=False, dic={}, dic_incert={}):
+        simismo.nombre = nombre
         # La carpeta dónde se ubica este objeto
-        self.carpeta = carpeta
+        simismo.carpeta = carpeta
         # El nombre del documento de este objeto
-        self.documento = os.path.join("Proyectos", carpeta, self.nombre + self.ext)
-        self.dic = dic   # Para guardar los variables del coso
-        self.dic_incert = dic_incert   # para guardar listas (distribuciones de incertidumbre) para cada variable
-        self.reinit = reinit  # Indica si el programa debe reinitializar or utilizar carpetas existentes.
+        simismo.documento = os.path.join("Proyectos", carpeta, simismo.nombre + simismo.ext)
+        simismo.dic = simismo.dic_base   # Para guardar los variables del coso
+        if len(dic):
+            for var in dic:
+                simismo.dic[var] = dic[var]
+        simismo.dic_incert = dic_incert   # para guardar listas (distribuciones de incertidumbre) para cada variable
 
-        if not len(dic):
-            # Si no se especificó un diccionario, poner el diccionario de base (vacío)
-            self.dic = self.dic_base
-            if self.reinit:
-                if os.path.isdir(self.documento):
-                    shutil.rmtree(self.documento)
-                if os.path.isfile(self.documento):
-                    os.remove(self.documento)
-            else:  # Si no estamos reinicializando el objeto, leer el documento
-                if os.path.isfile(self.documento):
-                    self.leer(self.documento)
+        simismo.reinit = reinit  # Indica si el programa debe reinitializar or utilizar carpetas existentes.
+
+        # Borrar/crear de nuevo o buscar/leer la carpeta de datos, si existe
+        if simismo.reinit:  # Si estamos reinicializando el objeto, borrar y recrear la carpeta
+            if os.path.isdir(simismo.documento):
+                shutil.rmtree(simismo.documento)
+            if os.path.isfile(simismo.documento):
+                os.remove(simismo.documento)
+        else:  # Si no estamos reinicializando el objeto, leer el documento
+            if os.path.isfile(simismo.documento):
+                simismo.leer(simismo.documento)
 
     # Función para escribir los datos a un documento externo
     def escribir(self, documento=""):
@@ -57,15 +60,15 @@ class Coso(object):
             return "Documento " + documento + " no se pudo abrir para guadar datos."
 
     # Función para leer los datos desde un documento externo
-    def leer(self, documento=""):
+    def leer(simismo, documento=""):
         if not len(documento):
-            documento = self.documento
+            documento = simismo.documento
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
-        if self.ext not in documento.lower():
-            if self.nombre not in documento:
-                documento += "\\" + self.nombre + self.ext
+        if simismo.ext not in documento.lower():
+            if simismo.nombre not in documento:
+                documento += "\\" + simismo.nombre + simismo.ext
             else:
-                documento += self.ext
+                documento += simismo.ext
 
         try:
             with open(documento, mode="r") as d:
@@ -76,10 +79,32 @@ class Coso(object):
                         valor = valor.replace("\n", "")
                         if "***" not in línea:
                             if not sec_incert:
-                                self.dic[var] = eval(valor)
+                                simismo.dic[var] = eval(valor)
                             else:
-                                self.dic_incert[var] = eval(valor)
+                                simismo.dic_incert[var] = eval(valor)
                         else:
                             sec_incert = True
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos."
+
+    def inic_calibr(simismo, datos):
+        # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario
+        if not len(simismo.dic_incert):
+            simismo.dic_incert = simismo.dic
+
+            def dic_lista(d):
+                for ll, v in d.items():
+                    if type(v) is float or type(v) is int:  # Si el valor es numérico
+                        d[ll] = [v]  # poner el valor en una lista
+                    # Si el elemento es una lista no vacía con valores numéricos
+                    if type(v) is list and len(v) and (type(v[0]) is float or type(v[0]) is int):
+                        d[ll] = [v]
+                    elif type(v) is dict:
+                        dic_lista(d)
+
+            dic_lista(simismo.dic_incert)
+
+'''
+    def calib(self,):
+        pass
+'''
