@@ -3,9 +3,9 @@ from COSO import Coso
 
 # Esta clase representa una variedad de cultivo.
 class Variedad(Coso):
-    def __init__(self, *args, **kwargs):
+    def __init__(simismo, *args, **kwargs):
         # El diccionario de los datos para cada variedad de cultivo
-        self.dic_base = dict(Día_corto_crít=(), Pend_desarroll_fotoper=(), Tiempo_emerg_flor=(), Tiempo_flor_fruta=(),
+        simismo.dic_base = dict(Día_corto_crít=(), Pend_desarroll_fotoper=(), Tiempo_emerg_flor=(), Tiempo_flor_fruta=(),
                              Tiempo_flor_sem=(), Tiempo_sem_matur=(), Tiempo_flor_finhoja=(), Foto_máx=(),
                              Superfi_spec_hoja=(), Tamañ_hoja_máx=(), Máx_crec_semfrut=(), Peso_sem_máx=(),
                              Tiempo_llenar_sem=(), Sem_por_frut=(), Tiempo_llen_sem_opt=(), Ratio_sem_frut=(),
@@ -22,4 +22,4 @@ class Variedad(Coso):
                              Taza_expan_hoja=(), Taza_pot_crec_tub=(), Índice_supr_crec_tub=(), Sens_tub_fotoper=(),
                              Temp_crit_tub=())
         super().__init__(*args, **kwargs)  # Esta variable se initializa como
-        self.ext = "vrd"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        simismo.ext = "vrd"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
