@@ -7,7 +7,7 @@ paisajes parcelas, variedades de cultivos, suelos, etc. Todos tienen la misma
 lógica para leer y escribir sus datos en carpetas externas, tanto como para la
 su calibración.
 """
-
+import json
 
 class Coso(object):
     def __init__(simismo, nombre, carpeta="", reinit=False, dic={}, dic_incert={}):
@@ -44,20 +44,22 @@ class Coso(object):
                 documento += "\\" + self.nombre + self.ext
             else:
                 documento += self.ext
+        # Para guardar el diccionario de incertidumbre:
+        documento_incert = documento + "i"
 
-        egreso = ""  # Lo que vamos a escribir al documento
-        for i in self.dic:
-            if len(self.dic[i]):
-                egreso += str(i) + ": " + str(self.dic[i]) + "\n"
-        if len(self.dic_incert):   # Si existen datos de calibración
-            egreso += "*** Incert ***"
-            for i in self.dic_incert:
-                egreso += str(i) + ": " + str(self.dic_incert[i] + "\n")
+        # Para guardar diccionarios de objetos, utilizamos el módulo JSON que escribe los diccionarios en
+        # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
         try:
             with open(documento, mode="w") as d:
-                d.write(egreso)
+                json.dump(self.dic, d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para guadar datos."
+
+        try:
+            with open(documento_incert, mode="w") as d:
+                json.dump(self.dic_incert, d)
+        except IOError:
+            return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
 
     # Función para leer los datos desde un documento externo
     def leer(simismo, documento=""):
@@ -69,21 +71,17 @@ class Coso(object):
                 documento += "\\" + simismo.nombre + simismo.ext
             else:
                 documento += simismo.ext
+        documento_incert = documento + "i"
 
         try:
             with open(documento, mode="r") as d:
-                sec_incert = False  # Verificar si estamos la sección de datos ordinarios o datos de incertidumbre
-                for línea in d:
-                    if len(línea):
-                        var, valor = línea.split(':', 1)
-                        valor = valor.replace("\n", "")
-                        if "***" not in línea:
-                            if not sec_incert:
-                                simismo.dic[var] = eval(valor)
-                            else:
-                                simismo.dic_incert[var] = eval(valor)
-                        else:
-                            sec_incert = True
+                simismo.dic = json.load(d)
+        except IOError:
+            return "Documento " + documento + " no se pudo abrir para leer datos."
+
+        try:
+            with open(documento_incert, mode="r") as d:
+                simismo.dic = json.load(d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos."
 
@@ -92,6 +90,8 @@ class Coso(object):
         if not len(simismo.dic_incert):
             simismo.dic_incert = simismo.dic
 
+            # Para cada variable numérico en el diccionario, crear una lista para contener varios valores posibles
+            # del variable (análisis de incertidumbre)
             def dic_lista(d):
                 for ll, v in d.items():
                     if type(v) is float or type(v) is int:  # Si el valor es numérico

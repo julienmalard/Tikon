@@ -25,16 +25,16 @@ def gen_ecua_dep(insecto, presas):  #insecto depredadores (con presas)
             "poblcaiones['"+ p +"'])/(1 + {C}/poblaciones['"+ insecto +"']^m*{h}*poblaciones['"+ p +"']))"\
             "*poblaciones['"+ p +"']/("+ pres_adición +")"
         sub_ecuación = sub_ecuación.format(**locals())
-        ecuación = "poblaciones['"+ insecto + "'] * ("+ sub_ecuación +" - d)" #Añadirlo a la ecuación
+        ecuación = "poblaciones['"+ insecto + "'] * ("+ sub_ecuación +" - d)"  # Añadirlo a la ecuación
         ecuación = ecuación.format(**locals())
     return ecuación
-def gen_ecua_herb(insecto):         #insecto herbivoros (sin presas)
+def gen_ecua_herb(insecto):         # insecto herbivoros (sin presas)
     sub_ecuación = ""
     sub_ecuación = sub_ecuación + "+ (K*(1 - poblaciones['"+ insecto +"']/K)"
     ecuación = "poblaciones['"+ insecto +"']*a*("+ sub_ecuación +")"
     return ecuación
 
-#Generador de ecuación general para adicionar la depredación del insecto 
+# Generador de ecuación general para adicionar la depredación del insecto
 def ad_ecua_dep(insecto,depredadores):
     ecuación = ""
     for d in depredadores:
@@ -45,7 +45,7 @@ def ad_ecua_dep(insecto,depredadores):
         ecuación = ecuación.format(**locals())
     return ecuación
 
-#Generador de ecuación general para insectos con depredadores
+# Generador de ecuación general para insectos con depredadores
     
 
 # La clase mod_plagas contiene la información de la red trófica de un agroecosistema
