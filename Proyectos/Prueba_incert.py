@@ -122,7 +122,7 @@ def anal_incert(mod, datos, conf, rep, poblaciones_iniciales):
         mod = mod[0]
         red = mod[2]
     else:
-        return "Modelo no válido para análisis de incertidumbre (anan_incert)"
+        return "Modelo no válido para análisis de incertidumbre (anal_incert)"
 
     caminos = {}
     promedios = {}

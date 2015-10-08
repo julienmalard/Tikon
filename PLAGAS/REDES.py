@@ -66,3 +66,29 @@ class Red(Coso):
                         simismo.poblaciones[insecto][fase] = [poblaciones_iniciales[insecto][fase]]
         else:
             simismo.ejec(poblaciones_iniciales)
+
+    def dibujar(simismo, insectos=None, datos_obs = None):
+        print("dibujar")
+        import pylab
+        if insectos is None:  # Si no se especificaron insectos, utilizar todos los insectos de la red.
+            insectos = simismo.insectos
+
+        for núm, nombre in enumerate(insectos):
+            print(nombre)
+            colores = ("red", "orange", "yellow", "green", "blue", "purple", "fuchsia", "black")
+            pylab.figure(1 + núm)  # Un gráfico por insecto (con todas las fases en sub-gráficos)
+            pylab.subplots_adjust(hspace=0, right=1)  # Se me olvidó qué hace esta línea...
+            for núm_fase, fase in enumerate(simismo.insectos[nombre].fases):
+                print(fase)
+                máx_x = len(simismo.poblaciones[nombre][fase])
+                pylab.subplot(máx_x, 1, núm_fase + 1)
+                pylab.title = simismo.nombre + " " + nombre
+                if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos abiertos
+                    pylab.plot(datos_obs[nombre][fase], "o", color=colores[núm_fase])
+                # Añadir una línea para representar las predicciones
+                pylab.plot(simismo.poblaciones[nombre][fase], color=colores[núm_fase],
+                           linewidth=2)
+                pylab.ylabel(fase)
+                pylab.xticks = (range(0, int(máx_x*1.1), int(máx_x/10)))
+                pylab.xlabel('Días')
+                pylab.savefig("Tikon_" + nombre + ".png")
