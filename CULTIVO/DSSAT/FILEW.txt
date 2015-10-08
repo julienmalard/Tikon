@@ -1,0 +1,5 @@
+* WEATHER : {[SITE]:<100}
+@ INSI      LAT     LONG  ELEV   TAV   AMP REFHT WNDHT
+ {[INSI]:>5} {[LAT]:>8} {[LONG]:>8} {[ELEV]:>5} {[TAV]:<5} {[AMP]:<5} {[REFHT]:<5} {[WNDHT]:<5}
+@DATE  SRAD  TMAX  TMIN  RAIN DEWP WIND PAR
+{[DATE]:>5} {[SRAD]:>5} {[TMAX]:>5} {[TMIN]:>5} {[RAIN]:>5} {[DEWP]:>5} {[WIND]:>5} {[PAR]:>5}
