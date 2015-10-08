@@ -1,5 +1,5 @@
 import os
-from CULTIVO.DSSAT.DSSAT import DocDssat
+from CULTIVO.DSSAT.fileX import DocDssat
 
 
 # Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
