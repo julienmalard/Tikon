@@ -1,9 +1,8 @@
+from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
 import os
-from CULTIVO.DSSAT.DSSAT import DocDssat
-
 
 # Objeto para representar documentos de typo FILEX de DSSAT (información de simulación)
-class Filex(DocDssat):
+class FileX(DocDssat):
 
     def __init__(simismo, dic="", *args, **kwargs):
         super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
@@ -205,7 +204,8 @@ class Filex(DocDssat):
                 if otra != "EXP.DETAILS" and otra != "GENERAL":
                     simismo.decodar(doc, otra)
 
-    def escribir(simismo, documento):      # Escribe un documento FILEX para uso en DSSAT
+    def escribir(simismo, carpeta):      # Escribe un documento FILEX para uso en DSSAT
+        documento = os.path.join(carpeta, 'TKON0000')  # Sólo podemos tener un documento FILEX por carpeta (parcela)
         for i in simismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
             if type(simismo.dic[i]) is dict:
                 for j in simismo.dic[i]:
@@ -243,9 +243,9 @@ class Filex(DocDssat):
                 if "@" in texto:
                     variables = texto.split()[1:]
                     for a, var in enumerate(variables):
-                        if '.' in var:      # Para el caso donde variables en FILEX estén separados por '.' y no por ' '
+                        if '.' in var:  # Para el caso donde variables en FILEX estén separados por '.' y no por ' '
                             variable = variables[a].split('.')
-                            variable.reverse()  # Una acrobacia informática para poner todo en orden
+                            variable.reverse()  # Una acrobacia informática para poner las cosas en orden
                             for b in variable:
                                 if len(b):
                                     variables.insert(a, b)

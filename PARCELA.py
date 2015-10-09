@@ -10,7 +10,10 @@ import os
 # y otras propiedades
 class Parcela(Coso):
     def __init__(simismo, suelos_común, variedades_común, redes_común, *args, **kwargs):
-        simismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": ()}
+        simismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
+                            "Área": (), "Surcos": (), "Long_surcos": (), 'Pendiente_orientación': '', 'Piedras': '',
+                            'Manejo': dict(fecha_siembra="", )
+                            }
         simismo.suelos_común = suelos_común
         simismo.variedades_común = variedades_común
         simismo.redes_común = redes_común
@@ -42,7 +45,7 @@ class Parcela(Coso):
         simismo.suelo = Suelo(nombre=simismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=simismo.reinit)
         simismo.cultivo = Cultivo(nombre=simismo.nombre + "_" + simismo.dic["Cultivo"], cultivo=simismo.cultivo,
                                variedad=simismo.variedad, suelo=simismo.dic["Suelo"],
-                               meteo=simismo.dic["Meteo"], fecha_siembra=simismo.dic["Fecha_siembra"]
+                               meteo=simismo.dic["Meteo"], manejo=simismo.dic["Manejo"]
                                )
 
         # Poner a 0 los valores iniciales del cultivo y de los insectos
