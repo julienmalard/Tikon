@@ -1,45 +1,4 @@
 import os
-dic_filex = {"EXP.DETAILS": "",
-             "GENERAL": {"ADDRESS": [], "PEOPLE": [], "SITE": [], "PAREA": [], "PRNO": [], "PLEN": [], "PLDR": [], "PLSP": [], "PLAY": [],
-                         "HAREA": [], "HRNO": [], "HLEN": [], "HARM": [], "NOTES": []},
-             "CULTIVARS": {"CR": [], "INGENO": [], "CNAME": []},
-             "TREATMENTS": {"R": [], "O": [], "C": [], "TNAME": [], "CU": [], "FL": [], "SA": [], "IC": [], "MP": [],
-                            "MI": [], "MF": [], "MR": [], "MC": [], "MT": [], "ME": [], "MH": [], "SM": []},
-             "FIELDS": {"ID_FIELD": [], "WSTA": [], "FLSA": [], "FLOB": [], "FLDT": [], "FLDD": [],
-                        "XCRD": [], "YCRD": [], "ELEV": [], "AREA": [], "SLEN": [], "FLWR": [], "SLAS": [],
-                        "FLHST": [], "FHDUR": [], "FLDS": [], "FLST": [], "SLTX": [], "SLDP": [], "ID_SOIL": [], "FLNAME": []},
-             "SOIL ANALYSIS": {"SADAT": [], "SMHB": [], "SMPX": [], "SMKE": [], "SANAME": [], "SABL": [], "SADM": [],
-                               "SAOC": [], "SANI": [], "SAPHW": [], "SAPHB": [], "SAPX": [], "SAKE": [], "SASC": []},
-             "INITIAL CONDITIONS": {"PCR": [], "ICDAT": [], "ICRT": [], "ICND": [], "ICRN": [], "ICRE": [],
-                                    "ICWD": [], "ICRES": [], "ICREN": [], "ICREP": [], "ICRIP": [], "ICRID": [],
-                                    "ICNAME": [], "ICBL": [[]], "SH2O": [[]], "SNH4": [[]], "SNO3": [[]]},
-             "PLANTING DETAILS": {"PDATE": [], "EDATE": [], "PPOP": [], "PPOE": [], "PLME": [], "PLDS": [],
-                                  "PLRS": [], "PLRD": [], "PLDP": [], "PLWT": [], "PAGE": [], "PENV": [],
-                                  "PLPH": [], "SPRL": [], "PLNAME": []},
-             "IRRIGATION AND WATER MANAGEMENT": {"EFIR": [], "IDEP": [], "ITHR": [], "IEPT": [],
-                                                 "IOFF": [], "IAME": [], "IAMT": [], "IRNAME": [],
-                                                 "IDATE": [], "IROP": [], "IRVAL": []},
-             "FERTILIZERS (INORGANIC)": {"FDATE": [], "FMCD": [], "FACD": [], "FDEP": [], "FAMN": [], "FAMP": [],
-                                         "FAMK": [], "FAMC": [], "FAMO": [], "FOCD": [], "FERNAME": []},
-             "RESIDUES AND ORGANIC FERTILIZER": {"RDATE": [], "RCOD": [], "RAMT": [], "RESN": [], "RESP": [],
-                                                 "RESK": [], "RINP": [], "RDEP": [], "RMET": [], "RENAME": []},
-             "CHEMICAL APPLICATIONS": {"CDATE": [], "CHCOD": [], "CHAMT": [], "CHME": [], "CHDEP": [], "CHT": [], "CHNAME": []},
-             "TILLAGE": {"TL": [], "TDATE": [], "TIMPL": [], "TDEP": [], "TNAME": []},
-             "ENVIRONMENT MODIFICATIONS": {"ODATE": [], "EDAY": [], "ERAD": [], "EMAX": [], "EMIN": [], "ERAIN": [],
-                                           "ECO2": [], "EDEW": [], "EWIND": [], "ENVNAME": []},
-             "HARVEST DETAILS": {"HDATE": [], "HSTG": [], "HCOM": [], "HSIZE": [], "HPC": [],
-                                 "HBPC": [], "HNAME": []},
-             "SIMULATION CONTROLS": {"GENERAL": [], "NYERS": [], "NREPS": [], "START": [], "SDATE": [], "RSEED": [], "SNAME": [], "SMODEL": [],
-                                     "OPTIONS": [], "WATER": [], "NITRO": [], "SYMBI": [], "PHOSP": [], "POTAS": [], "DISES": [], "CHEM": [], "TILL": [], "CO2": [],
-                                     "METHODS": [], "WTHER": [], "INCON": [], "LIGHT": [], "EVAPO": [], "INFIL": [], "PHOTO": [], "HYDRO": [], "NSWIT": [], "MESOM": [], "MESEV": [], "MESOL": [],
-                                     "MANAGEMENT": [], "PLANT": [], "IRRIG": [], "FERTI": [], "RESID": [], "HARVS": [],
-                                     "OUTPUTS": [], "FNAME": [], "OVVEW": [], "SUMRY": [], "FROPT": [], "GROUT": [], "CAOUT": [], "WAOUT": [], "NIOUT": [], "MIOUT": [], "DIOUT": [], "VBOSE": [], "CHOUT": [], "OPOUT": [],
-                                     "PLANTING": [], "PFRST": [], "PLAST": [], "PH2OL": [], "PH2OU": [], "PH2OD": [], "PSTMX": [], "PSTMN": [],
-                                     "IRRIGATION": [], "IMDEP": [], "ITHRL": [], "ITHRU": [], "IROFF": [], "IMETH": [], "IRAMT": [], "IREFF": [],
-                                     "NITROGEN": [], "NMDEP": [], "NMTHR": [], "NAMNT": [], "NCODE": [], "NAOFF": [],
-                                     "RESIDUES": [], "RIPCN": [], "RTIME": [], "RIDEP": [],
-                                     "HARVEST": [], "HFRST": [], "HLAST": [], "HPCNP": [], "HPCNR": []}
-             }
 
 
 #Lista del tamaño (en carácteres) de cada variable
@@ -172,91 +131,100 @@ class Filex(DocDssat):
     def __init__(simismo, dic={}):
         simismo.dic = dic
         if len(simismo.dic) == 0:
+            dic_filex = {"EXP.DETAILS": "",
+                         "GENERAL": {"ADDRESS": [], "PEOPLE": [], "SITE": [], "PAREA": [], "PRNO": [], "PLEN": [], "PLDR": [], "PLSP": [], "PLAY": [],
+                                     "HAREA": [], "HRNO": [], "HLEN": [], "HARM": [], "NOTES": []},
+                         "CULTIVARS": {"CR": [], "INGENO": [], "CNAME": []},
+                         "TREATMENTS": {"R": [], "O": [], "C": [], "TNAME": [], "CU": [], "FL": [], "SA": [], "IC": [], "MP": [],
+                                        "MI": [], "MF": [], "MR": [], "MC": [], "MT": [], "ME": [], "MH": [], "SM": []},
+                         "FIELDS": {"ID_FIELD": [], "WSTA": [], "FLSA": [], "FLOB": [], "FLDT": [], "FLDD": [],
+                                    "XCRD": [], "YCRD": [], "ELEV": [], "AREA": [], "SLEN": [], "FLWR": [], "SLAS": [],
+                                    "FLHST": [], "FHDUR": [], "FLDS": [], "FLST": [], "SLTX": [], "SLDP": [], "ID_SOIL": [], "FLNAME": []},
+                         "SOIL ANALYSIS": {"SADAT": [], "SMHB": [], "SMPX": [], "SMKE": [], "SANAME": [], "SABL": [], "SADM": [],
+                                           "SAOC": [], "SANI": [], "SAPHW": [], "SAPHB": [], "SAPX": [], "SAKE": [], "SASC": []},
+                         "INITIAL CONDITIONS": {"PCR": [], "ICDAT": [], "ICRT": [], "ICND": [], "ICRN": [], "ICRE": [],
+                                                "ICWD": [], "ICRES": [], "ICREN": [], "ICREP": [], "ICRIP": [], "ICRID": [],
+                                                "ICNAME": [], "ICBL": [[]], "SH2O": [[]], "SNH4": [[]], "SNO3": [[]]},
+                         "PLANTING DETAILS": {"PDATE": [], "EDATE": [], "PPOP": [], "PPOE": [], "PLME": [], "PLDS": [],
+                                              "PLRS": [], "PLRD": [], "PLDP": [], "PLWT": [], "PAGE": [], "PENV": [],
+                                              "PLPH": [], "SPRL": [], "PLNAME": []},
+                         "IRRIGATION AND WATER MANAGEMENT": {"EFIR": [], "IDEP": [], "ITHR": [], "IEPT": [],
+                                                             "IOFF": [], "IAME": [], "IAMT": [], "IRNAME": [],
+                                                             "IDATE": [], "IROP": [], "IRVAL": []},
+                         "FERTILIZERS (INORGANIC)": {"FDATE": [], "FMCD": [], "FACD": [], "FDEP": [], "FAMN": [], "FAMP": [],
+                                                     "FAMK": [], "FAMC": [], "FAMO": [], "FOCD": [], "FERNAME": []},
+                         "RESIDUES AND ORGANIC FERTILIZER": {"RDATE": [], "RCOD": [], "RAMT": [], "RESN": [], "RESP": [],
+                                                             "RESK": [], "RINP": [], "RDEP": [], "RMET": [], "RENAME": []},
+                         "CHEMICAL APPLICATIONS": {"CDATE": [], "CHCOD": [], "CHAMT": [], "CHME": [], "CHDEP": [], "CHT": [], "CHNAME": []},
+                         "TILLAGE": {"TL": [], "TDATE": [], "TIMPL": [], "TDEP": [], "TNAME": []},
+                         "ENVIRONMENT MODIFICATIONS": {"ODATE": [], "EDAY": [], "ERAD": [], "EMAX": [], "EMIN": [], "ERAIN": [],
+                                                       "ECO2": [], "EDEW": [], "EWIND": [], "ENVNAME": []},
+                         "HARVEST DETAILS": {"HDATE": [], "HSTG": [], "HCOM": [], "HSIZE": [], "HPC": [],
+                                             "HBPC": [], "HNAME": []},
+                         "SIMULATION CONTROLS": {"GENERAL": [], "NYERS": [], "NREPS": [], "START": [], "SDATE": [], "RSEED": [], "SNAME": [], "SMODEL": [],
+                                                 "OPTIONS": [], "WATER": [], "NITRO": [], "SYMBI": [], "PHOSP": [], "POTAS": [], "DISES": [], "CHEM": [], "TILL": [], "CO2": [],
+                                                 "METHODS": [], "WTHER": [], "INCON": [], "LIGHT": [], "EVAPO": [], "INFIL": [], "PHOTO": [], "HYDRO": [], "NSWIT": [], "MESOM": [], "MESEV": [], "MESOL": [],
+                                                 "MANAGEMENT": [], "PLANT": [], "IRRIG": [], "FERTI": [], "RESID": [], "HARVS": [],
+                                                 "OUTPUTS": [], "FNAME": [], "OVVEW": [], "SUMRY": [], "FROPT": [], "GROUT": [], "CAOUT": [], "WAOUT": [], "NIOUT": [], "MIOUT": [], "DIOUT": [], "VBOSE": [], "CHOUT": [], "OPOUT": [],
+                                                 "PLANTING": [], "PFRST": [], "PLAST": [], "PH2OL": [], "PH2OU": [], "PH2OD": [], "PSTMX": [], "PSTMN": [],
+                                                 "IRRIGATION": [], "IMDEP": [], "ITHRL": [], "ITHRU": [], "IROFF": [], "IMETH": [], "IRAMT": [], "IREFF": [],
+                                                 "NITROGEN": [], "NMDEP": [], "NMTHR": [], "NAMNT": [], "NCODE": [], "NAOFF": [],
+                                                 "RESIDUES": [], "RIPCN": [], "RTIME": [], "RIDEP": [],
+                                                 "HARVEST": [], "HFRST": [], "HLAST": [], "HPCNP": [], "HPCNR": []}
+                         }
             simismo.dic = dic_filex
-        simismo.secciones = {"EXP.DETAILS": {"Prin":(), "Fin":()}, "GENERAL": {"Prin":(), "Fin":()}, "TREATMENTS": {"Prin":(), "Fin":()},
-                          "CULTIVARS": {"Prin":(), "Fin":()}, "FIELDS": {"Prin":(), "Fin":()}, "SOIL ANALYSIS": {"Prin":(), "Fin":()},
-                          "INITIAL CONDITIONS": {"Prin":(), "Fin":()}, "PLANTING DETAILS": {"Prin":(), "Fin":()},
-                          "IRRIGATION AND WATER MANAGEMENT": {"Prin":(), "Fin":()}, "FERTILIZERS (INORGANIC)": {"Prin":(), "Fin":()},
-                          "RESIDUES AND ORGANIC FERTILIZER": {"Prin":(), "Fin":()}, "CHEMICAL APPLICATIONS": {"Prin":(), "Fin":()},
-                          "TILLAGE": {"Prin":(), "Fin":()}, "ENVIRONMENT MODIFICATIONS": {"Prin":(), "Fin":()},
-                          "HARVEST DETAILS": {"Prin":(), "Fin":()}, "SIMULATION CONTROLS": {"Prin":(), "Fin":()}}  #Todas las secciones posibles en un documento FILEX
 
-        def decodar(self, doc, sección):  # Esta funcción convierte una sección de FILEX en un diccionario Python.
-            # Encuentra la ubicación del principio y del fin de cada sección
-            for línea in doc:
-                if "*" in línea and sección in línea:
-                    prin = doc.index(línea)
-                    fin = doc.index("\n",prin)
-                    break
-                else:
-                    prin = fin = None
-            if prin:  # Si existe la sección
-                for línea,texto in enumerate(doc[prin:fin-1],start=prin):
-                    if "@" in texto:
-                        variables = texto.split()[1:]
-                        if sección == "GENERAL": variables = texto.replace("@",'').split()
-                        for a,var in enumerate(variables):
-                            if '.' in var:      # Para el caso donde variables en FILEX están separados por '.' y no por ' '
-                                variable = variables[a].split('.')
-                                variable.reverse()
-                                for b in variable:
-                                    if len(b): variables.insert(a,b)
-                                variables.remove(var)
-                        i=línea+1
-                        while "@" not in doc[i] and len(doc[i].replace('\n',''))>0:
-                            if isinstance(self,Filex):
-                                valores = doc[i].replace('\n','')[2:]
-                                nivel = doc[i].split()[0]
-                                if not nivel.isdigit():
-                                    nivel = 1
-                                else: nivel = int(nivel)
-                            else:
-                                valores = doc[i].replace('\n','')[2:]
+        # Las secciones posibles en un documento FILEX
+        simismo.secciones = {}
+        for i in simismo.dic:
+            simismo.secciones[i] = {"Prin":(), "Fin":()}
 
-                            for j,var in enumerate(variables):
-                                if var in self.dic[sección]:  # Si la variable existe en la base de datos de DSSAT
-                                    if isinstance(self,Filex):
-                                        if len(self.dic[sección][var]) < nivel: self.dic[sección][var].append([])
-                                        self.dic[sección][var][nivel-1].append(valores[:prop_vars[var]+1].strip())
-                                    else:
-                                        self.dic[sección][var].append(valores[:prop_vars[var]+1].strip())
-                                    valores = valores[prop_vars[var]+1:]
-                            i += 1
+    # Lee un archivo FILEX para uso en Python. "Documento" es la ubicación del archivo FILEX en la computadora.
+    def leer(simismo, documento):
+        # Borar datos, si existen
+        for i in simismo.dic:
+            for j in simismo.dic[i]:
+                simismo.dic[i][j] = []
 
-    def leer(self,documento):       # Lee un archivo FILEX para uso en Python. "Documento" es la ubicación del archivo FILEX en la computadora.
-        self.dic = dic_filex      # Borar datos, si existen
         with open(documento, "r") as d:
             doc=[]
             for línea in d:
                 doc.append(línea)
 
-        # Leer todas las secciones
-        # Sección "EXP.DETAILS"
+        ### Leer todas las secciones
+
+        # Sección "GENERAL"
+        simismo.dic["PEOPLE"]=doc[doc.index('@PEOPLE\n')+1].replace('\n', '')
+        simismo.dic["ADDRESS"]=doc[doc.index('@ADDRESS\n')+1].replace('\n', '')
+        simismo.dic["SITE(S)"]=doc[doc.index('@SITE\n')+1].replace('\n', '')
+
         for línea in doc:
-            if "EXP.DETAILS" in línea:
-                self.dic["EXP.DETAILS"]=línea.replace("*EXP.DETAILS: ", "").replace('\n', '')
-                #        #Sección "GENERAL"
-                #        self.dic["PEOPLE"]=doc[doc.index('@PEOPLE\n')+1]
-                #        self.dic["ADDRESS"]=doc[doc.index('@ADDRESS\n')+1]
-                #        self.dic["SITE(S)"]=doc[doc.index('@SITE\n')+1]
-                #        vars_parcela = "PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM".split()
-                #        valores_parcela = doc[doc.index("@ PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM.........\n")+1].split()
-                #        for a in self.dic['Parcela']:
-                #            self.dic['Parcela'][a] = valores_parcela[vars_parcela.index(a)]
-                #        self.dic["NOTES"]=doc[doc.index('@NOTES\n')+1]
+            # Sección "GENERAL" (cont.)
+            vars_parcela = "PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM".split()
+            if "@ PAREA" in línea:
+                valores_parcela = doc[
+                    doc.index("@ PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM.........\n")+1
+                ].split()
+                for a in simismo.dic['GENERAL']:
+                    simismo.dic['GENERAL'][a] = valores_parcela[vars_parcela.index(a)]
+            simismo.dic["NOTES"]=doc[doc.index('@NOTES\n')+1]
 
-        # Otras secciones
-        for otra in self.secciones:
-            if otra != "EXP.DETAILS":
-                self.decodar(doc,otra)
+            # Sección "EXP.DETAILS"
+            if "*EXP.DETAILS" in línea:
+                simismo.dic["EXP.DETAILS"]=línea.replace("*EXP.DETAILS: ", "").replace('\n', '')
 
-    def escribir(self, documento):      # Escribe un documento FILEX para uso en DSSAT
-        for i in self.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+            # Leer las secciones aparte la "GENERAL" y la "EXP.DETAILS"
+            for otra in simismo.secciones:
+                if otra != "EXP.DETAILS" and otra != "":
+                    simismo.decodar(doc,otra)
+
+    def escribir(simismo, documento):      # Escribe un documento FILEX para uso en DSSAT
+        for i in simismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
             if type(prueba.dic[i]) is dict:
-                for j in self.dic[i]:
-                    if not len(self.dic[i][j]): self.dic[i][j] = [["-99"]]
+                for j in simismo.dic[i]:
+                    if not len(simismo.dic[i][j]): simismo.dic[i][j] = [["-99"]]
             else:
-                if self.dic[i]=='': self.dic[i]= [["-99"]]
+                if simismo.dic[i]=='': simismo.dic[i]= [["-99"]]
         with open("FILEX.txt", "r") as d:    # Abrir el patrón general para archivos FILEX
             doc=[]
             for línea in d:
@@ -264,15 +232,57 @@ class Filex(DocDssat):
             doc.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
 
-        for otra in self.secciones:
+        for otra in simismo.secciones:
             if otra!="EXP.DETAILS":
-                self.encodar(doc,otra)
+                simismo.encodar(doc,otra)
 
         with open(documento, "w") as d:   # Salvar la carpeta FILEX en la ubicación contenida en "documento"
             texto = ''
             d.write(texto.join(doc))
             # for x in range(1, 11):
             # print('{0:25d} {1:3d} {2:4d}'.format(x, x*x, x*x*x))
+
+        def decodar(self, doc, sección):  # Esta funcción convierte una sección de FILEX en un diccionario Python.
+        # Encuentra la ubicación del principio y del fin de cada sección
+        prin = fin = None
+        for línea in doc:
+            if "*" in línea and sección in línea:
+                prin = doc.index(línea)
+                fin = doc.index("\n",prin)
+                break
+
+        if prin:  # Si existe la sección
+            for línea,texto in enumerate(doc[prin:fin-1],start=prin):
+                if "@" in texto:
+                    variables = texto.split()[1:]
+                    if sección == "GENERAL": variables = texto.replace("@",'').split()
+                    for a,var in enumerate(variables):
+                        if '.' in var:      # Para el caso donde variables en FILEX están separados por '.' y no por ' '
+                            variable = variables[a].split('.')
+                            variable.reverse()
+                            for b in variable:
+                                if len(b): variables.insert(a,b)
+                            variables.remove(var)
+                    i=línea+1
+                    while "@" not in doc[i] and len(doc[i].replace('\n',''))>0:
+                        if isinstance(simismo,Filex):
+                            valores = doc[i].replace('\n','')[2:]
+                            nivel = doc[i].split()[0]
+                            if not nivel.isdigit():
+                                nivel = 1
+                            else: nivel = int(nivel)
+                        else:
+                            valores = doc[i].replace('\n','')[2:]
+
+                        for j,var in enumerate(variables):
+                            if var in simismo.dic[sección]:  # Si la variable existe en la base de datos de DSSAT
+                                if isinstance(simismo,Filex):
+                                    if len(simismo.dic[sección][var]) < nivel: simismo.dic[sección][var].append([])
+                                    simismo.dic[sección][var][nivel-1].append(valores[:prop_vars[var]+1].strip())
+                                else:
+                                    simismo.dic[sección][var].append(valores[:prop_vars[var]+1].strip())
+                                valores = valores[prop_vars[var]+1:]
+                        i += 1
 
 def gen_ingresos(nombre="", fecha_init="", carpeta="", cultivo="", modelo="", variedad="", suelo="", meteo=""):
     # Leer las carpetas con la información de conversión de variables Tikon-DSSAT
