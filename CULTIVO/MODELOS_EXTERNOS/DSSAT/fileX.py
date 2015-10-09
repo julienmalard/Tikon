@@ -240,7 +240,7 @@ class FileX(DocDssat):
 
         if prin:  # Si existe la sección
             for línea, texto in enumerate(doc[prin:fin-1], start=prin):
-                if "@" in texto:
+                if "@" in texto and 'AUTOMATIC MANAGEMENT' not in texto:
                     variables = texto.split()[1:]
                     for a, var in enumerate(variables):
                         if '.' in var:  # Para el caso donde variables en FILEX estén separados por '.' y no por ' '

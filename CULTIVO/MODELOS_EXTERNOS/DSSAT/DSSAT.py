@@ -45,6 +45,8 @@ class Experimento(object):
                 documento = FileW()
             elif type(obj) is FileC:
                 documento = FileC()
+            elif type(obj) is dict:  # Así que le podamos pasar una parte del diccionario de un FILEX también
+                return conversiones
             else:
                 return False
 
@@ -92,34 +94,109 @@ class Experimento(object):
         filex.dic["FIELDS"]['SLDP'] = files.dic["SLDP"]
         filex.dic["FIELDS"]['ID_SOIL'] = files.dic['ID_SOIL']
 
+        # Poner los parámetros de manejo del objeto "PARCELA" en la sección apropiada del diccionario de fileX
         manejo = simismo.parcela.dic['Manejo']
 
-        if manejo['Fecha_siembra'] == "":
-            filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        if manejo['Fecha_emergencia'] == "":
-            filex.dic["PLANTING DETAILS"]['EDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
-        filex.dic["PLANTING DETAILS"]['PDATE'] = manejo['Fecha_siembra']
+        for sección in ["PLANTING DETAILS", "FERTILIZERS (INORGANIC)", "RESIDUES AND ORGANIC FERTILIZER",
+                        "IRRIGATION AND WATER MANAGEMENT", "TILLAGE", "HARVEST DETAILS"]:
+            conv_DSSAT = convertir(filex.dic[sección], 'Variables_manejo.csv')
+            for var_tikon in conv_DSSAT:
+                if var_tikon in manejo:
+                    filex.dic["PLANTING DETAILS"][conv_DSSAT[var_tikon]] = manejo[var_tikon]
 
-        filex.dic["IRRIGATION AND WATER MANAGEMENT"] =
-        filex.dic["FERTILIZERS (INORGANIC)"] =
-        filex.dic["RESIDUES AND ORGANIC FERTILIZER"] =
-        filex.dic["TILLAGE"] =
-        filex.dic["HARVEST DETAILS"] =
-        filex.dic["SIMULATION CONTROLS"] =
+        # Areglar las controles de simulación
+        filex.dic["SIMULATION CONTROLS"]['GENERAL'] = 'GE'
+        filex.dic["SIMULATION CONTROLS"]['NYERS'] = 1
+        filex.dic["SIMULATION CONTROLS"]['NREPS'] = 1
+        filex.dic["SIMULATION CONTROLS"]['START'] = 'S'
+        filex.dic["SIMULATION CONTROLS"]['SDATE'] = simismo.parcela.dic['Fecha_init']
+        filex.dic["SIMULATION CONTROLS"]['RSEED'] = 88
+        filex.dic["SIMULATION CONTROLS"]['OPTIONS'] = 'OP'
+        filex.dic["SIMULATION CONTROLS"]['WATER'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['NITRO'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['SYMBI'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['PHOSP'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['POTAS'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['DISES'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['CHEM'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['CO2'] = 'M'
+        filex.dic["SIMULATION CONTROLS"]['METHODS'] = 'ME'
+        filex.dic["SIMULATION CONTROLS"]['WTHER'] = 'M'
+        filex.dic["SIMULATION CONTROLS"]['INCON'] = 'M'
+        filex.dic["SIMULATION CONTROLS"]['LIGHT'] = 'E'
+        filex.dic["SIMULATION CONTROLS"]['EVAPO'] = 'R'
+        filex.dic["SIMULATION CONTROLS"]['INFIL'] = 'S'
+        filex.dic["SIMULATION CONTROLS"]['PHOTO'] = 'L'
+        filex.dic["SIMULATION CONTROLS"]['HYDRO'] = 'R'
+        filex.dic["SIMULATION CONTROLS"]['NSWIT'] = 1
+        filex.dic["SIMULATION CONTROLS"]['MESOM'] = 'G'
+        filex.dic["SIMULATION CONTROLS"]['MESEV'] = 'S'
+        filex.dic["SIMULATION CONTROLS"]['MESOL'] = 2
+        filex.dic["SIMULATION CONTROLS"]['MANAGEMENT'] = 'MG'
+        filex.dic["SIMULATION CONTROLS"]['PLANT'] = 'R'
+        if manejo['Irrig']:
+            if manejo['Irrig_auto']:
+                filex.dic["SIMULATION CONTROLS"]['IRRIG'] = 'A'
+            else:
+                filex.dic["SIMULATION CONTROLS"]['IRRIG'] = 'R'
+        else:
+            filex.dic["SIMULATION CONTROLS"]['IRRIG'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['FERTI'] = 'R'
+        filex.dic["SIMULATION CONTROLS"]['RESID'] = 'R'
+        filex.dic["SIMULATION CONTROLS"]['HARVS'] = 'M'
+        filex.dic["SIMULATION CONTROLS"]['OUTPUTS'] = 'OU'
+        filex.dic["SIMULATION CONTROLS"]['FNAME'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['OVVEW'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['SUMRY'] = 'Y'
+        filex.dic["SIMULATION CONTROLS"]['FROPT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['GROUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['CAOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['WAOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['NIOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['MIOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['DIOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['VBOSE'] = 0
+        filex.dic["SIMULATION CONTROLS"]['CHOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['OPOUT'] = 'N'
+        filex.dic["SIMULATION CONTROLS"]['PLANTING'] = 'PL'
+        filex.dic["SIMULATION CONTROLS"]['PFRST'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PLAST'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PH2OL'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PH2OU'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PH2OD'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PSTMX'] = -99
+        filex.dic["SIMULATION CONTROLS"]['PSTMN'] = -99
+        filex.dic["SIMULATION CONTROLS"]['IRRIGATION'] = 'IR'
+        filex.dic["SIMULATION CONTROLS"]['IMDEP'] = '30'
+        filex.dic["SIMULATION CONTROLS"]['ITHRL'] = '50'
+        filex.dic["SIMULATION CONTROLS"]['ITHRU'] = '100'
+        filex.dic["SIMULATION CONTROLS"]['IROFF'] = -99
+        filex.dic["SIMULATION CONTROLS"]['IMETH'] = 'IR004'
+        if manejo['Irrig_auto']:
+            filex.dic["SIMULATION CONTROLS"]['IRAMT'] = -99
+        else:
+            filex.dic["SIMULATION CONTROLS"]['IRAMT'] = manejo['Cant_irrig_auto']
+        filex.dic["SIMULATION CONTROLS"]['IREFF'] = 1
+        filex.dic["SIMULATION CONTROLS"]['NITROGEN'] = 'NI'
+        filex.dic["SIMULATION CONTROLS"]['NMDEP'] = -99
+        filex.dic["SIMULATION CONTROLS"]['NMTHR'] = -99
+        filex.dic["SIMULATION CONTROLS"]['NAMNT'] = -99
+        filex.dic["SIMULATION CONTROLS"]['NCODE'] = -99
+        filex.dic["SIMULATION CONTROLS"]['NAOFF'] = -99
+        filex.dic["SIMULATION CONTROLS"]['RESIDUES'] = 'RE'
+        filex.dic["SIMULATION CONTROLS"]['RIPCN'] = 100
+        filex.dic["SIMULATION CONTROLS"]['RTIME'] = -99
+        filex.dic["SIMULATION CONTROLS"]['RIDEP'] = 20
+        filex.dic["SIMULATION CONTROLS"]['HARVEST'] = 'HA'
+        filex.dic["SIMULATION CONTROLS"]['HFRST'] = 0
+        filex.dic["SIMULATION CONTROLS"]['HLAST'] = -99
+        filex.dic["SIMULATION CONTROLS"]['HPCNP'] = 100
+        filex.dic["SIMULATION CONTROLS"]['HPCNR'] = 0
 
+        # Escribir el documento FILEX en el directorio
         filex.escribir(os.path.join(simismo.directorio, 'TIKON.', simismo.cultivo.cód_cultivo, 'X'))
 
+        # Generar la carpetar DSSBatch necesaria para controlar DSSAT desde el "símbolo del sistema"
         simismo.gen_DSSBatch()
 
     def gen_DSSBatch(simismo):
