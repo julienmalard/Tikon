@@ -12,7 +12,23 @@ class Parcela(Coso):
     def __init__(simismo, suelos_común, variedades_común, redes_común, *args, **kwargs):
         simismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
                             "Área": (), "Surcos": (), "Long_surcos": (), 'Pendiente_orientación': '', 'Piedras': '',
-                            'Manejo': dict(fecha_siembra="", )
+                            'Fecha_init': '',
+                            'Manejo': dict(fecha_siembra="", Fecha_emergencia=[], Población_siembra=[],
+                                           Población_emerg=[], Método_siembra=[], Distribución_siembra=[],
+                                           Espacio_surcos=[], Dirrección_surcos=[], Profund_siembra=[],
+                                           Peso_material_sembrado=[], Edad_transplantaciones=[],
+                                           Temp_transplantación=[], Plantas_por_montículo=[], Eficiencia_irrig=[],
+                                           Profund_manejo_irrig=[], Hum_empiezo_irrig_auto=[], Hum_fin_irrig_auto=[],
+                                           Estadio_crec_fin_irrig=[], Método_irrig=[], Cantidad_por_irrig=[],
+                                           Fecha_abono=[], Material_abono=[], Método_app_abono=[], Profund_abono=[],
+                                           Abono_N=[], Abono_P=[], Abono_K=[], Abono_Ca=[], Abono_otro_conc=[],
+                                           Abono_otro_cód=[], Fecha_incorp_resid=[], Material_resid=[], Resid_N=[],
+                                           Resid_P=[], Resid_K=[], Resid_porcent_incorp=[], Resid_prodund_incorp=[],
+                                           Fecha_labranza=[], Herramienta_labranza=[], Profund_labranza=[],
+                                           Fecha_cosecha=[], Estadio_cosecha=[], Componente_cosecha=[],
+                                           Grupo_tamaño_cosecha=[], Porcent_cosecha=[], Irrig=True, Irrig_auto=True,
+                                           Cant_irrig_auto=(),
+                                           )
                             }
         simismo.suelos_común = suelos_común
         simismo.variedades_común = variedades_común
@@ -41,12 +57,12 @@ class Parcela(Coso):
         # Definir el cultivo y la red agroecológica
         simismo.red = Red(nombre=simismo.dic["RedAE"], carpeta=carpeta_redes, reinit=simismo.reinit)
         simismo.variedad = Variedad(nombre=simismo.dic["Variedad"], carpeta=carpeta_variedad,
-                                 reinit=simismo.reinit)
+                                    reinit=simismo.reinit)
         simismo.suelo = Suelo(nombre=simismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=simismo.reinit)
         simismo.cultivo = Cultivo(nombre=simismo.nombre + "_" + simismo.dic["Cultivo"], cultivo=simismo.cultivo,
-                               variedad=simismo.variedad, suelo=simismo.dic["Suelo"],
-                               meteo=simismo.dic["Meteo"], manejo=simismo.dic["Manejo"]
-                               )
+                                  variedad=simismo.variedad, suelo=simismo.dic["Suelo"],
+                                  meteo=simismo.dic["Meteo"], manejo=simismo.dic["Manejo"]
+                                  )
 
         # Poner a 0 los valores iniciales del cultivo y de los insectos
         simismo.estado_cultivo = {}
@@ -63,9 +79,10 @@ class Parcela(Coso):
             simismo.resultados[dato] = ()
         for insecto in simismo.insectos:
             simismo.resultados[insecto]["Emigración"] = [0]
-            simismo.resultados[insecto]["Imigración"] = [0]
+        simismo.resultados[insecto]["Imigración"] = [0]
 
-    # Esta función inicializa los modelos para la parcela
+        # Esta función inicializa los modelos para la parcela
+
     def ejec(simismo, fecha_init):
         # Una carpeta para guardar los resultados del modelo de cultivos
         carpeta_egr = os.path.join(simismo.carpeta, "documentos_mod_cul")

@@ -11,5 +11,3 @@ class Diario(Coso):
 
         super().__init__(*args, **kwargs)  # Esta variable se initializa como Coso
         simismo.ext = "cli"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
-
-
