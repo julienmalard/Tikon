@@ -1,35 +1,39 @@
-import subprocess, os
-import CULTIVO.DSSAT
+import subprocess
+import os
+import CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT as DSSAT
 
 
 class Cultivo(object):
     # Cada parámetro en "__init__" debe ser un objeto Python correspondiente
-    def __init__(self, nombre, cultivo, variedad, suelo, meteo, fecha_siembra, modelo=''):
-        self.nombre = nombre
-        self.cultivo = cultivo
-        self.variedad = variedad
-        self.suelo = suelo
-        self.meteo = meteo
-        self.fecha_init = fecha_siembra
-        self.modelo = modelo  # El modelo exterior que se utilizará para el cultivo
+    def __init__(simismo, nombre, cultivo, variedad, suelo, meteo, manejo, modelo=''):
+
+        simismo.dic_base = {}
+        simismo.nombre = nombre
+        simismo.cultivo = cultivo
+        simismo.variedad = variedad
+        simismo.suelo = suelo
+        simismo.meteo = meteo
+        simismo.manejo = manejo
+        simismo.modelo = modelo  # El modelo exterior que se utilizará para el cultivo
         # Para guardar los egresos del modelo de cultivo externo
-        self.egresos = {"raices": (), "hojas": (), "asim": (), "tallo": (), "semillas": (), "frutas": {},
-                        "nubes": (), "humrel": (), "lluvia": (), "tprom": (), "tmin": (), "tmax": (), "radsol": (),
-                        "tsuelo": (), "humsuelo": ()}
+        simismo.egresos = {"raices": (), "hojas": (), "asim": (), "tallo": (), "semillas": (), "frutas": {},
+                           "nubes": (), "humrel": (), "lluvia": (), "tprom": (), "tmin": (), "tmax": (), "radsol": (),
+                           "tsuelo": (), "humsuelo": ()}
         # Variables_suelos.csv contiene información sobre los modelos disponibles
-        self.modelos_disp = {}
+        simismo.modelos_disp = {}
         with open(os.path.join(os.getcwd(), "CULTIVO\\Modelos_pl.csv")) as d:
             for núm_línea, línea in enumerate(d):
                 if núm_línea == 0:
                     variables = línea.replace("\n", "").split(';')
                 else:
                     datos = línea.replace("\n", "").split(';')
-                    if datos[variables.index('Cultivo')] == self.cultivo:
+                    if datos[variables.index('Cultivo')] == simismo.cultivo:
                         mod_cul = datos[variables.index('Modelo')]
-                        self.modelos_disp[mod_cul] = {}
-                        self.modelos_disp[mod_cul]['Comanda'] = datos[variables.index('Comanda')]
-                        self.modelos_disp[mod_cul]['Programa'] = datos[variables.index('Programa')]
-                        self.modelos_disp[mod_cul]['Genotipo'] = datos[variables.index('Genotipo')]
+                        simismo.modelos_disp[mod_cul] = {}
+                        simismo.modelos_disp[mod_cul]['Comanda'] = datos[variables.index('Comanda')]
+                        simismo.modelos_disp[mod_cul]['Programa'] = datos[variables.index('Programa')]
+                        simismo.modelos_disp[mod_cul]['Genotipo'] = datos[variables.index('Genotipo')]
+                        simismo.modelos_disp[mod_cul]['Cód_cultivo'] = datos[variables.index('Cód_cultivo')]
 
     def ejec(self, fecha_init, carpeta):  # Este cree un sub-proceso con el modelo del cultivo
         # Si no hemos especificado un modelo de cultivo ya, escoger uno al hazar
@@ -41,13 +45,15 @@ class Cultivo(object):
         # Escoger el programa y la comanda apropiada para el modelo de cultivo escogido
         self.programa = self.modelos_disp[self.modelo]['Programa']
         self.comanda = self.modelos_disp[self.modelo]['Comanda']
+        self.cód_cultivo = self.modelos_disp[self.modelo]['Cód_cultivo']
 
         if not os.path.isdir(carpeta):
             os.makedirs(carpeta)
 
         # Crear las carpetas de ingresos y enviar la comanda de ejecución a la computadora
         if self.programa == "DSSAT":
-            CULTIVO.DSSAT.gen_ingresos(nombre=self.nombre, fecha_init=fecha_init, carpeta=carpeta, cultivo=self.cultivo,
+            dssat = DSSAT.Experimento(carpeta)
+            dssat.gen_ingresos(nombre=self.nombre, fecha_init=fecha_init, cultivo=self.cultivo,
                                        modelo=self.modelo, variedad=self.variedad, suelo=self.suelo, meteo=self.meteo)
             comanda = "C:\DSSAT45\\" + self.comanda + " B " + carpeta + "DSSBatch.v46"
         elif self.programa == "CropSyst":

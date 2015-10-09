@@ -1,5 +1,7 @@
 import os
-from CULTIVO.DSSAT.DSSAT import DocDssat
+
+from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
+
 
 # Objeto para representar documentos de typo FILEC de DSSAT (información de variedades de cultivos)
 class FileC(DocDssat):
@@ -9,7 +11,7 @@ class FileC(DocDssat):
         simismo.cultivo = cultivo
         simismo.modelo = modelo
         if len(simismo.dic) == 0:
-            simismo.dic = {"VAR#": "TIK" + simismo.nombre[0:2], "VRNAME": simismo.nombre[0:14], "ECO#": "", "CSDL": [],
+            simismo.dic = {"VAR#": "TIK" + simismo.nombre[0:3], "VRNAME": simismo.nombre[0:14], "ECO#": "", "CSDL": [],
                            "PPSEN": [], "EM-FL": [], "FL-SH": [], "FL-SD": [], "SD-PM": [], "FL-LF": [], "LFMAX": [],
                            "SLAVR": [], "SIZLF": [], "XFRT": [], "WTPSD": [], "SFDUR": [], "SDPDV": [], "PODUR": [],
                            "THRSH": [], "SDPRO": [], "SDLIP": [], "MG": [], "TM": [], "THVAR": [], "PL-EM": [],
