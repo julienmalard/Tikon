@@ -1,9 +1,9 @@
 import os
-from CULTIVO.DSSAT.fileX import DocDssat
+from CULTIVO.DSSAT.DSSAT import DocDssat
 
 
 # Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
-class FileX(DocDssat):
+class FileW(DocDssat):
     def __init__(simismo, dic="", *args, **kwargs):
         super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
         simismo.dic = dic
