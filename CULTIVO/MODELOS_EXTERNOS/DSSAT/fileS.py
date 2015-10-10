@@ -6,7 +6,6 @@ from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
 # Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
 class FileS(DocDssat):
     def __init__(simismo, dic="", *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
         simismo.dic = dic
 
         # Si no existe el documento de suelos especificos a Tikon, crearlo
@@ -35,6 +34,7 @@ class FileS(DocDssat):
             "SLPX": 5, "SLPT": 5, "SLPO": 5, "CACO3": 5, "SLAL": 5, "SLFE": 5, "SLMN": 5, "SLBS": 5, "SLPA": 5,
             "SLPB": 5, "SLKE": 5, "SLMG": 5, "SLNA": 5, "SLSU": 5, "SLEC": 5, "SLCA": 5
         }
+        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
 
     def leer(simismo, cod_suelo):
         # Los datos de suelos están combinados, con muchos en la misma carpeta.
