@@ -31,7 +31,7 @@ class Experimento(object):
                     for núm_línea, línea in enumerate(d):
                         if núm_línea == 0:
                             # La columna con los variables del modelo
-                            col = línea.replace("\n", "").split(';').index('DSSAT')
+                            col = línea.replace("\n", "").split(',').index('DSSAT')
                         else:
                             # Para cada línea que sigue, leer el variable DSSAT que corresponde con el variable TIKON
                             datos = línea.replace("\n", "").split(';')
@@ -51,8 +51,8 @@ class Experimento(object):
                 return False
 
             # Llenar el diccionario del documento basado en el diccionario del documento
-            for var_tikon in obj.dic:
-                documento.dic[conversiones[var_tikon]] = obj.dic[var_tikon]
+            for var in obj.dic:
+                documento.dic[conversiones[var]] = obj.dic[var]
             return documento
 
         # Crear objectos de documento DSSAT para la variedad, el suelo y el clima
