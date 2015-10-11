@@ -65,14 +65,16 @@ class FileC(DocDssat):
         for tipo_doc in [".cul", ".eco"]:
             esquema = documento[-2]
 
-            if tipo_doc == ".cul":
-                with open(esquema + "_CUL.txt", "r") as d:    # Abrir el patrón general para archivos .CUL
-                    nuevo_cultivo = d.readline()
-                    nuevo_cultivo += "\n"  # Terminar con una línea vacía para marcar el fin del documento
-            elif tipo_doc == ".eco":
-                with open(esquema + "_ECO.txt", "r") as d:    # Abrir el patrón general para archivos .ECO
-                    nuevo_cultivo = d.readline()
-                    nuevo_cultivo += "\n"  # Terminar con una línea vacía para marcar el fin del documento
+            with open('GENOTIPO.txt', 'r') as d:
+                if tipo_doc == ".cul":
+                    esquema += "_CUL.txt"
+                if tipo_doc == ".eco":
+                    esquema += '_ECO.txt'
+                doc = d.readlines()
+                for i in doc:
+                    if esquema in i:
+                        nuevo_cultivo = i[len(esquema) + 1:]
+                        nuevo_cultivo += "\n"  # Terminar con una línea vacía para marcar el fin del documento
 
             nuevo_cultivo.format(**simismo.dic)
 

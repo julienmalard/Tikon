@@ -11,3 +11,10 @@ class Diario(Coso):
 
         super().__init__(*args, **kwargs)  # Esta variable se initializa como Coso
         simismo.ext = "cli"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+
+class Clima(Coso):
+    def __init__(simismo, *args, **kwargs):
+        # El diccionario de los datos para cada clima
+        simismo.dic_base = dict(INSI="", LAT=(), LONG=(), ELEV=(), TAV=())
+        super().__init__(*args, **kwargs)  # Esta variable se initializa como
+        simismo.ext = "vrd"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
