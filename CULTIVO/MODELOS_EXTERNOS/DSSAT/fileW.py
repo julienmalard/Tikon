@@ -3,7 +3,7 @@ import os
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
 
 
-# Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
+# Objeto para representar documentos de typo fileW (meteorología diaria) de DSSAT
 class FileW(DocDssat):
     def __init__(simismo, dic="", *args, **kwargs):
         super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
@@ -40,7 +40,7 @@ class FileW(DocDssat):
             print("Error: El código de estación de clima no se ubica en la base de datos de DSSAT.")
             return False
 
-    # Esta función automáticamente escribe los datos del suelo en el documento "Python.sol". No excepciones.
+    # Esta función escribe los datos de meteo en la base de datos de meteo de DSSAT
     def escribir(simismo):
         cod_clim = simismo.dic["INSI"] + "TKON"
 
@@ -48,18 +48,18 @@ class FileW(DocDssat):
             if not len(simismo.dic[i]):
                 simismo.dic[i] = ["-99"]
 
-        with open("FILEW.txt", "r") as d:    # Abrir el patrón general para archivos FILES
-            patrón = d.readlines()
-        patrón.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
+        with open("FILEW.txt", "r") as d:    # Abrir el esquema general para archivos FILEW
+            esquema = d.readlines()
+        esquema.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
-        patrón = simismo.encodar(patrón)
-        patrón = ''.join(patrón)  # Lo que tenemos que añadir a la carpeta Python.sol
+        esquema = simismo.encodar(esquema)
+        esquema = ''.join(esquema)  # Lo que tenemos que escribir
 
         # Salvar la carpeta FILEW en DSSAT46/Weather
         with open(os.path.join(simismo.dir_DSSAT, 'Weather', cod_clim, '.WTH'), "w") as d:
-            d.write(''.join(patrón))
+            d.write(''.join(esquema))
 
-    # Esta funcción convierte una suelo de un documento FILEW en diccionario Python.
+    # Esta funcción convierte datos de meteo de un documento FILEW en diccionario Python.
     def decodar(simismo, doc):
         # Encuentra la ubicación del principio y del fin de cada sección
         for línea in doc:

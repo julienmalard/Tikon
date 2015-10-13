@@ -21,7 +21,7 @@ class Cultivo(object):
                            "tsuelo": (), "humsuelo": ()}
         # Variables_suelos.csv contiene información sobre los modelos disponibles
         simismo.modelos_disp = {}
-        with open(os.path.join(os.getcwd(), "CULTIVO\\Modelos_pl.csv")) as d:
+        with open(os.path.join('CULTIVO', 'MODELOS_EXTERNOS', 'Modelos_pl.csv')) as d:
             for núm_línea, línea in enumerate(d):
                 if núm_línea == 0:
                     variables = línea.replace("\n", "").split(';')
@@ -35,34 +35,34 @@ class Cultivo(object):
                         simismo.modelos_disp[mod_cul]['Genotipo'] = datos[variables.index('Genotipo')]
                         simismo.modelos_disp[mod_cul]['Cód_cultivo'] = datos[variables.index('Cód_cultivo')]
 
-    def ejec(self, fecha_init, carpeta):  # Este cree un sub-proceso con el modelo del cultivo
+    def ejec(simismo, fecha_init, carpeta):  # Este cree un sub-proceso con el modelo del cultivo
         # Si no hemos especificado un modelo de cultivo ya, escoger uno al hazar
-        if len(self.modelo):
-            if self.cultivo in self.modelos_disp:
-                self.modelo = list(self.modelos_disp.keys())[0]
+        if len(simismo.modelo):
+            if simismo.cultivo in simismo.modelos_disp:
+                simismo.modelo = list(simismo.modelos_disp.keys())[0]
             else:
-                return "No existe modelo de cultivo válido para cultivo" + self.cultivo + "."
+                return "No existe modelo de cultivo válido para cultivo" + simismo.cultivo + "."
         # Escoger el programa y la comanda apropiada para el modelo de cultivo escogido
-        self.programa = self.modelos_disp[self.modelo]['Programa']
-        self.comanda = self.modelos_disp[self.modelo]['Comanda']
-        self.cód_cultivo = self.modelos_disp[self.modelo]['Cód_cultivo']
+        simismo.programa = simismo.modelos_disp[simismo.modelo]['Programa']
+        simismo.comanda = simismo.modelos_disp[simismo.modelo]['Comanda']
+        simismo.cód_cultivo = simismo.modelos_disp[simismo.modelo]['Cód_cultivo']
 
         if not os.path.isdir(carpeta):
             os.makedirs(carpeta)
 
         # Crear las carpetas de ingresos y enviar la comanda de ejecución a la computadora
-        if self.programa == "DSSAT":
+        if simismo.programa == "DSSAT":
             dssat = DSSAT.Experimento(carpeta)
-            dssat.gen_ingresos(nombre=self.nombre, fecha_init=fecha_init, cultivo=self.cultivo,
-                                       modelo=self.modelo, variedad=self.variedad, suelo=self.suelo, meteo=self.meteo)
-            comanda = "C:\DSSAT45\\" + self.comanda + " B " + carpeta + "DSSBatch.v46"
-        elif self.programa == "CropSyst":
+            dssat.gen_ingresos(nombre=simismo.nombre, fecha_init=fecha_init, cultivo=simismo.cultivo,
+                                       modelo=simismo.modelo, variedad=simismo.variedad, suelo=simismo.suelo, meteo=simismo.meteo)
+            comanda = "C:\DSSAT46\\" + simismo.comanda + " B " + carpeta + "DSSBatch.v46"
+        elif simismo.programa == "CropSyst":
             # Sería chévere incluir un módulo para CropSyst, un dia, en el futuro...
             return "Falta un módulo para CropSyst."
         else:
             return "Modelo de cultivo no reconocido."
         
-        self.proceso = subprocess.Popen(comanda,
+        simismo.proceso = subprocess.Popen(comanda,
                                         shell=True,
                                         stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,

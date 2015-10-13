@@ -1,10 +1,12 @@
 import os
+import datetime
 
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileX import FileX
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileS import FileS
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileW import FileW
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileC import FileC
-import datetime
+
+
 
 # Objeto general para representar documentos de DSSAT (suelos, variedades, experimentos, etc.)
 class DocDssat(object):
@@ -51,14 +53,14 @@ class Experimento(object):
                 return False
 
             # Llenar el diccionario del documento basado en el diccionario del documento
-            for var in obj.dic:
-                documento.dic[conversiones[var]] = obj.dic[var]
+            for var_tikon in obj.dic:
+                documento.dic[conversiones[var_tikon]] = obj.dic[var_tikon]
             return documento
 
         # Crear objectos de documento DSSAT para la variedad, el suelo y el clima
         filec = convertir(simismo.variedad, 'Variables_variedades.csv')
         files = convertir(simismo.suelo, 'Variables_suelo.csv')
-        filew = convertir(simismo.meteo, 'Variables_clima.csv')
+        filew = convertir(simismo.meteo, 'Variables_meteo.csv')
 
         # Escribir los documentos de ingresos DSSAT
         filec.escribir()
@@ -100,9 +102,9 @@ class Experimento(object):
         for sección in ["PLANTING DETAILS", "FERTILIZERS (INORGANIC)", "RESIDUES AND ORGANIC FERTILIZER",
                         "IRRIGATION AND WATER MANAGEMENT", "TILLAGE", "HARVEST DETAILS"]:
             conv_DSSAT = convertir(filex.dic[sección], 'Variables_manejo.csv')
-            for var_tikon in conv_DSSAT:
-                if var_tikon in manejo:
-                    filex.dic["PLANTING DETAILS"][conv_DSSAT[var_tikon]] = manejo[var_tikon]
+            for var in conv_DSSAT:
+                if var in manejo and conv_DSSAT[var] in filex.dic[sección]:
+                    filex.dic[sección][conv_DSSAT[var]] = manejo[var]
 
         # Areglar las controles de simulación
         filex.dic["SIMULATION CONTROLS"]['GENERAL'] = 'GE'

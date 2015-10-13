@@ -1,0 +1,16 @@
+*CLIMATE : {[SITE]:<50}
+@ INSI      LAT     LONG  ELEV   TAV   AMP  SRAY  TMXY  TMNY  RAIY
+ {[INSI]:>5} {[LAT]:>8} {[LONG]:>8} {[ELEV]}:>5 {[TAV]:>5} {[AMP]:>5} {[SRAY]:>5} {[TMXY]:>5} {[TMNY]:>5} {[RAIY]:>5}
+@START  DURN  ANGA  ANGB REFHT WNDHT SOURCE
+ {[START]:>5} {[DURN]:>5} {[ANGA]:>5} {[ANGB]:>5} {[REFHT]:>5} {[WNDHT]:>5} {[SOURCE]:<20}
+@ GSST  GSDU
+     1   365
+
+*MONTHLY AVERAGES
+@MONTH  SAMN  XAMN  NAMN  RTOT  RNUM  SHMN  AMTH  BMTH
+ {[MONTH]:>5}{[SAMN]:>5}{[XAMN]:>5}{[NAMN]:>5}{[RTOT]:>5}{[RNUM]:>5}{[SHMN]:>5}{[AMTH]:>5}{[BMTH]:>5}
+
+*WGEN PARAMETERS
+@  MTH  SDMN  SDSD  SWMN  SWSD  XDMN  XDSD  XWMN  XWSD  NAMN  NASD ALPHA  RTOT   PDW  RNUM
+ {[MTH]:>5} {[SDMN]:>5} {[SDSD]:>5} {[SWMN]:>5} {[SWSD]:>5} {[XDMN]:>5} {[XDSD]:>5} {[XWMN]:>5} {[XWSD]:>5} {[NAMN]:>5} {[NASD]:>5} {[ALPHA]:>5} {[RTOT]:>5} {[PDW]:>5} {[RNUM]:>5}
+
