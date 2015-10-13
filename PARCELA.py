@@ -79,7 +79,7 @@ class Parcela(Coso):
             simismo.resultados[dato] = ()
         for insecto in simismo.insectos:
             simismo.resultados[insecto]["Emigración"] = [0]
-        simismo.resultados[insecto]["Imigración"] = [0]
+            simismo.resultados[insecto]["Imigración"] = [0]
 
         # Esta función inicializa los modelos para la parcela
 

@@ -1,6 +1,6 @@
 from COSO import Coso
 from PARCELA import Parcela
-import Fechas
+import datetime as fecha
 import math, os, shutil
 
 

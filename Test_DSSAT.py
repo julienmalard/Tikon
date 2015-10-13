@@ -4,7 +4,7 @@ import subprocess
 # subprocess.call("C:\DSSAT45\DSCSM046.EXE MZCER046 B Resultados_DSSAT\DSSBatch.v45")
 # subprocess.call("F:\Plagas_prueba.txt")
 
-dssat = subprocess.Popen("C:\DSSAT45\DSCSM046.EXE MZCER046 B DSSBatch.v45",
+dssat = subprocess.Popen("C:\DSSAT46\DSCSM046.EXE MZCER046 B DSSBatch.v45",
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,

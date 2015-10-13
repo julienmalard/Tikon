@@ -19,8 +19,8 @@ class Suelo(Coso):
 
 # Pruebas:
 prueba = Suelo("suelo", {'Conductividad': [0.2, 0.3, 0.4]})
-print(prueba.escribir("C:\DSSAT45\Soil"))
+print(prueba.escribir("C:\DSSAT46\Soil"))
 print(prueba.dic)
 prueba.dic = {}
-prueba.leer("C:\DSSAT45\Soil")
+prueba.leer("C:\DSSAT46\Soil")
 print(prueba.dic)
