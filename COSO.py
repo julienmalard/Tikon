@@ -1,5 +1,6 @@
 import os, shutil
 # import Bayesiano.CALIB
+import json
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
 Tikon que representa un aspecto físico del ambiente y que tiene datos. Incluye
@@ -7,7 +8,7 @@ paisajes parcelas, variedades de cultivos, suelos, etc. Todos tienen la misma
 lógica para leer y escribir sus datos en carpetas externas, tanto como para la
 su calibración.
 """
-import json
+
 
 class Coso(object):
     def __init__(simismo, nombre, carpeta="", reinit=False, dic={}, dic_incert={}):
@@ -35,15 +36,15 @@ class Coso(object):
                 simismo.leer(simismo.documento)
 
     # Función para escribir los datos a un documento externo
-    def escribir(self, documento=""):
+    def escribir(simismo, documento=""):
         if not len(documento):
-            documento = self.documento
+            documento = simismo.documento
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
-        if self.ext not in documento.lower():
-            if self.nombre not in documento:
-                documento += "\\" + self.nombre + self.ext
+        if simismo.ext not in documento.lower():
+            if simismo.nombre not in documento:
+                documento += "\\" + simismo.nombre + simismo.ext
             else:
-                documento += self.ext
+                documento += simismo.ext
         # Para guardar el diccionario de incertidumbre:
         documento_incert = documento + "i"
 
@@ -51,13 +52,13 @@ class Coso(object):
         # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
         try:
             with open(documento, mode="w") as d:
-                json.dump(self.dic, d)
+                json.dump(simismo.dic, d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para guadar datos."
 
         try:
             with open(documento_incert, mode="w") as d:
-                json.dump(self.dic_incert, d)
+                json.dump(simismo.dic_incert, d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
 
@@ -81,9 +82,9 @@ class Coso(object):
 
         try:
             with open(documento_incert, mode="r") as d:
-                simismo.dic = json.load(d)
+                simismo.dic_incert = json.load(d)
         except IOError:
-            return "Documento " + documento + " no se pudo abrir para leer datos."
+            return "Documento " + documento + " no se pudo abrir para leer datos de incertidumbre."
 
     def inic_calibr(simismo, datos):
         # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario

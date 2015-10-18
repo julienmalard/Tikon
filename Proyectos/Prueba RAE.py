@@ -1,5 +1,5 @@
-from PLAGAS.REDES import *
-from PLAGAS.INSECTOS import *
+from REDES.REDES import *
+from REDES.INSECTOS import *
 
 # Inicializar los insectos en la red
 குளவி = Insecto("குளவி", dic={"ciclo_vida": "simple"})
@@ -50,7 +50,7 @@ print(கருவேப்பிலை.poblaciones)
 # gráfico.add('இலைசுருட்டுப்புழு', கருவேப்பிலை.poblaciones["இலைசுருட்டுப்புழு"]["Adulto"])
 # gráfico.add('குளவி', கருவேப்பிலை.poblaciones["குளவி"]["Adulto"])
 # gráfico.add('அசிலிடெ', கருவேப்பிலை.poblaciones["அசிலிடெ"]["Adulto"])
-# gráfico.render_to_file('F:\Julien\PhD\Python\PLAGAS\கருவேப்பிலைப் பூச்சிகள்.svg')
+# gráfico.render_to_file('F:\Julien\PhD\Python\REDES\கருவேப்பிலைப் பூச்சிகள்.svg')
 
 # Crear la red agroecológica
 கருவேப்பிலை_௨ = Red("கறிவேப்பிலை", dic=dict(Insectos={"அசிலிடெ": அசிலிடெ, "குளவி": குளவி,
@@ -79,4 +79,4 @@ print(கருவேப்பிலை_௨.poblaciones)
 # gráfico.add('இலைசுருட்டுப்புழு', கருவேப்பிலை_௨.poblaciones["இலைசுருட்டுப்புழு"]["Adulto"])
 # gráfico.add('குளவி', கருவேப்பிலை_௨.poblaciones["குளவி"]["Adulto"])
 # gráfico.add('அசிலிடெ', கருவேப்பிலை_௨.poblaciones["அசிலிடெ"]["Adulto"])
-# gráfico.render_to_file('F:\Julien\PhD\Python\PLAGAS\கருவேப்பிலைப் பூச்சிகள்_௨.svg')
+# gráfico.render_to_file('F:\Julien\PhD\Python\REDES\கருவேப்பிலைப் பூச்சிகள்_௨.svg')

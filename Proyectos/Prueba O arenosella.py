@@ -1,6 +1,6 @@
 print("Importando dependencias...")
-from PLAGAS.REDES import *
-from PLAGAS.INSECTOS import *
+from REDES.REDES import *
+from REDES.INSECTOS import *
 # from pymc import *
 # import numpy as np
 # from Proyectos.Prueba_incert import *

@@ -259,7 +259,7 @@ class Fase(Coso):
 
         elif tipo_ecuaciones == "capacidad_de_carga":
             if simismo.ciclo_vida is not "simple":
-                print('Error: Tipo de ecuación "Capacidad de Carga" para insecto " + self.nombre + '
+                print('Error: Tipo de ecuación "Capacidad de Carga" para insecto ' + simismo.nombre +
                       'no está disponible para insectos con ciclos de vida complejos.')
             else:
                 coefs = simismo.dic["coefs"]

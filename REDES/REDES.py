@@ -1,5 +1,5 @@
 from COSO import Coso
-from PLAGAS.INSECTOS import Insecto
+from REDES.INSECTOS import Insecto
 
 
 # Esta clase representa una red agroecológica

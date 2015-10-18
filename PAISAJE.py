@@ -1,14 +1,16 @@
+import os
+import math
+import datetime as ft
+
 from COSO import Coso
 from PARCELA import Parcela
-import datetime as fecha
-import math, os, shutil
 
 
 class Paisaje(Coso):
     def __init__(simismo, parcelas_común=False, variedades_común=True, suelos_común=True, redes_común=True,
                  *args, **kwargs):
         simismo.dic_base = {"Parcelas": [], "Cultivos": [], "Variedades": [], "Long": [], "Lat": [],
-                         "Fechas_siembra": [], "Suelos": [], "RedAE": (), "Meteo": ()}
+                            "Fechas_siembra": [], "Suelos": [], "RedAE": (), "Meteo": ()}
         simismo.ext = "pasj"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
         super().__init__(*args, **kwargs)
         simismo.parcelas_común = parcelas_común
@@ -28,17 +30,18 @@ class Paisaje(Coso):
     def leer_documento(simismo, documento):
         try:
             with open(documento, mode="r") as d:
-                for num_lín, línea in enumerate(d):
-                    if num_lín == 0:
-                        variables = línea.split(',')
-                    else:
-                        if len(línea):
-                            valores = línea.split(',')
-                            for posición, variable in enumerate(variables):
-                                if variable in simismo.dic:  # Si el variable corresponde a un variable en el diccionario
-                                    simismo.dic[variable][num_lín] = valores[posición].replace("\n", "")
+                doc = d.readlines()
         except IOError:
             return "Carpeta " + documento + " no se pudo abrir."
+
+        variables = doc[0].split(',')
+        for num_lín, línea in enumerate(doc[1:]):
+            if len(línea):
+                valores = línea.split(',')
+                for posición, variable in enumerate(variables):
+                    # Si el variable corresponde a un variable en el diccionario
+                    if variable in simismo.dic:
+                        simismo.dic[variable][num_lín] = valores[posición].replace("\n", "")
 
     # Esta función toma el diccionario (listas) del paisaje y dinámicamente cree objetos Python para cada uno.
     def init(simismo):
@@ -51,20 +54,19 @@ class Paisaje(Coso):
             carpeta_parcelas = simismo.carpeta
         # Crear los objectos de parcelas para cada parcela en el paisaje
         for num_parcela, parcela in enumerate(simismo.dic["Parcelas"]):
-            simismo.parcelas[parcela] = Parcela(nombre=parcela, carpeta=os.path.join(carpeta_parcelas, parcela),
-                                             reinit=simismo.reinit, redes_común=simismo.redes_común,
-                                             suelos_común=simismo.suelos_común, variedades_común=simismo.variedades_común,
-                                             dic={"Suelo": simismo.dic["Suelos"][num_parcela],
-                                                  "Cultivo": simismo.dic["Cultivos"][num_parcela],
-                                                  "Variedad": simismo.dic["Variedades"][num_parcela],
-                                                  "Meteo": simismo.dic["Meteo"],
-                                                  "RedAE": simismo.dic["RedAE"],
-                                                  "Long": simismo.dic["Long"][num_parcela],
-                                                  "Lat": simismo.dic["Lat"][num_parcela]},
-                                             )
+            simismo.parcelas[parcela] = \
+                Parcela(nombre=parcela, carpeta=os.path.join(carpeta_parcelas, parcela),
+                        reinit=simismo.reinit, redes_común=simismo.redes_común,
+                        suelos_común=simismo.suelos_común, variedades_común=simismo.variedades_común,
+                        dic={"Suelo": simismo.dic["Suelos"][num_parcela],
+                             "Cultivo": simismo.dic["Cultivos"][num_parcela],
+                             "Variedad": simismo.dic["Variedades"][num_parcela], "Meteo": simismo.dic["Meteo"],
+                             "RedAE": simismo.dic["RedAE"], "Long": simismo.dic["Long"][num_parcela],
+                             "Lat": simismo.dic["Lat"][num_parcela]}
+                        )
 
     def simul(simismo, fecha_init, tiempo_simul, paso):  # fecha_init tiene que ser del formato AAAAMMDD
-        fecha = Fechas.Fecha(díaaño=fecha_init)
+        fecha = fecha_init
         for parcela in simismo.parcelas:
             parcela.ejec(fecha_init)
         for tiempo in range(0, tiempo_simul):
@@ -85,7 +87,7 @@ class Paisaje(Coso):
                             # const_migr podría modificarse para ser una funcción de las dos parcelas en cuestión.
                             dist = parcela.dist[otra_parcela]
                             const_migr = parcela.RedAE.insecto.dic["const_migr"]
-                            migración = parcela.plagas[insecto] * const_migr * (1/dist)**2
+                            migración = parcela.plagas[insecto] * const_migr * (1 / dist) ** 2
                             parcela.emigración[insecto] += migración
                             otra_parcela.imigración[insecto] += migración
 

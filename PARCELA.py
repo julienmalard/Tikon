@@ -1,7 +1,7 @@
 from COSO import Coso
 from CULTIVO.CULTIVO import Cultivo
 from CULTIVO.SUELO import Suelo
-from PLAGAS.REDES import Red
+from REDES.REDES import Red
 from CULTIVO.VARIEDAD import Variedad
 import os
 
@@ -61,7 +61,7 @@ class Parcela(Coso):
         simismo.suelo = Suelo(nombre=simismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=simismo.reinit)
         simismo.cultivo = Cultivo(nombre=simismo.nombre + "_" + simismo.dic["Cultivo"], cultivo=simismo.cultivo,
                                   variedad=simismo.variedad, suelo=simismo.dic["Suelo"],
-                                  meteo=simismo.dic["Meteo"], manejo=simismo.dic["Manejo"]
+                                  meteo=simismo.dic["Meteo"], parcela=simismo.dic
                                   )
 
         # Poner a 0 los valores iniciales del cultivo y de los insectos
@@ -83,11 +83,11 @@ class Parcela(Coso):
 
         # Esta función inicializa los modelos para la parcela
 
-    def ejec(simismo, fecha_init):
+    def ejec(simismo):
         # Una carpeta para guardar los resultados del modelo de cultivos
         carpeta_egr = os.path.join(simismo.carpeta, "documentos_mod_cul")
         # El modelo del cultivo define el tiempo para la simulación:
-        simismo.cultivo.ejec(fecha_init, carpeta=carpeta_egr)
+        simismo.cultivo.ejec(carpeta=carpeta_egr)
         # El modelo de plagas sigue mientras hay un modelo de cultivo activo
         simismo.red = eval(simismo.dic["RedAE"])
         simismo.resultados["Día"] = [0]
