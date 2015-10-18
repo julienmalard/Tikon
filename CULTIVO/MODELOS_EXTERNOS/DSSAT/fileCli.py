@@ -1,21 +1,18 @@
 import os
 
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
+from CULTIVO.Controles import dir_DSSAT
 
 
 # Objeto para representar documentos de datos de clima mensuales de DSSAT
-class FileCli(DocDssat):
-    def __init__(simismo, dic="", *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
-        simismo.dic = dic
+class FileCli(object):
+    def __init__(simismo):
 
-        if len(simismo.dic) == 0:
-            simismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [], "SPRAY": [],
-                           "TMXY": [], "TMNY": [], "RAIY": [], "START": [], "DURN": [], "ANGA": [], "ANGB": [],
-                           "REFHT": [], "WNDHT": [], "SOURCE": [], "GSST": [], "GSDU": [], "MONTH": [], "SAMN": [],
-                           "XAMN": [], "NAMN": [], "RTOT": [], "RNUM": [], "SHMN": [], "AMTH": [], "BMTH": [],
-                           "MTH": [], "SDMN": [], "SDSD": [], "SWMN": [], "SWSD": [], "XDMN": [], "XDSD": [],
-                           "XWMN": [], "XWSD": [], "NASD": [], "ALPHA": [], "PDW": []}
+        simismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [], "SPRAY": [],
+                       "TMXY": [], "TMNY": [], "RAIY": [], "START": [], "DURN": [], "ANGA": [], "ANGB": [],
+                       "REFHT": [], "WNDHT": [], "SOURCE": [], "GSST": [], "GSDU": [], "MONTH": [], "SAMN": [],
+                       "XAMN": [], "NAMN": [], "RTOT": [], "RNUM": [], "SHMN": [], "AMTH": [], "BMTH": [],
+                       "MTH": [], "SDMN": [], "SDSD": [], "SWMN": [], "SWSD": [], "XDMN": [], "XDSD": [],
+                       "XWMN": [], "XWSD": [], "NASD": [], "ALPHA": [], "PDW": []}
 
         # Lista del tamaño (en carácteres) de cada variable
         simismo.prop_vars = {
@@ -35,9 +32,9 @@ class FileCli(DocDssat):
 
         encontrado = False
 
-        for doc_clima in os.listdir(os.path.join(simismo.dir_DSSAT, 'Weather', 'Climate')):
+        for doc_clima in os.listdir(os.path.join(dir_DSSAT, 'Weather', 'Climate')):
             if doc_clima.upper().endswith(".CLI") and cod_clima.upper() in doc_clima.upper():
-                with open(os.path.join(simismo.dir_DSSAT, 'Weather', 'Climate', doc_clima)) as d:
+                with open(os.path.join(dir_DSSAT, 'Weather', 'Climate', doc_clima)) as d:
                     doc = d.readlines()
                     simismo.decodar(doc)
                 encontrado = True
@@ -63,7 +60,7 @@ class FileCli(DocDssat):
         esquema = ''.join(esquema)  # Lo que tenemos que escribir
 
         # Salvar la carpeta FILECli en DSSAT46/Weather/Climate
-        with open(os.path.join(simismo.dir_DSSAT, 'Weather', 'Clima', cod_clim, '.CLI'), "w") as d:
+        with open(os.path.join(dir_DSSAT, 'Weather', 'Clima', cod_clim, '.CLI'), "w") as d:
             d.write(''.join(esquema))
 
     # Esta funcción convierte datos de clima de un documento FILECli de DSSAT en diccionario Python.

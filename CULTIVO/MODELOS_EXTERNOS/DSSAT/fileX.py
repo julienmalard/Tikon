@@ -1,88 +1,83 @@
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
 import os
 
 
 # Objeto para representar documentos de typo FILEX de DSSAT (información de simulación)
-class FileX(DocDssat):
+class FileX(object):
+    def __init__(simismo):
 
-    def __init__(simismo, dic="", *args, **kwargs):
-        simismo.dic = dic
-        if len(simismo.dic) == 0:
-            simismo.dic = {"EXP.DETAILS": "",
-                           "GENERAL": {"ADDRESS": [], "PEOPLE": [], "SITE": [], "PAREA": [], "PRNO": [], "PLEN": [],
-                                       "PLDR": [], "PLSP": [], "PLAY": [],
-                                       "HAREA": [], "HRNO": [], "HLEN": [], "HARM": [], "NOTES": []
-                                       },
-                           "CULTIVARS": {"CR": [], "INGENO": [], "CNAME": []},
-                           "TREATMENTS": {"R": [], "O": [], "C": [], "TNAME": [], "CU": [], "FL": [], "SA": [],
-                                          "IC": [], "MP": [], "MI": [], "MF": [], "MR": [], "MC": [], "MT": [],
-                                          "ME": [], "MH": [], "SM": []
-                                          },
-                           "FIELDS": {"ID_FIELD": [], "WSTA": [], "FLSA": [], "FLOB": [], "FLDT": [], "FLDD": [],
-                                      "XCRD": [], "YCRD": [], "ELEV": [], "AREA": [], "SLEN": [], "FLWR": [],
-                                      "SLAS": [], "FLHST": [], "FHDUR": [], "FLDS": [], "FLST": [], "SLTX": [],
-                                      "SLDP": [], "ID_SOIL": [], "FLNAME": []
+        simismo.dic = {"EXP.DETAILS": "",
+                       "GENERAL": {"ADDRESS": [], "PEOPLE": [], "SITE": [], "PAREA": [], "PRNO": [], "PLEN": [],
+                                   "PLDR": [], "PLSP": [], "PLAY": [],
+                                   "HAREA": [], "HRNO": [], "HLEN": [], "HARM": [], "NOTES": []
+                                   },
+                       "CULTIVARS": {"CR": [], "INGENO": [], "CNAME": []},
+                       "TREATMENTS": {"R": [], "O": [], "C": [], "TNAME": [], "CU": [], "FL": [], "SA": [],
+                                      "IC": [], "MP": [], "MI": [], "MF": [], "MR": [], "MC": [], "MT": [],
+                                      "ME": [], "MH": [], "SM": []
                                       },
-                           "SOIL ANALYSIS": {"SADAT": [], "SMHB": [], "SMPX": [], "SMKE": [], "SANAME": [], "SABL": [],
-                                             "SADM": [], "SAOC": [], "SANI": [], "SAPHW": [], "SAPHB": [], "SAPX": [],
-                                             "SAKE": [], "SASC": []
-                                             },
-                           "INITIAL CONDITIONS": {"PCR": [], "ICDAT": [], "ICRT": [], "ICND": [], "ICRN": [],
-                                                  "ICRE": [], "ICWD": [], "ICRES": [], "ICREN": [], "ICREP": [],
-                                                  "ICRIP": [], "ICRID": [], "ICNAME": [],
-                                                  "ICBL": [[]], "SH2O": [[]], "SNH4": [[]], "SNO3": [[]]
-                                                  },
-                           "PLANTING DETAILS": {"PDATE": [], "EDATE": [], "PPOP": [], "PPOE": [], "PLME": [],
-                                                "PLDS": [], "PLRS": [], "PLRD": [], "PLDP": [], "PLWT": [], "PAGE": [],
-                                                "PENV": [], "PLPH": [], "SPRL": [], "PLNAME": []
-                                                },
-                           "IRRIGATION AND WATER MANAGEMENT": {"EFIR": [], "IDEP": [], "ITHR": [], "IEPT": [],
-                                                               "IOFF": [], "IAME": [], "IAMT": [], "IRNAME": [],
-                                                               "IDATE": [], "IROP": [], "IRVAL": []
-                                                               },
-                           "FERTILIZERS (INORGANIC)": {"FDATE": [], "FMCD": [], "FACD": [], "FDEP": [], "FAMN": [],
-                                                       "FAMP": [], "FAMK": [], "FAMC": [], "FAMO": [], "FOCD": [],
-                                                       "FERNAME": []
-                                                       },
-                           "RESIDUES AND ORGANIC FERTILIZER": {"RDATE": [], "RCOD": [], "RAMT": [], "RESN": [],
-                                                               "RESP": [], "RESK": [], "RINP": [], "RDEP": [],
-                                                               "RMET": [], "RENAME": []
-                                                               },
-                           "CHEMICAL APPLICATIONS": {"CDATE": [], "CHCOD": [], "CHAMT": [], "CHME": [], "CHDEP": [],
-                                                     "CHT": [], "CHNAME": []
+                       "FIELDS": {"ID_FIELD": [], "WSTA": [], "FLSA": [], "FLOB": [], "FLDT": [], "FLDD": [],
+                                  "XCRD": [], "YCRD": [], "ELEV": [], "AREA": [], "SLEN": [], "FLWR": [],
+                                  "SLAS": [], "FLHST": [], "FHDUR": [], "FLDS": [], "FLST": [], "SLTX": [],
+                                  "SLDP": [], "ID_SOIL": [], "FLNAME": []
+                                  },
+                       "SOIL ANALYSIS": {"SADAT": [], "SMHB": [], "SMPX": [], "SMKE": [], "SANAME": [], "SABL": [],
+                                         "SADM": [], "SAOC": [], "SANI": [], "SAPHW": [], "SAPHB": [], "SAPX": [],
+                                         "SAKE": [], "SASC": []
+                                         },
+                       "INITIAL CONDITIONS": {"PCR": [], "ICDAT": [], "ICRT": [], "ICND": [], "ICRN": [],
+                                              "ICRE": [], "ICWD": [], "ICRES": [], "ICREN": [], "ICREP": [],
+                                              "ICRIP": [], "ICRID": [], "ICNAME": [],
+                                              "ICBL": [[]], "SH2O": [[]], "SNH4": [[]], "SNO3": [[]]
+                                              },
+                       "PLANTING DETAILS": {"PDATE": [], "EDATE": [], "PPOP": [], "PPOE": [], "PLME": [],
+                                            "PLDS": [], "PLRS": [], "PLRD": [], "PLDP": [], "PLWT": [], "PAGE": [],
+                                            "PENV": [], "PLPH": [], "SPRL": [], "PLNAME": []
+                                            },
+                       "IRRIGATION AND WATER MANAGEMENT": {"EFIR": [], "IDEP": [], "ITHR": [], "IEPT": [],
+                                                           "IOFF": [], "IAME": [], "IAMT": [], "IRNAME": [],
+                                                           "IDATE": [], "IROP": [], "IRVAL": []
+                                                           },
+                       "FERTILIZERS (INORGANIC)": {"FDATE": [], "FMCD": [], "FACD": [], "FDEP": [], "FAMN": [],
+                                                   "FAMP": [], "FAMK": [], "FAMC": [], "FAMO": [], "FOCD": [],
+                                                   "FERNAME": []
+                                                   },
+                       "RESIDUES AND ORGANIC FERTILIZER": {"RDATE": [], "RCOD": [], "RAMT": [], "RESN": [],
+                                                           "RESP": [], "RESK": [], "RINP": [], "RDEP": [],
+                                                           "RMET": [], "RENAME": []
+                                                           },
+                       "CHEMICAL APPLICATIONS": {"CDATE": [], "CHCOD": [], "CHAMT": [], "CHME": [], "CHDEP": [],
+                                                 "CHT": [], "CHNAME": []
+                                                 },
+                       "TILLAGE": {"TL": [], "TDATE": [], "TIMPL": [], "TDEP": [], "TNAME": []},
+                       "ENVIRONMENT MODIFICATIONS": {"ODATE": [], "EDAY": [], "ERAD": [], "EMAX": [], "EMIN": [],
+                                                     "ERAIN": [], "ECO2": [], "EDEW": [], "EWIND": [],
+                                                     "ENVNAME": []
                                                      },
-                           "TILLAGE": {"TL": [], "TDATE": [], "TIMPL": [], "TDEP": [], "TNAME": []},
-                           "ENVIRONMENT MODIFICATIONS": {"ODATE": [], "EDAY": [], "ERAD": [], "EMAX": [], "EMIN": [],
-                                                         "ERAIN": [], "ECO2": [], "EDEW": [], "EWIND": [],
-                                                         "ENVNAME": []
-                                                         },
-                           "HARVEST DETAILS": {"HDATE": [], "HSTG": [], "HCOM": [], "HSIZE": [], "HPC": [],
-                                               "HBPC": [], "HNAME": []
-                                               },
-                           "SIMULATION CONTROLS": {"GENERAL": [], "NYERS": [], "NREPS": [], "START": [], "SDATE": [],
-                                                   "RSEED": [], "SNAME": [], "SMODEL": [],
-                                                   "OPTIONS": [], "WATER": [], "NITRO": [], "SYMBI": [], "PHOSP": [],
-                                                   "POTAS": [], "DISES": [], "CHEM": [], "TILL": [], "CO2": [],
-                                                   "METHODS": [], "WTHER": [], "INCON": [], "LIGHT": [], "EVAPO": [],
-                                                   "INFIL": [], "PHOTO": [], "HYDRO": [], "NSWIT": [], "MESOM": [],
-                                                   "MESEV": [], "MESOL": [],
-                                                   "MANAGEMENT": [], "PLANT": [], "IRRIG": [], "FERTI": [], "RESID": [],
-                                                   "HARVS": [],
-                                                   "OUTPUTS": [], "FNAME": [], "OVVEW": [], "SUMRY": [], "FROPT": [],
-                                                   "GROUT": [], "CAOUT": [], "WAOUT": [], "NIOUT": [], "MIOUT": [],
-                                                   "DIOUT": [], "VBOSE": [], "CHOUT": [], "OPOUT": [],
-                                                   "PLANTING": [], "PFRST": [], "PLAST": [], "PH2OL": [], "PH2OU": [],
-                                                   "PH2OD": [], "PSTMX": [], "PSTMN": [],
-                                                   "IRRIGATION": [], "IMDEP": [], "ITHRL": [], "ITHRU": [], "IROFF": [],
-                                                   "IMETH": [], "IRAMT": [], "IREFF": [],
-                                                   "NITROGEN": [], "NMDEP": [], "NMTHR": [], "NAMNT": [], "NCODE": [],
-                                                   "NAOFF": [],
-                                                   "RESIDUES": [], "RIPCN": [], "RTIME": [], "RIDEP": [],
-                                                   "HARVEST": [], "HFRST": [], "HLAST": [], "HPCNP": [], "HPCNR": []
-                                                   }
-                           }
-
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
+                       "HARVEST DETAILS": {"HDATE": [], "HSTG": [], "HCOM": [], "HSIZE": [], "HPC": [],
+                                           "HBPC": [], "HNAME": []
+                                           },
+                       "SIMULATION CONTROLS": {"GENERAL": [], "NYERS": [], "NREPS": [], "START": [], "SDATE": [],
+                                               "RSEED": [], "SNAME": [], "SMODEL": [],
+                                               "OPTIONS": [], "WATER": [], "NITRO": [], "SYMBI": [], "PHOSP": [],
+                                               "POTAS": [], "DISES": [], "CHEM": [], "TILL": [], "CO2": [],
+                                               "METHODS": [], "WTHER": [], "INCON": [], "LIGHT": [], "EVAPO": [],
+                                               "INFIL": [], "PHOTO": [], "HYDRO": [], "NSWIT": [], "MESOM": [],
+                                               "MESEV": [], "MESOL": [],
+                                               "MANAGEMENT": [], "PLANT": [], "IRRIG": [], "FERTI": [], "RESID": [],
+                                               "HARVS": [],
+                                               "OUTPUTS": [], "FNAME": [], "OVVEW": [], "SUMRY": [], "FROPT": [],
+                                               "GROUT": [], "CAOUT": [], "WAOUT": [], "NIOUT": [], "MIOUT": [],
+                                               "DIOUT": [], "VBOSE": [], "CHOUT": [], "OPOUT": [],
+                                               "PLANTING": [], "PFRST": [], "PLAST": [], "PH2OL": [], "PH2OU": [],
+                                               "PH2OD": [], "PSTMX": [], "PSTMN": [],
+                                               "IRRIGATION": [], "IMDEP": [], "ITHRL": [], "ITHRU": [], "IROFF": [],
+                                               "IMETH": [], "IRAMT": [], "IREFF": [],
+                                               "NITROGEN": [], "NMDEP": [], "NMTHR": [], "NAMNT": [], "NCODE": [],
+                                               "NAOFF": [],
+                                               "RESIDUES": [], "RIPCN": [], "RTIME": [], "RIDEP": [],
+                                               "HARVEST": [], "HFRST": [], "HLAST": [], "HPCNP": [], "HPCNR": []
+                                               }
+                       }
 
         # Lista del tamaño (en carácteres) de cada variable
 
