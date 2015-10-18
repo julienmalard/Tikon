@@ -1,7 +1,7 @@
+import random
 import numpy as np
 from scipy import stats as estad
-import random
-from pykrige.uk import UniversalKriging as krigUniversal
+from CLIMA.PyKrige.uk import UniversalKriging as krigUniversal
 
 
 # Las funciones de Bahaa Khalil para generar datos que faltan
@@ -228,30 +228,30 @@ def krigear(lugar, cercanas, fecha_inic, fecha_fin):
             for estación in cercanas:
                 valor += estación['Datos'][var][estación['Fecha'].index(f)]
             krigeaje = krigUniversal(x, y, valor, variogram_model='linear', drift_terms=['specified'],
-                                     specified_drift=elev)
+                                     specified_drift=[np.array(elev)])
             lugar[var] = krigeaje.execute('points', lugar['Coord'][0], lugar['Coord'][1],
-                                          specified_drift_arrays=lugar['Elev'])
+                                          specified_drift_arrays=[np.array(lugar['Elev'])])[0][0]
 
             f += 1
 
-    for var in lugar['Datos']:
-        # Comprobar la incertidumbre
-        predicciones = actuales = []
-        for n, otra in enumerate(cercanas):
-            estaciones_estim = cercanas.copy()
-            estación_falta = estaciones_estim.pop(n)
-            f = fecha_inic
-            while f <= fecha_fin:
-                valor = []
-                for estación in estaciones_estim:
-                    valor += estación[var][estación['Fecha'].index(f)]
-                krigeaje = krigUniversal(x, y, valor, variogram_model='linear', drift_terms=['specified'],
-                                         specified_drift=elev)
-                predicciones += krigeaje.execute('points', estación_falta['Coord'][0], estación_falta['Coord'][1],
-                                                 specified_drift_arrays=estación_falta['Elev'])
-                actuales += estación_falta[var][estación_falta['Fecha'].index(f)]
-                f += 1
-        if var == 'Rad_sol' or var == 'Precip':
-
-            incert[var] = 'N~(%s, %s)' % (lugar[var] * error, 4)
-    return lugar, incert
+    # for var in lugar['Datos']:
+    #     # Comprobar la incertidumbre
+    #     predicciones = actuales = []
+    #     for n, otra in enumerate(cercanas):
+    #         estaciones_estim = cercanas.copy()
+    #         estación_falta = estaciones_estim.pop(n)
+    #         f = fecha_inic
+    #         while f <= fecha_fin:
+    #             valor = []
+    #             for estación in estaciones_estim:
+    #                 valor += estación[var][estación['Fecha'].index(f)]
+    #             krigeaje = krigUniversal(x, y, valor, variogram_model='linear', drift_terms=['specified'],
+    #                                      specified_drift=[np.array(elev)])
+    #             predicciones += krigeaje.execute('points', estación_falta['Coord'][0], estación_falta['Coord'][1],
+    #                                              specified_drift_arrays=[np.array(estación_falta['Elev'])])
+    #             actuales += estación_falta[var][estación_falta['Fecha'].index(f)]
+    #             f += 1
+    #     if var == 'Rad_sol' or var == 'Precip':
+    #
+    #         incert[var] = 'N~(%s, %s)' % (lugar[var] * error, 4)
+    return lugar  # , incert
