@@ -47,7 +47,7 @@ class FileCli(DocDssat):
             print("Error: El código de clima no se ubica en la base de datos 'Clima' de DSSAT.")
             return False
 
-    # Esta función automáticamente escribe los datos del suelo en el documento "Python.sol". No excepciones.
+    # Esta función escribe los datos de clima para que los lea DSSAT
     def escribir(simismo):
         cod_clim = simismo.dic["INSI"] + "TKON"
 

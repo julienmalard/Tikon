@@ -55,6 +55,9 @@ class Experimento(object):
             # Llenar el diccionario del documento basado en el diccionario del documento
             for var_tikon in obj.dic:
                 documento.dic[conversiones[var_tikon]] = obj.dic[var_tikon]
+                if var_tikon == "Fecha":  # Convertir fechas al formato AADDD de DSSAT
+                    fecha = obj.dic[var_tikon]
+                    documento.dic[conversiones[var_tikon]] = str(fecha.date().year)[-2:] + fecha.date().strftime('%j')
             return documento
 
         # Crear objectos de documento DSSAT para la variedad, el suelo y el clima
