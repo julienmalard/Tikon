@@ -22,17 +22,16 @@ class Experimento(object):
         def convertir(obj, documento_conv):
             conversiones = {}
             with open(os.path.join(os.getcwd(), "CULTIVO", 'MODELOS_EXTERNOS', documento_conv)) as d:
-                    col = ()
-                    for núm_línea, línea in enumerate(d):
-                        if núm_línea == 0:
-                            # La columna con los variables del modelo
-                            col = línea.replace("\n", "").split(';').index('DSSAT')
-                        else:
-                            # Para cada línea que sigue, leer el variable DSSAT que corresponde con el variable TIKON
-                            datos = línea.replace("\n", "").split(';')
-                            var_tikon = datos[0]
-                            var_dssat = datos[col]
-                            conversiones[var_tikon] = var_dssat
+                doc = d.readlines()
+
+            col = doc[0].replace("\n", "").split(',').index('DSSAT')
+            for núm_línea, línea in enumerate(doc[1:]):
+                # Para cada línea que sigue, leer el variable DSSAT que corresponde con el variable TIKON
+                datos = línea.replace("\n", "").split(',')
+                var_tikon = datos[0]
+                var_dssat = datos[col]
+                conversiones[var_tikon] = var_dssat
+
             # Crear el objeto de documento DSSAT apropiado
             if type(obj) is FileS:
                 documento = FileS()

@@ -37,7 +37,7 @@ class Diario(Coso):
         # Buscar en los datos de clima de Python
         with open(os.path.join('CLIMA', 'Estaciones.csv')) as d:
             doc = d.readlines()
-        datos = doc[0].split(';')
+        datos = doc[0].split(',')
         col_estación = datos.index('Estación')
         col_long = datos.index('Longitud')
         col_lat = datos.index('Latitud')
@@ -45,7 +45,7 @@ class Diario(Coso):
         col_municipio = datos.index('Municipio')
         
         for lín in doc[1:]:
-            datos = lín.split(';')
+            datos = lín.split(',')
             estaciones[datos[col_estación]] = dict(Estación=datos[col_estación], Lat=datos[col_lat], 
                                                    Long=datos[col_long], Elev=datos[col_alt],
                                                    Municipio=datos[col_municipio])
@@ -146,7 +146,7 @@ class Diario(Coso):
         simismo.dic['Long'] = dic['Coord'][1]
         simismo.dic['Elev'] = dic['Elev']
 
-        simismo.dic['Fecha'] = [x.strftime() for x in simismo.dic['Fecha']]
+        simismo.dic['Fecha'] = [x.strftime('%Y-%m-%d') for x in simismo.dic['Fecha']]
         simismo.dic['Precip'] = dic['Precip']
         simismo.dic['Rad_sol'] = dic['Rad_sol']
         simismo.dic['Temp_máx'] = dic['Temp_máx']

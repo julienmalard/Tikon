@@ -36,7 +36,7 @@ def cargar_estación(documento, coord, elev, fecha_inic=None, fecha_fin=None, ge
 
         with open(documento) as d:
             doc = d.readlines()
-        variables = doc[0].split(';')
+        variables = doc[0].split(',')
         conv_var_insivumeh = {'Lluvia': 'Precip', 'R.Global': 'Rad_sol', 'Temp.Ai': 'Temp'}
         # Convertir nombres de variables del formato INSIVUMEH hacia el formato Tikon
         for n, var in enumerate(variables):
@@ -48,7 +48,7 @@ def cargar_estación(documento, coord, elev, fecha_inic=None, fecha_fin=None, ge
 
         # Leer los datos
         for i in doc[1:]:
-            datos = i.split(';')
+            datos = i.split(',')
             # Leer la fecha y la hora, si aplica
             f = datos[variables.index('Fecha')].split('/')
             fechatiempos.append(ft.datetime(int(f[2]), int(f[1]), int(f[0])))
