@@ -1,28 +1,26 @@
 import os
 
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
+from CULTIVO.Controles import dir_DSSAT
 
 
 # Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
-class FileS(DocDssat):
-    def __init__(simismo, dic="", *args, **kwargs):
-        simismo.dic = dic
+class FileS(object):
+    def __init__(simismo):
 
         # Si no existe el documento de suelos especificos a Tikon, crearlo
-        if not os.path.isfile(os.path.join(simismo.dir_DSSAT, 'Soil', 'Python.sol')):
-            with open(os.path.join(simismo.dir_DSSAT, 'Soil', 'Python.sol'), 'w') as d:
+        if not os.path.isfile(os.path.join(dir_DSSAT, 'Soil', 'Python.sol')):
+            with open(os.path.join(dir_DSSAT, 'Soil', 'Python.sol'), 'w'):
                 pass
 
-        if len(simismo.dic) == 0:
-            simismo.dic = {"ID_SOIL": [], "SLSOURCE": [], "SLTX": [], "SLDP": [], "SLDESCRIP": [],
-                           "SITE": [], "COUNTRY": [], "LAT": [], "LONG": [], "SCS": [], "SCOM": [], "SALB": [],
-                           "SLU1": [], "SLDR": [], "SLRO": [], "SLNF": [], "SLPF": [], "SMHB": [], "SMPX": [],
-                           "SMKE": [], "SLB": [], "SLMH": [], "SLLL": [], "SDUL": [], "SSAT": [], "SRGF": [],
-                           "SSKS": [], "SBDM": [], "SLOC": [], "SLCL": [], "SLSI": [], "SLCF": [], "SLNI": [],
-                           "SLHW": [], "SLHB": [], "SCEC": [], "SADC": [], "SLPX": [], "SLPT": [], "SLPO": [],
-                           "CACO3": [], "SLAL": [], "SLFE": [], "SLMN": [], "SLBS": [], "SLPA": [], "SLPB": [],
-                           "SLKE": [], "SLMG": [], "SLNA": [], "SLSU": [], "SLEC": [], "SLCA": []
-                           }
+        simismo.dic = {"ID_SOIL": [], "SLSOURCE": [], "SLTX": [], "SLDP": [], "SLDESCRIP": [],
+                       "SITE": [], "COUNTRY": [], "LAT": [], "LONG": [], "SCS": [], "SCOM": [], "SALB": [],
+                       "SLU1": [], "SLDR": [], "SLRO": [], "SLNF": [], "SLPF": [], "SMHB": [], "SMPX": [],
+                       "SMKE": [], "SLB": [], "SLMH": [], "SLLL": [], "SDUL": [], "SSAT": [], "SRGF": [],
+                       "SSKS": [], "SBDM": [], "SLOC": [], "SLCL": [], "SLSI": [], "SLCF": [], "SLNI": [],
+                       "SLHW": [], "SLHB": [], "SCEC": [], "SADC": [], "SLPX": [], "SLPT": [], "SLPO": [],
+                       "CACO3": [], "SLAL": [], "SLFE": [], "SLMN": [], "SLBS": [], "SLPA": [], "SLPB": [],
+                       "SLKE": [], "SLMG": [], "SLNA": [], "SLSU": [], "SLEC": [], "SLCA": []
+                       }
 
         # Lista del tamaño (en carácteres) de cada variable
         simismo.prop_vars = {
@@ -34,7 +32,6 @@ class FileS(DocDssat):
             "SLPX": 5, "SLPT": 5, "SLPO": 5, "CACO3": 5, "SLAL": 5, "SLFE": 5, "SLMN": 5, "SLBS": 5, "SLPA": 5,
             "SLPB": 5, "SLKE": 5, "SLMG": 5, "SLNA": 5, "SLSU": 5, "SLEC": 5, "SLCA": 5
         }
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
 
     def leer(simismo, cod_suelo):
         # Los datos de suelos están combinados, con muchos en la misma carpeta.
@@ -56,18 +53,18 @@ class FileS(DocDssat):
             return False  # Si no lo encontramos
 
         # Primero, miremos en el documento "Python.sol"
-        directorio = os.path.join(simismo.dir_DSSAT, 'Soil', 'Python.sol')
+        directorio = os.path.join(dir_DSSAT, 'Soil', 'Python.sol')
         encontrado = buscar_suelo(directorio)
         if encontrado:
             simismo.decodar(directorio, cod_suelo)
         # Si no encontramos el suelo en el documento "Python.sol"...
         if not encontrado:
             documentos = []
-            for doc_suelo in os.listdir(os.path.join(simismo.dir_DSSAT, 'Soil')):
+            for doc_suelo in os.listdir(os.path.join(dir_DSSAT, 'Soil')):
                 if doc_suelo.lower().endswith(".sol"):
                     documentos.append(doc_suelo)
             for documento in documentos:
-                directorio = os.path.join(simismo.dir_DSSAT, 'Soil', documento)
+                directorio = os.path.join(dir_DSSAT, 'Soil', documento)
                 encontrado = buscar_suelo(directorio)
                 if encontrado:
                     simismo.decodar(directorio, cod_suelo)
@@ -118,7 +115,7 @@ class FileS(DocDssat):
         esquema = ''.join(esquema)  # Lo que tenemos que añadir a la carpeta Python.sol
 
         # Salvar la carpeta FILES en Python.sol
-        with open(os.path.join(simismo.dir_DSSAT, 'Soil', 'Python.sol'), "r+") as d:
+        with open(os.path.join(dir_DSSAT, 'Soil', 'Python.sol'), "r+") as d:
             doc_final = d.readlines()
             for j, i in enumerate(doc_final):  # Quitar las líneas vacías iniciales
                 if i == '\n':

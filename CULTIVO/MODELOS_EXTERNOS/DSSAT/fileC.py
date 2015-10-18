@@ -1,11 +1,10 @@
 import os
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
+from CULTIVO.Controles import dir_DSSAT
 
 
 # Objeto para representar documentos de typo FILEC de DSSAT (información de variedades de cultivos)
-class FileC(DocDssat):
-    def __init__(simismo, *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
+class FileC(object):
+    def __init__(simismo):
 
         simismo.dic = {"Cultivo": "", "Modelo": "", "VRNAME": "", "VAR#": "", "ECO#": "", "ECONAME": "", "CSDL": [],
                        "PPSEN": [], "EM-FL": [], "FL-SH": [], "FL-SD": [], "SD-PM": [], "FL-LF": [], "LFMAX": [],
@@ -39,7 +38,7 @@ class FileC(DocDssat):
 
         encontrado = False
         for tipo_doc in [".cul", ".eco"]:
-            with open(os.path.join(simismo.dir_DSSAT, "Genotype", documento, tipo_doc), "r") as d:
+            with open(os.path.join(dir_DSSAT, "Genotype", documento, tipo_doc), "r") as d:
                 for línea in d:
                     if "!" in línea:
                         pass  # Saltar los comentarios
@@ -78,7 +77,7 @@ class FileC(DocDssat):
 
             nuevo_cultivo.format(**simismo.dic)
 
-            with open(os.path.join(simismo.dir_DSSAT, "Genotype", documento, tipo_doc), "r+") as d:
+            with open(os.path.join(dir_DSSAT, "Genotype", documento, tipo_doc), "r+") as d:
                 doc = d.readlines()
                 for i, línea in enumerate(doc):
                     if simismo.dic["Nombre"][0:14] in línea:

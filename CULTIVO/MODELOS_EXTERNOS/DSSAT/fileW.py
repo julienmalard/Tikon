@@ -1,18 +1,15 @@
 import os
 
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT import DocDssat
+from CULTIVO.Controles import dir_DSSAT
 
 
 # Objeto para representar documentos de typo fileW (meteorología diaria) de DSSAT
-class FileW(DocDssat):
-    def __init__(simismo, dic="", *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como DocDssat
-        simismo.dic = dic
+class FileW(object):
+    def __init__(simismo):
 
-        if len(simismo.dic) == 0:
-            simismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [],
-                           "REFHT": [], "WNDHT": [], "DATE": [], "SRAD": [], "TMAX": [], "TMIN": [], "RAIN": [],
-                           "DEWP": [], "WIND": [], "PAR": []}
+        simismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [],
+                       "REFHT": [], "WNDHT": [], "DATE": [], "SRAD": [], "TMAX": [], "TMIN": [], "RAIN": [],
+                       "DEWP": [], "WIND": [], "PAR": []}
 
         # Lista del tamaño (en carácteres) de cada variable
         simismo.prop_vars = {
@@ -28,9 +25,9 @@ class FileW(DocDssat):
 
         encontrado = False
 
-        for doc_clima in os.listdir(os.path.join(simismo.dir_DSSAT, 'Weather')):
+        for doc_clima in os.listdir(os.path.join(dir_DSSAT, 'Weather')):
             if doc_clima.upper().endswith(".WHT") and cod_clima.upper() in doc_clima.upper():
-                with open(os.path.join(simismo.dir_DSSAT, 'Weather', doc_clima)) as d:
+                with open(os.path.join(dir_DSSAT, 'Weather', doc_clima)) as d:
                     doc = d.readlines()
                     simismo.decodar(doc)
                 encontrado = True
@@ -56,7 +53,7 @@ class FileW(DocDssat):
         esquema = ''.join(esquema)  # Lo que tenemos que escribir
 
         # Salvar la carpeta FILEW en DSSAT46/Weather
-        with open(os.path.join(simismo.dir_DSSAT, 'Weather', cod_clim, '.WTH'), "w") as d:
+        with open(os.path.join(dir_DSSAT, 'Weather', cod_clim, '.WTH'), "w") as d:
             d.write(''.join(esquema))
 
     # Esta funcción convierte datos de meteo de un documento FILEW en diccionario Python.
@@ -101,4 +98,4 @@ class FileW(DocDssat):
 # Pruebas:
 prueba = FileW()
 prueba.leer('BRPI0201')
-prueba.escribir('PruebaBRPI0201')
+prueba.escribir()

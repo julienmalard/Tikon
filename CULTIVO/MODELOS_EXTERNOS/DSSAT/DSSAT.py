@@ -1,17 +1,10 @@
 import os
-import datetime
+import datetime as ft
 
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileX import FileX
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileS import FileS
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileW import FileW
 from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileC import FileC
-
-
-
-# Objeto general para representar documentos de DSSAT (suelos, variedades, experimentos, etc.)
-class DocDssat(object):
-    def __init__(simismo):
-        simismo.dir_DSSAT = "C:\DSSAT46"
 
 
 class Experimento(object):
@@ -33,13 +26,13 @@ class Experimento(object):
                     for núm_línea, línea in enumerate(d):
                         if núm_línea == 0:
                             # La columna con los variables del modelo
-                            col = línea.replace("\n", "").split(',').index('DSSAT')
+                            col = línea.replace("\n", "").split(';').index('DSSAT')
                         else:
                             # Para cada línea que sigue, leer el variable DSSAT que corresponde con el variable TIKON
                             datos = línea.replace("\n", "").split(';')
                             var_tikon = datos[0]
-                            var_DSSAT = datos[col]
-                            conversiones[var_tikon] = var_DSSAT
+                            var_dssat = datos[col]
+                            conversiones[var_tikon] = var_dssat
             # Crear el objeto de documento DSSAT apropiado
             if type(obj) is FileS:
                 documento = FileS()
@@ -57,6 +50,9 @@ class Experimento(object):
                 documento.dic[conversiones[var_tikon]] = obj.dic[var_tikon]
                 if var_tikon == "Fecha":  # Convertir fechas al formato AADDD de DSSAT
                     fecha = obj.dic[var_tikon]
+                    if type(fecha) is str:
+                        f = ft.datetime(1, 1, 1)
+                        fecha = f.strptime(fecha, '%Y-%m-%d')
                     documento.dic[conversiones[var_tikon]] = str(fecha.date().year)[-2:] + fecha.date().strftime('%j')
             return documento
 
@@ -72,14 +68,14 @@ class Experimento(object):
 
         # Generar la carpeta FILEX
         filex = FileX()
-        filex.dic["EXP.DETAILS"] = "Autogenerado por Tikon el %d" % datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+        filex.dic["EXP.DETAILS"] = "Autogenerado por Tikon el %d" % ft.datetime.now().strftime("%d-%m-%Y %H:%M")
 
         filex.dic["GENERAL"]["People"] = "Tikon fue desarrollado por Julien Malard y Marcela Rojas Díaz."
         filex.dic["GENERAL"]["Address"] = "Universidad McGill, Dept de Biorecursos, Saint-Anne-de-Bellevue, Canadá"
         filex.dic["GENERAL"]["NOTES"] = "Contacto: julien.malard@mail.mcgill.ca"
-        filex.dic["GENERAL"]["PAREA"] = simismo.parcela.dic["Área"]
-        filex.dic["GENERAL"]["PRNO"] = simismo.parcela.dic["Surcos"]
-        filex.dic["GENERAL"]["PLDR"] = simismo.parcela.dic["Long_surcos"]
+        filex.dic["GENERAL"]["PAREA"] = simismo.parcela["Área"]
+        filex.dic["GENERAL"]["PRNO"] = simismo.parcela["Surcos"]
+        filex.dic["GENERAL"]["PLDR"] = simismo.parcela["Long_surcos"]
 
         filex.dic["TREATMENTS"]["R"] = 1
         filex.dic["TREATMENTS"]["O"] = 0
@@ -93,28 +89,28 @@ class Experimento(object):
 
         filex.dic["FIELDS"]["ID_FIELD"] = simismo.parcela.nombre[:4] + '0001'
         filex.dic["FIELDS"]["WSTA"] = filew.dic["INSI"] + 'TKON'
-        filex.dic["FIELDS"]['PLOB'] = simismo.parcela.dic["Pendiente_orientación"]
-        filex.dic["FIELDS"]['FLST'] = simismo.parcela.dic["Piedras"]
+        filex.dic["FIELDS"]['PLOB'] = simismo.parcela["Pendiente_orientación"]
+        filex.dic["FIELDS"]['FLST'] = simismo.parcela["Piedras"]
         filex.dic["FIELDS"]['SLTX'] = files.dic["SLTX"]
         filex.dic["FIELDS"]['SLDP'] = files.dic["SLDP"]
         filex.dic["FIELDS"]['ID_SOIL'] = files.dic['ID_SOIL']
 
         # Poner los parámetros de manejo del objeto "PARCELA" en la sección apropiada del diccionario de fileX
-        manejo = simismo.parcela.dic['Manejo']
+        manejo = simismo.parcela['Manejo']
 
         for sección in ["PLANTING DETAILS", "FERTILIZERS (INORGANIC)", "RESIDUES AND ORGANIC FERTILIZER",
                         "IRRIGATION AND WATER MANAGEMENT", "TILLAGE", "HARVEST DETAILS"]:
-            conv_DSSAT = convertir(filex.dic[sección], 'Variables_manejo.csv')
-            for var in conv_DSSAT:
-                if var in manejo and conv_DSSAT[var] in filex.dic[sección]:
-                    filex.dic[sección][conv_DSSAT[var]] = manejo[var]
+            conv_dssat = convertir(filex.dic[sección], 'Variables_manejo.csv')
+            for var in conv_dssat:
+                if var in manejo and conv_dssat[var] in filex.dic[sección]:
+                    filex.dic[sección][conv_dssat[var]] = manejo[var]
 
         # Areglar las controles de simulación
         filex.dic["SIMULATION CONTROLS"]['GENERAL'] = 'GE'
         filex.dic["SIMULATION CONTROLS"]['NYERS'] = 1
         filex.dic["SIMULATION CONTROLS"]['NREPS'] = 1
         filex.dic["SIMULATION CONTROLS"]['START'] = 'S'
-        filex.dic["SIMULATION CONTROLS"]['SDATE'] = simismo.parcela.dic['Fecha_init']
+        filex.dic["SIMULATION CONTROLS"]['SDATE'] = simismo.parcela['Fecha_init']
         filex.dic["SIMULATION CONTROLS"]['RSEED'] = 88
         filex.dic["SIMULATION CONTROLS"]['OPTIONS'] = 'OP'
         filex.dic["SIMULATION CONTROLS"]['WATER'] = 'Y'
@@ -202,9 +198,9 @@ class Experimento(object):
         filex.escribir(os.path.join(simismo.directorio, 'TIKON.', simismo.cultivo.cód_cultivo, 'X'))
 
         # Generar la carpetar DSSBatch necesaria para controlar DSSAT desde el "símbolo del sistema"
-        simismo.gen_DSSBatch()
+        simismo.gen_dssbatch()
 
-    def gen_DSSBatch(simismo):
+    def gen_dssbatch(simismo):
         with open("FILES.txt", "r") as d:    # Abrir el esquema general para archivos FILES
             esquema = []
             for línea in d:
