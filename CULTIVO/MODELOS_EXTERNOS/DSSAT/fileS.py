@@ -5,14 +5,14 @@ from CULTIVO.Controles import dir_DSSAT
 
 # Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
 class FileS(object):
-    def __init__(simismo):
+    def __init__(símismo):
 
         # Si no existe el documento de suelos especificos a Tikon, crearlo
         if not os.path.isfile(os.path.join(dir_DSSAT, 'Soil', 'Python.sol')):
             with open(os.path.join(dir_DSSAT, 'Soil', 'Python.sol'), 'w'):
                 pass
 
-        simismo.dic = {"ID_SOIL": [], "SLSOURCE": [], "SLTX": [], "SLDP": [], "SLDESCRIP": [],
+        símismo.dic = {"ID_SOIL": [], "SLSOURCE": [], "SLTX": [], "SLDP": [], "SLDESCRIP": [],
                        "SITE": [], "COUNTRY": [], "LAT": [], "LONG": [], "SCS": [], "SCOM": [], "SALB": [],
                        "SLU1": [], "SLDR": [], "SLRO": [], "SLNF": [], "SLPF": [], "SMHB": [], "SMPX": [],
                        "SMKE": [], "SLB": [], "SLMH": [], "SLLL": [], "SDUL": [], "SSAT": [], "SRGF": [],
@@ -23,7 +23,7 @@ class FileS(object):
                        }
 
         # Lista del tamaño (en carácteres) de cada variable
-        simismo.prop_vars = {
+        símismo.prop_vars = {
             "ID_SOIL": 12, "SLSOURCE": 11, "SLTX": 5, "SLDP": 5, "SLDESCRIP": 50,
             "SITE": 12, "COUNTRY": 11, "LAT": 8, "LONG": 8, "SCS": 50,
             "SCOM": 5, "SALB": 5, "SLU1": 5, "SLDR": 5, "SLRO": 5, "SLNF": 5, "SLPF": 5, "SMHB": 5, "SMPX": 5,
@@ -33,14 +33,14 @@ class FileS(object):
             "SLPB": 5, "SLKE": 5, "SLMG": 5, "SLNA": 5, "SLSU": 5, "SLEC": 5, "SLCA": 5
         }
 
-    def leer(simismo, cod_suelo):
+    def leer(símismo, cod_suelo):
         # Los datos de suelos están combinados, con muchos en la misma carpeta.
         # Este programa primero verifica si se ubica el suelo en la carpeta "Python.sol".
         # Si el suelo no se ubica allá, buscará en los otros documentos de la carpeta "DSSAT45/soil/"
 
         # Vaciar el diccionario
-        for i in simismo.dic:
-            simismo.dic[i] = []
+        for i in símismo.dic:
+            símismo.dic[i] = []
 
         def buscar_suelo(doc):
             with open(doc, "r") as p:
@@ -56,7 +56,7 @@ class FileS(object):
         directorio = os.path.join(dir_DSSAT, 'Soil', 'Python.sol')
         encontrado = buscar_suelo(directorio)
         if encontrado:
-            simismo.decodar(directorio, cod_suelo)
+            símismo.decodar(directorio, cod_suelo)
         # Si no encontramos el suelo en el documento "Python.sol"...
         if not encontrado:
             documentos = []
@@ -67,7 +67,7 @@ class FileS(object):
                 directorio = os.path.join(dir_DSSAT, 'Soil', documento)
                 encontrado = buscar_suelo(directorio)
                 if encontrado:
-                    simismo.decodar(directorio, cod_suelo)
+                    símismo.decodar(directorio, cod_suelo)
                     break
 
         # Si no lo encontramos en ningún lado
@@ -75,8 +75,8 @@ class FileS(object):
             return "Error: El código de suelo no se ubica en la base de datos de DSSAT."
 
     # Esta función automáticamente escribe los datos del suelo en el documento "Python.sol". No excepciones.
-    def escribir(simismo, cod_suelo):
-        if simismo.dic["ID_SOIL"] == "":
+    def escribir(símismo, cod_suelo):
+        if símismo.dic["ID_SOIL"] == "":
             print('Falta un código de suelo para poder guardarlo.')
             return
 
@@ -88,11 +88,11 @@ class FileS(object):
                     # Leer el primer variable de la línea (para calcular el número de niveles de suelo más adelante)
                     var = texto[texto.index("{")+2:texto.index("]")]
                     copia = texto   # Copiar la línea vacía (en caso que hayan otras líneas que agregar)
-                    for k, a in enumerate(simismo.dic[var]):    # Para cada nivel del perfil del suelo
+                    for k, a in enumerate(símismo.dic[var]):    # Para cada nivel del perfil del suelo
                         l += 1
                         texto = texto.replace('[', '').replace("]", "[" + str(k) + "]")
                         try:
-                            texto = texto.format(**simismo.dic)
+                            texto = texto.format(**símismo.dic)
                             doc_suelo.insert(l, texto)
                         except IndexError:
                             pass
@@ -101,9 +101,9 @@ class FileS(object):
                     doc_suelo.remove(copia)
             return doc_suelo
 
-        for i in simismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
-            if not len(simismo.dic[i]):
-                simismo.dic[i] = ["-99"]
+        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+            if not len(símismo.dic[i]):
+                símismo.dic[i] = ["-99"]
 
         with open("FILES.txt", "r") as d:    # Abrir el esquema general para archivos FILES
             esquema = []
@@ -134,7 +134,7 @@ class FileS(object):
             d.write(''.join(doc_final))
 
     # Esta funcción convierte una suelo de un documento FILES en diccionario Python.
-    def decodar(simismo, doc, suelo):
+    def decodar(símismo, doc, suelo):
         # Encuentra la ubicación del principio y del fin de cada sección
         prin = fin = None
         for línea in doc:
@@ -160,10 +160,10 @@ class FileS(object):
                     while "@" not in doc[núm_lin] and len(doc[núm_lin].replace('\n', '')) > 0:
                         valores = doc[núm_lin].replace('\n', '')
                         for j, var in enumerate(variables):
-                            if var in simismo.dic:
-                                valor = valores[:simismo.prop_vars[var]+1].replace('*', '').strip()
-                                simismo.dic[var].append(valor)
-                                valores = valores[simismo.prop_vars[var]+1:]
+                            if var in símismo.dic:
+                                valor = valores[:símismo.prop_vars[var]+1].replace('*', '').strip()
+                                símismo.dic[var].append(valor)
+                                valores = valores[símismo.prop_vars[var]+1:]
                         núm_lin += 1
 
 # Pruebas:

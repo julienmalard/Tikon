@@ -8,15 +8,15 @@ from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileC import FileC
 
 
 class Experimento(object):
-    def __init__(simismo, carpeta, suelo, variedad, meteo, cultivo, parcela):
-        simismo.directorio = carpeta  # Donde vamos a guardar las carpetas de ingreso y egreso de DSSAT
-        simismo.variedad = variedad
-        simismo.suelo = suelo
-        simismo.meteo = meteo
-        simismo.cultivo = cultivo
-        simismo.parcela = parcela
+    def __init__(símismo, carpeta, suelo, variedad, meteo, cultivo, manejo):
+        símismo.directorio = carpeta  # Donde vamos a guardar las carpetas de ingreso y egreso de DSSAT
+        símismo.variedad = variedad
+        símismo.suelo = suelo
+        símismo.meteo = meteo
+        símismo.cultivo = cultivo
+        símismo.manejo = manejo
 
-    def gen_ingresos(simismo):
+    def gen_ingresos(símismo):
 
         # Una función para convertir objetos TIKON de suelos, clima y variedades a objetos de documentos DSSAT
         def convertir(obj, documento_conv):
@@ -56,9 +56,9 @@ class Experimento(object):
             return documento
 
         # Crear objectos de documento DSSAT para la variedad, el suelo y el clima
-        filec = convertir(simismo.variedad, 'Variables_variedades.csv')
-        files = convertir(simismo.suelo, 'Variables_suelo.csv')
-        filew = convertir(simismo.meteo, 'Variables_meteo.csv')
+        filec = convertir(símismo.variedad, 'Variables_variedades.csv')
+        files = convertir(símismo.suelo, 'Variables_suelo.csv')
+        filew = convertir(símismo.meteo, 'Variables_meteo.csv')
 
         # Escribir los documentos de ingresos DSSAT
         filec.escribir()
@@ -72,9 +72,9 @@ class Experimento(object):
         filex.dic["GENERAL"]["People"] = "Tikon fue desarrollado por Julien Malard y Marcela Rojas Díaz."
         filex.dic["GENERAL"]["Address"] = "Universidad McGill, Dept de Biorecursos, Saint-Anne-de-Bellevue, Canadá"
         filex.dic["GENERAL"]["NOTES"] = "Contacto: julien.malard@mail.mcgill.ca"
-        filex.dic["GENERAL"]["PAREA"] = simismo.parcela["Área"]
-        filex.dic["GENERAL"]["PRNO"] = simismo.parcela["Surcos"]
-        filex.dic["GENERAL"]["PLDR"] = simismo.parcela["Long_surcos"]
+        filex.dic["GENERAL"]["PAREA"] = símismo.manejo["Área"]
+        filex.dic["GENERAL"]["PRNO"] = símismo.manejo["Surcos"]
+        filex.dic["GENERAL"]["PLDR"] = símismo.manejo["Long_surcos"]
 
         filex.dic["TREATMENTS"]["R"] = 1
         filex.dic["TREATMENTS"]["O"] = 0
@@ -82,20 +82,20 @@ class Experimento(object):
         for i in ['CU', 'FL', 'SA', 'IC', 'MP', 'MI', 'MF', 'MR', 'MC', 'MT', 'ME', 'MH', 'SM']:
             filex.dic["TREATMENTS"][i] = 1
 
-        filex.dic["CULTIVARS"]['CR'] = simismo.cultivo.cód_cultivo
+        filex.dic["CULTIVARS"]['CR'] = símismo.cultivo.cód_cultivo
         filex.dic["CULTIVARS"]['INGEN'] = filec.dic['VAR#']
         filex.dic["CULTIVARS"]['CNAME'] = filec.dic['VRNAME']
 
-        filex.dic["FIELDS"]["ID_FIELD"] = simismo.parcela.nombre[:4] + '0001'
+        filex.dic["FIELDS"]["ID_FIELD"] = símismo.manejo.nombre[:4] + '0001'
         filex.dic["FIELDS"]["WSTA"] = filew.dic["INSI"] + 'TKON'
-        filex.dic["FIELDS"]['PLOB'] = simismo.parcela["Pendiente_orientación"]
-        filex.dic["FIELDS"]['FLST'] = simismo.parcela["Piedras"]
+        filex.dic["FIELDS"]['PLOB'] = símismo.manejo["Pendiente_orientación"]
+        filex.dic["FIELDS"]['FLST'] = símismo.manejo["Piedras"]
         filex.dic["FIELDS"]['SLTX'] = files.dic["SLTX"]
         filex.dic["FIELDS"]['SLDP'] = files.dic["SLDP"]
         filex.dic["FIELDS"]['ID_SOIL'] = files.dic['ID_SOIL']
 
         # Poner los parámetros de manejo del objeto "PARCELA" en la sección apropiada del diccionario de fileX
-        manejo = simismo.parcela['Manejo']
+        manejo = símismo.manejo['Manejo']
 
         for sección in ["PLANTING DETAILS", "FERTILIZERS (INORGANIC)", "RESIDUES AND ORGANIC FERTILIZER",
                         "IRRIGATION AND WATER MANAGEMENT", "TILLAGE", "HARVEST DETAILS"]:
@@ -109,7 +109,7 @@ class Experimento(object):
         filex.dic["SIMULATION CONTROLS"]['NYERS'] = 1
         filex.dic["SIMULATION CONTROLS"]['NREPS'] = 1
         filex.dic["SIMULATION CONTROLS"]['START'] = 'S'
-        filex.dic["SIMULATION CONTROLS"]['SDATE'] = simismo.parcela['Fecha_init']
+        filex.dic["SIMULATION CONTROLS"]['SDATE'] = manejo['Fecha_siembra']
         filex.dic["SIMULATION CONTROLS"]['RSEED'] = 88
         filex.dic["SIMULATION CONTROLS"]['OPTIONS'] = 'OP'
         filex.dic["SIMULATION CONTROLS"]['WATER'] = 'Y'
@@ -194,20 +194,20 @@ class Experimento(object):
         filex.dic["SIMULATION CONTROLS"]['HPCNR'] = 0
 
         # Escribir el documento FILEX en el directorio
-        filex.escribir(os.path.join(simismo.directorio, 'TIKON.', simismo.cultivo.cód_cultivo, 'X'))
+        filex.escribir(os.path.join(símismo.directorio, 'TIKON.', símismo.cultivo.cód_cultivo, 'X'))
 
         # Generar la carpetar DSSBatch necesaria para controlar DSSAT desde el "símbolo del sistema"
-        simismo.gen_dssbatch()
+        símismo.gen_dssbatch()
 
-    def gen_dssbatch(simismo):
-        with open("FILES.txt", "r") as d:    # Abrir el esquema general para archivos FILES
+    def gen_dssbatch(símismo):
+        with open("DSSBatchv46.txt", "r") as d:    # Abrir el esquema general para DSSBatch.v46
             esquema = []
             for línea in d:
                 esquema.append(línea)
         esquema.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
-        dic = {"Cultivo": simismo.cultivo.cultivo,
-               "FILEX": os.path.join(simismo.directorio, 'TIKON.', simismo.cultivo.cód_cultivo, 'X')
+        dic = {"Cultivo": símismo.cultivo.cultivo,
+               "FILEX": os.path.join(símismo.directorio, 'TIKON.', símismo.cultivo.cód_cultivo, 'X')
                }
 
         for núm_lín, línea in enumerate(esquema):
@@ -216,5 +216,5 @@ class Experimento(object):
         esquema = ''.join(esquema)  # Lo que tenemos que escribir al documento DSSBatch
 
         # Guardar el documento DSSBatch
-        with open(os.path.join(simismo.directorio, 'TIKON.', simismo.cultivo.cód_cultivo, 'X'), "w") as d:
+        with open(os.path.join(símismo.directorio, 'TIKON.', símismo.cultivo.cód_cultivo, 'X'), "w") as d:
             d.write(''.join(esquema))

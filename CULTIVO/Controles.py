@@ -12,15 +12,15 @@ def sacar_modelos_disp(cultivo):
     # Modelos_pl.csv contiene información sobre los modelos disponibles
     with open(os.path.join('CULTIVO', 'MODELOS_EXTERNOS', 'Modelos_pl.csv')) as d:
         doc = d.readlines()
-    variables = doc[0].replace("\n", "").split(',')
+    variables = doc[0].replace("\n", "").replace(';', ',').split(',')
     for núm_línea, línea in enumerate(doc[1:]):
-        datos = línea.replace("\n", "").split(',')
+        datos = línea.replace("\n", "").replace(';', ',').split(',')
         if datos[variables.index('Cultivo')] == cultivo:
             mod_cul = datos[variables.index('Modelo')]
             modelos_disp[mod_cul] = {}
             modelos_disp[mod_cul]['Comanda'] = datos[variables.index('Comanda')]
             modelos_disp[mod_cul]['Programa'] = datos[variables.index('Programa')]
-            modelos_disp[mod_cul]['Genotipo'] = datos[variables.index('Genotipo')]
+            modelos_disp[mod_cul]['Modelo'] = datos[variables.index('Modelo')]
             modelos_disp[mod_cul]['Cód_cultivo'] = datos[variables.index('Cód_cultivo')]
 
     return modelos_disp

@@ -1,38 +1,32 @@
 import os
-import math
 import datetime as ft
+from geopy.distance import vincenty as dist
 
 from COSO import Coso
 from PARCELA import Parcela
 
 
 class Paisaje(Coso):
-    def __init__(simismo, parcelas_común=False, variedades_común=True, suelos_común=True, redes_común=True,
-                 *args, **kwargs):
-        simismo.dic_base = {"Parcelas": [], "Cultivos": [], "Variedades": [], "Long": [], "Lat": [],
-                            "Fechas_siembra": [], "Suelos": [], "RedAE": (), "Meteo": ()}
-        simismo.ext = "pasj"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
-        super().__init__(*args, **kwargs)
-        simismo.parcelas_común = parcelas_común
-        simismo.variedades_común = variedades_común
-        simismo.suelos_común = suelos_común
-        simismo.redes_común = redes_común
-        simismo.parcelas = {}
-        simismo.resultados = {}
-        simismo.init()
-        # Información de distancia entre parcelas
-        for parcela in simismo.dic["Parcelas"]:
-            for otra_parcela in simismo.dic["Parcelas"]:
-                parcela.dist[otra_parcela] = math.sqrt((parcela.dic["Long"] - otra_parcela.dic["Long"]) ** 2 -
-                                                       (parcela.dic["Lat"] - otra_parcela.dic["Lat"]) ** 2)
+    def __init__(símismo, variedades_común=True, suelos_común=True, redes_común=True, fecha_inic="", fecha_fin=""):
+        símismo.dic_base = {'Directorio': '', 'fecha_init': fecha_inic, 'fecha_fin': fecha_fin,
+                            'variedades_común': variedades_común, 'suelos_común': suelos_común,
+                            'redes_común': redes_común,
+                            'Parcelas': dict(Nombre=[], Long=[], Lat=[], Dilim=[]),
+                            'RedAE': ""
+                            }
+        símismo.ext = "pasj"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        super().__init__(ext='pais')
+        símismo.parcelas = {}
+        símismo.resultados = {}
+        símismo.init()
 
     # Esta función lee los datos de parcelas desde un documento .csv y los guarda en el diccionario del paisaje
-    def leer_documento(simismo, documento):
+    def leer_documento(símismo, documento):
         try:
             with open(documento, mode="r") as d:
                 doc = d.readlines()
         except IOError:
-            return "Carpeta " + documento + " no se pudo abrir."
+            return u'El documento {0:s} no se pudo abrir.'.format(documento)
 
         variables = doc[0].split(',')
         for num_lín, línea in enumerate(doc[1:]):
@@ -40,37 +34,43 @@ class Paisaje(Coso):
                 valores = línea.split(',')
                 for posición, variable in enumerate(variables):
                     # Si el variable corresponde a un variable en el diccionario
-                    if variable in simismo.dic:
-                        simismo.dic[variable][num_lín] = valores[posición].replace("\n", "")
+                    if variable in símismo.dic:
+                        símismo.dic[variable][num_lín] = valores[posición].replace('\n', '')
 
     # Esta función toma el diccionario (listas) del paisaje y dinámicamente cree objetos Python para cada uno.
-    def init(simismo):
+    def init(símismo):
         # Crear los directorios para el proyecto
-        if not os.path.exists(simismo.documento):
-            os.makedirs(simismo.documento)
-        if simismo.parcelas_común:  # Si el paisaje comparte parcelas con otros proyectos (para la calibración)
-            carpeta_parcelas = "Parcelas"
+        if not os.path.exists(símismo.documento):
+            os.makedirs(símismo.documento)
+
         else:  # Si el paisaje tiene sus parcelas individuales (para la calibración)
-            carpeta_parcelas = simismo.carpeta
+            carpeta_parcelas = símismo.carpeta
         # Crear los objectos de parcelas para cada parcela en el paisaje
-        for num_parcela, parcela in enumerate(simismo.dic["Parcelas"]):
-            simismo.parcelas[parcela] = \
+        for num_parcela, parcela in enumerate(símismo.dic["Parcelas"]):
+            símismo.parcelas[parcela] = \
                 Parcela(nombre=parcela, carpeta=os.path.join(carpeta_parcelas, parcela),
-                        reinit=simismo.reinit, redes_común=simismo.redes_común,
-                        suelos_común=simismo.suelos_común, variedades_común=simismo.variedades_común,
-                        dic={"Suelo": simismo.dic["Suelos"][num_parcela],
-                             "Cultivo": simismo.dic["Cultivos"][num_parcela],
-                             "Variedad": simismo.dic["Variedades"][num_parcela], "Meteo": simismo.dic["Meteo"],
-                             "RedAE": simismo.dic["RedAE"], "Long": simismo.dic["Long"][num_parcela],
-                             "Lat": simismo.dic["Lat"][num_parcela]}
+                        reinit=símismo.reinit, redes_común=símismo.redes_común,
+                        suelos_común=símismo.suelos_común, variedades_común=símismo.variedades_común,
+                        dic={"Suelo": símismo.dic["Suelos"][num_parcela],
+                             "Cultivo": símismo.dic["Cultivos"][num_parcela],
+                             "Variedad": símismo.dic["Variedades"][num_parcela], "Meteo": símismo.dic["Meteo"],
+                             "RedAE": símismo.dic["RedAE"], "Long": símismo.dic["Long"][num_parcela],
+                             "Lat": símismo.dic["Lat"][num_parcela]}
                         )
 
-    def simul(simismo, fecha_init, tiempo_simul, paso):  # fecha_init tiene que ser del formato AAAAMMDD
+        # Información de distancia entre parcelas
+        for parcela in símismo.parcelas:
+            for otra_parcela in símismo.parcelas:
+                parcela.dist[otra_parcela] = dist((parcela.dic["Lat"], parcela.dic["Long"]),
+                                                  (otra_parcela.dic["Lat"] , otra_parcela.dic["Long"]))
+
+
+    def simul(símismo, fecha_init, tiempo_simul, paso):  # fecha_init tiene que ser del formato AAAAMMDD
         fecha = fecha_init
-        for parcela in simismo.parcelas:
+        for parcela in símismo.parcelas:
             parcela.ejec(fecha_init)
         for tiempo in range(0, tiempo_simul):
-            for parcela in simismo.parcelas:
+            for parcela in símismo.parcelas:
                 # Si el modelo de cultivo se terminó:
                 if parcela.cultivo.poll is not None:
                     # TODO: poner código para reinicializar la parcela
@@ -81,7 +81,7 @@ class Paisaje(Coso):
 
                 # Controlar la migración de plagas entre parcelas:
                 # Calcular la imigración y emigración para hoy
-                for otra_parcela in simismo.parcelas:
+                for otra_parcela in símismo.parcelas:
                     if parcela is not otra_parcela:
                         for insecto in parcela.red.insectos:
                             # const_migr podría modificarse para ser una funcción de las dos parcelas en cuestión.
@@ -93,7 +93,7 @@ class Paisaje(Coso):
 
             # Implementar las migraciones. La implementación de las migraciones después de calcular todas las
             # migraciones evita problemas de migraciones círculas entre parcelas.
-            for parcela in simismo.parcelas:
+            for parcela in símismo.parcelas:
                 for insecto in parcela.red.insectos:
                     parcela.red.insectos[insecto] -= parcela.emigración[insecto]
                     parcela.red.insectos[insecto] += parcela.imigración[insecto]
@@ -102,8 +102,8 @@ class Paisaje(Coso):
                     parcela.insectos = parcela.red.insectos  # Salvar los datos en el diccionario local de la parcela
 
             # Guardar el tiempo
-            simismo.resultados["Día"].append(fecha.díaaño)
+            símismo.resultados["Día"].append(fecha.díaaño)
 
         # Guardar resultados finales
-        for parcela in simismo.parcelas:
-            simismo.resultados[parcela] = parcela.resultados
+        for parcela in símismo.parcelas:
+            símismo.resultados[parcela] = parcela.resultados

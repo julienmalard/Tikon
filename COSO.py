@@ -1,6 +1,8 @@
 import os, shutil
-# import Bayesiano.CALIB
 import json
+import datetime as ft
+# import Bayesiano.CALIB
+
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
 Tikon que representa un aspecto físico del ambiente y que tiene datos. Incluye
@@ -11,85 +13,115 @@ su calibración.
 
 
 class Coso(object):
-    def __init__(simismo, nombre, carpeta="", reinit=False, dic={}, dic_incert={}):
-        simismo.nombre = nombre
+    def __init__(símismo, nombre="", ext="", carpeta="", reinit=False, dic="", dic_incert=""):
+        símismo.ext = ext  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        símismo.nombre = nombre
         # La carpeta dónde se ubica este objeto
-        simismo.carpeta = carpeta
+        símismo.carpeta = carpeta
         # El nombre del documento de este objeto
-        simismo.documento = os.path.join("Proyectos", carpeta, simismo.nombre + simismo.ext)
-        simismo.dic = simismo.dic_base   # Para guardar los variables del coso
+        símismo.documento = os.path.join("Proyectos", carpeta, símismo.nombre + símismo.ext)
         if len(dic):
             for var in dic:
-                simismo.dic[var] = dic[var]
-        simismo.dic_incert = dic_incert   # para guardar listas (distribuciones de incertidumbre) para cada variable
+                símismo.dic[var] = dic[var]
+        símismo.dic = símismo.dic_base   # Para guardar los variables del coso
+        símismo.dic_incert = dic_incert   # para guardar listas (distribuciones de incertidumbre) para cada variable
 
-        simismo.reinit = reinit  # Indica si el programa debe reinitializar or utilizar carpetas existentes.
+        símismo.reinit = reinit  # Indica si el programa debe reinitializar or utilizar carpetas existentes.
 
         # Borrar/crear de nuevo o buscar/leer la carpeta de datos, si existe
-        if simismo.reinit:  # Si estamos reinicializando el objeto, borrar y recrear la carpeta
-            if os.path.isdir(simismo.documento):
-                shutil.rmtree(simismo.documento)
-            if os.path.isfile(simismo.documento):
-                os.remove(simismo.documento)
+        if símismo.reinit:  # Si estamos reinicializando el objeto, borrar y recrear la carpeta
+            if os.path.isdir(símismo.documento):
+                shutil.rmtree(símismo.documento)
+            if os.path.isfile(símismo.documento):
+                os.remove(símismo.documento)
         else:  # Si no estamos reinicializando el objeto, leer el documento
-            if os.path.isfile(simismo.documento):
-                simismo.leer(simismo.documento)
+            if os.path.isfile(símismo.documento):
+                símismo.leer(símismo.documento)
 
     # Función para escribir los datos a un documento externo
-    def escribir(simismo, documento=""):
+    def escribir(símismo, documento=""):
         if not len(documento):
-            documento = simismo.documento
+            documento = símismo.documento
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
-        if simismo.ext not in documento.lower():
-            if simismo.nombre not in documento:
-                documento += "\\" + simismo.nombre + simismo.ext
+        if símismo.ext not in documento.lower():
+            if símismo.nombre not in documento:
+                documento += "\\" + símismo.nombre + símismo.ext
             else:
-                documento += simismo.ext
+                documento += símismo.ext
         # Para guardar el diccionario de incertidumbre:
         documento_incert = documento + "i"
 
         # Para guardar diccionarios de objetos, utilizamos el módulo JSON que escribe los diccionarios en
         # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
+
+        # Primero, convertimos objetos fechas en forma "cadena"
+        dic_temp = símismo.dic.copy()
+        dic_incert_temp = símismo.dic_incert.copy()
+
+        def convertir_fechas(obj):
+            for i in obj:
+                if type(obj[i]) is list or type(obj[i]) is dict:
+                    convertir_fechas(obj[i])  # Buscar en cada sub-diccionario o sub-lista del objeto
+                elif type(obj[i]) is ft.datetime:
+                    obj[i] = obj[i].strftime('%Y-%m-%d')  # Convertir fechas en formato cadena
+
+        convertir_fechas(dic_temp)
+        convertir_fechas(dic_incert_temp)
+
         try:
             with open(documento, mode="w") as d:
-                json.dump(simismo.dic, d)
+                json.dump(dic_temp, d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para guadar datos."
 
         try:
             with open(documento_incert, mode="w") as d:
-                json.dump(simismo.dic_incert, d)
+                json.dump(dic_incert_temp, d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
 
     # Función para leer los datos desde un documento externo
-    def leer(simismo, documento=""):
+    def leer(símismo, documento=""):
         if not len(documento):
-            documento = simismo.documento
+            documento = símismo.documento
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
-        if simismo.ext not in documento.lower():
-            if simismo.nombre not in documento:
-                documento += "\\" + simismo.nombre + simismo.ext
+        if símismo.ext not in documento.lower():
+            if símismo.nombre not in documento:
+                documento += "\\" + símismo.nombre + símismo.ext
             else:
-                documento += simismo.ext
+                documento += símismo.ext
         documento_incert = documento + "i"
 
         try:
             with open(documento, mode="r") as d:
-                simismo.dic = json.load(d)
+                símismo.dic = json.load(d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos."
 
         try:
             with open(documento_incert, mode="r") as d:
-                simismo.dic_incert = json.load(d)
+                símismo.dic_incert = json.load(d)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos de incertidumbre."
 
-    def inic_calibr(simismo, datos):
+        def convertir_fechas(obj):
+            f = ft.datetime(1, 1, 1)
+            for i in obj:
+                if type(obj[i]) is list or type(obj[i]) is dict:
+                    convertir_fechas(obj[i])
+                elif type(obj[i]) is str:
+                    try:
+                        obj[i] = f.strptime(obj[i], '%Y-%m-%d')
+                    except ValueError:
+                        pass
+
+        convertir_fechas(símismo.dic)
+        convertir_fechas(símismo.dic_incert)
+
+    def inic_calibr(símismo, datos):
         # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario
-        if not len(simismo.dic_incert):
-            simismo.dic_incert = simismo.dic
+        if not len(símismo.dic_incert):
+            símismo.dic_incert = símismo.dic
 
             # Para cada variable numérico en el diccionario, crear una lista para contener varios valores posibles
             # del variable (análisis de incertidumbre)
@@ -103,7 +135,7 @@ class Coso(object):
                     elif type(v) is dict:
                         dic_lista(d)
 
-            dic_lista(simismo.dic_incert)
+            dic_lista(símismo.dic_incert)
 
 '''
     def calib(self,):
