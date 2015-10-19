@@ -9,11 +9,11 @@ import os
 # Una parcela se refiere a una unidad de tierra homógena en sus suelo, cultivo(s)
 # y otras propiedades
 class Parcela(Coso):
-    def __init__(simismo, suelos_común, variedades_común, redes_común, *args, **kwargs):
-        simismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
+    def __init__(símismo, suelos_común, variedades_común, redes_común, **kwargs):
+        símismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
                             "Área": (), "Surcos": (), "Long_surcos": (), 'Pendiente_orientación': '', 'Piedras': '',
                             'Fecha_init': '',
-                            'Manejo': dict(fecha_siembra="", Fecha_emergencia=[], Población_siembra=[],
+                            'Manejo': dict(Fecha_siembra="", Fecha_emergencia=[], Población_siembra=[],
                                            Población_emerg=[], Método_siembra=[], Distribución_siembra=[],
                                            Espacio_surcos=[], Dirrección_surcos=[], Profund_siembra=[],
                                            Peso_material_sembrado=[], Edad_transplantaciones=[],
@@ -30,88 +30,88 @@ class Parcela(Coso):
                                            Cant_irrig_auto=(),
                                            )
                             }
-        simismo.suelos_común = suelos_común
-        simismo.variedades_común = variedades_común
-        simismo.redes_común = redes_común
-        super().__init__(*args, **kwargs)
-        simismo.ext = "par"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        símismo.suelos_común = suelos_común
+        símismo.variedades_común = variedades_común
+        símismo.redes_común = redes_común
+        super().__init__(ext='prc', **kwargs)
+        símismo.ext = "par"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
         # Crear la carpeta para la parcela:
-        if (not simismo.variedades_común) or (not simismo.suelos_común):
-            if not os.path.exists(os.path.splitext(simismo.documento)[0]):  # splitext quita la extensión
-                os.makedirs(os.path.splitext(simismo.documento)[0])
+        if (not símismo.variedades_común) or (not símismo.suelos_común):
+            if not os.path.exists(os.path.splitext(símismo.documento)[0]):  # splitext quita la extensión
+                os.makedirs(os.path.splitext(símismo.documento)[0])
 
         # Dar el directorio apropiado a la variedad de cultivo y el suelo utilizados para esta parcela
-        if simismo.variedades_común:  # Si la parcela comparte variedades con otros proyectos (para calibración)
+        if símismo.variedades_común:  # Si la parcela comparte variedades con otros proyectos (para calibración)
             carpeta_variedad = "Parcelas" + "\\" + "Variedades"
         else:  # Si la parcela tiene sus variedades individuales (para calibración)
-            carpeta_variedad = simismo.carpeta
-        if simismo.suelos_común:  # Si la parcela comparte suelo con otros proyectos (para calibración)
+            carpeta_variedad = símismo.carpeta
+        if símismo.suelos_común:  # Si la parcela comparte suelo con otros proyectos (para calibración)
             carpeta_suelo = "Parcelas" + "\\" + "Suelos"
         else:  # Si la parcela tiene sus suelos individuales (para calibración)
-            carpeta_suelo = simismo.carpeta
-        if simismo.redes_común:
+            carpeta_suelo = símismo.carpeta
+        if símismo.redes_común:
             carpeta_redes = "Parcelas" + "\\" + "Redes"
         else:  # Si la parcela tiene sus suelos individuales (para calibración)
-            carpeta_redes = simismo.carpeta
+            carpeta_redes = símismo.carpeta
 
         # Definir el cultivo y la red agroecológica
-        simismo.red = Red(nombre=simismo.dic["RedAE"], carpeta=carpeta_redes, reinit=simismo.reinit)
-        simismo.variedad = Variedad(nombre=simismo.dic["Variedad"], carpeta=carpeta_variedad,
-                                    reinit=simismo.reinit)
-        simismo.suelo = Suelo(nombre=simismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=simismo.reinit)
-        simismo.cultivo = Cultivo(nombre=simismo.nombre + "_" + simismo.dic["Cultivo"], cultivo=simismo.cultivo,
-                                  variedad=simismo.variedad, suelo=simismo.dic["Suelo"],
-                                  meteo=simismo.dic["Meteo"], parcela=simismo.dic
+        símismo.red = Red(nombre=símismo.dic["RedAE"], carpeta=carpeta_redes, reinit=símismo.reinit)
+        símismo.variedad = Variedad(nombre=símismo.dic["Variedad"], carpeta=carpeta_variedad,
+                                    reinit=símismo.reinit)
+        símismo.suelo = Suelo(nombre=símismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=símismo.reinit)
+        símismo.cultivo = Cultivo(cultivo=símismo.cultivo,
+                                  variedad=símismo.variedad, suelo=símismo.dic["Suelo"],
+                                  meteo=símismo.dic["Meteo"], manejo=símismo.dic
                                   )
 
         # Poner a 0 los valores iniciales del cultivo y de los insectos
-        simismo.estado_cultivo = {}
-        for var in simismo.cultivo.egresos:
-            simismo.estado_cultivo[var] = ()
-        simismo.daño_plagas = {}
-        simismo.insectos = {}
-        for insecto in simismo.red.insectos:
-            simismo.insectos[insecto] = ()
+        símismo.estado_cultivo = {}
+        for var in símismo.cultivo.egresos:
+            símismo.estado_cultivo[var] = ()
+        símismo.daño_plagas = {}
+        símismo.insectos = {}
+        for insecto in símismo.red.insectos:
+            símismo.insectos[insecto] = ()
 
         # Para guardar los resultados de la simulación
-        simismo.resultados = dict(Emigración=[], Imigración=[], Día=[0])
-        for dato in simismo.cultivo.egresos:
-            simismo.resultados[dato] = ()
-        for insecto in simismo.insectos:
-            simismo.resultados[insecto]["Emigración"] = [0]
-            simismo.resultados[insecto]["Imigración"] = [0]
+        símismo.resultados = dict(Emigración=[], Imigración=[], Día=[0])
+        for dato in símismo.cultivo.egresos:
+            símismo.resultados[dato] = ()
+        for insecto in símismo.insectos:
+            símismo.resultados[insecto]["Emigración"] = [0]
+            símismo.resultados[insecto]["Imigración"] = [0]
 
         # Esta función inicializa los modelos para la parcela
 
-    def ejec(simismo):
+    def ejec(símismo):
         # Una carpeta para guardar los resultados del modelo de cultivos
-        carpeta_egr = os.path.join(simismo.carpeta, "documentos_mod_cul")
+        carpeta_egr = os.path.join(símismo.carpeta, "documentos_mod_cul")
         # El modelo del cultivo define el tiempo para la simulación:
-        simismo.cultivo.ejec(carpeta=carpeta_egr)
+        símismo.cultivo.ejec(carpeta=carpeta_egr)
         # El modelo de plagas sigue mientras hay un modelo de cultivo activo
-        simismo.red = eval(simismo.dic["RedAE"])
-        simismo.resultados["Día"] = [0]
+        símismo.red = eval(símismo.dic["RedAE"])
+        símismo.resultados["Día"] = [0]
 
-    def incr(simismo, paso):
-        if simismo.cultivo.proceso.poll is None:
+    def incr(símismo, paso):
+        if símismo.cultivo.proceso.poll is None:
             # Incrementar los cultivos y la red
-            simismo.cultivo.incr(paso, simismo.daño_plagas)
-            simismo.estado_cultivo = simismo.cultivo.egresos
-            simismo.daño_plagas, simismo.insectos = simismo.red.incr(simismo.estado_cultivo, paso)
+            símismo.cultivo.incr(paso, símismo.daño_plagas)
+            símismo.estado_cultivo = símismo.cultivo.egresos
+            símismo.daño_plagas, símismo.insectos = símismo.red.incr(símismo.estado_cultivo, paso)
             # Guardar datos
-            for dato in simismo.estado_cultivo:
-                if dato not in simismo.resultados:
-                    simismo.resultados[dato] = []
-                simismo.resultados[dato].append(simismo.estado_cultivo[dato])
-            for dato in simismo.daño_plagas:
-                if dato not in simismo.resultados:
-                    simismo.resultados[dato] = []
-                simismo.resultados[dato].append(simismo.daño_plagas[dato])
-            for dato in simismo.insectos:
-                if dato not in simismo.resultados:
-                    simismo.resultados[dato] = []
-                simismo.resultados[dato].append(simismo.insectos[dato])
+            for dato in símismo.estado_cultivo:
+                if dato not in símismo.resultados:
+                    símismo.resultados[dato] = []
+                símismo.resultados[dato].append(símismo.estado_cultivo[dato])
+            for dato in símismo.daño_plagas:
+                if dato not in símismo.resultados:
+                    símismo.resultados[dato] = []
+                símismo.resultados[dato].append(símismo.daño_plagas[dato])
+            for dato in símismo.insectos:
+                if dato not in símismo.resultados:
+                    símismo.resultados[dato] = []
+                símismo.resultados[dato].append(símismo.insectos[dato])
             # Incrementar el tiempo
-            simismo.resultados["Día"].append = simismo.resultados["Día"][-1] + paso
+            símismo.resultados["Día"].append = símismo.resultados["Día"][-1] + paso
         else:
             return "Modelo de cultivo terminado."

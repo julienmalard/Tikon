@@ -3,9 +3,9 @@ import os
 
 # Objeto para representar documentos de typo FILEX de DSSAT (información de simulación)
 class FileX(object):
-    def __init__(simismo):
+    def __init__(símismo):
 
-        simismo.dic = {"EXP.DETAILS": "",
+        símismo.dic = {"EXP.DETAILS": "",
                        "GENERAL": {"ADDRESS": [], "PEOPLE": [], "SITE": [], "PAREA": [], "PRNO": [], "PLEN": [],
                                    "PLDR": [], "PLSP": [], "PLAY": [],
                                    "HAREA": [], "HRNO": [], "HLEN": [], "HARM": [], "NOTES": []
@@ -81,7 +81,7 @@ class FileX(object):
 
         # Lista del tamaño (en carácteres) de cada variable
 
-        simismo.prop_vars = {
+        símismo.prop_vars = {
             "EXP.DETAILS": {"EXP.DETAILS": 50},
             "GENERAL": {"PEOPLE": 2500, "ADDRESS": 2500, "SITE": 2500,
                         "PAREA": 5, "PRNO": 5, "PLEN": 5, "PLDR": 5, "PLSP": 5, "PLAY": 5, "HAREA": 5,
@@ -146,16 +146,16 @@ class FileX(object):
         }
 
         # Las secciones posibles en un documento FILEX
-        simismo.secciones = []
-        for i in simismo.dic:
-            simismo.secciones.append(i)
+        símismo.secciones = []
+        for i in símismo.dic:
+            símismo.secciones.append(i)
 
     # Lee un archivo FILEX para uso en Python. "Documento" es la ubicación del archivo FILEX en la computadora.
-    def leer(simismo, documento):
+    def leer(símismo, documento):
         # Borar datos, si existen
-        for i in simismo.dic:
-            for j in simismo.dic[i]:
-                simismo.dic[i][j] = []
+        for i in símismo.dic:
+            for j in símismo.dic[i]:
+                símismo.dic[i][j] = []
 
         with open(documento, "r") as d:
             doc = []
@@ -167,26 +167,26 @@ class FileX(object):
 
             # Sección "EXP.DETAILS"
             if "*EXP.DETAILS" in línea:
-                simismo.dic["EXP.DETAILS"] = línea.replace("*EXP.DETAILS: ", "").replace('\n', '')
+                símismo.dic["EXP.DETAILS"] = línea.replace("*EXP.DETAILS: ", "").replace('\n', '')
                 continue
 
             # Sección "GENERAL"
             if '@' in línea and 'PEOPLE' in línea:
-                simismo.dic["PEOPLE"] = [doc[núm_lín + 1].replace('\n', '')]
+                símismo.dic["PEOPLE"] = [doc[núm_lín + 1].replace('\n', '')]
                 continue  # Pasa a la línea siguiente del documento
             if '@' in línea and 'ADDRESS' in línea:
-                simismo.dic["ADDRESS"] = [doc[núm_lín + 1].replace('\n', '')]
+                símismo.dic["ADDRESS"] = [doc[núm_lín + 1].replace('\n', '')]
                 continue  # Pasa a la línea siguiente del documento
             if '@' in línea and 'SITE(S)' in línea:
-                simismo.dic["SITE"] = [doc[núm_lín + 1].replace('\n', '')]
+                símismo.dic["SITE"] = [doc[núm_lín + 1].replace('\n', '')]
                 continue  # Pasa a la línea siguiente del documento
             vars_parcela = "PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM".split()
             if '@' in línea and 'PAREA' in línea:
                 valores_parcela = doc[
                     doc.index("@ PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM.........\n")+1
                 ].split()
-                for a in simismo.dic['GENERAL']:
-                    simismo.dic['GENERAL'][a] = [valores_parcela[vars_parcela.index(a)]]
+                for a in símismo.dic['GENERAL']:
+                    símismo.dic['GENERAL'][a] = [valores_parcela[vars_parcela.index(a)]]
                 continue
             if '@' in línea and 'NOTES' in línea:
                 notas = ""
@@ -194,24 +194,24 @@ class FileX(object):
                 while "*TREATMENTS" not in doc[núm_lín]:
                     notas += doc[i]
                     i += 1
-                simismo.dic["NOTES"] = [notas]
+                símismo.dic["NOTES"] = [notas]
                 continue
 
             # Leer las secciones aparte la "GENERAL" y la "EXP.DETAILS"
-            for otra in simismo.secciones:
+            for otra in símismo.secciones:
                 if otra != "EXP.DETAILS" and otra != "GENERAL":
-                    simismo.decodar(doc, otra)
+                    símismo.decodar(doc, otra)
 
-    def escribir(simismo, carpeta):      # Escribe un documento FILEX para uso en DSSAT
+    def escribir(símismo, carpeta):      # Escribe un documento FILEX para uso en DSSAT
         documento = os.path.join(carpeta, 'TKON0000')  # Sólo podemos tener un documento FILEX por carpeta (parcela)
-        for i in simismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
-            if type(simismo.dic[i]) is dict:
-                for j in simismo.dic[i]:
-                    if not len(simismo.dic[i][j]):
-                        simismo.dic[i][j] = [["-99"]]
+        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+            if type(símismo.dic[i]) is dict:
+                for j in símismo.dic[i]:
+                    if not len(símismo.dic[i][j]):
+                        símismo.dic[i][j] = [["-99"]]
             else:
-                if simismo.dic[i] == '':
-                    simismo.dic[i] = [["-99"]]
+                if símismo.dic[i] == '':
+                    símismo.dic[i] = [["-99"]]
         with open("FILEX.txt", "r") as d:    # Abrir el patrón general para archivos FILEX
             doc = []
             for línea in d:
@@ -219,15 +219,15 @@ class FileX(object):
             doc.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
         # Encodar todas las secciones
-        for sección in simismo.secciones:
-            simismo.encodar(doc, sección)
+        for sección in símismo.secciones:
+            símismo.encodar(doc, sección)
 
         # Salvar la carpeta FILEX en la ubicación contenida en "documento"
         with open(documento, "w") as d:
             d.write(''.join(doc))
 
     # Esta funcción convierte una sección de un documento FILEX en una parte del diccionario Python del objeto fileX
-    def decodar(simismo, doc, sección):
+    def decodar(símismo, doc, sección):
         # Encuentra la ubicación del principio y del fin de cada sección
         prin = fin = None
         for línea in doc:
@@ -258,20 +258,20 @@ class FileX(object):
                             nivel = int(nivel)
 
                         for j, var in enumerate(variables):
-                            if var in simismo.dic[sección]:  # Si la variable existe en la base de datos de fileX
-                                if len(simismo.dic[sección][var]) < nivel:
-                                    simismo.dic[sección][var].append([])
-                                simismo.dic[sección][var][nivel-1].append(
-                                    valores[:simismo.prop_vars[sección][var]+1].strip()
+                            if var in símismo.dic[sección]:  # Si la variable existe en la base de datos de fileX
+                                if len(símismo.dic[sección][var]) < nivel:
+                                    símismo.dic[sección][var].append([])
+                                símismo.dic[sección][var][nivel-1].append(
+                                    valores[:símismo.prop_vars[sección][var]+1].strip()
                                 )
-                                valores = valores[simismo.prop_vars[sección][var]+1:]
+                                valores = valores[símismo.prop_vars[sección][var]+1:]
                         i += 1
         else:
             return "No encontramos la sección " + sección + ". Si no eres un programador de Tikon, dígale " \
                                                             "a uno que se ponga a trabajar."
 
     # Esta funcción encoda una sección del diccionario en un formato de documento FILEX
-    def encodar(simismo, doc, sección):
+    def encodar(símismo, doc, sección):
         prin = 0
         while '*' not in doc[prin] and sección not in doc[prin]:    # Encontrar el principio de la sección
             prin += 1
@@ -281,21 +281,21 @@ class FileX(object):
             línea += 1
             texto = doc[línea]
             if sección == "EXP.DETAILS":
-                texto.format(**simismo.dic)
+                texto.format(**símismo.dic)
                 doc.insert(línea, texto)
                 return
             if '{' in texto:   # Si la línea tiene variables a llenar
                 # Leer el primer variable de la línea (para calcular el número de niveles y repeticiones más adelante)
                 var = texto[texto.index("{")+2:texto.index("]")]
                 copia = texto   # Copiar la línea vacía (en caso que hayan otras líneas que agregar)
-                for i, a in enumerate(simismo.dic[sección][var]):    # Para cada nivel de tratamiento
+                for i, a in enumerate(símismo.dic[sección][var]):    # Para cada nivel de tratamiento
                     # Para cada repetición del nivel (por ej., varias aplicaciones de riego al mismo tratamiento)
                     for j, b in enumerate(a):
                         if sección != "GENERAL":
                             texto = " " + str(i + 1) + copia  # Escribir el nivel del tratamiento
                         texto = texto.replace("]", "][" + str(i) + "][" + str(j) + "]").replace(
                             "{[", "{" + sección + "[")
-                        texto = texto.format(**simismo.dic)
+                        texto = texto.format(**símismo.dic)
                         doc.insert(línea, texto)
                         línea += 1
                 doc.remove(copia)

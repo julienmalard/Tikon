@@ -5,23 +5,23 @@ from CULTIVO.Controles import dir_DSSAT
 
 # Objeto para representar documentos de typo fileW (meteorología diaria) de DSSAT
 class FileW(object):
-    def __init__(simismo):
+    def __init__(símismo):
 
-        simismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [],
+        símismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [],
                        "REFHT": [], "WNDHT": [], "DATE": [], "SRAD": [], "TMAX": [], "TMIN": [], "RAIN": [],
                        "DEWP": [], "WIND": [], "PAR": []}
 
         # Lista del tamaño (en carácteres) de cada variable
-        simismo.prop_vars = {
+        símismo.prop_vars = {
             "SITE": 100, "INSI": 5, "LAT": 8, "LONG": 8, "ELEV": 5, "TAV": 5, "AMP": 5, "REFHT": 5, "WNDHT": 5,
             "DATE": 5, "SRAD": 5, "TMAX": 5, "TMIN": 5, "RAIN": 5, "DEWP": 5, "WIND": 5, "PAR": 5
         }
 
-    def leer(simismo, cod_clima):
+    def leer(símismo, cod_clima):
 
         # Vaciar el diccionario
-        for i in simismo.dic:
-            simismo.dic[i] = []
+        for i in símismo.dic:
+            símismo.dic[i] = []
 
         encontrado = False
 
@@ -29,7 +29,7 @@ class FileW(object):
             if doc_clima.upper().endswith(".WHT") and cod_clima.upper() in doc_clima.upper():
                 with open(os.path.join(dir_DSSAT, 'Weather', doc_clima)) as d:
                     doc = d.readlines()
-                    simismo.decodar(doc)
+                    símismo.decodar(doc)
                 encontrado = True
 
         # Si no lo encontramos
@@ -38,18 +38,18 @@ class FileW(object):
             return False
 
     # Esta función escribe los datos de meteo en la base de datos de meteo de DSSAT
-    def escribir(simismo):
-        cod_clim = simismo.dic["INSI"] + "TKON"
+    def escribir(símismo):
+        cod_clim = símismo.dic["INSI"] + "TKON"
 
-        for i in simismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
-            if not len(simismo.dic[i]):
-                simismo.dic[i] = ["-99"]
+        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+            if not len(símismo.dic[i]):
+                símismo.dic[i] = ["-99"]
 
         with open("FILEW.txt", "r") as d:    # Abrir el esquema general para archivos FILEW
             esquema = d.readlines()
         esquema.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
-        esquema = simismo.encodar(esquema)
+        esquema = símismo.encodar(esquema)
         esquema = ''.join(esquema)  # Lo que tenemos que escribir
 
         # Salvar la carpeta FILEW en DSSAT46/Weather
@@ -57,11 +57,11 @@ class FileW(object):
             d.write(''.join(esquema))
 
     # Esta funcción convierte datos de meteo de un documento FILEW en diccionario Python.
-    def decodar(simismo, doc):
+    def decodar(símismo, doc):
         # Encuentra la ubicación del principio y del fin de cada sección
         for línea in doc:
             if "*" in línea and "WEATHER DATA" in línea:
-                simismo.dic['SITE'] = línea[línea.index(':') + 1:].strip()
+                símismo.dic['SITE'] = línea[línea.index(':') + 1:].strip()
                 continue
 
             if "@" in línea:
@@ -73,23 +73,23 @@ class FileW(object):
                 while "@" not in doc[núm_lin] and doc[núm_lin] != '\n':
                     valores = doc[núm_lin].replace('\n', '')
                     for j, var in enumerate(variables):
-                        if var in simismo.dic:
-                            valor = valores[:simismo.prop_vars[var]+1].strip()
-                            simismo.dic[var].append(valor)
-                            valores = valores[simismo.prop_vars[var]+1:]
+                        if var in símismo.dic:
+                            valor = valores[:símismo.prop_vars[var]+1].strip()
+                            símismo.dic[var].append(valor)
+                            valores = valores[símismo.prop_vars[var]+1:]
                     núm_lin += 1
 
-    def encodar(simismo, doc_clima):
+    def encodar(símismo, doc_clima):
         for n, línea in enumerate(doc_clima):
             l = n
             texto = línea
             if '{' in texto:   # Si la línea tiene variables a llenar
                 # Leer el primer variable de la línea (para calcular el número de niveles de suelo más adelante)
                 var = texto[texto.index("{")+2:texto.index("]")]
-                for k, a in enumerate(simismo.dic[var]):    # Para cada nivel del perfil del suelo
+                for k, a in enumerate(símismo.dic[var]):    # Para cada nivel del perfil del suelo
                     l += 1
                     nueva_línea = texto.replace('[', '').replace("]", "[" + str(k) + "]")
-                    nueva_línea = nueva_línea.format(**simismo.dic)
+                    nueva_línea = nueva_línea.format(**símismo.dic)
                     doc_clima.insert(l, nueva_línea)
                 doc_clima.remove(texto)
         return doc_clima
