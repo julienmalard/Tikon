@@ -6,28 +6,26 @@ import numpy as np
 
 # Esta clase representa la meteo diaria en un lugar específico.
 class Diario(Coso):
-    def __init__(símismo, **kwargs):
+    def __init__(símismo, nombre='', coord=()):
         # El diccionario de los datos para cada suelo
-        símismo.dic_base = dict(Lugar=[], País=[], Departamento=[], Municipio=[], Cód_lugar=[], Lat=[], Long=[],
-                                Elev=[], Temp_prom=[], Alt_med_temp=[], Alt_med_viento=[], Amp_temp_mens=[], Fecha=[], 
-                                Rad_sol=[], Temp_máx=[], Temp_mín=[], Precip=[], Temp_conden=[], Viento=[], Rad_foto=[],
-                                Hum_rel=[])
+        símismo.dic = dict(Lugar='', País=[], Departamento=[], Municipio=[], Cód_lugar=[], Lat=[], Long=[],
+                           Elev=[], Temp_prom=[], Alt_med_temp=[], Alt_med_viento=[], Amp_temp_mens=[], Fecha=[],
+                           Rad_sol=[], Temp_máx=[], Temp_mín=[], Precip=[], Temp_conden=[], Viento=[], Rad_foto=[],
+                           Hum_rel=[])
 
-        super().__init__(ext='día', **kwargs)  # Esta variable se initializa como Coso
+        if not len(nombre) and len(coord):
+            nombre = '%sN_%sW' % (coord[0], coord[1])
 
-        símismo.lugar = símismo.dic['Lugar']
-        símismo.país = símismo.dic['País']
-        símismo.departamento = símismo.dic['Departamento']
-        símismo.municipio = símismo.dic['Municipio']
-        símismo.coord = (símismo.dic['Lat'], símismo.dic['Long'])
+        # Esta variable se initializa como Coso
+        super().__init__(nombre=nombre, ext='día', directorio=os.path.join('CLIMA', 'DATOS'))
 
     def buscar(símismo, fecha_inic, fecha_fin):
 
-        símismo.lugar = símismo.dic['Lugar']
-        símismo.país = símismo.dic['País']
-        símismo.departamento = símismo.dic['Departamento']
-        símismo.municipio = símismo.dic['Municipio']
-        símismo.coord = (símismo.dic['Lat'], símismo.dic['Long'])
+        lugar = símismo.dic['Lugar']
+#        país = símismo.dic['País']
+#        departamento = símismo.dic['Departamento']
+#        municipio = símismo.dic['Municipio']
+        coord = (símismo.dic['Lat'], símismo.dic['Long'])
 
         encontrado = faltan_pt = faltan_por = faltan = generamos = False
         estación = {}
@@ -51,26 +49,27 @@ class Diario(Coso):
 
         lím_distancia = 10  # acceptamos estaciones adentro de 10 km del lugar de interés
         for i in estaciones:
-            # Si hay una estación con el mismo nombre:
-            if i['Estación'] == símismo.lugar:
+            # Si hay una estación con las mismas coordinadas:
+            if i['Lat'] == coord[0] and i['Long'] == coord[1]:
                 estación = estaciones[i]
                 encontrado = True
                 break
-            # Sino, si hay una estación con las mismas coordinadas:
-            elif i['Lat'] == símismo.coord[0] and i['Long'] == símismo.coord[1]:
+            # Sino, si hay una estación con el mismo nombre:
+            elif i['Estación'] == lugar:
                 estación = estaciones[i]
                 encontrado = True
                 break
             # O si hay una estación que no esté muy lejos, lo guardamos al menos que encontremos mejor
-            elif dist(símismo.coord, dist(estaciones[i]['Lat'], estaciones[i]['Long'])).km < lím_distancia:
+            elif dist(coord, dist(estaciones[i]['Lat'], estaciones[i]['Long'])).km < lím_distancia:
                 lím_distancia = dist(estaciones[i]['Lat'], estaciones[i]['Long']).km
                 estación = estaciones[i]
                 encontrado = True
 
         if encontrado:
-            nombre = estación['Estación']
-            directorio = os.path.join('CLIMA', 'DATOS', nombre, '.csv')
-            faltan, faltan_pt, faltan_por, dic = cargar_estación(directorio, (estación['Lat'], estación['Long']),
+            símismo.nombre = estación['Estación']
+            símismo.dic['Lugar'] = símismo.nombre
+            directorio = os.path.join('CLIMA', 'DATOS', símismo.nombre, '.csv')
+            dic, faltan, faltan_pt, faltan_por = cargar_estación(directorio, (estación['Lat'], estación['Long']),
                                                                  estación['Elev'], fecha_inic, fecha_fin)
             if not faltan:
                 return  # Si ya lo encontramos sin datos que faltan, parar aquí
@@ -79,8 +78,10 @@ class Diario(Coso):
         if not encontrado or faltan:
             # Buscar a ver si ya tenemos datos generados para la estación
             for doc_meteogen in os.listdir(os.path.join('CLIMA', 'DATOS', 'Generados')):
-                if doc_meteogen.lower() == símismo.lugar.lower() + ".día":
-                    faltan, faltan_pt, faltan_por, dic = cargar_estación(doc_meteogen, fecha_inic, fecha_fin)
+                if doc_meteogen.lower() == lugar.lower() + ".día":
+                    símismo.nombre = estación['Estación']
+                    símismo.dic['Lugar'] = símismo.nombre
+                    dic, faltan, faltan_pt, faltan_por = cargar_estación(doc_meteogen, fecha_inic, fecha_fin)
                     if not faltan:
                         return  # Si ya lo encontramos sin datos que faltan, parar aquí
                     break
@@ -88,7 +89,7 @@ class Diario(Coso):
         # Si ya encontramos una estación...
         if encontrado:
             # Buscar las estaciones cercanas
-            estaciones_cercanas = buscar_cercanas(100, símismo.coord, estaciones)
+            estaciones_cercanas = buscar_cercanas(100, coord, estaciones)
             for var in dic['Datos']:  # Para cada variable
                 if var != 'Fecha' and var != 'Coord':  # Ignorar estas dos llaves del diccionario
 
@@ -136,7 +137,7 @@ class Diario(Coso):
 
         else:  # Si no encontramos una estación, utilizar kriging
             # Buscar las estaciones cercanas
-            estaciones_cercanas = buscar_cercanas(30, símismo.coord, estaciones)
+            estaciones_cercanas = buscar_cercanas(30, coord, estaciones)
             dic = krigear(dic, estaciones_cercanas, fecha_inic, fecha_fin)
             generamos = True
 
@@ -153,7 +154,9 @@ class Diario(Coso):
 
         # Si generamos datos, salvar el objeto en la base de datos generados de Python
         if generamos:
-            símismo.escribir(os.path.join('Proyectos', 'Clima', 'Generado', símismo.lugar, '.día'))
+            # Cambiar el directorio de base al directorio de datos generados
+            símismo.directorio = os.path.join('Proyectos', 'Clima', 'Generado')
+            símismo.escribir()  # Guardar los datos
 
 
 # Esta clase representa el clima de un lugar.

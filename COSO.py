@@ -1,4 +1,5 @@
-import os, shutil
+import os
+import shutil
 import json
 import datetime as ft
 # import Bayesiano.CALIB
@@ -13,35 +14,38 @@ su calibración.
 
 
 class Coso(object):
-    def __init__(símismo, nombre="", ext="", carpeta="", reinit=False, dic="", dic_incert=""):
+    def __init__(símismo, nombre, ext, directorio, reinic=False):
         símismo.ext = ext  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
-        símismo.nombre = nombre
         # La carpeta dónde se ubica este objeto
-        símismo.carpeta = carpeta
-        # El nombre del documento de este objeto
-        símismo.documento = os.path.join("Proyectos", carpeta, símismo.nombre + símismo.ext)
-        if len(dic):
-            for var in dic:
-                símismo.dic[var] = dic[var]
-        símismo.dic = símismo.dic_base   # Para guardar los variables del coso
-        símismo.dic_incert = dic_incert   # para guardar listas (distribuciones de incertidumbre) para cada variable
+        símismo.directorio = directorio
+        # El nombre del objeto
+        símismo.nombre = nombre
+        # El nombre del documento utilizado para guardar este objeto
+        símismo.dirección = os.path.join("Proyectos", directorio, símismo.nombre + símismo.ext)
 
-        símismo.reinit = reinit  # Indica si el programa debe reinitializar or utilizar carpetas existentes.
+        símismo.dic = {}  # Para guardar los variables del coso
+        símismo.dic_incert = {}  # Para guardar listas (distribuciones de incertidumbre) para cada variable
 
+        # reinic Indica si el programa debe reinitializar or utilizar carpetas existentes.
         # Borrar/crear de nuevo o buscar/leer la carpeta de datos, si existe
-        if símismo.reinit:  # Si estamos reinicializando el objeto, borrar y recrear la carpeta
-            if os.path.isdir(símismo.documento):
-                shutil.rmtree(símismo.documento)
-            if os.path.isfile(símismo.documento):
-                os.remove(símismo.documento)
-        else:  # Si no estamos reinicializando el objeto, leer el documento
-            if os.path.isfile(símismo.documento):
-                símismo.leer(símismo.documento)
+        if reinic:  # Si estamos reinicializando el objeto, borrar y recrear el directorio
+            if os.path.isdir(símismo.dirección):
+                shutil.rmtree(símismo.dirección)
+            if os.path.isfile(símismo.dirección):
+                os.remove(símismo.dirección)
+            # Y crear el directorio/documento de nuevo
+            os.getcwd()
+            os.makedirs(símismo.directorio)
+        else:  # Si no estamos reinicializando el objeto, leer el documento, si existe
+            if os.path.isfile(símismo.dirección):
+                símismo.leer(símismo.dirección)
+            else:  # Si no existe
+                os.makedirs(símismo.directorio)
 
     # Función para escribir los datos a un documento externo
     def escribir(símismo, documento=""):
         if not len(documento):
-            documento = símismo.documento
+            documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
             if símismo.nombre not in documento:
@@ -55,7 +59,7 @@ class Coso(object):
         # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
 
         # Primero, convertimos objetos fechas en forma "cadena"
-        dic_temp = símismo.dic.copy()
+        dic_temp = símismo.dic.copy()  # Para no afectar el diccionario del objeto sí mismo
         dic_incert_temp = símismo.dic_incert.copy()
 
         def convertir_fechas(obj):
@@ -83,7 +87,7 @@ class Coso(object):
     # Función para leer los datos desde un documento externo
     def leer(símismo, documento=""):
         if not len(documento):
-            documento = símismo.documento
+            documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
             if símismo.nombre not in documento:
@@ -104,6 +108,7 @@ class Coso(object):
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos de incertidumbre."
 
+        # Convertir las fechas en objetos de fechas dinámicos
         def convertir_fechas(obj):
             f = ft.datetime(1, 1, 1)
             for i in obj:
