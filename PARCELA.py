@@ -8,33 +8,36 @@ import os
 
 # Una parcela se refiere a una unidad de tierra homógena en sus suelo, cultivo(s)
 # y otras propiedades
-class Parcela(Coso):
-    def __init__(símismo, suelos_común, variedades_común, redes_común, **kwargs):
-        símismo.dic_base = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
-                            "Área": (), "Surcos": (), "Long_surcos": (), 'Pendiente_orientación': '', 'Piedras': '',
-                            'Fecha_init': '',
-                            'Manejo': dict(Fecha_siembra="", Fecha_emergencia=[], Población_siembra=[],
-                                           Población_emerg=[], Método_siembra=[], Distribución_siembra=[],
-                                           Espacio_surcos=[], Dirrección_surcos=[], Profund_siembra=[],
-                                           Peso_material_sembrado=[], Edad_transplantaciones=[],
-                                           Temp_transplantación=[], Plantas_por_montículo=[], Eficiencia_irrig=[],
-                                           Profund_manejo_irrig=[], Hum_empiezo_irrig_auto=[], Hum_fin_irrig_auto=[],
-                                           Estadio_crec_fin_irrig=[], Método_irrig=[], Cantidad_por_irrig=[],
-                                           Fecha_abono=[], Material_abono=[], Método_app_abono=[], Profund_abono=[],
-                                           Abono_N=[], Abono_P=[], Abono_K=[], Abono_Ca=[], Abono_otro_conc=[],
-                                           Abono_otro_cód=[], Fecha_incorp_resid=[], Material_resid=[], Resid_N=[],
-                                           Resid_P=[], Resid_K=[], Resid_porcent_incorp=[], Resid_prodund_incorp=[],
-                                           Fecha_labranza=[], Herramienta_labranza=[], Profund_labranza=[],
-                                           Fecha_cosecha=[], Estadio_cosecha=[], Componente_cosecha=[],
-                                           Grupo_tamaño_cosecha=[], Porcent_cosecha=[], Irrig=True, Irrig_auto=True,
-                                           Cant_irrig_auto=(),
-                                           )
-                            }
+class Parcela(object):
+    def __init__(símismo, nombre, directorio, suelos_común, variedades_común, redes_común):
+        símismo.dic = {"Suelo": "", "Variedad": "", "Meteo": "", "RedAE": "", "Long": (), "Lat": (),
+                       "Área": (), "Surcos": (), "Long_surcos": (), 'Pendiente_orientación': '', 'Piedras': '',
+                       'Fecha_init': '',
+                       'Manejo': dict(Fecha_siembra="", Fecha_emergencia="", Población_siembra=[],
+                                      Población_emerg=[], Método_siembra=[], Distribución_siembra=[],
+                                      Espacio_surcos=[], Dirección_surcos=[], Profund_siembra=[],
+                                      Peso_material_sembrado=[], Edad_transplantaciones=[],
+                                      Temp_transplantación=[], Plantas_por_montículo=[], Eficiencia_irrig=[],
+                                      Profund_manejo_irrig=[], Hum_empiezo_irrig_auto=[], Hum_fin_irrig_auto=[],
+                                      Estadio_crec_fin_irrig=[], Método_irrig=[], Cantidad_por_irrig=[],
+                                      Fecha_abono=[], Material_abono=[], Método_app_abono=[], Profund_abono=[],
+                                      Abono_N=[], Abono_P=[], Abono_K=[], Abono_Ca=[], Abono_otro_conc=[],
+                                      Abono_otro_cód=[], Fecha_incorp_resid=[], Material_resid=[], Resid_N=[],
+                                      Resid_P=[], Resid_K=[], Resid_porcent_incorp=[], Resid_prodund_incorp=[],
+                                      Fecha_labranza=[], Herramienta_labranza=[], Profund_labranza=[],
+                                      Fecha_cosecha=[], Estadio_cosecha=[], Componente_cosecha=[],
+                                      Grupo_tamaño_cosecha=[], Porcent_cosecha=[], Irrig=True, Irrig_auto=True,
+                                      Cant_irrig_auto=()
+                                      )
+                       }
         símismo.suelos_común = suelos_común
         símismo.variedades_común = variedades_común
         símismo.redes_común = redes_común
-        super().__init__(ext='prc', **kwargs)
-        símismo.ext = "par"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        símismo.suelo = None
+        símismo.variedad = None
+        símismo.meteo = None
+        símismo.red = None
+
         # Crear la carpeta para la parcela:
         if (not símismo.variedades_común) or (not símismo.suelos_común):
             if not os.path.exists(os.path.splitext(símismo.documento)[0]):  # splitext quita la extensión
@@ -55,10 +58,6 @@ class Parcela(Coso):
             carpeta_redes = símismo.carpeta
 
         # Definir el cultivo y la red agroecológica
-        símismo.red = Red(nombre=símismo.dic["RedAE"], carpeta=carpeta_redes, reinit=símismo.reinit)
-        símismo.variedad = Variedad(nombre=símismo.dic["Variedad"], carpeta=carpeta_variedad,
-                                    reinit=símismo.reinit)
-        símismo.suelo = Suelo(nombre=símismo.dic["Variedad"], carpeta=carpeta_suelo, reinit=símismo.reinit)
         símismo.cultivo = Cultivo(cultivo=símismo.cultivo,
                                   variedad=símismo.variedad, suelo=símismo.dic["Suelo"],
                                   meteo=símismo.dic["Meteo"], manejo=símismo.dic

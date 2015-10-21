@@ -4,11 +4,11 @@ from REDES.INSECTOS import Insecto
 
 # Esta clase representa una red agroecológica
 class Red(Coso):
-    def __init__(símismo, *args, **kwargs):
+    def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada red
         símismo.dic_base = dict(Insectos=[], tipo_ecuaciones="")
         símismo.ext = "red"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
-        super().__init__(*args, **kwargs)  # Esta clase se initializa como describido en Coso
+        super().__init__(nombre=nombre, directorio=directorio)  # Esta clase se initializa como describido en Coso
         símismo.insectos = {}
         símismo.tipo_ecuaciones = símismo.dic["tipo_ecuaciones"]
         símismo.poblaciones = {}

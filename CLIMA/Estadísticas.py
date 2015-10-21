@@ -137,8 +137,8 @@ def eval_estaciones(var, lugar, cercanas, tipo):
                 Y += float('NaN')  # Sino, poner un punto vacío para Y
         else:  # Si no hay datos de la estación cercana para la fecha...
             if f in lugar['Fecha']:  # ...pero sí hay datos en la estación de interés para la fecha
-                X += float('NaN')  #
-                Y += lugar[var][lugar['Fecha'].index(f)]
+                X += float('NaN')  # poner un punto vacío para X
+                Y += lugar[var][lugar['Fecha'].index(f)]  # Y poner el dato para Y
         f += 1
 
     # Una matriz de puntos para cuales hay datos en las dos estaciones
