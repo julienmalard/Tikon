@@ -111,7 +111,7 @@ class Red(Coso):
                 x = np.array(range(len(símismo.poblaciones[nombre][fase])))
                 y = np.array(símismo.poblaciones[nombre][fase])
                 pylab.plot(x, y)
-                pylab.title(símismo.poblaciones[nombre] + ' ' + símismo.poblaciones[nombre][fase])
+                pylab.title(nombre + ' ' + fase)
                 pylab.xlabel('Días')
                 pylab.ylabel('Población')
                 pylab.show()
