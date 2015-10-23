@@ -23,9 +23,6 @@ class Coso(object):
         # El nombre del documento utilizado para guardar este objeto
         símismo.dirección = os.path.join("Proyectos", directorio, símismo.nombre + símismo.ext)
 
-        símismo.dic = {}  # Para guardar los variables del coso
-        símismo.dic_incert = {}  # Para guardar listas (distribuciones de incertidumbre) para cada variable
-
         # reinic Indica si el programa debe reinitializar or utilizar carpetas existentes.
         # Borrar/crear de nuevo o buscar/leer la carpeta de datos, si existe
         if reinic:  # Si estamos reinicializando el objeto, borrar y recrear el directorio

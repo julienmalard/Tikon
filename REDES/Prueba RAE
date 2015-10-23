@@ -1,4 +1,4 @@
-from REDES import *
+from REDES.REDES import *
 
 
 # Inicializar los insectos en la red
