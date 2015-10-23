@@ -36,8 +36,9 @@ class Coso(object):
         else:  # Si no estamos reinicializando el objeto, leer el documento, si existe
             if os.path.isfile(símismo.dirección):
                 símismo.leer(símismo.dirección)
-            else:  # Si no existe
-                os.makedirs(símismo.directorio)
+            else:  # Si no existe, crearlo
+                if not os.path.isdir(símismo.directorio):
+                    os.makedirs(símismo.directorio)
 
     # Función para escribir los datos a un documento externo
     def escribir(símismo, documento=""):

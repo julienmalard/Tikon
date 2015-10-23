@@ -20,6 +20,18 @@ class Insecto(Coso):
         símismo.fases = {}
         if huevo:
             símismo.fases['Huevo'] = Fase("%s_huevo" % símismo.nombre, directorio=directorio)
+
+        for i in range(1, njuvenil+1):
+            símismo.fases['Juvenil_%s' % i] = Fase("%s_juvenil_%s" % (símismo.nombre, i), directorio=directorio)
+
+        if pupa:
+            símismo.fases['Pupa'] = Fase("%s_pupa" % símismo.nombre, directorio=directorio)
+
+        if adulto:
+            símismo.fases['Adulto'] = Fase("%s_adulto" % símismo.nombre, directorio=directorio)
+
+        # Crear las dependencias entre distintas fases:
+        if huevo:
             if adulto:
                 símismo.fases["Huevo"].dic["fuente"] = símismo.fases["Adulto"]
             elif pupa:
@@ -28,10 +40,8 @@ class Insecto(Coso):
                 símismo.fases["Huevo"].dic["fuente"] = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
             else:
                 print('Se requiere al menos una fase activa para crear un insecto.')
-                return
 
         for i in range(1, njuvenil+1):
-            símismo.fases['Juvenil_%s' % i] = Fase("%s_juvenil_%s" % (símismo.nombre, i), directorio=directorio)
             if i > 1:
                 símismo.fases['Juvenil_%s' % i].dic['fuente'] = símismo.fases["Juvenil_%s" % (i-1)]
             else:
@@ -43,10 +53,8 @@ class Insecto(Coso):
                     símismo.fases['Juvenil_%s' % i].dic['fuente'] = símismo.fases['Pupa']
                 else:
                     print('Se requiere al menos una fase adulta o pupa para crear un insecto.')
-                    return
 
         if pupa:
-            símismo.fases['Pupa'] = Fase("%s_pupa" % símismo.nombre, directorio=directorio)
             if njuvenil:
                 símismo.fases["Pupa"].dic["fuente"] = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
             elif huevo:
@@ -57,10 +65,8 @@ class Insecto(Coso):
                 símismo.fases["Pupa"].dic["fuente"] = símismo.fases['Adulto']
             else:
                 print('Se requiere al menos una fase activa para crear un insecto.')
-                return
 
         if adulto:
-            símismo.fases['Adulto'] = Fase("%s_adulto" % símismo.nombre, directorio=directorio)
             if pupa:
                 símismo.fases["Adulto"].dic["fuente"] = símismo.fases["Pupa"]
             elif njuvenil:
@@ -96,13 +102,13 @@ class Insecto(Coso):
 
         for i in fases_depred:
             for j in fases_presa:
-                símismo.fases[i].dic['Presas'][otro_insecto.nombre + '_%s' % j] = [otro_insecto.fases[j]]
-                otro_insecto.fases[j].dic['Depredadores'][símismo.nombre + '_%s' % i] = [otro_insecto.fases[i]]
+                símismo.fases[i].dic['Presas'][otro_insecto.nombre + '_%s' % j] = otro_insecto.fases[j]
+                otro_insecto.fases[j].dic['Depredadores'][símismo.nombre + '_%s' % i] = símismo.fases[i]
 
     # Esta función inicializa el insecto basado en la red trófica utilizada
-    def ejec(símismo, tipo_ecuaciones, otros_insectos):
+    def ejec(símismo, otros_insectos):
         for fase in símismo.fases:
-            símismo.fases[fase].ejec(tipo_ecuaciones, otros_insectos)
+            símismo.fases[fase].ejec(tipo_ecuaciones=símismo.dic['tipo_ecuaciones'], otros_insectos=otros_insectos)
 
     # Esta función calcula los cambios de población de un insecto (para cada etapa de desarrollo del insecto)...
     # ... pero NO implementa los cambios calculados
@@ -122,7 +128,7 @@ class Insecto(Coso):
 # Unas clases prehechas para simplificar la creación de insectos
 class Simple(Insecto):
     def __init__(self, nombre, huevo=False):
-        super().__init__(nombre=nombre, huevo=huevo, njuvenil=0, adulto=True, tipo_ecuaciones='Lotka-Volterra')
+        super().__init__(nombre=nombre, huevo=huevo, njuvenil=0, adulto=True, tipo_ecuaciones='Lotka-Voltera')
 
 
 class MetamCompleta(Insecto):
@@ -164,7 +170,8 @@ class Fase(Coso):
                 símismo.depredadores_act.append(símismo.dic["Depredadores"][depredador])
         for presa in símismo.dic["Presas"]:
             # Si la presa es un otro insecto y existe en la red agroecológica especificada
-            if type(símismo.dic["Presas"][presa]) is Fase and presa.split('_')[0] in otros_insectos:
+            if type(símismo.dic["Presas"][presa]) is Fase and símismo.dic["Presas"][presa].nombre.split('_')[0] in\
+                    otros_insectos.keys():
                 if presa not in símismo.presas_act:
                     símismo.presas_act.append(símismo.dic["Presas"][presa])
             elif type(símismo.dic["Presas"][presa]) is str:  # Si la "presa" es un cultivo
@@ -191,31 +198,34 @@ class Fase(Coso):
                             'r': 'Tasa de reproducción.'}
                  }
         valor = None
+
         for coef in coefs[tipo_ecuaciones]:
             if type(coefs[tipo_ecuaciones][coef]) is str:
                 if coef not in símismo.dic['coefs']:
-                    valor = input('Ingresar valor para %s (%s).' % (coef, coefs[tipo_ecuaciones][coef]))
+                    valor = input('%s: Ingresar valor para %s (%s): ' %
+                                  (símismo.nombre, coef, coefs[tipo_ecuaciones][coef]))
                     if len(valor):
-                        símismo.dic['coefs'][coef] = valor
+                        símismo.dic['coefs'][coef] = float(valor)
             elif type(coefs[tipo_ecuaciones][coef]) is dict:
                 if coef == 'Presas':
                     for p in símismo.presas_act:
-                        if p.nombre not in símismo.dic['coefs']:
-                            valor = input('Ingresar valor para presa %s (%s).' %
-                                          (p.nombre, coefs[tipo_ecuaciones]['Presas']['a'] % p.nombre))
+                        if type(p) is Fase and p.nombre not in símismo.dic['coefs']:
+                            valor = input('%s: Ingresar valor para presa %s (%s): ' %
+                                          (símismo.nombre, p.nombre, coefs[tipo_ecuaciones]['Presas']['a'] % p.nombre))
                             if len(valor):
-                                símismo.dic['coefs'][p.nombre] = valor
+                                símismo.dic['coefs'][p.nombre] = float(valor)
                 if coef == 'Depredadores':
                     for d in símismo.depredadores_act:
-                        if d.nombre not in símismo.dic['coefs']:
-                            valor = input('Ingresar valor para depredador %s (%s).' %
-                                          (d.nombre, coefs[tipo_ecuaciones]['Depredadores']['a'] % d.nombre))
+                        if type(d) is Fase and d.nombre not in símismo.dic['coefs']:
+                            valor = input('%s: Ingresar valor para depredador %s (%s): ' %
+                                          (símismo.nombre, d.nombre,
+                                           coefs[tipo_ecuaciones]['Depredadores']['a'] % d.nombre))
                             if len(valor):
-                                símismo.dic['coefs'][d.nombre] = valor
-        if valor:
-            guardar = input('¿Quieres guardar los coeficientes que entregaste para simulaciones futuras? (s/n)')
-            if guardar == 's':
-                símismo.escribir()
+                                símismo.dic['coefs'][d.nombre] = float(valor)
+        # if valor:
+        #     guardar = input('¿Quieres guardar los coeficientes que entregaste para simulaciones futuras? (s/n)')
+        #     if guardar == 's':
+        #         símismo.escribir()
 
     def incr(símismo, paso, tipo_ecuaciones, estado_cultivo):
 
@@ -248,7 +258,7 @@ class Fase(Coso):
                 return "Error en la calculación de la depredación."
 
         # Ecuaciones de crecimiento
-        # Para ecuaciones Lotka-Volterra
+        # Para ecuaciones Lotka-Voltera
         if tipo_ecuaciones == "Lotka-Voltera":
             r = 0
             if type(símismo.presas_act[0]) is Fase:  # si el insecto es un depredador
