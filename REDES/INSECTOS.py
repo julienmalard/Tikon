@@ -1,8 +1,8 @@
 import os
 import numpy as np
+from scipy.stats import norm
 
 from COSO import Coso
-# import scipy as sp
 
 
 # Representa un insecto
@@ -13,7 +13,7 @@ class Insecto(Coso):
         símismo.dic = dict(tipo_ecuaciones=tipo_ecuaciones)
 
         # Esta clase se initializa como describido en Coso
-        directorio = os.path.join('Proyectos', 'Personales', 'Redes')
+        directorio = os.path.join('Personales', 'Redes')
         super().__init__(ext="ins", nombre=nombre, directorio=directorio)
 
         # Crear instancias de etapas de desarrollo según el ciclo de vida del insecto
@@ -150,6 +150,8 @@ class Fase(Coso):
         # Esta clase se initializa como describido en Coso
         super().__init__(nombre=nombre, ext='fase', directorio=directorio)
 
+        símismo.leer()
+
         # Listas para guardar poner las presas y deprededores en la red actual
         símismo.depredadores_act = []
         símismo.presas_act = []
@@ -180,6 +182,7 @@ class Fase(Coso):
 
         # Asegurarse que tenemos todos los coeficientes necesarios:
         coefs = {'Lotka-Voltera': {'r': 'Tasa de crecimiento de base',
+                                   'd': 'Tasa de muerte de base (para depredadores)',
                                    'Presas': {'a': 'Aumento a la tasa de crec por presa %s.'},
                                    'Depredadores': {'a': 'Disminución a la tasa de crecimiento por depredador %s.'}
                                    },
@@ -188,10 +191,10 @@ class Fase(Coso):
                                         'comida_crít': 'La comida diaria necesaria por depredador/herbívoro',
                                         'Depredadores': {'a': 'La cantidad de presa %s que se puede comer por día.'}
                                         },
-                 'etapas': {'días_trans': 'Rango de tiempo necesario para pasar a la próxima fase (opcional).',
-                            'días_trans_prom': 'Número de días (en promedio) para pasar a la próxima fase (opcional).',
-                            'días_mort': 'Rango de esperanza de vida. (opcional)',
-                            'días_mort_prom': 'Esperanza de vida (promedio). (opcional)',
+                 'etapas': {'trans_sigma': 'Rango de tiempo necesario para pasar a la próxima fase.',
+                            'trans_mu': 'Número de días (en promedio) para pasar a la próxima fase.',
+                            'mort_sigma': 'Rango de esperanza de vida. (opcional)',
+                            'mort_mu': 'Esperanza de vida (promedio). (opcional)',
                             'mortalidad': 'Tasa de mortalidad constante (no opcional si no se especificó días_mort).',
                             'días_repr': 'Rango de vida reproductiva (opcional).',
                             'días_repr_prom': 'Mitad de la vida reproductiva (opcional).',
@@ -201,7 +204,7 @@ class Fase(Coso):
 
         for coef in coefs[tipo_ecuaciones]:
             if type(coefs[tipo_ecuaciones][coef]) is str:
-                if coef not in símismo.dic['coefs']:
+                if coef not in símismo.dic['coefs'] or type(símismo.dic['coefs'][coef]) is str:
                     valor = input('%s: Ingresar valor para %s (%s): ' %
                                   (símismo.nombre, coef, coefs[tipo_ecuaciones][coef]))
                     if len(valor):
@@ -209,23 +212,25 @@ class Fase(Coso):
             elif type(coefs[tipo_ecuaciones][coef]) is dict:
                 if coef == 'Presas':
                     for p in símismo.presas_act:
-                        if type(p) is Fase and p.nombre not in símismo.dic['coefs']:
+                        if type(p) is Fase and \
+                                (p.nombre not in símismo.dic['coefs'] or type(símismo.dic['coefs'][p.nombre]) is str):
                             valor = input('%s: Ingresar valor para presa %s (%s): ' %
                                           (símismo.nombre, p.nombre, coefs[tipo_ecuaciones]['Presas']['a'] % p.nombre))
                             if len(valor):
                                 símismo.dic['coefs'][p.nombre] = float(valor)
                 if coef == 'Depredadores':
                     for d in símismo.depredadores_act:
-                        if type(d) is Fase and d.nombre not in símismo.dic['coefs']:
+                        if type(d) is Fase and \
+                                (d.nombre not in símismo.dic['coefs'] or type(símismo.dic['coefs'][d.nombre]) is str):
                             valor = input('%s: Ingresar valor para depredador %s (%s): ' %
                                           (símismo.nombre, d.nombre,
                                            coefs[tipo_ecuaciones]['Depredadores']['a'] % d.nombre))
                             if len(valor):
                                 símismo.dic['coefs'][d.nombre] = float(valor)
-        # if valor:
-        #     guardar = input('¿Quieres guardar los coeficientes que entregaste para simulaciones futuras? (s/n)')
-        #     if guardar == 's':
-        #         símismo.escribir()
+        if valor:
+            guardar = input('¿Quieres guardar los coeficientes que entregaste para simulaciones futuras? (s/n)')
+            if guardar == 's':
+                símismo.escribir()
 
     def incr(símismo, paso, tipo_ecuaciones, estado_cultivo):
 
@@ -270,6 +275,8 @@ class Fase(Coso):
 
             símismo.cambio_pob -= depredación("LV") * paso
 
+            símismo.cambio_pob -= símismo.pob * símismo.dic['coefs']['d'] * paso
+
         # Un tipo de ecuación con transición entre etapas de crecimiento del insecto
         elif tipo_ecuaciones == "etapas":
             # Crecimiento poblacional (por ejemplo, larvas aumentan por la eclosión de huevos). Notar que, a parte
@@ -290,39 +297,28 @@ class Fase(Coso):
                 símismo.hist_pob = [0]
 
             # Calcular transiciones de insectos a la próxima fase
-            if "días_trans" in coefs.keys():
-                for día, pob in enumerate(reversed(símismo.hist_pob)):
-                    pendiente = -4/(coefs["días_trans"]**2)
-                    if coefs["días_trans_prom"] < día:
-                        pendiente = -pendiente
-                    trans_día = pob * max(0,
-                                          ((coefs["días_trans_prom"] - día) *
-                                           pendiente + 2/coefs["días_trans"] +
-                                           (coefs["días_trans_prom"] - día - 1) *
-                                           pendiente + 2/coefs["días_trans"]) / 2) * paso
-                    # TODO: La línea siguiente no debería de ser necesaria
-                    if día > coefs["días_trans_prom"] + coefs["días_trans"]/2:
-                        trans_día = pob
-                    símismo.hist_pob[len(símismo.hist_pob) - día - 1] -= trans_día
-                    símismo.transición += trans_día
-                símismo.transición *= paso
+            probs_trans = norm.cdf(list(range(len(símismo.hist_pob))),
+                                   loc=coefs['trans_mu'], scale=coefs['trans_sigma'])
+            probs_trans = np.insert(probs_trans, 0, [0])
+            for día, pob in enumerate(reversed(símismo.hist_pob)):
+                prob = (probs_trans[día+1] - probs_trans[día])/(1 - probs_trans[día])
+                aleatorios = np.random.uniform(size=int(round(pob)))
+                trans_cohorte = sum([i < prob for i in aleatorios])
+                símismo.hist_pob[len(símismo.hist_pob) - día - 1] -= trans_cohorte
+                símismo.transición += trans_cohorte
+            símismo.transición *= paso
 
             # Mortalidad dependiente de la edad
             if "días_mort" in coefs.keys():
+                probs_mort = norm.cdf(list(range(len(símismo.hist_pob))),
+                                      loc=coefs['mort_mu'], scale=coefs['mort_sigma'])
+                probs_mort = np.insert(probs_mort, 0, [0])
                 for día, pob in enumerate(reversed(símismo.hist_pob)):
-                    pendiente = -4/(coefs["días_mort"]**2)
-                    if símismo.dic["coefs"]["días_mort_prom"] < día:
-                        pendiente = -pendiente
-                    mort_día = pob * max(0,
-                                         ((coefs["días_mort_prom"] - día) *
-                                          pendiente + 2/coefs["días_mort"] +
-                                          (coefs["días_mort_prom"] - día - 1) *
-                                          pendiente + 2/coefs["días_mort"]) / 2)
-                    # TODO: La línea siguiente no debería de ser necesaria
-                    if día > coefs["días_mort_prom"] + coefs["días_mort"]/2:
-                        mort_día = pob
-                    símismo.hist_pob[len(símismo.hist_pob) - día - 1] -= mort_día
-                    mortalidad += mort_día
+                    prob = (probs_mort[día+1] - probs_mort[día])/(1 - probs_mort[día])
+                    aleatorios = np.random.uniform(size=int(round(pob)))
+                    mort_cohorte = sum([i < prob for i in aleatorios])
+                    símismo.hist_pob[len(símismo.hist_pob) - día - 1] -= mort_cohorte
+                    mortalidad += mort_cohorte
 
             # Alternativamente, un factor de mortalidad constante
             elif "mortalidad" in coefs.keys():
@@ -331,17 +327,15 @@ class Fase(Coso):
 
             # Reproducción dependiente de la edad
             reproducción = 0
-            if "días_repr_prom" in coefs.keys():
+            if "repr_mu" in coefs.keys():
+                probs_repr = norm.cdf(list(range(len(símismo.hist_pob))),
+                                      loc=coefs['mort_mu'], scale=coefs['mort_sigma'])
+                probs_repr = np.insert(probs_repr, 0, [0])
                 for día, pob in enumerate(reversed(símismo.hist_pob)):
-                    pendiente = -4/(coefs["días_repr"]**2)
-                    if coefs["días_repr_prom"] < día:
-                        pendiente = -pendiente
-                    reproducción += pob * max(0,
-                                              ((coefs["días_repr_prom"] - día) *
-                                               pendiente + 2/coefs["días_repr"] +
-                                               (coefs["días_repr_prom"] - día - 1) *
-                                               pendiente + 2/coefs["días_repr"]) / 2
-                                              ) * r
+                    prob = (probs_repr[día+1] - probs_repr[día])/(1 - probs_repr[día])
+                    aleatorios = np.random.uniform(size=int(round(pob)))
+                    reproducción += sum([i < prob for i in aleatorios]) * r
+
             elif "r" in coefs.keys():
                 reproducción = r * (símismo.pob - mortalidad)
 

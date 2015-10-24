@@ -2,6 +2,7 @@ import os
 import shutil
 import json
 import datetime as ft
+from Controles import directorio_base
 # import Bayesiano.CALIB
 
 """
@@ -17,11 +18,11 @@ class Coso(object):
     def __init__(símismo, nombre, ext, directorio, reinic=False):
         símismo.ext = ext  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
         # La carpeta dónde se ubica este objeto
-        símismo.directorio = directorio
+        símismo.directorio = os.path.join(directorio_base, "Proyectos", directorio)
         # El nombre del objeto
         símismo.nombre = nombre
         # El nombre del documento utilizado para guardar este objeto
-        símismo.dirección = os.path.join("Proyectos", directorio, símismo.nombre + símismo.ext)
+        símismo.dirección = os.path.join(símismo.directorio, '%s.%s' % (símismo.nombre, símismo.ext))
 
         # reinic Indica si el programa debe reinitializar or utilizar carpetas existentes.
         # Borrar/crear de nuevo o buscar/leer la carpeta de datos, si existe
@@ -43,6 +44,8 @@ class Coso(object):
     # Función para escribir los datos a un documento externo
     def escribir(símismo, documento=""):
         if not len(documento):
+            print(símismo.dirección)
+            print(símismo.directorio)
             documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
@@ -58,7 +61,6 @@ class Coso(object):
 
         # Primero, convertimos objetos fechas en forma "cadena"
         dic_temp = símismo.dic.copy()  # Para no afectar el diccionario del objeto sí mismo
-        dic_incert_temp = símismo.dic_incert.copy()
 
         def convertir_fechas(obj):
             for i in obj:
@@ -66,21 +68,27 @@ class Coso(object):
                     convertir_fechas(obj[i])  # Buscar en cada sub-diccionario o sub-lista del objeto
                 elif type(obj[i]) is ft.datetime:
                     obj[i] = obj[i].strftime('%Y-%m-%d')  # Convertir fechas en formato cadena
+                elif isinstance(obj[i], Coso):
+                    obj[i] = ''
 
         convertir_fechas(dic_temp)
-        convertir_fechas(dic_incert_temp)
 
         try:
             with open(documento, mode="w") as d:
                 json.dump(dic_temp, d)
         except IOError:
-            return "Documento " + documento + " no se pudo abrir para guadar datos."
+            print("Documento " + documento + " no se pudo abrir para guadar datos.")
 
         try:
-            with open(documento_incert, mode="w") as d:
-                json.dump(dic_incert_temp, d)
-        except IOError:
-            return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
+            dic_incert_temp = símismo.dic_incert.copy()
+            convertir_fechas(dic_incert_temp)
+            try:
+                with open(documento_incert, mode="w") as d:
+                    json.dump(dic_incert_temp, d)
+            except IOError:
+                return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
+        except AttributeError:
+            pass
 
     # Función para leer los datos desde un documento externo
     def leer(símismo, documento=""):
@@ -96,13 +104,21 @@ class Coso(object):
 
         try:
             with open(documento, mode="r") as d:
-                símismo.dic = json.load(d)
+                try:
+                    símismo.dic = json.load(d)
+                except ValueError:
+                    print('Error en documento %s.' % documento)
+                    os.remove(documento)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos."
 
         try:
             with open(documento_incert, mode="r") as d:
-                símismo.dic_incert = json.load(d)
+                try:
+                    símismo.dic_incert = json.load(d)
+                except ValueError:
+                    print('Error en documento %s.' % documento_incert)
+                    os.remove(documento_incert)
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos de incertidumbre."
 

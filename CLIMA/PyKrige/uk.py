@@ -22,7 +22,7 @@ import scipy.linalg
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 
-import CLIMA.variogram_models as variogram_models
+import CLIMA.PyKrige.variogram_models as variogram_models
 import CLIMA.PyKrige.core as core
 
 

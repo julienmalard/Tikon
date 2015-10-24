@@ -1,5 +1,5 @@
-from INSECTOS import Simple
-from REDES import Red
+from REDES.INSECTOS import Simple
+from REDES.REDES import Red
 
 # Unos ejemplos del uso del módulo de insectos y del módulo de redes agroecológicas
 
