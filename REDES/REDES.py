@@ -16,7 +16,7 @@ class Red(Coso):
             símismo.dic['Insectos'][i.nombre] = i
 
         # Esta clase se initializa como describido en Coso
-        super().__init__(nombre=nombre, ext='red', directorio=os.path.join('Proyectos', 'Personales', 'Redes'))
+        super().__init__(nombre=nombre, ext='red', directorio=os.path.join('Personales', 'Redes'))
 
         símismo.insectos = {}
         símismo.poblaciones = {}
