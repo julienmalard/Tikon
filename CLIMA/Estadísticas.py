@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from scipy import stats as estad
-from CLIMA.PyKrige.uk import UniversalKriging as krigUniversal
+from PyKrige.uk import UniversalKriging as krigUniversal
 
 
 # Las funciones de Bahaa Khalil para generar datos que faltan
