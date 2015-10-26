@@ -16,5 +16,5 @@ red_cebolla = Red('red_cebolla', [mosca, araña])
 
 red_cebolla.ejec(poblaciones_iniciales={'mosca': {'Adulto': 100}, 'araña': {'Adulto': 10}})
 
-red_cebolla.simul(paso=1, estado_cultivo=100000, tiempo_final=100)
+red_cebolla.simul(paso=1, estado_cultivo=100000, tiempo_final=100, rep=100)
 

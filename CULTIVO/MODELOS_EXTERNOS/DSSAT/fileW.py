@@ -7,8 +7,8 @@ from CULTIVO.Controles import dir_DSSAT
 class FileW(object):
     def __init__(símismo):
 
-        símismo.dic = {"SITE": [], "INSI": [], "LAT": [], "LONG": [], "ELEV": [], "TAV": [], "AMP": [],
-                       "REFHT": [], "WNDHT": [], "DATE": [], "SRAD": [], "TMAX": [], "TMIN": [], "RAIN": [],
+        símismo.dic = {"SITE": '', "INSI": '', "LAT": (), "LONG": (), "ELEV": (), "TAV": (), "AMP": (),
+                       "REFHT": (), "WNDHT": (), "DATE": [], "SRAD": [], "TMAX": [], "TMIN": [], "RAIN": [],
                        "DEWP": [], "WIND": [], "PAR": []}
 
         # Lista del tamaño (en carácteres) de cada variable
@@ -94,8 +94,3 @@ class FileW(object):
                 doc_clima.remove(texto)
         return doc_clima
 
-
-# Pruebas:
-prueba = FileW()
-prueba.leer('BRPI0201')
-prueba.escribir()

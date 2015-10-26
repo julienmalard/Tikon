@@ -166,10 +166,3 @@ class FileS(object):
                                 valores = valores[símismo.prop_vars[var]+1:]
                         núm_lin += 1
 
-# Pruebas:
-prueba = FileS()
-prueba.leer('IB00000002')
-prueba.escribir('IB00000002')
-
-prueba.leer('SARA020001')
-prueba.escribir('SARA020001')

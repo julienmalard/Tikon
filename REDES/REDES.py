@@ -1,8 +1,9 @@
 import os
 import numpy as np
-import pylab
+import matplotlib.pylab as dib
 
 from COSO import Coso
+dib.switch_backend('cairo')
 
 
 # Esta clase representa una red agroecológica
@@ -75,15 +76,33 @@ class Red(Coso):
         return poblaciones  # Para comunicación con el submódulo PARCELA
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
-    def simul(símismo, paso, estado_cultivo, tiempo_final, tiempo_inic=0, pobs_inic=None):
+    def simul(símismo, paso, estado_cultivo, tiempo_final, tiempo_inic=0, pobs_inic=None, rep=10):
         print('Simulando...')
         if not pobs_inic:
             pobs_inic = símismo.pobs_inic
-        símismo.borrar(poblaciones_iniciales=pobs_inic)
-        for i in range(tiempo_inic, tiempo_final, paso):
-            símismo.incr(paso, estado_cultivo=estado_cultivo)
-        símismo.dibujar()
-        return símismo.poblaciones
+
+        # Correr las simulaciones
+        for j in range(rep):
+            símismo.borrar(poblaciones_iniciales=pobs_inic)
+            for i in range(tiempo_inic, tiempo_final, paso):
+                símismo.incr(paso, estado_cultivo=estado_cultivo)
+
+            # Guardar los resultados
+            if j == 0:
+                # Iniciar el diccionario para guardar datos de poblaciones de varias repeticiones
+                poblaciones = {}
+                for insecto in símismo.poblaciones:
+                    poblaciones[insecto] = {}
+                    for fase in símismo.poblaciones[insecto]:
+                        poblaciones[insecto][fase] = símismo.poblaciones[insecto][fase]
+            else:
+                for insecto in símismo.poblaciones:
+                    for fase in símismo.poblaciones[insecto]:
+                        poblaciones[insecto][fase] = np.vstack((poblaciones[insecto][fase],
+                                                                símismo.poblaciones[insecto][fase]))
+
+        símismo.dibujar(poblaciones=poblaciones)
+        return poblaciones
 
     # Una función para borar los datos de simulación (guardando solamente el primer dato, o población inicial)
     def borrar(símismo, poblaciones_iniciales):
@@ -97,35 +116,47 @@ class Red(Coso):
         else:
             símismo.ejec(poblaciones_iniciales)
 
-    def dibujar(símismo, insectos=None, datos_obs=None):
+    def dibujar(símismo, insectos=None, datos_obs=None, poblaciones=None):
         print('Dibujando...')
         if insectos is None:  # Si no se especificaron insectos, utilizar todos los insectos de la red.
             insectos = list(símismo.insectos.keys())
 
+        if poblaciones is None:
+            poblaciones = símismo.poblaciones
+
         for núm, nombre in enumerate(insectos):
             print(nombre)
             colores = ("red", "orange", "yellow", "green", "blue", "purple", "fuchsia", "black")
-            # pylab.figure(1 + núm)  # Un gráfico por insecto (con todas las fases en sub-gráficos)
-            # pylab.subplots_adjust(hspace=0, right=1)  # Se me olvidó qué hace esta línea...
-            for núm_fase, fase in enumerate(símismo.insectos[nombre].fases):
-                x = np.array(range(len(símismo.poblaciones[nombre][fase])))
-                y = np.array(símismo.poblaciones[nombre][fase])
-                pylab.plot(x, y)
-                pylab.title(nombre + ' ' + fase)
-                pylab.xlabel('Días')
-                pylab.ylabel('Población')
-                pylab.show()
-                # print(núm_fase, fase)
-                # print(símismo.poblaciones[nombre][fase])
-                # máx_x = len(símismo.poblaciones[nombre][fase])
-                # pylab.subplot(máx_x, 1, núm_fase + 1)
-                # pylab.title = símismo.nombre + " " + nombre
-                # if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos abiertos
-                #     pylab.plot(datos_obs[nombre][fase], "o", color=colores[núm_fase])
-                # # Añadir una línea para representar las predicciones
-                # pylab.plot(símismo.poblaciones[nombre][fase], color=colores[núm_fase],
-                #            linewidth=2)
-                # pylab.ylabel(fase)
-                # pylab.xticks = (range(0, int(máx_x*1.1), int(máx_x/10)))
-                # pylab.xlabel('Días')
-               # pylab.savefig("Tikon_%s_%s.png" % (símismo.nombre, nombre))
+
+            # Un gráfico por insecto (con todas las fases en sub-gráficos). El 'squeeze' es necesario.
+            fig, sub = dib.subplots(len(poblaciones[nombre].keys()), 1, sharex=True, sharey=True, squeeze=False)
+
+            for núm_fase, fase in enumerate(poblaciones[nombre]):
+                if type(poblaciones[nombre][fase]) is np.ndarray:
+                    promedios = np.mean(poblaciones[nombre][fase], axis=0)
+                    máx = np.max(poblaciones[nombre][fase], axis=0)
+                    mín = np.min(poblaciones[nombre][fase], axis=0)
+                else:
+                    promedios = poblaciones[nombre][fase]
+                    máx = mín = None
+
+                x = np.array(range(len(promedios)))
+                y = promedios
+                sub[núm_fase, 0].plot(x, y, lw=2, color=colores[núm])
+
+                if máx is not None and mín is not None:
+                    sub[núm_fase, 0].fill_between(x, máx, mín, facecolor=colores[núm], alpha=0.5)
+                if núm_fase == 0:
+                    sub[núm_fase, 0].set_xlabel('Día')
+                else:
+                    for label in sub[núm_fase, 0].get_yticklabels():
+                        label.set_visible(False)
+
+                sub[núm_fase, 0].set_ylabel('Población %s' % fase)
+
+                if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos abiertos
+                    sub[núm_fase, 0].plot(datos_obs[nombre][fase], "o", color=colores[núm])
+
+            fig.suptitle(nombre)
+            fig.savefig(os.path.join(símismo.directorio, "Tikon_%s_%s.png" % (símismo.nombre, nombre)))
+            # pylab.savefig("Tikon_%s_%s.png" % (símismo.nombre, nombre))
