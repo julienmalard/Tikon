@@ -1,8 +1,4 @@
-from COSO import Coso
 from CULTIVO.CULTIVO import Cultivo
-from CULTIVO.SUELO import Suelo
-from REDES.REDES import Red
-from CULTIVO.VARIEDAD import Variedad
 import os
 
 
