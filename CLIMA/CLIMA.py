@@ -1,24 +1,26 @@
 from COSO import Coso
-from CLIMA.Estadísticas import *
+from CLIMA.Estad_diario import eval_estaciones as eval_estaciones
+from CLIMA.Estad_diario import krigear as krigear
+from CLIMA.Estad_futuro import generarmeteo as generarmeteo
 from CLIMA.Manejo import *
-import numpy as np
 
 
 # Esta clase representa la meteo diaria en un lugar específico.
 class Diario(Coso):
     def __init__(símismo, nombre='', coord=()):
         # El diccionario de los datos para cada suelo
-        símismo.dic = dict(Lugar='', País=[], Departamento=[], Municipio=[], Cód_lugar=[], Lat=[], Long=[],
-                           Elev=[], Temp_prom=[], Alt_med_temp=[], Alt_med_viento=[], Amp_temp_mens=[], Fecha=[],
-                           Rad_sol=[], Temp_máx=[], Temp_mín=[], Precip=[], Temp_conden=[], Viento=[], Rad_foto=[],
-                           Hum_rel=[])
+        dic = dict(Lugar='', País=[], Departamento=[], Municipio=[], Cód_lugar=[], Lat=coord[0], Long=coord[1],
+                   Elev=[], Temp_prom=[], Alt_med_temp=[], Alt_med_viento=[], Amp_temp_mens=[], Fecha=[],
+                   Rad_sol=[], Temp_máx=[], Temp_mín=[], Precip=[], Temp_conden=[], Viento=[], Rad_foto=[],
+                   Hum_rel=[])
 
         if not len(nombre) and len(coord):
             nombre = '%sN_%sW' % (coord[0], coord[1])
 
         # Esta variable se initializa como Coso
-        super().__init__(nombre=nombre, ext='día', directorio=os.path.join('CLIMA', 'DATOS'))
+        super().__init__(nombre=nombre, ext='día', dic=dic, directorio=os.path.join('CLIMA', 'DATOS'))
 
+    # Una función para buscar y, si necesario, estimar datos diarios
     def buscar(símismo, fecha_inic, fecha_fin):
 
         lugar = símismo.dic['Lugar']
@@ -159,20 +161,41 @@ class Diario(Coso):
             símismo.escribir()  # Guardar los datos
 
 
-# Esta clase representa el clima de un lugar.
+# Esta clase representa el clima de un lugar (datos mensuales con cuales podemos generar datos diarios).
 class Clima(Coso):
-    def __init__(símismo, *args, **kwargs):
+    def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada clima
-        símismo.dic_base = dict(Lugar=[], Cód_lugar=[], Lat=[], Long=[], Elev=[], Temp_prom=[], Amp_temp_mens=[],
-                                Rad_dia_prom_anual=[], Tdia_máx_prom_anual=[], Tdia_mín_prom_anual=[],
-                                Prec_dia_prom_anual=[], Primerdía_sinhelada_prom=[], Prom_dur_heladas=[],
-                                Intercept_angstrom=[], Multiplicador_angstrom=[], Alt_med_temp=[], Alt_med_viento=[],
-                                Princ_datos_obs=[], Núm_años_obs=[], Mes=[], Rad_prom_mens=[], Tdia_máx_prom_mens=[],
-                                Tdia_mín_prom_mens=[], Prec_total_prom_mens=[], Prom_días_prec_mens=[],
-                                Horas_sol_dia_prom_mens=[], Intercept_angstrom_mens=[], Multiplicador_angstrom_mens=[],
-                                Prom_rad_dia_seco_mens=[], Varia_rad_dia_seco_mens=[], Prom_rad_dia_lluv_mens=[],
-                                Varia_rad_dia_lluv_mens=[], Prom_temp_dia_seco_mens=[], Varia_temp_dia_seco_mens=[],
-                                Prom_temp_dia_lluv_mens=[], Varia_temp_dia_lluv_mens=[], Varia_temp_dia_min_prom=[],
-                                Alpha_distgamma_prec=[], Prob_lluv_después_seco=[])
-        super().__init__(*args, **kwargs)  # Esta variable se initializa como
-        símismo.ext = "cli"  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        dic = dict(Lugar='', Cód_lugar=[], Lat=[], Long=[], Elev=[], Temp_prom=[], Amp_temp_mens=[],
+                   Rad_dia_prom_anual=[], Tdia_máx_prom_anual=[], Tdia_mín_prom_anual=[],
+                   Prec_dia_prom_anual=[], Primerdía_sinhelada_prom=[], Prom_dur_heladas=[],
+                   Intercept_angstrom=[], Multiplicador_angstrom=[], Alt_med_temp=[], Alt_med_viento=[],
+                   Princ_datos_obs=(), Núm_años_obs=(), Mes=[], Rad_prom_mens=[], Tdía_máx_prom_mens=[],
+                   Tdía_mín_prom_mens=[], Prec_total_prom_mens=[], Prom_días_prec_mens=[],
+                   Horas_sol_dia_prom_mens=[], Intercept_angstrom_mens=[], Multiplicador_angstrom_mens=[],
+                   Prom_rad_dia_seco_mens=[], Varia_rad_dia_seco_mens=[], Prom_rad_dia_lluv_mens=[],
+                   Varia_rad_dia_lluv_mens=[], Prom_temp_dia_seco_mens=[], Varia_temp_dia_seco_mens=[],
+                   Prom_temp_dia_lluv_mens=[], Varia_temp_dia_lluv_mens=[], Varia_temp_dia_min_prom=[],
+                   Alpha_distgamma_prec=[], Prob_lluv_después_seco=[])
+        super().__init__(nombre=nombre, ext='cli', dic=dic, directorio=directorio)
+
+    # Convierte los datos de clima en datos simulados de clima diario
+    def gendiario(símismo, fecha_inic, fecha_fin):
+
+        diario = Diario(nombre=símismo.nombre, coord=(símismo.dic['Lat'], símismo.dic['Long']))
+        diario.dic['Lugar'] = símismo.dic['Lugar']
+        diario.dic['Cód_lugar'] = símismo.dic['Cód_lugar']
+        diario.dic['Elev'] = símismo.dic['Elev']
+
+        diario.dic['Fecha'] = [fecha_inic + ft.timedelta(days=x) for x in range((fecha_fin-fecha_inic).days)]
+
+        # Generar datos diarios
+        generados = generarmeteo(símismo.dic, fecha_inic, fecha_fin)
+        diario.dic['Rad_sol'] = generados['Rad_sol']
+        diario.dic['Temp_máx'] = generados['Temp_máx']
+        diario.dic['Temp_mín'] = generados['Temp_mín']
+        diario.dic['Precip'] = generados['Precip']
+        diario.dic['Temp_conden'] = generados['Temp_conden']
+        diario.dic['Viento'] = generados['Viento']
+        diario.dic['Rad_foto'] = generados['Rad_foto']
+
+        return diario
