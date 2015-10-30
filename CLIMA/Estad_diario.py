@@ -3,8 +3,18 @@ import numpy as np
 from scipy import stats as estad
 from PyKrige.uk import UniversalKriging as krigUniversal
 
+__author__ = 'Julien Malard'
 
-# Las funciones de Bahaa Khalil para generar datos que faltan
+'''
+Este módulo contiene las funciones para estimar datos diarios a base de otros datos diarios (por ejemplo, extender
+datos que faltan a una estación con pocos datos o para interpolar datos de distintas estaciones a un punto
+intermediario.
+Por supuesto, esto requiere datos existentes (aunque estén de distintos lugares) para las fechas de interés, así que
+no funcionan estos métodos para predicciones del futuro.
+'''
+
+
+# Las funciones de Bahaa Khalil para extender datos
 def move1(x, y):
     # Hirsch,R.M. (1982). A comparison of four streamflow record extension
     # techniques, Water Resources Research, 18, 1081 – 1088, 1982.
@@ -48,8 +58,8 @@ def ktrl2(x, y):
     x = np.array(x)
     y = np.array(y)
 
-    qx = np.percentile(x, [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
-    qy = np.percentile(y, [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
+    qx = np.percentile(x, list(range(5, 100, 5)))
+    qy = np.percentile(y, list(range(5, 100, 5)))
 
     k2 = []
     for i in range(18, 1, -1):
@@ -77,8 +87,8 @@ def rloc(x, y):
 
     r = np.correlate(y, x)
 
-    qx = np.percentile(x, [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
-    qy = np.percentile(y, [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95])
+    qx = np.percentile(x, list(range(5, 100, 5)))
+    qy = np.percentile(y, list(range(5, 100, 5)))
 
     b_rloc = (qy[14] - qy[4]) / (qx[14] - qx[4])
     if r < 0:
