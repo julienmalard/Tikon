@@ -1,7 +1,9 @@
 import os
 import shutil
 import json
+import random as aleatorio
 import datetime as ft
+
 from Controles import directorio_base
 # import Bayesiano.CALIB
 
@@ -15,12 +17,14 @@ su calibración.
 
 
 class Coso(object):
-    def __init__(símismo, nombre, ext, directorio, reinic=False):
+    def __init__(símismo, nombre, ext, dic, directorio, reinic=False):
+        símismo.nombre = nombre  # El nombre del objeto
         símismo.ext = ext  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
+        símismo.dic = dic
+        símismo.dic_incert = {}
         # La carpeta dónde se ubica este objeto
         símismo.directorio = os.path.join(directorio_base, "Proyectos", directorio)
-        # El nombre del objeto
-        símismo.nombre = nombre
+
         # El nombre del documento utilizado para guardar este objeto
         símismo.dirección = os.path.join(símismo.directorio, '%s.%s' % (símismo.nombre, símismo.ext))
 
@@ -44,8 +48,6 @@ class Coso(object):
     # Función para escribir los datos a un documento externo
     def escribir(símismo, documento=""):
         if not len(documento):
-            print(símismo.dirección)
-            print(símismo.directorio)
             documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
@@ -152,9 +154,25 @@ class Coso(object):
                     if type(v) is list and len(v) and (type(v[0]) is float or type(v[0]) is int):
                         d[ll] = [v]
                     elif type(v) is dict:
-                        dic_lista(d)
+                        dic_lista(v)
 
             dic_lista(símismo.dic_incert)
+
+    # Una función para escoger parámetros desde el diccionario de incertidumbre
+    def selec_incert(símismo):
+
+        def escoger_valores(dic_incert, dic, n=None):
+            for ll, v in dic_incert.items():
+                # Si el elemento es una lista no vacía con valores numéricos
+                if type(v) is list and len(v) and (type(v[0]) is float or type(v[0]) is int):
+                    if n is None:
+                        n = aleatorio.randint(0, len(v))
+                    dic[ll] = v[n]
+                elif type(v) is dict or (type(v) is list and len(v) and type(v)[0] is list):
+                    escoger_valores(v, dic[ll], n=n)
+
+        escoger_valores(símismo.dic_incert, símismo.dic)
+
 
 '''
     def calib(self,):
