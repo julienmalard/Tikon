@@ -10,11 +10,11 @@ class Insecto(Coso):
     def __init__(símismo, nombre, huevo=False, njuvenil=None, pupa=False, adulto=True,
                  tipo_ecuaciones='capacidad_de_carga'):
         # El diccionario de los datos para cada insecto
-        símismo.dic = dict(tipo_ecuaciones=tipo_ecuaciones)
+        dic = dict(tipo_ecuaciones=tipo_ecuaciones)
 
         # Esta clase se initializa como describido en Coso
-        directorio = os.path.join('Personales', 'Redes')
-        super().__init__(ext="ins", nombre=nombre, directorio=directorio)
+        directorio = os.path.join('Personales', 'Redes', nombre)  # Cada insecto tiene su propio directorio
+        super().__init__(dic=dic, ext="ins", nombre=nombre, directorio=directorio)
 
         # Crear instancias de etapas de desarrollo según el ciclo de vida del insecto
         símismo.fases = {}
@@ -33,11 +33,11 @@ class Insecto(Coso):
         # Crear las dependencias entre distintas fases:
         if huevo:
             if adulto:
-                símismo.fases["Huevo"].dic["fuente"] = símismo.fases["Adulto"]
+                símismo.fases["Huevo"].fuente = símismo.fases["Adulto"]
             elif pupa:
-                símismo.fases["Huevo"].dic["fuente"] = símismo.fases["Pupa"]
+                símismo.fases["Huevo"].fuente = símismo.fases["Pupa"]
             elif njuvenil:
-                símismo.fases["Huevo"].dic["fuente"] = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
+                símismo.fases["Huevo"].fuente = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
             else:
                 print('Se requiere al menos una fase activa para crear un insecto.')
 
@@ -56,25 +56,25 @@ class Insecto(Coso):
 
         if pupa:
             if njuvenil:
-                símismo.fases["Pupa"].dic["fuente"] = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
+                símismo.fases["Pupa"].fuente = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
             elif huevo:
-                símismo.fases["Pupa"].dic["fuente"] = símismo.fases["Huevo"]
+                símismo.fases["Pupa"].fuente = símismo.fases["Huevo"]
             elif pupa:
-                símismo.fases["Pupa"].dic["fuente"] = símismo.fases['Pupa']
+                símismo.fases["Pupa"].fuente = símismo.fases['Pupa']
             elif adulto:
-                símismo.fases["Pupa"].dic["fuente"] = símismo.fases['Adulto']
+                símismo.fases["Pupa"].fuente = símismo.fases['Adulto']
             else:
                 print('Se requiere al menos una fase activa para crear un insecto.')
 
         if adulto:
             if pupa:
-                símismo.fases["Adulto"].dic["fuente"] = símismo.fases["Pupa"]
+                símismo.fases["Adulto"].fuente = símismo.fases["Pupa"]
             elif njuvenil:
-                símismo.fases["Adulto"].dic["fuente"] = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
+                símismo.fases["Adulto"].fuente = símismo.fases["Juvenil_%s" % (njuvenil + 1)]
             elif huevo:
-                símismo.fases["Adulto"].dic["fuente"] = símismo.fases["Huevo"]
+                símismo.fases["Adulto"].fuente = símismo.fases["Huevo"]
             else:
-                símismo.fases["Adulto"].dic["fuente"] = símismo.fases["Adulto"]
+                símismo.fases["Adulto"].fuente = símismo.fases["Adulto"]
 
         # Para guardar los datos de poblaciones
         símismo.pob = {}
@@ -100,6 +100,13 @@ class Insecto(Coso):
         if not fases_presa:
             fases_presa = list(otro_insecto.fases)
 
+        for fases in [fases_depred, fases_presa]:
+            if 'Juvenil' in fases:
+                fases.pop(fases.index('Juvenil'))
+                for i in símismo.fases:
+                    if 'juvenil' in i.lower():
+                        fases.append(i)
+
         for i in fases_depred:
             for j in fases_presa:
                 símismo.fases[i].dic['Presas'][otro_insecto.nombre + '_%s' % j] = otro_insecto.fases[j]
@@ -118,7 +125,7 @@ class Insecto(Coso):
             símismo.fases[fase].incr(paso, tipo_ecuaciones, estado_cultivo)
 
     # Esta función implementa los cambions de población de un insecto (asegura que los cambios de población se
-    # hacen independentamente del orden en cual se calculan los cambios)
+    # hacen independentamente del orden en cual se calculan los cambios de cada insecto de la red agroecológica.)
     def actualizar(símismo):
         for fase in símismo.fases:
             símismo.fases[fase].actualizar()
@@ -146,9 +153,9 @@ class MetamIncompleta(Insecto):
 class Fase(Coso):
     def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada insecto
-        símismo.dic = dict(Depredadores={}, Presas={}, coefs={})
+        dic = dict(Depredadores={}, Presas={}, coefs={})
         # Esta clase se initializa como describido en Coso
-        super().__init__(nombre=nombre, ext='fase', directorio=directorio)
+        super().__init__(nombre=nombre, ext='fase', dic=dic, directorio=directorio)
 
         símismo.leer()
 
@@ -162,6 +169,7 @@ class Fase(Coso):
         símismo.transición = 0  # La transición a la próxima etapa, si aplica
         símismo.cambio_pob = 0  # El cambio de población a aplicar
         símismo.predación = {}  # Para guardar la cantidad de otros insectos consumidos
+        símismo.fuente = None
 
     # Esta función inicializa el insecto basado en la red trófica utilizada
     def ejec(símismo, tipo_ecuaciones, otros_insectos):
@@ -290,7 +298,7 @@ class Fase(Coso):
 
             # Una distribución triangular para calcular las transiciones de fases y la mortalidad natural
             # La distribución de población se pone a fecha con la conversión de individuos de la última fase
-            símismo.hist_pob.append(símismo.dic["fuente"].transición)
+            símismo.hist_pob.append(símismo.fuente.transición)
 
             símismo.hist_pob = np.trim_zeros(símismo.hist_pob, "f")  # Quitar los 0s iniciales
             if not len(símismo.hist_pob):  # Si no queda nada, dejar un "0"
@@ -343,7 +351,7 @@ class Fase(Coso):
             mort_com = 0
             if len(símismo.presas_act):
                 comida = 0
-                comida_crít = coefs["comida_crít"] * (símismo.pob + símismo.dic["fuente"].transición)
+                comida_crít = coefs["comida_crít"] * (símismo.pob + símismo.fuente.transición)
                 for presa in símismo.presas_act:
                     if type(presa) is Fase:  # Si la presa es un insecto
                         comida += presa.pob * coefs[presa.nombre]  # Consumo de presas
@@ -369,7 +377,7 @@ class Fase(Coso):
                 símismo.hist_pob = [round(x, 1) for x in símismo.hist_pob]
 
             # El cambio de población es la transición de la última fase, menos mortalidad y transiciones a nuevas fases
-            símismo.cambio_pob = (- mortalidad - símismo.transición + símismo.dic["fuente"].transición) * paso
+            símismo.cambio_pob = (- mortalidad - símismo.transición + símismo.fuente.transición) * paso
             # Añademos la reproducción a la transición a la próxima fase después del cálculo del cambio
             # en la población actual, porque la reproducción no sustraye de la población de una fase.
             símismo.transición += reproducción

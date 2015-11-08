@@ -1,33 +1,27 @@
 print("Importando dependencias...")
-from REDES.REDES import *
-from REDES.INSECTOS import *
+from REDES.REDES import Red
+from REDES.INSECTOS import Simple, MetamCompleta
 # from pymc import *
 # import numpy as np
 # from Proyectos.Prueba_incert import *
 print("Importación de dependencias terminada.")
 
+Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
+ParasLarv = Simple('Parasitoide larva', tipo_ecuaciones='capacidad_de_carga')
+ParasPupa = Simple('Parasitoide pupa', tipo_ecuaciones='capacidad_de_carga')
+Araña = Simple('Araña', tipo_ecuaciones='capacidad_de_carga')
 
-Red_coco = Red("Red_coco",
-               dic=dict(Insectos={"Oarenosella": Insecto("Oarenosella", dic={"ciclo_vida": "estadios = 5"}),
-                                  "Parasitoidelarva": Insecto("Parasitoidelarva",
-                                                              dic={"ciclo_vida": "simple",
-                                                                   "tipo_ecuaciones": "capacidad_de_carga"}),
-                                  "Parasitoidepupa": Insecto("Parasitoidepupa",
-                                                             dic={"ciclo_vida": "simple",
-                                                                  "tipo_ecuaciones": "capacidad_de_carga"})},
-                        tipo_ecuaciones="presas_mortalidad"))
+ParasLarv.secome(Oarenosella, fases_presa='Juvenil')
+ParasPupa.secome(Oarenosella, fases_presa='Pupa')
+Araña.secome(Oarenosella, fases_presa='Juvenil')
+Araña.secome(Oarenosella, fases_presa='Adulto')
+Araña.secome(ParasPupa)
+Araña.secome(ParasLarv)
+Oarenosella.secome('Coco', fases_depred='Juvenil')
 
-Red_coco_compl = Red("Red_coco_compl",
-                     dic=dict(Insectos={"Oarenosella": Insecto("Oarenosella", dic={"ciclo_vida": "estadios = 5"}),
-                                        "Parasitoidelarva": Insecto("Parasitoidelarva",
-                                                                    dic={"ciclo_vida": "simple",
-                                                                         "tipo_ecuaciones": "capacidad_de_carga"}),
-                                        "Parasitoidepupa": Insecto("Parasitoidepupa",
-                                                                   dic={"ciclo_vida": "simple",
-                                                                        "tipo_ecuaciones": "capacidad_de_carga"}),
-                                        "Araña": Insecto("Araña", dic={"ciclo_vida": "simple",
-                                                                       "tipo_ecuaciones": "capacidad_de_carga"})},
-                              tipo_ecuaciones="presas_mortalidad"))
+Red_coco = Red("Red coco", [Oarenosella, ParasLarv, ParasPupa])
+
+Red_coco_compl = Red("Red_coco_compl", [Oarenosella, ParasLarv, ParasPupa, Araña])
 
 
 poblaciones_iniciales = {"Oarenosella": {"Pupa": 300, "Juvenil1": 0, "Juvenil2": 90, "Juvenil3": 200,
@@ -36,20 +30,6 @@ poblaciones_iniciales = {"Oarenosella": {"Pupa": 300, "Juvenil1": 0, "Juvenil2":
                          "Parasitoidepupa": {"Adulto": 45},
                          "Araña": {"Adulto": 10}}
 
-
-for red in [Red_coco, Red_coco_compl]:
-    # Establecer las relaciones tróficas
-    Oarenosella = red.dic['Insectos']['Oarenosella']
-    Parasitoidelarva = red.dic['Insectos']['Parasitoidelarva']
-    Parasitoidepupa = red.dic['Insectos']['Parasitoidepupa']
-    Parasitoidelarva.fases["Adulto"].dic['Presas'] = []
-    for i in range(3, 6):
-        Oarenosella.fases["Juvenil" + str(i)].dic["Depredadores"] = [Parasitoidelarva.fases["Adulto"]]
-        Parasitoidelarva.fases["Adulto"].dic['Presas'] += [Oarenosella.fases['Juvenil' + str(i)]]
-    for i in range(1, 6):
-        Oarenosella.fases["Juvenil" + str(i)].dic["Presas"] = ["Coco"]
-    Oarenosella.fases["Pupa"].dic["Depredadores"] = [Parasitoidepupa.fases["Adulto"]]
-    Parasitoidepupa.fases['Adulto'].dic['Presas'] = [Oarenosella.fases['Pupa']]
 
     # Establecer los coeficientes del modelo
     for i in range(1, 6):
@@ -80,22 +60,13 @@ for red in [Red_coco, Red_coco_compl]:
     Parasitoidelarva.fases["Adulto"].dic["coefs"]["r"] = .05
     Parasitoidelarva.fases["Adulto"].dic["coefs"]["comida_crít"] = 5
 
-    if red == Red_coco_compl:
-        Araña = red.dic['Insectos']['Araña']
-        Araña.fases["Adulto"].dic["Presas"] = [Parasitoidelarva.fases["Adulto"], Parasitoidepupa.fases["Adulto"],
-                                               Oarenosella.fases["Juvenil1"], Oarenosella.fases["Juvenil2"],
-                                               Oarenosella.fases["Juvenil3"], Oarenosella.fases["Juvenil4"],
-                                               Oarenosella.fases["Juvenil5"]
-                                               ]
-        Parasitoidepupa.fases["Adulto"].dic["Depredadores"] = [Araña.fases["Adulto"]]
-        Parasitoidelarva.fases["Adulto"].dic["Depredadores"] = [Araña.fases["Adulto"]]
+
         Araña.fases["Adulto"].dic["coefs"][Parasitoidelarva.fases["Adulto"].nombre] = .1
         Araña.fases["Adulto"].dic["coefs"][Parasitoidepupa.fases["Adulto"].nombre] = .1
 
         Parasitoidepupa.fases["Adulto"].dic["coefs"][Araña.fases["Adulto"].nombre] = .05
         Parasitoidelarva.fases["Adulto"].dic["coefs"][Araña.fases["Adulto"].nombre] = .05
         for i in range(1, 6):
-            Oarenosella.fases["Juvenil" + str(i)].dic['Depredadores'] = [Araña.fases['Adulto']]
             Oarenosella.fases["Juvenil" + str(i)].dic["coefs"][Araña.fases["Adulto"].nombre] = 1
             Araña.fases["Adulto"].dic["coefs"][Oarenosella.fases["Juvenil" + str(i)].nombre] = .5
         Araña.fases["Adulto"].dic["coefs"]["r"] = .05
@@ -111,43 +82,7 @@ Simul_coco_compl = Red_coco_compl.simul(paso=1, pob_inic=poblaciones_iniciales,
                                         estado_cultivo={"Coco": 1000000000}, tiempo_final=tiempo_final)
 
 
-print("Simulación 2 terminada. Generando gráficos...")
-
-red = Red_coco
-larvas = [a + b + c + d + e for a, b, c, d, e in zip(red.poblaciones["Oarenosella"]["Juvenil5"],
-                                                     red.poblaciones["Oarenosella"]["Juvenil4"],
-                                                     red.poblaciones["Oarenosella"]["Juvenil3"],
-                                                     red.poblaciones["Oarenosella"]["Juvenil2"],
-                                                     red.poblaciones["Oarenosella"]["Juvenil1"])
-          ]
-
-import pygal
-gráfico = pygal.Line(interpolate='cubic', show_dots=False)
-gráfico.title = "கருந்தலைப் புழு"
-gráfico.x_labels = map(str, range(0, tiempo_final, max(1, int(tiempo_final/10))))
-gráfico.add('புழு_௧', red.poblaciones["Oarenosella"]["Juvenil1"])
-gráfico.add('புழு_௨', red.poblaciones["Oarenosella"]["Juvenil2"])
-gráfico.add('புழு_௩', red.poblaciones["Oarenosella"]["Juvenil3"])
-gráfico.add('புழு_௪', red.poblaciones["Oarenosella"]["Juvenil4"])
-gráfico.add('புழு_௫', red.poblaciones["Oarenosella"]["Juvenil5"])
-gráfico.add('புழு_எல்லாம்', larvas)
-gráfico.add('கூட்டுப்புழு', red.poblaciones["Oarenosella"]["Pupa"])
-# gráfico.add('ஒட்டுண்ணி_புழு', Red_coco.poblaciones["Parasitoidelarva"]["Adulto"])
-# gráfico.add('ஒட்டுண்ணி_கூட்டை', Red_coco.poblaciones["Parasitoidepupa"]["Adulto"])
-gráfico.render_to_file('F:\Julien\PhD\Python\PLAGAS\Oarenosella_' + red.nombre + '.svg')
-
-print("Gráfico 1 terminado.")
-
-gráfico_para = pygal.Line(interpolate='cubic', show_dots=False)
-gráfico_para.title = "கருந்தலைப் புழு ஒட்டுண்ணிகள்"
-gráfico_para.x_labels = map(str, range(0, tiempo_final, max(1, int(tiempo_final/10))))
-gráfico_para.add('பு. குளவி', red.poblaciones["Parasitoidelarva"]["Adulto"])
-gráfico_para.add('கூ. பு. குளவி', red.poblaciones["Parasitoidepupa"]["Adulto"])
-
-gráfico_para.render_to_file('F:\Julien\PhD\Python\PLAGAS\Oarenosella_parasitoides_' + red.nombre + '.svg')
-
-print("Gráfico 2 terminado.")
-
+print("Simulación 2 terminada.")
 
 red = Red_coco_compl
 larvas = [a + b + c + d + e for a, b, c, d, e in zip(red.poblaciones["Oarenosella"]["Juvenil5"],
@@ -157,32 +92,6 @@ larvas = [a + b + c + d + e for a, b, c, d, e in zip(red.poblaciones["Oarenosell
                                                      red.poblaciones["Oarenosella"]["Juvenil1"])
           ]
 
-import pygal
-gráfico = pygal.Line(interpolate='cubic', show_dots=False)
-gráfico.title = "கருந்தலைப் புழு"
-gráfico.x_labels = map(str, range(0, tiempo_final, max(1, int(tiempo_final/10))))
-gráfico.add('புழு_௧', red.poblaciones["Oarenosella"]["Juvenil1"])
-gráfico.add('புழு_௨', red.poblaciones["Oarenosella"]["Juvenil2"])
-gráfico.add('புழு_௩', red.poblaciones["Oarenosella"]["Juvenil3"])
-gráfico.add('புழு_௪', red.poblaciones["Oarenosella"]["Juvenil4"])
-gráfico.add('புழு_௫', red.poblaciones["Oarenosella"]["Juvenil5"])
-gráfico.add('புழு_எல்லாம்', larvas)
-gráfico.add('கூட்டுப்புழு', red.poblaciones["Oarenosella"]["Pupa"])
-# gráfico.add('ஒட்டுண்ணி_புழு', Red_coco.poblaciones["Parasitoidelarva"]["Adulto"])
-# gráfico.add('ஒட்டுண்ணி_கூட்டை', Red_coco.poblaciones["Parasitoidepupa"]["Adulto"])
-gráfico.render_to_file('F:\Julien\PhD\Python\PLAGAS\Oarenosella_' + red.nombre + '.svg')
-
-print("Gráfico 1 terminado.")
-
-gráfico_para = pygal.Line(interpolate='cubic', show_dots=False)
-gráfico_para.title = "கருந்தலைப் புழு ஒட்டுண்ணிகள்"
-gráfico_para.x_labels = map(str, range(0, tiempo_final, max(1, int(tiempo_final/10))))
-gráfico_para.add('பு. குளவி', red.poblaciones["Parasitoidelarva"]["Adulto"])
-gráfico_para.add('கூ. பு. குளவி', red.poblaciones["Parasitoidepupa"]["Adulto"])
-gráfico_para.add('சிலந்தி', red.poblaciones["Araña"]["Adulto"])
-gráfico_para.render_to_file('F:\Julien\PhD\Python\PLAGAS\Oarenosella_parasitoides_' + red.nombre + '.svg')
-
-print("Gráfico 2 terminado.")
 
 
 
@@ -206,7 +115,7 @@ datos_coco_simpl = {"Oarenosella": {"Pupa": [300, 260, 60, 40, 0, 20, 50, 120, 1
                     "Parasitoidelarva": {"Adulto": [42.9, 76, 71.6, 26.2, 22.32, 44.9, 36.6, 57.6, 88.4, 78.3, 26.4, 27.75, 3.7, 24.45, 20, 23, 17.5, 15.4, 12.6, 13.5, 7, 32, 0, 24.6, 6.9, 10.5, 22.8, 6, 1.6, 0, 1.8, 0, 3.8, 1.2, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
                     "Parasitoidepupa": {"Adulto": [45, 72.8, 18, 0, 0, 3.6, 12, 33.6, 83.6, 40.05, 10, 0, 0, 1.6, 2.8, 24.5, 37.5, 11.4, 0, 0, 0, 0, 36, 34, 85, 20.1, 3, 2.7, 0, 0, 0, 0, 0]}
                     }
-#
+
 # # Crear el modelo
 # print("Inicializando el modelo Bayesiano...")
 # modelo = inic_calib(Red_coco, datos_coco_simpl, 300, poblaciones_iniciales=poblaciones_iniciales, paso=1)

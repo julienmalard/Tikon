@@ -3,32 +3,37 @@ import numpy as np
 import matplotlib.pylab as dib
 
 from COSO import Coso
+from INCERT.CALIB import genmodbayes, calib, salvar
+from INCERT.INCERT import anal_incert
 dib.switch_backend('cairo')
 
 
 # Esta clase representa una red agroecológica
 class Red(Coso):
-    def __init__(símismo, nombre, insectos, poblaciones_iniciales=None):
+    def __init__(símismo, nombre, insectos):
         # insectos debe ser una lista de los objectos de insectos
 
         # El diccionario de los datos para cada red
-        símismo.dic = dict(Insectos={}, tipo_ecuaciones="")
+        dic = dict(Insectos={}, tipo_ecuaciones="")
         for i in insectos:
-            símismo.dic['Insectos'][i.nombre] = i
+            dic['Insectos'][i.nombre] = i
 
         # Esta clase se initializa como describido en Coso
-        super().__init__(nombre=nombre, ext='red', directorio=os.path.join('Personales', 'Redes'))
+        super().__init__(nombre=nombre, ext='red', dic=dic, directorio=os.path.join('Personales', 'Redes', nombre))
 
         símismo.insectos = {}
+        símismo.objetos = dict(insectos=símismo.insectos)
+
         símismo.poblaciones = {}
         símismo.inicializado = False
-        símismo.pobs_inic = poblaciones_iniciales
+        símismo.datos = {}
+        símismo.pobs_inic = {}
 
-    def ejec(símismo, poblaciones_iniciales):
+    def ejec(símismo, poblaciones_iniciales=None):
         # poblaciones_iniciales debe ser un diccionario del formato {'insecto1': {'fase1': pob, 'fase2': pob}, etc.}
 
         for insecto in símismo.dic["Insectos"]:  # Migrar los insectos del diccionario al objeto si mismo
-            símismo.insectos[insecto] = símismo.dic["Insectos"][insecto]
+            símismo.insectos[insecto] = símismo.dic["Insectos"][insecto].copy()
         for insecto in símismo.insectos:  # Inicializar las instancias de los insectos
             símismo.insectos[insecto].ejec(otros_insectos=símismo.dic["Insectos"])
             # Para guardar los datos de poblaciones (para pruebas del modelo)
@@ -38,28 +43,34 @@ class Red(Coso):
 
         # Inicializar las poblaciones
         if not poblaciones_iniciales:
-            poblaciones_iniciales = símismo.pobs_inic
-        else:
-            símismo.pobs_inic = poblaciones_iniciales
+            if len(símismo.datos):
+                datos = símismo.datos
+                for insecto in datos:
+                    poblaciones_iniciales[insecto] = {}
+                    for fase in datos[insecto]:
+                        poblaciones_iniciales[insecto][fase] = datos[insecto][fase][0]
+            else:
+                return 'Faltan datos iniciales.'
+        símismo.pobs_inic = poblaciones_iniciales
 
-        for insecto in poblaciones_iniciales:
+        for insecto in símismo.pobs_inic:
             if insecto in símismo.insectos:
                 # Si se te olvidó especificar la fase de la población del insecto:
-                if type(poblaciones_iniciales[insecto]) is float or type(poblaciones_iniciales[insecto]) is int:
+                if type(símismo.pobs_inic[insecto]) is float or type(símismo.pobs_inic[insecto]) is int:
                     print('Cuidado: no se especificó la fase para la población inical del insecto %s.' % insecto)
                     fase = list(símismo.insectos[insecto].fases.keys())[0]  # escoger uno al hazar
-                    símismo.insectos[insecto].fases[fase].pob = poblaciones_iniciales[insecto]
-                    símismo.insectos[insecto].fases[fase].hist_pob = [poblaciones_iniciales[insecto]]
+                    símismo.insectos[insecto].fases[fase].pob = símismo.pobs_inic[insecto]
+                    símismo.insectos[insecto].fases[fase].hist_pob = [símismo.pobs_inic[insecto]]
                     # Inicializar los datos de poblaciones de la red
-                    símismo.poblaciones[insecto][fase] = [poblaciones_iniciales[insecto]]
+                    símismo.poblaciones[insecto][fase] = [símismo.pobs_inic[insecto]]
                 else:  # Si no se te olvidó nada
-                    for fase in poblaciones_iniciales[insecto]:
+                    for fase in símismo.pobs_inic[insecto]:
                         if fase in símismo.insectos[insecto].fases:
                             # Inicializar la población del insecto
-                            símismo.insectos[insecto].fases[fase].pob = poblaciones_iniciales[insecto][fase]
-                            símismo.insectos[insecto].fases[fase].hist_pob = [poblaciones_iniciales[insecto][fase]]
+                            símismo.insectos[insecto].fases[fase].pob = símismo.pobs_inic[insecto][fase]
+                            símismo.insectos[insecto].fases[fase].hist_pob = [símismo.pobs_inic[insecto][fase]]
                             # Inicializar los datos de poblaciones de la red
-                            símismo.poblaciones[insecto][fase] = [poblaciones_iniciales[insecto][fase]]
+                            símismo.poblaciones[insecto][fase] = [símismo.pobs_inic[insecto][fase]]
         símismo.inicializado = True  # Marcar la red como inicializada
 
     def incr(símismo, paso, estado_cultivo):
@@ -142,10 +153,12 @@ class Red(Coso):
 
                 x = np.array(range(len(promedios)))
                 y = promedios
-                sub[núm_fase, 0].plot(x, y, lw=2, color=colores[núm])
+
+                núm_color = núm % len(colores)  # Para que nunca falten colores
+                sub[núm_fase, 0].plot(x, y, lw=2, color=colores[núm_color])
 
                 if máx is not None and mín is not None:
-                    sub[núm_fase, 0].fill_between(x, máx, mín, facecolor=colores[núm], alpha=0.5)
+                    sub[núm_fase, 0].fill_between(x, máx, mín, facecolor=colores[núm_color], alpha=0.5)
                 if núm_fase == 0:
                     sub[núm_fase, 0].set_xlabel('Día')
                 else:
@@ -155,8 +168,47 @@ class Red(Coso):
                 sub[núm_fase, 0].set_ylabel('Población %s' % fase)
 
                 if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos abiertos
-                    sub[núm_fase, 0].plot(datos_obs[nombre][fase], "o", color=colores[núm])
+                    sub[núm_fase, 0].plot(datos_obs[nombre][fase], "o", color=colores[núm_color])
 
             fig.suptitle(nombre)
             fig.savefig(os.path.join(símismo.directorio, "Tikon_%s_%s.png" % (símismo.nombre, nombre)))
-            # pylab.savefig("Tikon_%s_%s.png" % (símismo.nombre, nombre))
+
+    def cargardatos(símismo, documento):
+        with open(documento) as d:
+            doc = d.readlines()
+        variables = doc[0].replace(';', ',').split(',')
+        col_tiempo = 0
+
+        símismo.datos = {}
+        for i in variables[1:]:
+            insecto = i.split('_')[0]
+            if len(i.split('_')) == 1:
+                fase = i.split('_')[1]
+            else:
+                fase = 'adulto'
+            if insecto not in símismo.datos.keys():
+                símismo.datos[insecto] = {}
+            símismo.datos[insecto][fase] = []
+
+        for n, l in enumerate(doc[1:]):
+            texto = l.replace(';', ',').split(',')
+
+            for m, i in enumerate(texto[1:]):
+                if len(i) and i != -99:  # Si hay un dato de este insecto para el día
+                    insecto = variables[m+1].split('_')[0]
+                    fase = variables[m+1].split('_')[1]
+                    símismo.datos[insecto][fase][0].append(float(texto[col_tiempo]))
+                    símismo.datos[insecto][fase][1].append(float(i))
+
+    def calibrar(símismo, iteraciones=500, quema=100, espacio=1, dibujar=True):
+        modelo = genmodbayes(símismo.datos, símismo.dic, símismo.simul)
+        calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
+        salvar(calibrado, símismo.dic_incert)
+
+        resultados_incert, porcent = anal_incert(símismo.dic_incert, símismo.simul, símismo.datos)
+
+        if dibujar:
+            símismo.dibujar(datos_obs=símismo.datos, poblaciones=resultados_incert)
+
+        # Devolver el % de observaciones que caen en el intervalo de 95% de confianza
+        return porcent
