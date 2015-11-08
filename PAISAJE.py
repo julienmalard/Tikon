@@ -14,16 +14,16 @@ from REDES.REDES import Red
 class Paisaje(Coso):
     def __init__(símismo, nombre, datos=None, variedades_común=True, suelos_común=True, redes_común=True, fecha_inic="",
                  fecha_fin="", reinic=None):
-        símismo.dic = {'Directorio': '', 'Nombre': '', 'fecha_inic': fecha_inic, 'fecha_fin': fecha_fin,
-                       'variedades_común': variedades_común, 'suelos_común': suelos_común, 'redes_común': redes_común,
-                       'Parcelas': dict(Nombre=[], Long=[], Lat=[], Dilim=[]),
-                       'RedAE': ""
-                       }
+        dic = {'Directorio': '', 'Nombre': '', 'fecha_inic': fecha_inic, 'fecha_fin': fecha_fin,
+               'variedades_común': variedades_común, 'suelos_común': suelos_común, 'redes_común': redes_común,
+               'Parcelas': dict(Nombre=[], Long=[], Lat=[], Dilim=[]),
+               'RedAE': ""
+               }
         if reinic is None:
             reinic = datos is None  # si se dieron nuevos datos, reinicializamos el modelo
 
         # Llamar los métodos de las clase Coso
-        super().__init__(nombre=nombre, ext='pais', directorio='Personales\\Paisajes', reinic=reinic)
+        super().__init__(nombre=nombre, ext='pais', dic=dic, directorio='Personales\\Paisajes', reinic=reinic)
         símismo.dic['Directorio'] = símismo.directorio
         símismo.dic['Nombre'] = símismo.nombre
 
@@ -66,10 +66,10 @@ class Paisaje(Coso):
                 símismo.parcelas[nombre] = nueva_parcela
 
         if símismo.dic['redes_común']:  # Si compartemos redes, buscar la red en el lugar común
-            símismo.red = Red(nombre=símismo.dic['RedAE'], directorio=os.path.join('Proyectos', 'Personales', 'Redes'))
+            símismo.red = Red(nombre=símismo.dic['RedAE'])
         else:  # Si no compartemos, buscarla en el directorio del paisaje actual
             if os.path.isfile(os.path.join(símismo.directorio, símismo.nombre + '.red')):
-                símismo.red = Red(nombre=símismo.dic['RedAE'], directorio=símismo.directorio)
+                símismo.red = Red(nombre=símismo.dic['RedAE'])
             else:  # Si no lo encontramos allí, hacer una copia local de la versión en el lugar común
                 dirección = os.path.join('Proyectos', 'Personales', 'Redes', símismo.nombre + '.red')
                 if os.path.isfile(dirección):
@@ -159,9 +159,9 @@ class Paisaje(Coso):
                     if parcela is not otra_parcela:
                         for insecto in parcela.red.insectos:
                             # const_migr podría modificarse para ser una funcción de las dos parcelas en cuestión.
-                            dist = parcela.dist[otra_parcela]
+                            distancia = parcela.dist[otra_parcela]
                             const_migr = parcela.RedAE.insecto.dic["const_migr"]
-                            migración = parcela.plagas[insecto] * const_migr * (1 / dist) ** 2
+                            migración = parcela.plagas[insecto] * const_migr * (1 / distancia) ** 2
                             parcela.emigración[insecto] += migración
                             otra_parcela.imigración[insecto] += migración
 
