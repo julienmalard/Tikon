@@ -143,11 +143,12 @@ class Red(Coso):
             fig, sub = dib.subplots(len(poblaciones[nombre].keys()), 1, sharex=True, sharey=True, squeeze=False)
 
             for núm_fase, fase in enumerate(poblaciones[nombre]):
+                # Si tenemos una matriz mltidimensional (con más que una corrida):
                 if type(poblaciones[nombre][fase]) is np.ndarray:
                     promedios = np.mean(poblaciones[nombre][fase], axis=0)
                     máx = np.max(poblaciones[nombre][fase], axis=0)
                     mín = np.min(poblaciones[nombre][fase], axis=0)
-                else:
+                else:  # Si solo tenemos una corrida, no calcular máximo y mínimo
                     promedios = poblaciones[nombre][fase]
                     máx = mín = None
 

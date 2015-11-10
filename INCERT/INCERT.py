@@ -31,6 +31,9 @@ def anal_incert(dic_incert, modelo, datos, conf=0.95, rep=100):
         dic = escribir_parám(dic, parámetros=paráms)
         res_alea.append(modelo(***parámetros))
 
+    # Cambiar el formato de los resultados para que cada valor del variable sea una matriz numpy 2D con cada corrida
+    res_alea = arreglar_resultados(res_alea)
+
     resultados_mín = resultados_máx = {}
     for insecto in datos:
         resultados_mín[insecto] = {}
@@ -112,3 +115,30 @@ def escribir_parám(d, parámetros, n=0):
                 d[ll][j] = parámetros[n].value
                 n += 1
     return d
+
+
+def arreglar_resultados(resultados):
+    arreglados = None
+    for corrida in resultados:
+        if not arreglados:
+            arreglados = resultados[corrida]
+        else:
+            arreglados = arreglar(resultados[corrida], arreglados)
+
+    return arreglados
+
+
+def arreglar(c, a):
+    print (c, a)
+    for ll, v in c.items():
+        if type(v) is dict:
+            print(1.1)
+            arreglar(v, a=a[ll])
+        elif type(v) is np.ndarray or type(v) is list:
+            print(1.2)
+            print(ll, a, c)
+            a[ll] = np.vstack((a[ll], c[ll]))
+
+    return a
+
+x = arreglar_resultados({'a':{'b':[1,2,3]}, 'A':{'b':[4,5,6]}})
