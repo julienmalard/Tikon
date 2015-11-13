@@ -5,33 +5,27 @@ import random as aleatorio
 # Este módulo maneja el análisis de incertidumbre de los modelos.
 
 
-def anal_incert(dic_incert, modelo, datos, conf=0.95, rep=100):
+def anal_incert(dic, dic_incert, modelo, datos, conf=0.95, rep=100):
 
     lista_parám = sacar_parám(dic_incert)
 
-    dic = sacar_llaves(dic_incert)
-    # Poner los parámetros a sus valores promedios
-    promedios = []
-    for i in lista_parám:
-        promedios.append(np.average(i))
-
-    dic = escribir_parám(dic, parámetros=promedios)
-    resultados_promedios = modelo(***parámetros)
 
     # Poner parámetros a valores aleatorios
     res_alea = []
-    if rep > len(promedios):
-        print("Sólo hay" + str(len(promedios)) + "iteraciones disponibles para el análisis de incertidumbre.")
-        rep = len(promedios)
-    aleatorios = aleatorio.sample(range(0, len(promedios)), rep)
+    n_iter = len(dic_incert[list(dic_incert.keys())[0]])  # El número de iteraciones en dic_incert.
+    if rep > n_iter:
+        print("Sólo hay" + str(n_iter) + "iteraciones disponibles para el análisis de incertidumbre.")
+        rep = n_iter
+    aleatorios = aleatorio.sample(range(0, n_iter), rep)
     for i in aleatorios:
         paráms = []
         for j in range(len(lista_parám)):
             paráms.append(lista_parám[j][i])
-        dic = escribir_parám(dic, parámetros=paráms)
+        escribir_parám(dic, parámetros=paráms)
         res_alea.append(modelo(***parámetros))
 
-    # Cambiar el formato de los resultados para que cada valor del variable sea una matriz numpy 2D con cada corrida
+    # Cambiar el formato de los resultados para que cada valor del variable sea una matriz numpy 2D con una línea
+    # de la matriz para cada corrida.
     res_alea = arreglar_resultados(res_alea)
 
     resultados_mín = resultados_máx = {}
@@ -60,30 +54,8 @@ def anal_incert(dic_incert, modelo, datos, conf=0.95, rep=100):
                     dat_total += 1
     por_en_inter = dat_correcto/dat_total
 
-    def filtrarresultados(r, d, f=None):
-        if not f:
-            f = []
-        for ll, v in sorted(d.items()):
-            if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-                filtrarresultados(r[ll], v, f)  # Repetir la función con el nuevo diccionario
-            elif isinstance(v, tuple):  # Si encontramos los datos
-                f += [x for n, x in enumerate(r[ll]) if n in v[0]]
-
-        return f
-
-    return por_en_inter  # Devolver el % de los datos que caen en el intervalo de confianza
-
-
-def sacar_llaves(d, l=None):
-    if not l:
-        l = []
-
-    for ll, v in d.items():
-        l.append(ll)
-        if type(v) is dict:
-            sacar_llaves(d, l=l)
-
-    return l
+    # Devolver el % de los datos que caen en el intervalo de confianza y los resultados de las corridas
+    return por_en_inter, res_alea
 
 
 def sacar_parám(d, l=None):
@@ -114,9 +86,25 @@ def escribir_parám(d, parámetros, n=0):
             for j in v:
                 d[ll][j] = parámetros[n].value
                 n += 1
-    return d
 
 
+def filtrarresultados(r, d, f=None):
+    if not f:
+        f = []
+    for ll, v in sorted(d.items()):
+        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
+            filtrarresultados(r[ll], v, f)  # Repetir la función con el nuevo diccionario
+        elif isinstance(v, tuple):  # Si encontramos los datos
+            f += [x for n, x in enumerate(r[ll]) if n in v[0]]
+
+    return f
+
+
+# Dos funciones obscuras para poner el formato requísito a los resultados de las corridas de análisis de incertidumbre.
+# Empezando con formato {corrida1: {var1: [1, 2, 3], var2: [4, 5, 6]}, corrida2: {var1: [7, 8, 9], var2: [10, 11, 12]}},
+# da el formato:
+# {var1: [[1, 2, 3], [7, 8, 9]], var2: [[4, 5, 6], [10, 11, 12]]}
+# (Todas las listas las regresa como matrices numpy.)
 def arreglar_resultados(resultados):
     arreglados = None
     for corrida in resultados:
@@ -140,5 +128,3 @@ def arreglar(c, a):
             a[ll] = np.vstack((a[ll], c[ll]))
 
     return a
-
-x = arreglar_resultados({'a':{'b':[1,2,3]}, 'A':{'b':[4,5,6]}})
