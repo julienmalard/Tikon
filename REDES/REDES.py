@@ -3,9 +3,10 @@ import numpy as np
 import matplotlib.pylab as dib
 
 from COSO import Coso
-from INCERT.CALIB import genmodbayes, calib, salvar
+from REDES.INSECTOS import Insecto
+from INCERT.CALIB import genmodbayes, calib, guardar
 from INCERT.INCERT import anal_incert
-dib.switch_backend('cairo')
+#dib.switch_backend('cairo')
 
 
 # Esta clase representa una red agroecológica
@@ -33,7 +34,7 @@ class Red(Coso):
         # poblaciones_iniciales debe ser un diccionario del formato {'insecto1': {'fase1': pob, 'fase2': pob}, etc.}
 
         for insecto in símismo.dic["Insectos"]:  # Migrar los insectos del diccionario al objeto si mismo
-            símismo.insectos[insecto] = símismo.dic["Insectos"][insecto].copy()
+            símismo.insectos[insecto] = Insecto(símismo.dic["Insectos"][insecto])
         for insecto in símismo.insectos:  # Inicializar las instancias de los insectos
             símismo.insectos[insecto].ejec(otros_insectos=símismo.dic["Insectos"])
             # Para guardar los datos de poblaciones (para pruebas del modelo)
@@ -87,7 +88,7 @@ class Red(Coso):
         return poblaciones  # Para comunicación con el submódulo PARCELA
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
-    def simul(símismo, paso, estado_cultivo, tiempo_final, tiempo_inic=0, pobs_inic=None, rep=10):
+    def simul(símismo, tiempo_final, tiempo_inic=0, pobs_inic=None, estado_cultivo=1000000, paso=1, rep=10):
         print('Simulando...')
         if not pobs_inic:
             pobs_inic = símismo.pobs_inic
@@ -204,9 +205,9 @@ class Red(Coso):
     def calibrar(símismo, iteraciones=500, quema=100, espacio=1, dibujar=True):
         modelo = genmodbayes(símismo.datos, símismo.dic, símismo.simul)
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
-        salvar(calibrado, símismo.dic_incert)
+        guardar(calibrado, símismo.dic_incert)
 
-        resultados_incert, porcent = anal_incert(símismo.dic_incert, símismo.simul, símismo.datos)
+        porcent, resultados_incert = anal_incert(símismo.dic_incert, símismo.simul, símismo.datos)
 
         if dibujar:
             símismo.dibujar(datos_obs=símismo.datos, poblaciones=resultados_incert)

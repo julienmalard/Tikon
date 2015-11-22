@@ -1,5 +1,5 @@
 import numpy as np
-from pymc import Normal, Exponential, deterministic
+from pymc import Normal, Exponential, deterministic, MCMC
 
 from COSO import Coso
 
@@ -7,9 +7,11 @@ from COSO import Coso
 def genmodbayes(datos, diccionarios, simul):
     # TODO: Escribir descripción detallada de esta función aquí.
     """
-    diccionarios es una lista de los diccionarios de parámetros que hay que calibrar.
 
-
+    :param datos:
+    :param diccionarios: una lista de los diccionarios de parámetros que hay que calibrar.
+    :param simul:
+    :return:
     """
     # Generar variables para los parámetros del modelo
 
@@ -40,19 +42,18 @@ def genmodbayes(datos, diccionarios, simul):
         # Poner los parámetros del modelo a fecha:
         escribirdic(diccionarios, parámetros=p)
 
-        # Ejecutar el modelo. Sustraemos 1 de t porque ya tenemos el primer dato inicial
-        resultados = simul(1, {"Coco": 10000000}, t-1)
+        # Ejecutar el modelo.
+        resultados = simul(tiempo_final=t)
         egr = np.array(filtrarresultados(resultados, datos))  # La lista de egresos del modelo
 
         return egr
 
     # Variables estocásticos para las predicciones (se supone que las observaciones están distribuidas en una
-    # distribución normal, con precisión "precisión_pobs", alrededor de la predicción del modelo).
-    precisión_pobs = Exponential("precisión_pobs", beta=1.)
+    # distribución normal, con precisión "precisión", alrededor de la predicción del modelo).
+    precisión = Exponential("precisión", beta=1.)
 
-    variables = Normal('variables', mu=promedio, tau=precisión_pobs,
-                       value=lista_datos, observed=True)
-    return [parámetros, tau, promedio, precisión_pobs, lista_datos, variables]
+    variables = Normal('variables', mu=promedio, tau=precisión, value=lista_datos, observed=True)
+    return [parámetros, tau, promedio, precisión, lista_datos, variables]
 
 
 def leerdic(d, l=None):
@@ -105,25 +106,35 @@ def leerdatos(d, l=None, t=None):
 
 
 def filtrarresultados(r, d, f=None):
+    """
+    Esta función toma diccionarios de resultados de simulación y de datos observados y devuelve una lista ordenada de
+    los datos de simulación correspondiendo a los puntos para cuales tenemos los datos observados.
+    :param r: diccionario de resultados de simulación, de la forma {var1: [(fecha, dato), (fecha, dato)...], var2: ...}.
+    Puede contener un número arbitrario de diccionarios adentro del diccionario de datos.
+    :param d: un diccionario de datos observados, de la misma forma. No es necesario tener todas las llaves de r en d.
+    :param f: el diccionario de los datos filtrados
+    :return: f
+    """
     if not f:
         f = []
     for ll, v in sorted(d.items()):
-        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-            filtrarresultados(r[ll], v, f)  # Repetir la función con el nuevo diccionario
-        elif isinstance(v, tuple):  # Si encontramos los datos
-            f += [x for n, x in enumerate(r[ll]) if n in v[0]]
+        if type(v) is dict:  # Si el valor de la llave es otro diccionario...
+            filtrarresultados(r[ll], v, f)  # ...repetir la función con el nuevo diccionario
+        elif isinstance(v, tuple):  # Si encontramos los datos...
+            r[ll].sort()  # Asegurarse que el tiempo va para adelante
+            f += [x for n, x in enumerate(r[ll]) if n in v[0]]  # Sacar los puntos para cuales tenemos datos
 
     return f
 
 
 def calib(modelo, it, quema, espacio):
-    m = mcpy.MCMC(modelo)
+    m = MCMC(modelo)
     m.sample(iter=it, burn=quema, thin=espacio)
 
     return m
 
 
-def salvar(calibrado, dic_incert):
+def guardar(calibrado, dic_incert):
 
     parámetros = {}
     for k in nombres:
