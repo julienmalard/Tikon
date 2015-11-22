@@ -1,5 +1,6 @@
 import os
 import shutil
+import numpy as np
 import json
 import random as aleatorio
 import datetime as ft
@@ -10,7 +11,7 @@ from Controles import directorio_base
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
 Tikon que representa un aspecto físico del ambiente y que tiene datos. Incluye
-paisajes parcelas, variedades de cultivos, suelos, etc. Todos tienen la misma
+paisajes parcelas, variedades de cultivos, suelos, insectos, etc. Todos tienen la misma
 lógica para leer y escribir sus datos en carpetas externas, tanto como para la
 su calibración.
 """
@@ -56,7 +57,7 @@ class Coso(object):
             else:
                 documento += símismo.ext
         # Para guardar el diccionario de incertidumbre:
-        documento_incert = documento + "i"
+        documento_incert = "%ii" % documento
 
         # Para guardar diccionarios de objetos, utilizamos el módulo JSON que escribe los diccionarios en
         # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
@@ -70,8 +71,11 @@ class Coso(object):
                     convertir_fechas(obj[i])  # Buscar en cada sub-diccionario o sub-lista del objeto
                 elif type(obj[i]) is ft.datetime:
                     obj[i] = obj[i].strftime('%Y-%m-%d')  # Convertir fechas en formato cadena
-                elif isinstance(obj[i], Coso):
+                elif type(obj[i]) is Coso:
                     obj[i] = ''
+                    print('Aviso: objeto en diccionario de objeto %s.' % símismo.nombre)
+                elif type(obj[i]) is np.ndarray:
+                    obj[i] = list(obj[i])
 
         convertir_fechas(dic_temp)
 

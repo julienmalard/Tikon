@@ -26,3 +26,5 @@ red_cebolla.datos = {'mosca': {'Adulto': (list(range(11)),
                                           [10, 4, 5, 3, 4, 5, 3, 1, 1, 3])
                                }
                      }
+
+red_cebolla.calibrar(iteraciones=10, quema=0)
