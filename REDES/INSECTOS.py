@@ -105,11 +105,12 @@ class Insecto(Coso):
                 fases_depred.remove('Pupa')
             if 'Huevo' in fases_depred:
                 fases_depred.remove('Huevo')
-        # otros_insecto en forma de carácteres indica un cultivo (herbívoro) como 'presa'
+        # otros_insecto en forma de carácteres indica un cultivo como 'presa'
         if type(presa) is str:
             for i in fases_depred:
-                símismo.fases[i].dic['Presas'].append(presa)
-                return
+                if presa not in símismo.fases[i].dic['Presas']:
+                    símismo.fases[i].dic['Presas'].append(presa)
+            return
 
         if not fases_presa:
             fases_presa = list(presa.fases)
@@ -211,18 +212,20 @@ class Fase(Coso):
         """
 
         # Utilizar sólamente los depredadoes y las presas en la red trófica utilizada
+        print(símismo.nombre, símismo.dic['Depredadores'], símismo.dic['Presas'])
         for depredador in símismo.dic["Depredadores"]:
             depred_insecto = depredador.split('_', 1)[0]  # El nombre del insecto depredador
             depred_fase = depredador.split('_', 1)[1]  # El nombre de la fase del depredador
             if depred_insecto in otros_insectos:
                 símismo.depredadores_act.append(otros_insectos[depred_insecto].fases[depred_fase])
         for presa in símismo.dic["Presas"]:
-            presa_insecto = presa.split('_', 1)[0]  # El nombre del insecto presa
-            presa_fase = presa.split('_', 1)[1]  # El nombre de la fase de la presa
-            # Si la presa existe en la red agroecológica especificada
-            if presa.split('_')[0] in otros_insectos:
-                if presa not in símismo.presas_act:
-                    símismo.presas_act.append(otros_insectos[presa_insecto].fases[presa_fase])
+            if '_' in presa:
+                presa_insecto = presa.split('_', 1)[0]  # El nombre del insecto presa
+                presa_fase = presa.split('_', 1)[1]  # El nombre de la fase de la presa
+                # Si la presa existe en la red agroecológica especificada
+                if presa.split('_')[0] in otros_insectos:
+                    if presa not in símismo.presas_act:
+                        símismo.presas_act.append(otros_insectos[presa_insecto].fases[presa_fase])
             # Si la presa no está en la lista de insectos, verificar si la "presa" es un cultivo
             elif presa in cultivos:
                 if presa not in símismo.presas_act:  # Asegurarse que ya no hemos añadido el cultivo a la lista
@@ -260,12 +263,15 @@ class Fase(Coso):
             elif type(coefs[tipo_ecuaciones][coef]) is dict:
                 if coef == 'Presas':
                     for p in símismo.presas_act:
-                        if type(p) is Fase and \
-                                (p.nombre not in símismo.dic['coefs'] or type(símismo.dic['coefs'][p.nombre]) is str):
+                        if type(p) is str:
+                            nombre = p
+                        elif type(p) is Fase:
+                            nombre = p.nombre
+                        if nombre not in símismo.dic['coefs'] or type(símismo.dic['coefs'][nombre]) is str:
                             valor = input('%s: Ingresar valor para presa %s (%s): ' %
-                                          (símismo.nombre, p.nombre, coefs[tipo_ecuaciones]['Presas']['a'] % p.nombre))
+                                          (símismo.nombre, nombre, coefs[tipo_ecuaciones]['Presas']['a'] % nombre))
                             if len(valor):
-                                símismo.dic['coefs'][p.nombre] = float(valor)
+                                símismo.dic['coefs'][nombre] = float(valor)
                 if coef == 'Depredadores':
                     for d in símismo.depredadores_act:
                         if type(d) is Fase and \

@@ -18,10 +18,9 @@ araña.guardar()
 
 # Crear y probar la red agroecológica
 red_cebolla = Red(nombre='red_cebolla', insectos=['mosca', 'araña'], cultivos=['cebolla'])
-print('***', red_cebolla.insectos['mosca'].fases['Adulto'].dic['Depredadores'])
 red_cebolla.ejec(poblaciones_iniciales={'mosca': {'Adulto': 100}, 'araña': {'Adulto': 0}})
 
-red_cebolla.simul(paso=1, estado_cultivo=100000, tiempo_final=300, rep=100)
+red_cebolla.simul(paso=1, estado_cultivo={'cebolla': 100000}, tiempo_final=300, rep=100)
 
 # Guardar los datos de los insectos
 print('Guardando datos de insectos...')

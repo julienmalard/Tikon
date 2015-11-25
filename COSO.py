@@ -107,14 +107,11 @@ class Coso(object):
         if not len(documento):
             documento = símismo.dirección
         documento_incert = documento + "i"
-        print(símismo.nombre, documento)
 
         try:
             with open(documento, mode="r") as d:
                 try:
                     símismo.dic = json.load(d)
-                    print('¡Cargó!')
-                    print(símismo.dic)
                 except ValueError:
                     print('Error en documento %s.' % documento)
                     os.remove(documento)
