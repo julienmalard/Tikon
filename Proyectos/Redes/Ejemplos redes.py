@@ -3,6 +3,7 @@ from REDES.REDES import Red
 
 # Unos ejemplos del uso del módulo de insectos y del módulo de redes agroecológicas
 
+print('Creando insectos...')
 # Crear nuestros insectos
 mosca = Simple('mosca')
 araña = Simple('araña')
@@ -11,12 +12,20 @@ araña = Simple('araña')
 araña.secome(mosca)
 mosca.secome('cebolla')
 
-# Crear y probar la red agroecológica
-red_cebolla = Red('red_cebolla', [mosca, araña])
+# Guardar todo. Si quiere utilizar los mismos insectos en otra red, ya no será necesario crearlos como arriba.
+mosca.guardar()
+araña.guardar()
 
-red_cebolla.ejec(poblaciones_iniciales={'mosca': {'Adulto': 100}, 'araña': {'Adulto': 10}})
+# Crear y probar la red agroecológica
+red_cebolla = Red(nombre='red_cebolla', insectos=['mosca', 'araña'], cultivos=['cebolla'])
+print('***', red_cebolla.insectos['mosca'].fases['Adulto'].dic['Depredadores'])
+red_cebolla.ejec(poblaciones_iniciales={'mosca': {'Adulto': 100}, 'araña': {'Adulto': 0}})
 
 red_cebolla.simul(paso=1, estado_cultivo=100000, tiempo_final=300, rep=100)
+
+# Guardar los datos de los insectos
+print('Guardando datos de insectos...')
+red_cebolla.guardar()
 
 # Calibrar la red según datos 'reales':
 red_cebolla.datos = {'mosca': {'Adulto': (list(range(11)),

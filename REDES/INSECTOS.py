@@ -7,28 +7,36 @@ from COSO import Coso
 
 # Representa un insecto
 class Insecto(Coso):
-    def __init__(símismo, nombre, huevo=False, njuvenil=None, pupa=False, adulto=True,
-                 tipo_ecuaciones='capacidad_de_carga'):
+    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
+                 tipo_ecuaciones='capacidad_de_carga', directorio=None, fuente=None):
         # El diccionario de los datos para cada insecto
-        dic = dict(tipo_ecuaciones=tipo_ecuaciones)
+        dic = dict(huevo=huevo, njuvenil=njuvenil, pupa=pupa, adulto=adulto, tipo_ecuaciones=tipo_ecuaciones,
+                   Presas=[], Depredadores=[])
 
+        if directorio is None:
+            directorio = os.path.join('Base', 'Redes', nombre)  # Cada insecto tiene su propio directorio
+        else:
+            directorio = os.path.join('Redes', directorio)  # Cada insecto tiene su propio directorio
         # Esta clase se initializa como describido en Coso
-        directorio = os.path.join('Personales', 'Redes', nombre)  # Cada insecto tiene su propio directorio
         super().__init__(dic=dic, ext="ins", nombre=nombre, directorio=directorio)
+
+        # Si estamos cargando información del insecto de otro lugar:
+        if fuente is not None:
+            símismo.cargar(fuente)
 
         # Crear instancias de etapas de desarrollo según el ciclo de vida del insecto
         símismo.fases = {}
         if huevo:
-            símismo.fases['Huevo'] = Fase("%s_huevo" % símismo.nombre, directorio=directorio)
+            símismo.fases['Huevo'] = Fase("%s_huevo" % símismo.nombre, directorio=símismo.directorio)
 
         for i in range(1, njuvenil+1):
-            símismo.fases['Juvenil_%s' % i] = Fase("%s_juvenil_%s" % (símismo.nombre, i), directorio=directorio)
+            símismo.fases['Juvenil_%s' % i] = Fase("%s_juvenil_%s" % (símismo.nombre, i), directorio=símismo.directorio)
 
         if pupa:
-            símismo.fases['Pupa'] = Fase("%s_pupa" % símismo.nombre, directorio=directorio)
+            símismo.fases['Pupa'] = Fase("%s_pupa" % símismo.nombre, directorio=símismo.directorio)
 
         if adulto:
-            símismo.fases['Adulto'] = Fase("%s_adulto" % símismo.nombre, directorio=directorio)
+            símismo.fases['Adulto'] = Fase("%s_adulto" % símismo.nombre, directorio=símismo.directorio)
 
         # Crear las dependencias entre distintas fases:
         if huevo:
@@ -81,9 +89,16 @@ class Insecto(Coso):
         for fase in símismo.fases:
             símismo.pob[fase] = ()
 
-    def secome(símismo, otro_insecto, fases_depred=None, fases_presa=None):
-        # fases_depred y fases_presa tienen que ser listas de las fases del depredador y de la presa
-        # Si no se especifiquen, se tomen todas las fases actias como depredadores y todas las fases como presas
+    def secome(símismo, presa, fases_depred=None, fases_presa=None):
+        """
+        Si no se especifiquen, se tomen todas las fases activas del insecto (juveniles y adultos) como depredadores y
+        todas las fases de la presa como presas
+        :param presa:
+        :param fases_depred: listas de las fases del depredador
+        :param fases_presa: listas de las fases de la presa
+        :return:
+        """
+
         if not fases_depred:
             fases_depred = list(símismo.fases)
             # Quitar las fases inactivas (que no pueden comer a nada)
@@ -91,14 +106,14 @@ class Insecto(Coso):
                 fases_depred.remove('Pupa')
             if 'Huevo' in fases_depred:
                 fases_depred.remove('Huevo')
-        # otros_insecto en forma de cadena de bits indica un cultivo (herbívoro) como 'presa'
-        if type(otro_insecto) is str:
+        # otros_insecto en forma de carácteres indica un cultivo (herbívoro) como 'presa'
+        if type(presa) is str:
             for i in fases_depred:
-                símismo.fases[i].dic['Presas'][otro_insecto] = otro_insecto
+                símismo.fases[i].dic['Presas'].append(presa)
                 return
 
         if not fases_presa:
-            fases_presa = list(otro_insecto.fases)
+            fases_presa = list(presa.fases)
 
         for fases in [fases_depred, fases_presa]:
             if 'Juvenil' in fases:
@@ -109,13 +124,16 @@ class Insecto(Coso):
 
         for i in fases_depred:
             for j in fases_presa:
-                símismo.fases[i].dic['Presas'][otro_insecto.nombre + '_%s' % j] = otro_insecto.fases[j]
-                otro_insecto.fases[j].dic['Depredadores'][símismo.nombre + '_%s' % i] = símismo.fases[i]
+                if presa.nombre + '_%s' % j not in símismo.fases[i].dic['Presas']:
+                    símismo.fases[i].dic['Presas'].append(presa.nombre + '_%s' % j)
+                if símismo.nombre + '_%s' % i not in presa.fases[j].dic['Depredadores']:
+                    presa.fases[j].dic['Depredadores'].append(símismo.nombre + '_%s' % i)
 
     # Esta función inicializa el insecto basado en la red trófica utilizada
-    def ejec(símismo, otros_insectos):
+    def ejec(símismo, otros_insectos, cultivos):
         for fase in símismo.fases:
-            símismo.fases[fase].ejec(tipo_ecuaciones=símismo.dic['tipo_ecuaciones'], otros_insectos=otros_insectos)
+            símismo.fases[fase].ejec(tipo_ecuaciones=símismo.dic['tipo_ecuaciones'], otros_insectos=otros_insectos,
+                                     cultivos=cultivos)
 
     # Esta función calcula los cambios de población de un insecto (para cada etapa de desarrollo del insecto)...
     # ... pero NO implementa los cambios calculados
@@ -131,6 +149,16 @@ class Insecto(Coso):
             símismo.fases[fase].actualizar()
             símismo.pob[fase] = símismo.fases[fase].pob
 
+    # Esta función asegura que guardar un insecto también guarda los datos de sus fases
+    def guardar(símismo, documento=''):
+        print(símismo.nombre, documento)
+        if not len(documento):
+            documento = símismo.directorio
+        # Primero, guardar el insecto sí mismo por llamar a la función 'guardar()' de Coso
+        super().guardar(documento=os.path.join(documento, símismo.nombre))
+        # Ahora, guardar todas sus fases también
+        for fase in símismo.fases:
+            símismo.fases[fase].guardar(documento=documento)
 
 # Unas clases prehechas para simplificar la creación de insectos
 class Simple(Insecto):
@@ -153,11 +181,14 @@ class MetamIncompleta(Insecto):
 class Fase(Coso):
     def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada insecto
-        dic = dict(Depredadores={}, Presas={}, coefs={})
+        dic = dict(Depredadores=[], Presas=[], coefs={})
         # Esta clase se initializa como describido en Coso
         super().__init__(nombre=nombre, ext='fase', dic=dic, directorio=directorio)
 
-        símismo.leer()
+        # Si ya existe un archivo para esta fase del insecto, cargar sus datos
+        if símismo.nombre in os.listdir(símismo.directorio):
+            símismo.cargar()
+            print(símismo.nombre, símismo.dic)
 
         # Listas para guardar poner las presas y deprededores en la red actual
         símismo.depredadores_act = []
@@ -172,21 +203,29 @@ class Fase(Coso):
         símismo.fuente = None
 
     # Esta función inicializa el insecto basado en la red trófica utilizada
-    def ejec(símismo, tipo_ecuaciones, otros_insectos):
+    def ejec(símismo, tipo_ecuaciones, otros_insectos, cultivos):
+        """
+
+        :param tipo_ecuaciones: un cáracter con el nombre del tipo de ecuación a utilizar
+        :param otros_insectos:  Un diccionario de los objetos de los otros insectos presentes en la red
+        :param cultivos: Una lista de los cultivos en el modelo
+        :return: Nada
+        """
 
         # Utilizar sólamente los depredadoes y las presas en la red trófica utilizada
         for depredador in símismo.dic["Depredadores"]:
             if depredador.split('_')[0] in otros_insectos:
-                símismo.depredadores_act.append(símismo.dic["Depredadores"][depredador])
+                símismo.depredadores_act.append(otros_insectos[depredador])
         for presa in símismo.dic["Presas"]:
-            # Si la presa es un otro insecto y existe en la red agroecológica especificada
-            if type(símismo.dic["Presas"][presa]) is Fase and símismo.dic["Presas"][presa].nombre.split('_')[0] in\
-                    otros_insectos.keys():
+            # Si la presa existe en la red agroecológica especificada
+            if presa.split('_')[0] in otros_insectos:
                 if presa not in símismo.presas_act:
-                    símismo.presas_act.append(símismo.dic["Presas"][presa])
-            elif type(símismo.dic["Presas"][presa]) is str:  # Si la "presa" es un cultivo
+                    símismo.presas_act.append(otros_insectos[presa])
+            # Si la presa no está en la lista de insectos, verificar si la "presa" es un cultivo
+            elif presa in cultivos:
                 if presa not in símismo.presas_act:
                     símismo.presas_act.append(presa)
+        print(símismo.nombre, símismo.depredadores_act, símismo.dic['Depredadores'])
 
         # Asegurarse que tenemos todos los coeficientes necesarios:
         coefs = {'Lotka-Voltera': {'r': 'Tasa de crecimiento de base',
@@ -194,7 +233,7 @@ class Fase(Coso):
                                    'Presas': {'a': 'Aumento a la tasa de crec por presa %s.'},
                                    'Depredadores': {'a': 'Disminución a la tasa de crecimiento por depredador %s.'}
                                    },
-                 'capacidad_de-carga': {'r': 'Tasa de crecimiento de base',
+                 'capacidad_de_carga': {'r': 'Tasa de crecimiento de base',
                                         'Presas': {'a': 'Aumento a la capacidad de carga por presa %s.'},
                                         'comida_crít': 'La comida diaria necesaria por depredador/herbívoro',
                                         'Depredadores': {'a': 'La cantidad de presa %s que se puede comer por día.'}
@@ -238,7 +277,7 @@ class Fase(Coso):
         if valor:
             guardar = input('¿Quieres guardar los coeficientes que entregaste para simulaciones futuras? (s/n)')
             if guardar == 's':
-                símismo.escribir()
+                símismo.guardar()
 
     def incr(símismo, paso, tipo_ecuaciones, estado_cultivo):
 

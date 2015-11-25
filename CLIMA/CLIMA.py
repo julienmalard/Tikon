@@ -158,7 +158,7 @@ class Diario(Coso):
         if generamos:
             # Cambiar el directorio de base al directorio de datos generados
             símismo.directorio = os.path.join('Proyectos', 'Clima', 'Generado')
-            símismo.escribir()  # Guardar los datos
+            símismo.guardar()  # Guardar los datos
 
 
 # Esta clase representa el clima de un lugar (datos mensuales con cuales podemos generar datos diarios).

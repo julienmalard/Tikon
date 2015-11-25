@@ -41,23 +41,23 @@ class Coso(object):
             os.makedirs(símismo.directorio)
         else:  # Si no estamos reinicializando el objeto, leer el documento, si existe
             if os.path.isfile(símismo.dirección):
-                símismo.leer(símismo.dirección)
+                símismo.cargar(símismo.dirección)
             else:  # Si no existe, crearlo
                 if not os.path.isdir(símismo.directorio):
                     os.makedirs(símismo.directorio)
 
     # Función para escribir los datos a un documento externo
-    def escribir(símismo, documento=""):
+    def guardar(símismo, documento=""):
         if not len(documento):
             documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
             if símismo.nombre not in documento:
-                documento += "\\" + símismo.nombre + símismo.ext
+                documento += "\\%s.%s" % (símismo.nombre,símismo.ext)
             else:
-                documento += símismo.ext
+                documento += '.%s' % símismo.ext
         # Para guardar el diccionario de incertidumbre:
-        documento_incert = "%ii" % documento
+        documento_incert = "%si" % documento
 
         # Para guardar diccionarios de objetos, utilizamos el módulo JSON que escribe los diccionarios en
         # formato JSON, un formato fácil a leer por humanos ya varios programas (JavaScript, Python, etc.)
@@ -66,16 +66,21 @@ class Coso(object):
         dic_temp = símismo.dic.copy()  # Para no afectar el diccionario del objeto sí mismo
 
         def convertir_fechas(obj):
+            n = -1
             for i in obj:
-                if type(obj[i]) is list or type(obj[i]) is dict:
-                    convertir_fechas(obj[i])  # Buscar en cada sub-diccionario o sub-lista del objeto
-                elif type(obj[i]) is ft.datetime:
-                    obj[i] = obj[i].strftime('%Y-%m-%d')  # Convertir fechas en formato cadena
-                elif type(obj[i]) is Coso:
-                    obj[i] = ''
+                if type(obj) is list:
+                    n += 1
+                elif type(obj) is dict:
+                    n = i
+                if type(obj[n]) is list or type(obj[n]) is dict:
+                    convertir_fechas(obj[n])  # Buscar en cada sub-diccionario o sub-lista del objeto
+                elif type(obj[n]) is ft.datetime:
+                    obj[n] = obj[n].strftime('%Y-%m-%d')  # Convertir fechas en formato cadena
+                elif type(obj[n]) is Coso:
+                    obj[n] = ''
                     print('Aviso: objeto en diccionario de objeto %s.' % símismo.nombre)
-                elif type(obj[i]) is np.ndarray:
-                    obj[i] = list(obj[i])
+                elif type(obj[n]) is np.ndarray:
+                    obj[n] = list(obj[n])
 
         convertir_fechas(dic_temp)
 
@@ -85,19 +90,20 @@ class Coso(object):
         except IOError:
             print("Documento " + documento + " no se pudo abrir para guadar datos.")
 
-        try:
-            dic_incert_temp = símismo.dic_incert.copy()
-            convertir_fechas(dic_incert_temp)
+        if len(símismo.dic_incert):
             try:
-                with open(documento_incert, mode="w") as d:
-                    json.dump(dic_incert_temp, d)
-            except IOError:
-                return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
-        except AttributeError:
-            pass
+                dic_incert_temp = símismo.dic_incert.copy()
+                convertir_fechas(dic_incert_temp)
+                try:
+                    with open(documento_incert, mode="w") as d:
+                        json.dump(dic_incert_temp, d)
+                except IOError:
+                    return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
+            except AttributeError:
+                pass
 
     # Función para leer los datos desde un documento externo
-    def leer(símismo, documento=""):
+    def cargar(símismo, documento=""):
         if not len(documento):
             documento = símismo.dirección
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta

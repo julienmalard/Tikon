@@ -105,7 +105,7 @@ def salvar(mod):
             red.dic_incert['parám_%s' % k] = parámetros[k]
     red.dic['paso'] = mod[1][2]
     red.dic['tiempo_final'] = mod[1][1]
-    red.escribir()
+    red.guardar()
     escribirdic_calib(red, parámetros=parámetros)
 
 
