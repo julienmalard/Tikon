@@ -17,7 +17,7 @@ class Red(Coso):
 
         :param nombre: el nombre de la red (carácter)
         :param insectos: lista de los nombres de los insectos
-        :return:
+        :return: nada
         """
 
         # El diccionario de los datos para cada red
@@ -41,11 +41,12 @@ class Red(Coso):
                     print('Aviso: no hay insecto guardado en red %s para insecto %s. Buscando en el directorio '
                           'general.' % (símismo.nombre, insecto))
             # Si no lo encontramos, o si estamos utilizando los insectos comunes, buscar en el lugar comun:
-            insectos_exist_comunes = os.listdir(os.path.join(directorio_base, 'Proyectos', 'Base', 'Redes'))
+            insectos_exist_comunes = os.listdir(os.path.join(directorio_base, 'Proyectos', 'Redes'))
             if insecto in insectos_exist_comunes:
                 print('Insecto en común')
                 símismo.insectos[insecto] = Insecto(insecto, directorio=os.path.join(símismo.nombre, insecto),
-                                                    fuente=os.path.join(directorio_base, 'Proyectos', 'Base', 'Redes')
+                                                    fuente=os.path.join(directorio_base,
+                                                                        'Proyectos', 'Redes', insecto)
                                                     )
             else:
                 print('Error: no hay archivo para insecto %s.' % símismo.nombre)
@@ -160,12 +161,12 @@ class Red(Coso):
         for insecto in símismo.insectos:
             símismo.insectos[insecto].guardar(documento)
 
-    # A hacer: una función para guardar los insectos de la red en el área común para que lo pueda acceder otras redes
+    # Una función para guardar los insectos de la red en el área común para que lo pueda acceder otras redes
     def guardar_común(símismo):
-        pass
+        for insecto in símismo.insectos:
+            símismo.insectos[insecto].guardar(documento=os.path.join(directorio_base, 'Proyectos', 'Redes'))
 
     def dibujar(símismo, insectos=None, datos_obs=None, poblaciones=None):
-        print('Dibujando...')
         if insectos is None:  # Si no se especificaron insectos, utilizar todos los insectos de la red.
             insectos = list(símismo.insectos.keys())
 
@@ -173,7 +174,6 @@ class Red(Coso):
             poblaciones = símismo.poblaciones
 
         for núm, nombre in enumerate(insectos):
-            print(nombre)
             colores = ("red", "orange", "yellow", "green", "blue", "purple", "fuchsia", "black")
 
             # Un gráfico por insecto (con todas las fases en sub-gráficos). El 'squeeze' es necesario.

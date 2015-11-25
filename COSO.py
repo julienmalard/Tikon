@@ -98,7 +98,7 @@ class Coso(object):
                     with open(documento_incert, mode="w") as d:
                         json.dump(dic_incert_temp, d)
                 except IOError:
-                    return "Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre."
+                    print("Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre.")
             except AttributeError:
                 pass
 
@@ -106,23 +106,20 @@ class Coso(object):
     def cargar(símismo, documento=""):
         if not len(documento):
             documento = símismo.dirección
-        # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
-        if símismo.ext not in documento.lower():
-            if símismo.nombre not in documento:
-                documento += "\\" + símismo.nombre + símismo.ext
-            else:
-                documento += símismo.ext
         documento_incert = documento + "i"
+        print(símismo.nombre, documento)
 
         try:
             with open(documento, mode="r") as d:
                 try:
                     símismo.dic = json.load(d)
+                    print('¡Cargó!')
+                    print(símismo.dic)
                 except ValueError:
                     print('Error en documento %s.' % documento)
                     os.remove(documento)
         except IOError:
-            return "Documento " + documento + " no se pudo abrir para leer datos."
+            print("Documento " + documento + " no se pudo abrir para leer datos.")
 
         try:
             with open(documento_incert, mode="r") as d:
