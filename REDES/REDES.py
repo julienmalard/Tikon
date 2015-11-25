@@ -34,7 +34,6 @@ class Red(Coso):
                 insectos_exist_red = os.listdir(símismo.directorio)
                 # Buscar en el directorio de la red
                 if insecto in insectos_exist_red:
-                    print('¡Insecto en red!')
                     símismo.insectos[insecto] = Insecto(insecto, directorio=os.path.join(símismo.nombre, insecto))
                     continue
                 else:
@@ -43,7 +42,6 @@ class Red(Coso):
             # Si no lo encontramos, o si estamos utilizando los insectos comunes, buscar en el lugar comun:
             insectos_exist_comunes = os.listdir(os.path.join(directorio_base, 'Proyectos', 'Redes'))
             if insecto in insectos_exist_comunes:
-                print('Insecto en común')
                 símismo.insectos[insecto] = Insecto(insecto, directorio=os.path.join(símismo.nombre, insecto),
                                                     fuente=os.path.join(directorio_base,
                                                                         'Proyectos', 'Redes', insecto)
@@ -114,7 +112,6 @@ class Red(Coso):
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
     def simul(símismo, tiempo_final, tiempo_inic=0, pobs_inic=None, estado_cultivo=1000000, paso=1, rep=10):
-        print('Simulando...')
         if not pobs_inic:
             pobs_inic = símismo.pobs_inic
 
