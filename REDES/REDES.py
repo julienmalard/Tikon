@@ -6,24 +6,50 @@ from COSO import Coso
 from REDES.INSECTOS import Insecto
 from INCERT.CALIB import genmodbayes, calib, guardar
 from INCERT.INCERT import anal_incert
-#dib.switch_backend('cairo')
+from Controles import directorio_base
+# dib.switch_backend('cairo')
 
 
 # Esta clase representa una red agroecológica
 class Red(Coso):
-    def __init__(símismo, nombre, insectos):
-        # insectos debe ser una lista de los objectos de insectos
+    def __init__(símismo, nombre, insectos, cultivos, insectos_compartidos=False):
+        """
+
+        :param nombre: el nombre de la red (carácter)
+        :param insectos: lista de los nombres de los insectos
+        :return:
+        """
 
         # El diccionario de los datos para cada red
-        dic = dict(Insectos={}, tipo_ecuaciones="")
-        for i in insectos:
-            dic['Insectos'][i.nombre] = i
+        dic = dict(Insectos=insectos, Cultivos=cultivos, tipo_ecuaciones="")
 
         # Esta clase se initializa como describido en Coso
-        super().__init__(nombre=nombre, ext='red', dic=dic, directorio=os.path.join('Personales', 'Redes', nombre))
+        super().__init__(nombre=nombre, ext='red', dic=dic, directorio=os.path.join('Redes', nombre))
 
         símismo.insectos = {}
         símismo.objetos = dict(insectos=símismo.insectos)
+
+        for insecto in símismo.dic["Insectos"]:  # Migrar los insectos del diccionario al objeto si mismo
+            if not insectos_compartidos:
+                insectos_exist_red = os.listdir(símismo.directorio)
+                # Buscar en el directorio de la red
+                if insecto in insectos_exist_red:
+                    print('¡Insecto en red!')
+                    símismo.insectos[insecto] = Insecto(insecto, directorio=os.path.join(símismo.nombre, insecto))
+                    continue
+                else:
+                    print('Aviso: no hay insecto guardado en red %s para insecto %s. Buscando en el directorio '
+                          'general.' % (símismo.nombre, insecto))
+            # Si no lo encontramos, o si estamos utilizando los insectos comunes, buscar en el lugar comun:
+            insectos_exist_comunes = os.listdir(os.path.join(directorio_base, 'Proyectos', 'Base', 'Redes'))
+            if insecto in insectos_exist_comunes:
+                print('Insecto en común')
+                símismo.insectos[insecto] = Insecto(insecto, directorio=os.path.join(símismo.nombre, insecto),
+                                                    fuente=os.path.join(directorio_base, 'Proyectos', 'Base', 'Redes')
+                                                    )
+            else:
+                print('Error: no hay archivo para insecto %s.' % símismo.nombre)
+                return
 
         símismo.poblaciones = {}
         símismo.inicializado = False
@@ -33,10 +59,8 @@ class Red(Coso):
     def ejec(símismo, poblaciones_iniciales=None):
         # poblaciones_iniciales debe ser un diccionario del formato {'insecto1': {'fase1': pob, 'fase2': pob}, etc.}
 
-        for insecto in símismo.dic["Insectos"]:  # Migrar los insectos del diccionario al objeto si mismo
-            símismo.insectos[insecto] = Insecto(símismo.dic["Insectos"][insecto])
         for insecto in símismo.insectos:  # Inicializar las instancias de los insectos
-            símismo.insectos[insecto].ejec(otros_insectos=símismo.dic["Insectos"])
+            símismo.insectos[insecto].ejec(otros_insectos=símismo.insectos, cultivos=símismo.dic['Cultivos'])
             # Para guardar los datos de poblaciones (para pruebas del modelo)
             símismo.poblaciones[insecto] = {}
             for fase in símismo.insectos[insecto].fases:
@@ -127,6 +151,18 @@ class Red(Coso):
                         símismo.poblaciones[insecto][fase] = [poblaciones_iniciales[insecto][fase]]
         else:
             símismo.ejec(poblaciones_iniciales)
+
+    # Asegurarse de que guardar la red también guarda los datos de sus insectos
+    def guardar(símismo, documento=''):
+        # Primero, guardar la red sí misma...
+        super().guardar(documento)
+        # ...y guardar todos sus insectos también
+        for insecto in símismo.insectos:
+            símismo.insectos[insecto].guardar(documento)
+
+    # A hacer: una función para guardar los insectos de la red en el área común para que lo pueda acceder otras redes
+    def guardar_común(símismo):
+        pass
 
     def dibujar(símismo, insectos=None, datos_obs=None, poblaciones=None):
         print('Dibujando...')
