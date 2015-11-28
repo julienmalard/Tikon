@@ -11,6 +11,13 @@ def cargar_estación(documento, coord, elev, fecha_inic=None, fecha_fin=None, ge
     """
     Limitaciones: 1) Al momento, solamente se leen documentos .csv de formato INSIVUMEH o con nombres de columnas
     Y UNIDADES iguales a los utilizados aquí: Fecha, [Hora], Precip (mm), Rad_sol (MJ/m2/día), y Temp (C).
+    :param documento:
+    :param coord:
+    :param elev:
+    :param fecha_inic:
+    :param fecha_fin:
+    :param generar:
+    :return:
     """
 
     # Para guardar los datos extraídos

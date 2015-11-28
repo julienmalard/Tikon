@@ -53,8 +53,7 @@ def inic_calib(red, datos, tiempo_final, poblaciones_iniciales, paso):
     # Datos observados
     núm_insectos = 0
     for insecto in datos:
-        for fase in datos[insecto]:
-            núm_insectos += 1  # Para saber la dimensión necesaria para la matriz de datos
+        núm_insectos += len(datos[insecto])  # Para saber la dimensión necesaria para la matriz de datos
     matriz_datos = np.zeros(shape=(núm_insectos, tiempo_final))
     matriz_datos.fill(-99)  # -99 representa datos que faltan
     núm_pobs = 0
