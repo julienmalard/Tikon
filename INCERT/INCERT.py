@@ -1,7 +1,7 @@
 import numpy as np
 import random as aleatorio
 
-from INCERT.CALIB import leerdatos, filtrarresultados
+from INCERT.CALIB import leerdatos
 
 
 # Este módulo maneja el análisis de incertidumbre de los modelos.
@@ -19,7 +19,6 @@ def anal_incert(dic, dic_incert, modelo, conf=0.95, rep=100, datos=None, tiempo_
         if tiempo_fin is None or tiempo_inic is None:
             return 'Se necesita ingresar fechas para el análisis de incertidumbre.'
     lista_parám = sacar_parám(dic_incert)
-
 
     # Poner parámetros a valores aleatorios
     res_alea = []

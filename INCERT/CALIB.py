@@ -4,22 +4,22 @@ from pymc import Normal, Exponential, deterministic, MCMC
 from COSO import Coso
 
 
-def genmodbayes(datos, diccionarios, simul):
-    # TODO: Escribir descripción detallada de esta función aquí.
+def genmodbayes(datos, diccionario, simul, opciones_simul):
+    # A hacer: Escribir descripción detallada de esta función aquí.
     """
 
+    :param opciones_simul:
     :param datos:
-    :param diccionarios: una lista de los diccionarios de parámetros que hay que calibrar.
+    :param diccionario: una lista de los diccionarios de parámetros que hay que calibrar.
     :param simul:
     :return:
     """
+
     # Generar variables para los parámetros del modelo
 
     # Primero, leer los parámetros de los diccionarios de los objetos
     # Incorporar los parámetros de todos los diccionario en una lista
-    lista_parámetros = []
-    for dic in diccionarios:
-        lista_parámetros += leerdic(dic)
+    lista_parámetros = leerdic(diccionario)
     matr_parámetros = np.array(lista_parámetros)  # Convertir la lista de parámetros a una matriz para PyMC
 
     # Para cada parámetro, una distribución normal centrada en su valor inicial con precición = tau
@@ -38,13 +38,15 @@ def genmodbayes(datos, diccionarios, simul):
 
     # Datos simulados (Utilizados para determinar el promedio, o valor esperado de los variables)
     @deterministic(plot=False)
-    def promedio(t=tiempo_final, p=parámetros):
+    def promedio(t=tiempo_final, p=parámetros, o=opciones_simul):
         # Poner los parámetros del modelo a fecha:
-        escribirdic(diccionarios, parámetros=p)
+        escribirdic(diccionario, parámetros=p)
 
         # Ejecutar el modelo.
-        resultados = simul(tiempo_final=t)
+        resultados = simul(tiempo_final=t, **o)
+        print(resultados)
         egr = np.array(filtrarresultados(resultados, datos))  # La lista de egresos del modelo
+        print(len(egr), egr)
 
         return egr
 
@@ -57,7 +59,7 @@ def genmodbayes(datos, diccionarios, simul):
 
 
 def leerdic(d, l=None):
-        if not l:
+        if l is None:
             l = []
         if isinstance(d, Coso):
             d = d.dic
@@ -69,7 +71,9 @@ def leerdic(d, l=None):
             elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
                 l.append(v)
             elif isinstance(v, list):  # Si el parametro es una lista (p.ej. datos de diferentes niveles de suelo)
-                l += v
+                for j in v:
+                    if type(j) is int or type(j) is float:
+                        l.append(j)
         return l
 
 
@@ -85,23 +89,23 @@ def escribirdic(d, parámetros, n=0):
             d[ll] = parámetros[n].value
             n += 1
         elif isinstance(v, list):  # Si la llave refiere a una lista de valores
-            for j in v:
-                d[ll][j] = parámetros[n].value
-                n += 1
+            for m, j in enumerate(v):
+                if type(j) is int or type(j) is float:
+                    d[ll][m] = parámetros[n].value
+                    n += 1
     return d
 
 
 def leerdatos(d, l=None, t=None):
-    if not l:
+    if l is None:
         l = []  # Los datos
         t = []  # tiempo de los datos
     for ll, v in sorted(d.items()):
         if type(v) is dict:  # Si el valor de la llave es otro diccionario:
             leerdatos(v, l, t)  # Repetir la funcción con el nuevo diccionario
         elif isinstance(v, tuple):  # Si encontramos los datos
-            l += v[0]
-            t += v[1]
-
+            t += v[0]
+            l += v[1]
     return l, t
 
 
@@ -109,18 +113,23 @@ def filtrarresultados(r, d, f=None):
     """
     Esta función toma diccionarios de resultados de simulación y de datos observados y devuelve una lista ordenada de
     los datos de simulación correspondiendo a los puntos para cuales tenemos los datos observados.
+
     :param r: diccionario de resultados de simulación, de la forma {var1: [(fecha, dato), (fecha, dato)...], var2: ...}.
     Puede contener un número arbitrario de diccionarios adentro del diccionario de datos.
+
     :param d: un diccionario de datos observados, de la misma forma. No es necesario tener todas las llaves de r en d.
-    :param f: el diccionario de los datos filtrados
+
+    :param f: la lista con los datos filtrados
+
     :return: f
     """
-    if not f:
+
+    if f is None:
         f = []
     for ll, v in sorted(d.items()):
         if type(v) is dict:  # Si el valor de la llave es otro diccionario...
             filtrarresultados(r[ll], v, f)  # ...repetir la función con el nuevo diccionario
-        elif isinstance(v, tuple):  # Si encontramos los datos...
+        elif type(v) is tuple:  # Si encontramos los datos...
             r[ll].sort()  # Asegurarse que el tiempo va para adelante
             f += [x for n, x in enumerate(r[ll]) if n in v[0]]  # Sacar los puntos para cuales tenemos datos
 

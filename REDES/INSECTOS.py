@@ -129,6 +129,45 @@ class Insecto(Coso):
                 if símismo.nombre + '_%s' % i not in presa.fases[j].dic['Depredadores']:
                     presa.fases[j].dic['Depredadores'].append(símismo.nombre + '_%s' % i)
 
+    def nosecome(símismo, presa, fases_depred=None, fases_presa=None):
+        """
+        Si no se especifiquen, se tomen todas las fases activas del insecto (juveniles y adultos) como depredadores y
+        todas las fases de la presa como presas
+        :param presa:
+        :param fases_depred: listas de las fases del depredador
+        :param fases_presa: listas de las fases de la presa
+        :return:
+        """
+
+        if not fases_depred:
+            fases_depred = list(símismo.fases)
+            # Quitar las fases inactivas (que no pueden comer a nada)
+            if 'Pupa' in fases_depred:
+                fases_depred.remove('Pupa')
+            if 'Huevo' in fases_depred:
+                fases_depred.remove('Huevo')
+        # otros_insecto en forma de carácteres indica un cultivo como 'presa'
+        if type(presa) is str:
+            for i in fases_depred:
+                if presa in símismo.fases[i].dic['Presas']:
+                    símismo.fases[i].dic['Presas'].remove(presa)
+            return
+
+        if not fases_presa:
+            fases_presa = list(presa.fases)
+
+        for fases in [fases_depred, fases_presa]:
+            if 'Juvenil' in fases:
+                fases.pop(fases.index('Juvenil'))
+                for i in símismo.fases:
+                    if 'juvenil' in i.lower():
+                        fases.append(i)
+
+        for i in fases_depred:
+            for j in fases_presa:
+                símismo.fases[i].dic['Presas'].pop(presa.nombre + '_%s' % j, None)
+                presa.fases[j].dic['Depredadores'].pop(símismo.nombre + '_%s' % i, None)
+
     # Esta función inicializa el insecto basado en la red trófica utilizada
     def ejec(símismo, otros_insectos, cultivos):
         for fase in símismo.fases:
@@ -212,7 +251,6 @@ class Fase(Coso):
         """
 
         # Utilizar sólamente los depredadoes y las presas en la red trófica utilizada
-        print(símismo.nombre, símismo.dic['Depredadores'], símismo.dic['Presas'])
         for depredador in símismo.dic["Depredadores"]:
             depred_insecto = depredador.split('_', 1)[0]  # El nombre del insecto depredador
             depred_fase = depredador.split('_', 1)[1]  # El nombre de la fase del depredador

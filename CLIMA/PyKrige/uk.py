@@ -364,7 +364,7 @@ class UniversalKriging:
             self.point_log_array[:, 0] = x_adj
             self.point_log_array[:, 1] = y_adj
             if self.verbose:
-                print("Implementing external point-logarithmic drift; " \
+                print("Implementing external point-logarithmic drift; "
                       "number of points =", self.point_log_array.shape[0], '\n')
         else:
             self.point_log_drift = False
@@ -925,7 +925,7 @@ class UniversalKriging:
                 raise ValueError("Inconsistent number of specified drift terms supplied.")
         else:
             if len(specified_drift_arrays) != 0:
-                print("WARNING: Provided specified drift values, but 'specified' drift was not initialized during " \
+                print("WARNING: Provided specified drift values, but 'specified' drift was not initialized during "
                       "instantiation of UniversalKriging class.")
 
         xy_points_original = np.concatenate((xpts[:, np.newaxis], ypts[:, np.newaxis]), axis=1)

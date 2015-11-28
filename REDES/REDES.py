@@ -47,8 +47,15 @@ class Red(Coso):
                                                                         'Proyectos', 'Redes', insecto)
                                                     )
             else:
-                print('Error: no hay archivo para insecto %s.' % símismo.nombre)
-                return
+                print('No hay archivo para insecto %s. Creando insecto nuevo.' % símismo.nombre)
+                huevo = input('¿Incluyemos la fase huevo del insecto en el modelo? (s/n)')
+                njuvenil = input('¿Cuántas fases juveniles del insecto hay que incluir?')
+                pupa = input('¿Incluyemos la fase pupa del insecto en el modelo? (s/n)')
+                adulto = input('¿Incluyemos la fase adulta del insecto en el modelo? (s/n)')
+                tipo_ecuaciones = input('¿Qué tipo de ecuación utilizar para modelizar al insecto?')
+                símismo.insectos[insecto] = Insecto(insecto, huevo=huevo, njuvenil=njuvenil, pupa=pupa, adulto=adulto,
+                                                    tipo_ecuaciones=tipo_ecuaciones,
+                                                    directorio=os.path.join(símismo.nombre, insecto))
 
         símismo.poblaciones = {}
         símismo.inicializado = False
@@ -111,7 +118,7 @@ class Red(Coso):
         return poblaciones  # Para comunicación con el submódulo PARCELA
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
-    def simul(símismo, tiempo_final, tiempo_inic=0, pobs_inic=None, estado_cultivo=1000000, paso=1, rep=10):
+    def simul(símismo, tiempo_final, estado_cultivo, tiempo_inic=0, pobs_inic=None, paso=1, rep=10, dibujar=True):
         if not pobs_inic:
             pobs_inic = símismo.pobs_inic
 
@@ -135,7 +142,8 @@ class Red(Coso):
                         poblaciones[insecto][fase] = np.vstack((poblaciones[insecto][fase],
                                                                 símismo.poblaciones[insecto][fase]))
 
-        símismo.dibujar(poblaciones=poblaciones)
+        if dibujar:
+            símismo.dibujar(poblaciones=poblaciones)
         return poblaciones
 
     # Una función para borar los datos de simulación (guardando solamente el primer dato, o población inicial)
@@ -235,8 +243,9 @@ class Red(Coso):
                     símismo.datos[insecto][fase][0].append(float(texto[col_tiempo]))
                     símismo.datos[insecto][fase][1].append(float(i))
 
-    def calibrar(símismo, iteraciones=500, quema=100, espacio=1, dibujar=True):
-        modelo = genmodbayes(símismo.datos, símismo.dic, símismo.simul)
+    def calibrar(símismo, estado_cultivo, iteraciones=500, quema=100, espacio=1, dibujar=True):
+        opciones_simul = dict(estado_cultivo=estado_cultivo, rep=1, dibujar=False)
+        modelo = genmodbayes(símismo.datos, símismo.dic, símismo.simul, opciones_simul)
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
         guardar(calibrado, símismo.dic_incert)
 
