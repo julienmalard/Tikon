@@ -88,6 +88,9 @@ class Insecto(Coso):
         for fase in símismo.fases:
             símismo.pob[fase] = ()
 
+        # Lista de los sub-objetos de un insecto
+        símismo.objetos = dict(fases=símismo.fases)
+
     def secome(símismo, presa, fases_depred=None, fases_presa=None):
         """
         Si no se especifiquen, se tomen todas las fases activas del insecto (juveniles y adultos) como depredadores y

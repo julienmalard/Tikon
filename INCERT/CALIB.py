@@ -19,10 +19,10 @@ def genmodbayes(objeto, opciones_simul):
 
     # Primero, leer los parámetros de los diccionarios de los objetos
     # Incorporar los parámetros de todos los diccionario en una lista
-    diccionarios = extraer_diccionarios(objeto)
+    lista_objetos = extraer_objetos(objeto)
     lista_parámetros = []
-    for dic in diccionarios:
-        lista_parámetros += leerdic(dic)
+    for obj in lista_objetos:
+        lista_parámetros += leerdic(obj)
     matr_parámetros = np.array(lista_parámetros)  # Convertir la lista de parámetros a una matriz para PyMC
 
     # Para cada parámetro, una distribución normal centrada en su valor inicial con precición = tau
@@ -43,7 +43,7 @@ def genmodbayes(objeto, opciones_simul):
     @deterministic(plot=False)
     def promedio(t=tiempo_final, p=parámetros, o=opciones_simul):
         # Poner los parámetros del modelo a fecha:
-        escribirdics(diccionarios, parámetros=p)
+        escribirdics(lista_objetos, parámetros=p)
 
         # Ejecutar el modelo.
         resultados = simul(tiempo_final=t, **o)
@@ -59,43 +59,38 @@ def genmodbayes(objeto, opciones_simul):
     return [parámetros, tau, promedio, precisión, lista_datos, variables]
 
 
-def extraer_diccionarios(o, l=None):
+def extraer_objetos(d, l=None):
     if l is None:
         l = []
-    l.append(o.dic)
-    if hasattr(o, 'objetos'):
-        extraer_diccionarios(o.objetos, l=l)
+    if isinstance(d, Coso):
+        d = d.objetos
+    for ll, v in sorted(d.items()):
+        if isinstance(v, Coso):
+            l.append(v)
+        extraer_objetos(v, l=l)
 
     return l
 
 
 def leerdic(d, l=None):
-        if l is None:
-            l = []
-        if isinstance(d, Coso):
-            d = d.dic
-        for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
-            if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-                leerdic(v, l)  # Repetir la funcción con el nuevo diccionario
-            elif isinstance(v, Coso):  # Si la llave corresponde a un objeto, leer su diccionario
-                leerdic(v.dic, l)
-            elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
-                l.append(v)
-            elif isinstance(v, list):  # Si el parametro es una lista (p.ej. datos de diferentes niveles de suelo)
-                for j in v:
-                    if type(j) is int or type(j) is float:
-                        l.append(j)
-        return l
+    if l is None:
+        l = []
+    for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
+        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
+            leerdic(v, l)  # Repetir la funcción con el nuevo diccionario
+        elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
+            l.append(v)
+        elif isinstance(v, list):  # Si el parametro es una lista (p.ej. datos de diferentes niveles de suelo)
+            for j in v:
+                if type(j) is int or type(j) is float:
+                    l.append(j)
+    return l
 
 
 def escribirdic(d, parámetros, n=0):
-    if isinstance(d, Coso):
-        d = d.dic
     for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
         if type(v) is dict:  # Si el valor de la llave es otro diccionario:
             escribirdic(v, parámetros=parámetros, n=n)  # Repetir la funcción con el nuevo diccionario
-        elif isinstance(v, Coso):  # Si la llave corresponde a un objeto, leer su diccionario
-            escribirdic(v.dic, parámetros=parámetros, n=n)
         elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
             d[ll] = parámetros[n].value
             n += 1
@@ -107,10 +102,10 @@ def escribirdic(d, parámetros, n=0):
     return n
 
 
-def escribirdics(diccionarios, parámetros):
+def escribirdics(objetos, parámetros):
     n = 0
-    for dic in diccionarios:
-        n = escribirdic(dic, parámetros=parámetros, n=n)
+    for obj in objetos:
+        n = escribirdic(obj.dic, parámetros=parámetros, n=n)
 
 
 def leerdatos(d, l=None, t=None):
@@ -170,18 +165,6 @@ def guardar(calibrado, objeto):
         n = escribir_dic_incert(obj.dic, obj.dic_incert, calibrado=calibrado, n=n)
 
     objeto.guardar()
-
-
-def extraer_objetos(o, l=None):
-    if l is None:
-        l = []
-    if not hasattr(o, 'dic_incert'):
-        o.inic_calib()
-    l.append(o)
-    if hasattr(o, 'objetos'):
-        extraer_objetos(o.objetos, l=l)
-
-    return l
 
 
 def escribir_dic_incert(d, d_i, calibrado, n=0):
