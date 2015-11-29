@@ -4,22 +4,25 @@ from pymc import Normal, Exponential, deterministic, MCMC
 from COSO import Coso
 
 
-def genmodbayes(datos, diccionario, simul, opciones_simul):
+def genmodbayes(objeto, opciones_simul):
     # A hacer: Escribir descripción detallada de esta función aquí.
     """
 
     :param opciones_simul:
-    :param datos:
-    :param diccionario: una lista de los diccionarios de parámetros que hay que calibrar.
-    :param simul:
+    :param objeto:
     :return:
     """
+    datos = objeto.datos
+    simul = objeto.simul
 
     # Generar variables para los parámetros del modelo
 
     # Primero, leer los parámetros de los diccionarios de los objetos
     # Incorporar los parámetros de todos los diccionario en una lista
-    lista_parámetros = leerdic(diccionario)
+    diccionarios = extraer_diccionarios(objeto)
+    lista_parámetros = []
+    for dic in diccionarios:
+        lista_parámetros += leerdic(dic)
     matr_parámetros = np.array(lista_parámetros)  # Convertir la lista de parámetros a una matriz para PyMC
 
     # Para cada parámetro, una distribución normal centrada en su valor inicial con precición = tau
@@ -40,13 +43,11 @@ def genmodbayes(datos, diccionario, simul, opciones_simul):
     @deterministic(plot=False)
     def promedio(t=tiempo_final, p=parámetros, o=opciones_simul):
         # Poner los parámetros del modelo a fecha:
-        escribirdic(diccionario, parámetros=p)
+        escribirdics(diccionarios, parámetros=p)
 
         # Ejecutar el modelo.
         resultados = simul(tiempo_final=t, **o)
-        print(resultados)
         egr = np.array(filtrarresultados(resultados, datos))  # La lista de egresos del modelo
-        print(len(egr), egr)
 
         return egr
 
@@ -56,6 +57,16 @@ def genmodbayes(datos, diccionario, simul, opciones_simul):
 
     variables = Normal('variables', mu=promedio, tau=precisión, value=lista_datos, observed=True)
     return [parámetros, tau, promedio, precisión, lista_datos, variables]
+
+
+def extraer_diccionarios(o, l=None):
+    if l is None:
+        l = []
+    l.append(o.dic)
+    if hasattr(o, 'objetos'):
+        extraer_diccionarios(o.objetos, l=l)
+
+    return l
 
 
 def leerdic(d, l=None):
@@ -93,7 +104,13 @@ def escribirdic(d, parámetros, n=0):
                 if type(j) is int or type(j) is float:
                     d[ll][m] = parámetros[n].value
                     n += 1
-    return d
+    return n
+
+
+def escribirdics(diccionarios, parámetros):
+    n = 0
+    for dic in diccionarios:
+        n = escribirdic(dic, parámetros=parámetros, n=n)
 
 
 def leerdatos(d, l=None, t=None):
@@ -130,12 +147,14 @@ def filtrarresultados(r, d, f=None):
         if type(v) is dict:  # Si el valor de la llave es otro diccionario...
             filtrarresultados(r[ll], v, f)  # ...repetir la función con el nuevo diccionario
         elif type(v) is tuple:  # Si encontramos los datos...
-            r[ll].sort()  # Asegurarse que el tiempo va para adelante
-            f += [x for n, x in enumerate(r[ll]) if n in v[0]]  # Sacar los puntos para cuales tenemos datos
+            ordenados = list(enumerate(r[ll]))
+            ordenados.sort()  # Asegurarse que el tiempo va para adelante
+            f += [x for n, x in ordenados if n in v[0]]  # Sacar los puntos para cuales tenemos datos
 
     return f
 
 
+# Esta función corre la calibración Bayesiana basado en un modelo generado por genmodbayes()
 def calib(modelo, it, quema, espacio):
     m = MCMC(modelo)
     m.sample(iter=it, burn=quema, thin=espacio)
@@ -143,10 +162,47 @@ def calib(modelo, it, quema, espacio):
     return m
 
 
-def guardar(calibrado, dic_incert):
+# Esta función guarda los resultados de una calibración en el diccionario de incertidumbre del objeto
+def guardar(calibrado, objeto):
+    lista_objs = extraer_objetos(objeto)
+    n = 0
+    for obj in lista_objs:
+        n = escribir_dic_incert(obj.dic, obj.dic_incert, calibrado=calibrado, n=n)
 
-    parámetros = {}
-    for k in nombres:
-        for i in calibrado.trace(k):
-            parámetros[k].append(i)
-            dic_incert['parám_%s' % k] = parámetros[k]
+    objeto.guardar()
+
+
+def extraer_objetos(o, l=None):
+    if l is None:
+        l = []
+    if not hasattr(o, 'dic_incert'):
+        o.inic_calib()
+    l.append(o)
+    if hasattr(o, 'objetos'):
+        extraer_objetos(o.objetos, l=l)
+
+    return l
+
+
+def escribir_dic_incert(d, d_i, calibrado, n=0):
+    """
+
+    :param d:
+    :param d_i:
+    :param calibrado:
+    :param n:
+    :return:
+    """
+
+    for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
+        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
+            escribir_dic_incert(v, d_i[ll], calibrado, n=n)  # Repetir la funcción con el nuevo diccionario
+        elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
+            d_i[ll] = list(calibrado.trace(n))
+            n += 1
+        elif isinstance(v, list):  # Si la llave refiere a una lista de valores
+            for m, j in enumerate(v):
+                if type(j) is int or type(j) is float:
+                    d[ll][m] = list(calibrado.trace(n))
+                    n += 1
+    return n

@@ -7,7 +7,13 @@ from INCERT.CALIB import leerdatos
 # Este módulo maneja el análisis de incertidumbre de los modelos.
 
 
-def anal_incert(dic, dic_incert, modelo, conf=0.95, rep=100, datos=None, tiempo_inic=None, tiempo_fin=None):
+def anal_incert(objeto, conf=0.95, rep=100, tiempo_inic=None, tiempo_fin=None):
+    dic = objeto.dic
+    dic_incert = objeto.dic_incert
+    modelo = objeto.simul
+    if hasattr(objeto, 'datos'):
+        datos = objeto.datos
+
     # Calcular los tiempos iniciales y finales
     if datos:
         lista_obs, lista_tiempos = leerdatos(datos)
