@@ -6,7 +6,7 @@ import random as aleatorio
 import datetime as ft
 
 from Controles import directorio_base
-# import Bayesiano.CALIB
+from INCERT.CALIB import genmodbayes, calib, guardar
 
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
@@ -144,6 +144,9 @@ class Coso(object):
         convertir_fechas(símismo.dic)
         convertir_fechas(símismo.dic_incert)
 
+    def simul(símismo, **kwargs):
+        raise NotImplementedError
+
     def inic_calib(símismo):
         # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario
         if not len(símismo.dic_incert):
@@ -178,8 +181,6 @@ class Coso(object):
 
         escoger_valores(símismo.dic_incert, símismo.dic)
 
-
-'''
-    def calib(self,):
-        pass
-'''
+    def calib(símismo, opciones_simul, it, quema, espacio):
+        genmodbayes(símismo, opciones_simul)
+        guardar(símismo, calib(símismo.simul, it=it, quema=quema, espacio=espacio))

@@ -25,12 +25,13 @@ red_cebolla.simul(paso=1, estado_cultivo={'cebolla': 100000}, tiempo_final=300, 
 red_cebolla.guardar()
 
 # Calibrar la red según datos 'reales':
-red_cebolla.datos = {'mosca': {'Adulto': (list(range(10)),
-                                          [100, 25, 30, 33, 40, 50, 44, 12, 11, 9])
-                               },
-                     'araña': {'Adulto': (list(range(10)),
-                                          [10, 4, 5, 3, 4, 5, 3, 1, 1, 3])
-                               }
+red_cebolla.datos = {'fictitios': {'mosca': {'Adulto': (list(range(10)),
+                                                        [100, 25, 30, 33, 40, 50, 44, 12, 11, 9])
+                                             },
+                                   'araña': {'Adulto': (list(range(10)),
+                                                        [10, 4, 5, 3, 4, 5, 3, 1, 1, 3])
+                                             }
+                                   }
                      }
 
 red_cebolla.calibrar(estado_cultivo={'cebolla': 100000}, iteraciones=10, quema=0)
