@@ -2,11 +2,11 @@ import os
 import numpy as np
 import matplotlib.pylab as dib
 
+from Controles import directorio_base
 from COSO import Coso
 from REDES.INSECTOS import Insecto
 from INCERT.CALIB import genmodbayes, calib, guardar
 from INCERT.INCERT import anal_incert
-from Controles import directorio_base
 # dib.switch_backend('cairo')
 
 
@@ -249,7 +249,7 @@ class Red(Coso):
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
         guardar(calibrado, símismo)
 
-        porcent, resultados_incert = anal_incert(símismo)
+        porcent, resultados_incert = anal_incert(símismo, opciones_simul)
 
         if dibujar:
             símismo.dibujar(datos_obs=símismo.datos, poblaciones=resultados_incert)

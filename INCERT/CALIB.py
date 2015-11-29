@@ -33,23 +33,24 @@ def genmodbayes(objeto, opciones_simul):
         parámetros[k] = Normal('parám_%s' % k, mu=matr_parámetros[k], tau=tau[k])
 
     # Guardar los datos de manera reproducible en una única lista
-    lista_datos, lista_tiempos = leerdatos(datos)
-    lista_datos = np.array(lista_datos)
-    lista_tiempos = np.array(lista_tiempos)
+    experimentos = sorted(datos.keys())
+    lista_datos, matriz_tiempos = leerdatos(datos)
 
-    tiempo_final = max(lista_tiempos)  # Calcular el tiempo final según los datos observados
+    tiempos_finales = [t.max for t in matriz_tiempos]  # Calcular el tiempo final según los datos observados
 
     # Datos simulados (Utilizados para determinar el promedio, o valor esperado de los variables)
     @deterministic(plot=False)
-    def promedio(t=tiempo_final, p=parámetros, o=opciones_simul):
+    def promedio(t=tiempos_finales, p=parámetros, o=opciones_simul):
         # Poner los parámetros del modelo a fecha:
         escribirdics(lista_objetos, parámetros=p)
 
         # Ejecutar el modelo.
-        resultados = simul(tiempo_final=t, **o)
-        egr = np.array(filtrarresultados(resultados, datos))  # La lista de egresos del modelo
+        egr = []
+        for n, exp in enumerate(experimentos):
+            resultados = simul(tiempo_final=t[n], **o)
+            egr += filtrarresultados(resultados, datos[exp])  # La lista de egresos del modelo
 
-        return egr
+        return np.array(egr)
 
     # Variables estocásticos para las predicciones (se supone que las observaciones están distribuidas en una
     # distribución normal, con precisión "precisión", alrededor de la predicción del modelo).
@@ -66,7 +67,7 @@ def extraer_objetos(d, l=None):
         d = d.objetos
     for ll, v in sorted(d.items()):
         if isinstance(v, Coso):
-            l.append(v)
+            l += v
         extraer_objetos(v, l=l)
 
     return l
@@ -108,13 +109,24 @@ def escribirdics(objetos, parámetros):
         n = escribirdic(obj.dic, parámetros=parámetros, n=n)
 
 
-def leerdatos(d, l=None, t=None):
+def leerdatos(datos):
+    lista_datos = []
+    matriz_tiempos = []
+    for exp in datos:
+        extraidos = extraer_datos(exp)
+        lista_datos += extraidos[0]
+        matriz_tiempos.append(extraidos[1])
+
+    return lista_datos, matriz_tiempos
+
+
+def extraer_datos(d, l=None, t=None):
     if l is None:
         l = []  # Los datos
         t = []  # tiempo de los datos
     for ll, v in sorted(d.items()):
         if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-            leerdatos(v, l, t)  # Repetir la funcción con el nuevo diccionario
+            extraer_datos(v, l, t)  # Repetir la funcción con el nuevo diccionario
         elif isinstance(v, tuple):  # Si encontramos los datos
             t += v[0]
             l += v[1]
