@@ -7,15 +7,15 @@ from INCERT.CALIB import leerdatos
 # Este módulo maneja el análisis de incertidumbre de los modelos.
 
 
-def anal_incert(objeto, conf=0.95, rep=100, tiempo_inic=None, tiempo_fin=None):
+def anal_incert(objeto, conf=0.95, rep=100, tiempo_inic=None, datos=None, tiempo_fin=None):
     dic = objeto.dic
     dic_incert = objeto.dic_incert
     modelo = objeto.simul
-    if hasattr(objeto, 'datos'):
+    if hasattr(objeto, 'datos') and datos is None:
         datos = objeto.datos
 
     # Calcular los tiempos iniciales y finales
-    if datos:
+    if datos is not None:
         lista_obs, lista_tiempos = leerdatos(datos)
         if tiempo_fin is None:
             tiempo_fin = max(lista_tiempos)
@@ -46,10 +46,10 @@ def anal_incert(objeto, conf=0.95, rep=100, tiempo_inic=None, tiempo_fin=None):
     res_alea = arreglar_resultados(res_alea)
 
     # Calcular los límites de los intervales de confianza
-    resultados_mín, resultados_máx = calc_intervales(res_alea, conf)
+    resultados_mín, resultados_máx = calc_intervalos(res_alea, conf)
 
     # Calcular el % de los datos que caen en el interval de confianza
-    por_en_inter = validar_interval(datos, resultados_mín, resultados_máx)
+    por_en_inter = validar_intervalo(datos, resultados_mín, resultados_máx)
 
     # Devolver el % de los datos que caen en el interval de confianza y los resultados de las corridas
     return por_en_inter, res_alea
@@ -112,14 +112,14 @@ def arreglar(c, a):
 
 
 # Para calcular intervales de confianza
-def calc_intervales(r, conf, r_mín=None, r_máx=None):
+def calc_intervalos(r, conf, r_mín=None, r_máx=None):
     if r_mín is None:
         r_mín = r.copy()
     if r_máx is None:
         r_máx = r.copy()
     for ll, v in r.items():
         if type(v) is dict:
-            calc_intervales(v, conf, r_mín[ll], r_máx[ll])
+            calc_intervalos(v, conf, r_mín[ll], r_máx[ll])
         elif type(v) is np.ndarray or type(v) is list:
             r[ll] = np.percentile(r[ll], (1 - conf) / 2, axis=0)
             r[ll] = np.percentile(r[ll], 1/2 + conf/2, axis=0)
@@ -128,12 +128,12 @@ def calc_intervales(r, conf, r_mín=None, r_máx=None):
 
 
 # Validar el interval de confianza
-def validar_interval(d, r_mín, r_máx, conteo=None):
+def validar_intervalo(d, r_mín, r_máx, conteo=None):
     if conteo is None:
         conteo = (0, 0)
     for ll, v in d.items():
         if type(v) is dict:
-            validar_interval(v, r_mín[ll], r_máx[ll], conteo)
+            validar_intervalo(v, r_mín[ll], r_máx[ll], conteo)
         elif type(v) is np.ndarray or type(v) is list:
             conteo[0] += sum((r_mín < v) & (v > r_máx))  # Datos que caen en el interval
             conteo[1] += len(v)  # Número total de datos

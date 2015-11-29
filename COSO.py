@@ -23,6 +23,7 @@ class Coso(object):
         símismo.ext = ext  # La extensión para este tipo de documento. (Para guadar y cargar datos.)
         símismo.dic = dic
         símismo.dic_incert = {}
+        símismo.objetos = {}
         # La carpeta dónde se ubica este objeto
         símismo.directorio = os.path.join(directorio_base, "Proyectos", directorio)
 
