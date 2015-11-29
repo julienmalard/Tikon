@@ -53,7 +53,7 @@ class Coso(object):
         # Si necesario, añadir el nombre y la extensión del documento al fin de la carpeta
         if símismo.ext not in documento.lower():
             if símismo.nombre not in documento:
-                documento += "\\%s.%s" % (símismo.nombre,símismo.ext)
+                documento += "\\%s.%s" % (símismo.nombre, símismo.ext)
             else:
                 documento += '.%s' % símismo.ext
         # Para guardar el diccionario de incertidumbre:
@@ -143,7 +143,7 @@ class Coso(object):
         convertir_fechas(símismo.dic)
         convertir_fechas(símismo.dic_incert)
 
-    def inic_calibr(símismo, datos):
+    def inic_calib(símismo):
         # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario
         if not len(símismo.dic_incert):
             símismo.dic_incert = símismo.dic

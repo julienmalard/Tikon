@@ -245,11 +245,11 @@ class Red(Coso):
 
     def calibrar(símismo, estado_cultivo, iteraciones=500, quema=100, espacio=1, dibujar=True):
         opciones_simul = dict(estado_cultivo=estado_cultivo, rep=1, dibujar=False)
-        modelo = genmodbayes(símismo.datos, símismo.dic, símismo.simul, opciones_simul)
+        modelo = genmodbayes(símismo, opciones_simul)
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
-        guardar(calibrado, símismo.dic_incert)
+        guardar(calibrado, símismo)
 
-        porcent, resultados_incert = anal_incert(símismo.dic_incert, símismo.simul, símismo.datos)
+        porcent, resultados_incert = anal_incert(símismo)
 
         if dibujar:
             símismo.dibujar(datos_obs=símismo.datos, poblaciones=resultados_incert)
