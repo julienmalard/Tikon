@@ -5,7 +5,7 @@ from COSO import Coso
 
 
 def genmodbayes(objeto, opciones_simul):
-    # A hacer: Escribir descripción detallada de esta función aquí.
+    # Para hacer: Escribir descripción detallada de esta función aquí.
     """
 
     :param opciones_simul:
@@ -20,9 +20,11 @@ def genmodbayes(objeto, opciones_simul):
     # Primero, leer los parámetros de los diccionarios de los objetos
     # Incorporar los parámetros de todos los diccionario en una lista
     lista_objetos = extraer_objetos(objeto)
+    # Guardar únicamente los objetos con coeficientes (variables) a calibrar
+    lista_objetos = [x for x in lista_objetos if 'coefs' in x.dic]
     lista_parámetros = []
     for obj in lista_objetos:
-        lista_parámetros += leerdic(obj)
+        lista_parámetros += leerdic(obj.dic['coefs'])
     matr_parámetros = np.array(lista_parámetros)  # Convertir la lista de parámetros a una matriz para PyMC
 
     # Para cada parámetro, una distribución normal centrada en su valor inicial con precición = tau
@@ -36,7 +38,7 @@ def genmodbayes(objeto, opciones_simul):
     experimentos = sorted(datos.keys())
     lista_datos, matriz_tiempos = leerdatos(datos)
 
-    tiempos_finales = [t.max for t in matriz_tiempos]  # Calcular el tiempo final según los datos observados
+    tiempos_finales = [t.max() for t in matriz_tiempos]  # Calcular el tiempo final según los datos observados
 
     # Datos simulados (Utilizados para determinar el promedio, o valor esperado de los variables)
     @deterministic(plot=False)
@@ -67,7 +69,7 @@ def extraer_objetos(d, l=None):
         d = d.objetos
     for ll, v in sorted(d.items()):
         if isinstance(v, Coso):
-            l += v
+            l.append(v)
         extraer_objetos(v, l=l)
 
     return l
@@ -76,48 +78,57 @@ def extraer_objetos(d, l=None):
 def leerdic(d, l=None):
     if l is None:
         l = []
-    for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
-        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
+
+    if type(d) is dict:
+        i = [x for x in sorted(d.items())]
+    elif type(d) is list:
+        i = enumerate(d)
+    else:
+        raise ValueError('leerdic() necesita una lista o diccionario como parámetro.')
+
+    for ll, v in i:  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
+        if type(v) is dict or type(v) is list:  # Si el valor de la llave es otro diccionario:
             leerdic(v, l)  # Repetir la funcción con el nuevo diccionario
-        elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
+        elif type(v) is int or type(v) is float:  # Sólamente calibrar los parámetros numéricos
             l.append(v)
-        elif isinstance(v, list):  # Si el parametro es una lista (p.ej. datos de diferentes niveles de suelo)
-            for j in v:
-                if type(j) is int or type(j) is float:
-                    l.append(j)
+        else:
+            raise ValueError('Coeficientes de objeto contienen valores no numéricos.')
     return l
-
-
-def escribirdic(d, parámetros, n=0):
-    for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
-        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-            escribirdic(v, parámetros=parámetros, n=n)  # Repetir la funcción con el nuevo diccionario
-        elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
-            d[ll] = parámetros[n].value
-            n += 1
-        elif isinstance(v, list):  # Si la llave refiere a una lista de valores
-            for m, j in enumerate(v):
-                if type(j) is int or type(j) is float:
-                    d[ll][m] = parámetros[n].value
-                    n += 1
-    return n
 
 
 def escribirdics(objetos, parámetros):
     n = 0
     for obj in objetos:
-        n = escribirdic(obj.dic, parámetros=parámetros, n=n)
+        n = escribirdic(obj.dic['coefs'], parámetros=parámetros, n=n)
+
+
+def escribirdic(d, parámetros, n=0):
+    if type(d) is dict:
+        i = [x for x in sorted(d.items())]
+    elif type(d) is list:
+        i = enumerate(d)
+    else:
+        raise ValueError('escribirdic() necesita una lista o diccionario como parámetro.')
+
+    for ll, v in i:  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
+        if type(v) is dict or type(v) is list:  # Si el valor de la llave es otro diccionario o lista...
+            escribirdic(v, parámetros=parámetros, n=n)  # Repetir la funcción con el nuevo diccionario
+        elif isinstance(v, int) or isinstance(v, float):  # Sólamente escribir los parámetros numéricos
+            d[ll] = float(parámetros[n])
+            n += 1
+
+    return n
 
 
 def leerdatos(datos):
     lista_datos = []
     matriz_tiempos = []
     for exp in datos:
-        extraidos = extraer_datos(exp)
+        extraidos = extraer_datos(datos[exp])
         lista_datos += extraidos[0]
         matriz_tiempos.append(extraidos[1])
 
-    return lista_datos, matriz_tiempos
+    return np.array(lista_datos), np.array(matriz_tiempos)
 
 
 def extraer_datos(d, l=None, t=None):
@@ -172,14 +183,18 @@ def calib(modelo, it, quema, espacio):
 # Esta función guarda los resultados de una calibración en el diccionario de incertidumbre del objeto
 def guardar(calibrado, objeto):
     lista_objs = extraer_objetos(objeto)
+    # Guardar únicamente los objetos con coeficientes (variables) a calibrar
+    lista_objs = [x for x in lista_objs if 'coefs' in x.dic]
+
     n = 0
     for obj in lista_objs:
-        n = escribir_dic_incert(obj.dic, obj.dic_incert, calibrado=calibrado, n=n)
+        obj.inic_incert()
+        n = escribir_dic_incert(obj.dic['coefs'], obj.dic_incert, calibrado=calibrado, n=n)
 
     objeto.guardar()
 
 
-def escribir_dic_incert(d, d_i, calibrado, n=0):
+def escribir_dic_incert(d, d_i, calibrado, n):
     """
 
     :param d:
@@ -189,15 +204,20 @@ def escribir_dic_incert(d, d_i, calibrado, n=0):
     :return:
     """
 
-    for ll, v in sorted(d.items()):  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
-        if type(v) is dict:  # Si el valor de la llave es otro diccionario:
-            escribir_dic_incert(v, d_i[ll], calibrado, n=n)  # Repetir la funcción con el nuevo diccionario
+    if type(d) is dict:
+        i = [x for x in sorted(d.items())]
+    elif type(d) is list:
+        i = enumerate(d)
+    else:
+        raise ValueError('escribir_dic_incert() necesita una lista o diccionario como parámetro.')
+
+    for ll, v in i:  # Para cada llave (ordenada alfabéticamente) y valor del diccionario...
+        if type(v) is dict or type(v) is list:  # Si el valor de la llave es otro diccionario:
+            n = escribir_dic_incert(v, d_i[ll], calibrado, n=n)  # Repetir la función con el nuevo diccionario
         elif isinstance(v, int) or isinstance(v, float):  # Sólamente calibrar los parámetros numéricos
-            d_i[ll] = list(calibrado.trace(n))
+            d_i[ll] = calibrado.trace('parám_%s' % n)[:]
             n += 1
-        elif isinstance(v, list):  # Si la llave refiere a una lista de valores
-            for m, j in enumerate(v):
-                if type(j) is int or type(j) is float:
-                    d[ll][m] = list(calibrado.trace(n))
-                    n += 1
+        else:
+            raise ValueError('Valores no numéricos en el diccionario.')
+
     return n

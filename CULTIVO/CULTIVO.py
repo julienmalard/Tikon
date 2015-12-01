@@ -1,5 +1,7 @@
 import subprocess
 import os
+
+from COSO import Simulable
 import CULTIVO.MODELOS_EXTERNOS.DSSAT.DSSAT as DSSAT
 from CULTIVO.Controles import dir_DSSAT
 from CULTIVO.Controles import sacar_modelos_disp
@@ -12,11 +14,10 @@ No contienen información única que no esté ya presente en el objeto de la par
 """
 
 
-class Cultivo(object):
+class Cultivo(Simulable):
     # Cada parámetro en "__init__" debe ser un objeto Python correspondiente
     def __init__(símismo, cultivo, variedad, suelo, meteo, manejo, modelo=''):
 
-        símismo.dic_base = {}
         símismo.cultivo = cultivo
         símismo.variedad = variedad
         símismo.suelo = suelo

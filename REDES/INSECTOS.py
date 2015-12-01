@@ -347,7 +347,8 @@ class Fase(Coso):
                             comida_depred += p.pob * depred.dic["coefs"][p.nombre]  # Consumo de presas
                         else:  # Sino, si la "presa" es un cultivo
                             comida_depred += estado_cultivo[p] * coefs[p]
-                    if comida_depred > comida_crít_depred:  # Si hay demasiada comida
+                    # Para hacer: el '> 0' no debería de ser necesaria después de tener prioris adequados para calib.
+                    if comida_depred > comida_crít_depred and comida_depred > 0:  # Si hay demasiada comida
                         pred = (símismo.pob * depred.dic["coefs"][símismo.nombre])/comida_depred * \
                                comida_crít_depred * depred.pob
                     else:  # Si no hay demasiada comida

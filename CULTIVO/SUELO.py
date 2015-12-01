@@ -14,4 +14,5 @@ class Suelo(Coso):
                    Factor_crec_raíz=[], Cond_hidró_sat=[], Densidad_suelo=[], Carbono_orgán=[],
                    Fracción_argi=[], Fracción_lim=[], Fracción_rocas=[], Nitró_total=[], pH_agua=[],
                    pH_tamp=[], Poten_intercamb_cat=[])
-        super().__init__(nombre=nombre, ext='su', dic=dic, directorio=directorio)  # Esta variable se initializa como Coso
+        # Esta variable se initializa como Coso
+        super().__init__(nombre=nombre, ext='su', dic=dic, directorio=directorio)
