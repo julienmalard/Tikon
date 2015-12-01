@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pylab as dib
 
 from Controles import directorio_base
-from COSO import Coso
+from COSO import Simulable
 from REDES.INSECTOS import Insecto
 from INCERT.CALIB import genmodbayes, calib, guardar
 from INCERT.INCERT import anal_incert
@@ -11,7 +11,7 @@ from INCERT.INCERT import anal_incert
 
 
 # Esta clase representa una red agroecológica
-class Red(Coso):
+class Red(Simulable):
     def __init__(símismo, nombre, insectos, cultivos, insectos_compartidos=False):
         """
 
@@ -210,8 +210,9 @@ class Red(Coso):
 
                 sub[núm_fase, 0].set_ylabel('Población %s' % fase)
 
-                if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos abiertos
-                    sub[núm_fase, 0].plot(datos_obs[nombre][fase], "o", color=colores[núm_color])
+                if datos_obs:  # Si hay datos observados disponibles, incluirlos como puntos
+                    sub[núm_fase, 0].plot(datos_obs[nombre][fase][0], datos_obs[nombre][fase][1],
+                                          "o", color=colores[núm_color])
 
             fig.suptitle(nombre)
             fig.savefig(os.path.join(símismo.directorio, "Tikon_%s_%s.png" % (símismo.nombre, nombre)))
@@ -243,7 +244,7 @@ class Red(Coso):
                     símismo.datos[insecto][fase][0].append(float(texto[col_tiempo]))
                     símismo.datos[insecto][fase][1].append(float(i))
 
-    def calibrar(símismo, estado_cultivo, iteraciones=500, quema=100, espacio=1, dibujar=True):
+    def calibrar(símismo, estado_cultivo, iteraciones=10000, quema=100, espacio=10, dibujar=True):
         opciones_simul = dict(estado_cultivo=estado_cultivo, rep=1, dibujar=False)
         modelo = genmodbayes(símismo, opciones_simul)
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
@@ -252,7 +253,9 @@ class Red(Coso):
         porcent, resultados_incert = anal_incert(símismo, opciones_simul)
 
         if dibujar:
-            símismo.dibujar(datos_obs=símismo.datos, poblaciones=resultados_incert)
+            for n, corrida in enumerate(resultados_incert):
+                nombre_corrida = list(símismo.datos.keys())[n]
+                símismo.dibujar(datos_obs=símismo.datos[nombre_corrida], poblaciones=corrida)
 
         # Devolver el % de observaciones que caen en el intervalo de 95% de confianza
         return porcent

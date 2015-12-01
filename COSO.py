@@ -6,7 +6,6 @@ import random as aleatorio
 import datetime as ft
 
 from Controles import directorio_base
-from INCERT.CALIB import genmodbayes, calib, guardar
 
 """
 Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
@@ -129,58 +128,54 @@ class Coso(object):
         except IOError:
             return "Documento " + documento + " no se pudo abrir para leer datos de incertidumbre."
 
-        # Convertir las fechas en objetos de fechas dinámicos
-        def convertir_fechas(obj):
+        # Convertir las fechas en objetos de fechas de Python
+        def convertir_fechas(a):
+            if type(a) is dict:
+                i = [x for x in sorted(a.items())]
+            elif type(a) is list:
+                i = enumerate(a)
+            else:
+                raise ValueError('convertir_fechas() necesita una lista o diccionario como parámetro.')
             f = ft.datetime(1, 1, 1)
-            for i in obj:
-                if type(obj[i]) is list or type(obj[i]) is dict:
-                    convertir_fechas(obj[i])
-                elif type(obj[i]) is str:
-                    try:
-                        obj[i] = f.strptime(obj[i], '%Y-%m-%d')
-                    except ValueError:
+            for ll, v in i:
+                if type(v) is list or type(v) is dict:
+                    convertir_fechas(v)
+                elif type(v) is str:
+                    try:  # Ver si el carácter se puede convertir en fecha
+                        a[ll] = f.strptime(v, '%Y-%m-%d')
+                    except ValueError:  # Si no era una fecha, ignorarlo
                         pass
 
         convertir_fechas(símismo.dic)
         convertir_fechas(símismo.dic_incert)
 
-    def simul(símismo, **kwargs):
-        raise NotImplementedError
-
-    def inic_calib(símismo):
+    def inic_incert(símismo):
         # Si no existe diccionario de valores de incertidumbre, copiar la estructura del diccionario ordinario
         if not len(símismo.dic_incert):
-            símismo.dic_incert = símismo.dic
 
             # Para cada variable numérico en el diccionario, crear una lista para contener varios valores posibles
             # del variable (análisis de incertidumbre)
-            def dic_lista(d):
+            def dic_lista(d, d_i):
                 for ll, v in d.items():
                     if type(v) is float or type(v) is int:  # Si el valor es numérico
-                        d[ll] = [v]  # poner el valor en una lista
+                        d_i[ll] = [v]  # poner el valor en una lista
                     # Si el elemento es una lista no vacía con valores numéricos
                     if type(v) is list and len(v) and (type(v[0]) is float or type(v[0]) is int):
-                        d[ll] = [v]
+                        d_i[ll] = [v]
                     elif type(v) is dict:
-                        dic_lista(v)
+                        d_i[ll] = {}
+                        dic_lista(v, d_i[ll])
 
-            dic_lista(símismo.dic_incert)
+            dic_lista(símismo.dic['coefs'], símismo.dic_incert)
 
-    # Una función para escoger parámetros desde el diccionario de incertidumbre
-    def selec_incert(símismo):
 
-        def escoger_valores(dic_incert, dic, n=None):
-            for ll, v in dic_incert.items():
-                # Si el elemento es una lista no vacía con valores numéricos
-                if type(v) is list and len(v) and (type(v[0]) is float or type(v[0]) is int):
-                    if n is None:
-                        n = aleatorio.randint(0, len(v))
-                    dic[ll] = v[n]
-                elif type(v) is dict or (type(v) is list and len(v) and type(v)[0] is list):
-                    escoger_valores(v, dic[ll], n=n)
+# Una subclase de Coso que se puede simular como modelo independiente (p. ej., redes AE y cultivos, pero no suelos).
+class Simulable(Coso):
+    def simul(símismo, **kwargs):
+        raise NotImplementedError
 
-        escoger_valores(símismo.dic_incert, símismo.dic)
-
+'''
     def calib(símismo, opciones_simul, it, quema, espacio):
         genmodbayes(símismo, opciones_simul)
         guardar(símismo, calib(símismo.simul, it=it, quema=quema, espacio=espacio))
+'''
