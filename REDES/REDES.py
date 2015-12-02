@@ -58,51 +58,50 @@ class Red(Simulable):
                                                     directorio=os.path.join(símismo.nombre, insecto))
 
         símismo.poblaciones = {}
-        símismo.inicializado = False
         símismo.datos = {}
-        símismo.pobs_inic = {}
+        símismo.vals_inic = {}
 
     def ejec(símismo, poblaciones_iniciales=None):
         # poblaciones_iniciales debe ser un diccionario del formato {'insecto1': {'fase1': pob, 'fase2': pob}, etc.}
 
         for insecto in símismo.insectos:  # Inicializar las instancias de los insectos
             símismo.insectos[insecto].ejec(otros_insectos=símismo.insectos, cultivos=símismo.dic['Cultivos'])
-            # Para guardar los datos de poblaciones (para pruebas del modelo)
+
+        símismo.inic_pobs(poblaciones_iniciales)
+
+    def inic_pobs(símismo, poblaciones_iniciales):
+
+        # Para guardar los datos de poblaciones (para corridas independientes del modelo RAE)
+        for insecto in símismo.insectos:
             símismo.poblaciones[insecto] = {}
             for fase in símismo.insectos[insecto].fases:
                 símismo.poblaciones[insecto][fase] = []
 
         # Inicializar las poblaciones
-        if not poblaciones_iniciales:
+        if poblaciones_iniciales is None:
             if len(símismo.datos):
-                datos = símismo.datos
-                for insecto in datos:
-                    poblaciones_iniciales[insecto] = {}
-                    for fase in datos[insecto]:
-                        poblaciones_iniciales[insecto][fase] = datos[insecto][fase][0]
+                poblaciones_iniciales = símismo.datos
             else:
-                return 'Faltan datos iniciales.'
-        símismo.pobs_inic = poblaciones_iniciales
+                raise ValueError('Faltan datos iniciales.')
 
-        for insecto in símismo.pobs_inic:
-            if insecto in símismo.insectos:
-                # Si se te olvidó especificar la fase de la población del insecto:
-                if type(símismo.pobs_inic[insecto]) is float or type(símismo.pobs_inic[insecto]) is int:
-                    print('Cuidado: no se especificó la fase para la población inical del insecto %s.' % insecto)
-                    fase = list(símismo.insectos[insecto].fases.keys())[0]  # escoger uno al hazar
-                    símismo.insectos[insecto].fases[fase].pob = símismo.pobs_inic[insecto]
-                    símismo.insectos[insecto].fases[fase].hist_pob = [símismo.pobs_inic[insecto]]
-                    # Inicializar los datos de poblaciones de la red
-                    símismo.poblaciones[insecto][fase] = [símismo.pobs_inic[insecto]]
-                else:  # Si no se te olvidó nada
-                    for fase in símismo.pobs_inic[insecto]:
-                        if fase in símismo.insectos[insecto].fases:
-                            # Inicializar la población del insecto
-                            símismo.insectos[insecto].fases[fase].pob = símismo.pobs_inic[insecto][fase]
-                            símismo.insectos[insecto].fases[fase].hist_pob = [símismo.pobs_inic[insecto][fase]]
-                            # Inicializar los datos de poblaciones de la red
-                            símismo.poblaciones[insecto][fase] = [símismo.pobs_inic[insecto][fase]]
-        símismo.inicializado = True  # Marcar la red como inicializada
+        for insecto in poblaciones_iniciales:
+            for fase in poblaciones_iniciales[insecto]:
+                pob = poblaciones_iniciales[insecto][fase]
+                if type(pob) is list:
+                    poblaciones_iniciales[insecto][fase] = pob[0]
+                    pob = poblaciones_iniciales[insecto][fase]
+                if type(pob) is tuple:
+                    poblaciones_iniciales[insecto][fase] = pob[1]
+
+        símismo.vals_inic = poblaciones_iniciales
+
+        for insecto in símismo.vals_inic:
+            for fase in símismo.vals_inic[insecto]:
+                if insecto in símismo.insectos:
+                    pob = símismo.vals_inic[insecto][fase]
+                    símismo.insectos[insecto].fases[fase].pob = pob
+                    símismo.insectos[insecto].fases[fase].hist_pob = [pob]
+                    símismo.poblaciones[insecto][fase] = [pob]
 
     def incr(símismo, paso, estado_cultivo):
         poblaciones = {}  # Para comunicación con el submódulo PARCELA
@@ -118,13 +117,13 @@ class Red(Simulable):
         return poblaciones  # Para comunicación con el submódulo PARCELA
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
-    def simul(símismo, tiempo_final, estado_cultivo, tiempo_inic=0, pobs_inic=None, paso=1, rep=10, dibujar=True):
-        if not pobs_inic:
-            pobs_inic = símismo.pobs_inic
+    def simul(símismo, tiempo_final, estado_cultivo, tiempo_inic=0, vals_inic=None, paso=1, rep=10, dibujar=True):
+        if not vals_inic:
+            vals_inic = símismo.vals_inic
 
         # Correr las simulaciones
         for j in range(rep):
-            símismo.borrar(poblaciones_iniciales=pobs_inic)
+            símismo.inic_pobs(poblaciones_iniciales=vals_inic)
             for i in range(tiempo_inic, tiempo_final, paso):
                 símismo.incr(paso, estado_cultivo=estado_cultivo)
 
@@ -145,18 +144,6 @@ class Red(Simulable):
         if dibujar:
             símismo.dibujar(poblaciones=poblaciones)
         return poblaciones
-
-    # Una función para borar los datos de simulación (guardando solamente el primer dato, o población inicial)
-    def borrar(símismo, poblaciones_iniciales):
-        if símismo.inicializado and poblaciones_iniciales:
-            for insecto in poblaciones_iniciales:
-                for fase in poblaciones_iniciales[insecto]:
-                    if insecto in símismo.insectos:
-                        símismo.insectos[insecto].fases[fase].pob = poblaciones_iniciales[insecto][fase]
-                        símismo.insectos[insecto].fases[fase].hist_pob = [poblaciones_iniciales[insecto][fase]]
-                        símismo.poblaciones[insecto][fase] = [poblaciones_iniciales[insecto][fase]]
-        else:
-            símismo.ejec(poblaciones_iniciales)
 
     # Asegurarse de que guardar la red también guarda los datos de sus insectos
     def guardar(símismo, documento=''):
@@ -250,6 +237,7 @@ class Red(Simulable):
         calibrado = calib(modelo, it=iteraciones, quema=quema, espacio=espacio)
         guardar(calibrado, símismo)
 
+        print(símismo.vals_inic)
         porcent, resultados_incert = anal_incert(símismo, opciones_simul)
 
         if dibujar:

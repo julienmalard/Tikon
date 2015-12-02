@@ -25,14 +25,13 @@ def genmodbayes(objeto, opciones_simul):
     lista_parámetros = []
     for obj in lista_objetos:
         lista_parámetros += leerdic(obj.dic['coefs'])
-    matr_parámetros = np.array(lista_parámetros)  # Convertir la lista de parámetros a una matriz para PyMC
 
     # Para cada parámetro, una distribución normal centrada en su valor inicial con precición = tau
-    parámetros = np.empty(len(matr_parámetros), dtype=object)
-    tau = np.empty(len(matr_parámetros), dtype=object)
-    for k in range(len(matr_parámetros)):
+    parámetros = np.empty(len(lista_parámetros), dtype=object)
+    tau = np.empty(len(lista_parámetros), dtype=object)
+    for k in range(len(lista_parámetros)):
         tau[k] = Exponential('tau_%s' % k, beta=1.)
-        parámetros[k] = Normal('parám_%s' % k, mu=matr_parámetros[k], tau=tau[k])
+        parámetros[k] = Normal('parám_%s' % k, mu=lista_parámetros[k], tau=tau[k])
 
     # Guardar los datos de manera reproducible en una única lista
     experimentos = sorted(datos.keys())
@@ -49,7 +48,7 @@ def genmodbayes(objeto, opciones_simul):
         # Ejecutar el modelo.
         egr = []
         for n, exp in enumerate(experimentos):
-            resultados = simul(tiempo_final=t[n], **o)
+            resultados = simul(tiempo_final=t[n], vals_inic=datos[exp], **o)
             egr += filtrarresultados(resultados, datos[exp])  # La lista de egresos del modelo
 
         return np.array(egr)
@@ -116,7 +115,6 @@ def escribirdic(d, parámetros, n=0):
         elif isinstance(v, int) or isinstance(v, float):  # Sólamente escribir los parámetros numéricos
             d[ll] = float(parámetros[n])
             n += 1
-
     return n
 
 

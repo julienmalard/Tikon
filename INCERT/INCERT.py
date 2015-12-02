@@ -9,7 +9,6 @@ from INCERT.CALIB import extraer_objetos, leerdatos
 
 
 def anal_incert(objeto, opciones_simul, conf=0.95, rep=None, tiempo_inic=None, tiempo_fin=None, datos=None):
-
     if not isinstance(objeto, Simulable):
         raise TypeError('anal_incert requiere un objeto de tipo "Simulable".')
 
@@ -40,6 +39,9 @@ def anal_incert(objeto, opciones_simul, conf=0.95, rep=None, tiempo_inic=None, t
     núm_total = núm_en_inter = 0
     lista_res_alea = []
     for n_exp, exp in enumerate(sorted(datos.keys())):
+        print(objeto.objetos['insectos']['araña'].fases['Adulto'].pob)
+        print(objeto.objetos['insectos']['mosca'].fases['Adulto'].pob)
+
         # Poner parámetros a valores aleatorios
         resultados_alea = []
         n_iter = []
@@ -90,7 +92,7 @@ def escoger_parám(d, d_i, n):
     :param n: el índice del punto en las cadenas de d_i a implementar en d
     :return: nada
     """
-    # Para hacer: reparar esta función
+
     if type(d) is dict:
         i = [x for x in sorted(d.items())]
     elif type(d) is list:
