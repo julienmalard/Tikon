@@ -1,7 +1,6 @@
 from CULTIVO.CULTIVO import Cultivo
 import os
 
-
 # Una parcela se refiere a una unidad de tierra homógena en sus suelo, cultivo(s)
 # y otras propiedades
 class Parcela(object):
