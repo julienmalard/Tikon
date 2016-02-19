@@ -1,12 +1,4 @@
-
-
-class Organismo(object):
-    def añadir_etapa(símismo, nombre, posición):
-        pass
-
-    def quitar_etapa(símismo, nombre, posición):
-        pass
-
+from REDES.ORGANISMO import Organismo
 
 
 class Insecto(Organismo):
@@ -30,11 +22,3 @@ class MetamIncompleta(Insecto):
         super().__init__(nombre=nombre,  huevo=huevo, njuvenil=njuvenil, pupa=False, adulto=adulto,
                          tipo_ecuaciones='etapas')
 
-
-class Enfermedad(Organismo):
-    # ¡Marcela éste es para ti!
-    pass
-
-
-class Etapa(object):
-    pass
