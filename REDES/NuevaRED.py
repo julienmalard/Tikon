@@ -1,5 +1,6 @@
 import io
 import json
+import math as mat
 import numpy as np
 
 from REDES.ORGANISMO import Organismo, Etapa
@@ -12,8 +13,11 @@ class Red(object):
 
         símismo.organismos = {}  # Contendrá los objetos de los organismos que existen en la red
         símismo.etapas = []  # Contendrá los objetos de las etapas de los organismos que existen en la red
-        # Listas de los tipos de
-        símismo.tipos_ecuaciones = {'Crecimiento': [], 'Depredación': [], 'Migración': []}
+        # Listas de los tipos de ecuaciones
+        símismo.tipos_ecuaciones = {'Crecimiento': {'Base': [], 'Modif': []},
+                                    'Depredación': [],
+                                    'Muertes': [],
+                                    'Migración': []}
         # Diccionario que contendrá matrizes de los coeficientes de la red
         símismo.coefs = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
         símismo.pobs = None  # Contendrá la matriz de datos de poblaciones durante las simulaciones
@@ -51,9 +55,18 @@ class Red(object):
             símismo.etapas += organismo.etapas
 
         # Crear las listas de ecuaciones de cada organismo
-        símismo.tipos_ecuaciones['Crecimiento'] = [etp.receta['Ecuaciones']['Crecimiento'] for etp in símismo.etapas]
-        símismo.tipos_ecuaciones['Depredación'] = [etp.receta['Ecuaciones']['Depredación'] for etp in símismo.etapas]
-        símismo.tipos_ecuaciones['Movimiento'] = [etp.receta['Ecuaciones']['Movimiento'] for etp in símismo.etapas]
+        tipos_ec = símismo.tipos_ecuaciones
+        tipos_ec['Crecimiento']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
+                                             etp.receta['Ecuaciones']['Crecimiento'] is not None]
+        tipos_ec['Crecimiento']['Ecuación'] = [etp.receta['Ecuaciones']['Crecimiento'] for etp in símismo.etapas]
+
+        tipos_ec['Depredación']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
+                                             etp.receta['Ecuaciones']['Depredación'] is not None]
+        tipos_ec['Depredación']['Ecuación'] = [etp.receta['Ecuaciones']['Depredación'] for etp in símismo.etapas]
+
+        tipos_ec['Movimiento']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
+                                             etp.receta['Ecuaciones']['Movimiento'] is not None]
+        tipos_ec['Movimiento']['Ecuación'] = [etp.receta['Ecuaciones']['Movimiento'] for etp in símismo.etapas]
 
         # Crear las matrices de coeficientes
         núm_etapas = len(símismo.etapas)
@@ -84,33 +97,59 @@ class Red(object):
         # Actualizar la matriz de poblaciones según estos cambios
         símismo.pobs[i] = np.sum((símismo.pobs[i-1], depred, reprod, mov), axis=0)
 
-    def calc_crec(símismo, pobs_act, paso):
+    def calc_crec(símismo, pobs_act, externo, paso):
         """
         Calcula las reproducciones y las transiciones de etapas de crecimiento
+        :type externo: dict
+        :param externo: diccionario de factores externos a la red (plantas, clima, etc.)
         :type paso: int
         :type pobs_act: np.ndarray
         :param pobs_act: matriz numpy de poblaciones actuales. Eje 0 = especie, eje 1 = parcela
         :param paso:
         :return: matriz numpy de reproducción (insectos/tiempo). Eje 0 = especie, eje 1 = parcela
         """
-        reprod = np.empty(shape=pobs_act.shape)
 
-        ecuaciones_reprod = símismo.tipos_ecuaciones['Reproducción']
-        for n, etapa in enumerate(símismo.etapas):
-            if ecuaciones_reprod[n] == 'exponencial':
-                reprod[n] = pobs_act[n] * (r * paso)
-            elif ecuaciones_reprod[n] == 'logístico':
-                # coefs_k es una matriz del impacto de cada otro organismo en la capacidad de carga de
-                # este organismo (n). Eje 0 = plano, eje 1 = especie
-                coefs_k = símismo.coefs['CapacidadDeCarga'][n]
-                k = pobs_act * coefs_k
+        crec = np.zeros(shape=pobs_act.shape)
+        etapas = enumerate(símismo.tipos_ecuaciones['Crecimiento']['Etapas'])
+        tipos_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']
+        modif_ec = símismo.tipos_ecuaciones['Reproducción']['Modif']
 
+        for n, n_etp in enumerate(etapas):
 
+            cf = símismo.coefs_act[n_etp]
+
+            r = cf['r']
+
+            # Modificaciones ambientales a la taza de crecimiento intrínsica
+            if modif_ec[n] is None:
+                # Si no hay modificaciones ambientales, no hacer nada
                 pass
+
+            elif modif_ec[n] == 'Log Normal Temperatura':
+                r *= mat.exp(-0.5*(mat.log(externo['temp_máx'] /cf['t']) / cf['p']) ** 2)
+
             else:
                 raise ValueError
 
-        return reprod
+            # Calcular el crecimiento de la población
+            if tipos_ec[n] == 'exponencial':
+                # Crecimiento exponencial
+
+                crec[n] = pobs_act[n] * (r * paso)
+
+            elif tipos_ec[n] == 'logístico':
+                # Crecimiento logístico
+
+                # coefs_k es una matriz del impacto de cada otro organismo en la capacidad de carga de
+                # este organismo (n). Eje 0 = vacío, eje 1 = especie
+                coefs_k = cf['K'][n]
+                k = pobs_act * coefs_k
+                crec[n_etp] = pobs_act[n_etp] * (1 - pobs_act[n_etp] / k)
+
+            else:
+                raise ValueError
+
+        return crec
 
     def calc_depred(símismo, pobs_inic, paso):
         """
@@ -150,7 +189,7 @@ class Red(object):
 
                 P en las respuestas funcionales arriba se reemplaza por P/(D^c)
 
-            Asíntota doble:
+            Asíntota doble (Kovai):
                 y = k / (1 + m * D), donde
                 k = (b * P^2) / (P^2 + c), y
                 m = (1/a - 1) * (b / P)
@@ -158,94 +197,165 @@ class Red(object):
 
         :param pobs_inic: matriz numpy de poblaciones actuales. Eje 0 = especie, eje 1 = parcela
         :param paso:
-        :return:
+        :return: depred, una martiz numpy
         """
 
         # Calcular cuántas presas cada especie de depredador podría comerse
-        tipo_ec = símismo.tipos_ecuaciones['Depredación']
-        for n, etapa in enumerate(símismo.etapas):  # Para cada depredador potencial...
 
-            potenciales = np.zeros(shape=(pobs_inic[0], pobs_inic[0], pobs_inic[1]))
-            if tipo_ec[n] is None:
+        depred_potencial = np.zeros(shape=(pobs_inic[0], pobs_inic[0], pobs_inic[1]))
+        tipos_ec = símismo.tipos_ecuaciones['Depredación']['Ecuación']
+        etapas = enumerate(símismo.tipos_ecuaciones['Depredación']['Etapas'])
+
+
+        for n, n_etp in etapas:  # Para cada depredador...
+            cf = símismo.coefs_act[n_etp]
+
+            if tipos_ec[n] is None:
                 # Si no hay ecuación para la depredación del organismo (si ni tiene presas, por ejemplo), seguir
                 # al próximo insecto de inmediato
                 continue
 
-            elif tipo_ec[n] == 'Tipo I_Dependiente presa':
+            elif tipos_ec[n] == 'Tipo I_Dependiente presa':
                 # Depredación de respuesta funcional tipo I con dependencia en la población de la presa.
-                potenciales[n] = pobs_inic * a
+                depred_potencial[n_etp] = pobs_inic * cf['a']
                 continue
 
-            elif tipo_ec[n] == 'Tipo II_Dependiente presa':
-                potenciales[n] = pobs_inic * a / (pobs_inic + b)
+            elif tipos_ec[n] == 'Tipo II_Dependiente presa':
+                # Depredación de respuesta funcional tipo II con dependencia en la población de la presa.
+                depred_potencial[n_etp] = pobs_inic * cf['a'] / (pobs_inic + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo III_Dependiente presa':
-                potenciales[n] = np.square(pobs_inic) * a / (np.square(pobs_inic) + b)
+            elif tipos_ec[n] == 'Tipo III_Dependiente presa':
+                # Depredación de respuesta funcional tipo III con dependencia en la población de la presa.
+                depred_potencial[n_etp] = np.square(pobs_inic) * cf['a'] / (np.square(pobs_inic) + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo I_Dependiente ratio':
-                potenciales[n] = pobs_inic / pobs_inic[n] * a
+            elif tipos_ec[n] == 'Tipo I_Dependiente ratio':
+                # Depredación de respuesta funcional tipo I con dependencia en el ratio de presa a depredador.
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n] * cf['a']
                 continue
 
-            elif tipo_ec[n] == 'Tipo II_Dependiente ratio':
-                potenciales[n] = pobs_inic / pobs_inic[n] * a / (pobs_inic / pobs_inic[n] + b)
+            elif tipos_ec[n] == 'Tipo II_Dependiente ratio':
+                # Depredación de respuesta funcional tipo II con dependencia en el ratio de presa a depredador.
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n] * cf['a'] / (pobs_inic / pobs_inic[n] + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo III_Dependiente ratio':
-                potenciales[n] = np.square(pobs_inic / pobs_inic[n]) * \
-                              a / (np.square(pobs_inic / pobs_inic[n]) + b)
+            elif tipos_ec[n] == 'Tipo III_Dependiente ratio':
+                # Depredación de respuesta funcional tipo III con dependencia en el ratio de presa a depredador.
+                depred_potencial[n_etp] = np.square(pobs_inic / pobs_inic[n]) * cf['a'] / \
+                                          (np.square(pobs_inic / pobs_inic[n]) + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo III_Dependiente ratio':
-                potenciales[n] = np.square(pobs_inic / pobs_inic[n]) * \
-                              a / (np.square(pobs_inic / pobs_inic[n]) + b)
+            elif tipos_ec[n] == 'Beddington-DeAngelis':
+                # Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
+                depred_potencial[n_etp] = pobs_inic * cf['a'] / (1 + cf['b'] * pobs_inic + cf['c'] * pobs_inic[n])
                 continue
 
-            elif tipo_ec[n] == 'Beddington-DeAngelis':
-                potenciales[n] = pobs_inic * a / (1 + b * pobs_inic + c * pobs_inic[n])
+            elif tipos_ec[n] == 'Tipo I_Hassell-Varley':
+                # Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n] ** cf['c'] * cf['a']
                 continue
 
-            elif tipo_ec[n] == 'Tipo I_Hassell-Varley':
-                potenciales[n] = pobs_inic / pobs_inic[n]^c * a
+            elif tipos_ec[n] == 'Tipo II_Hassell-Varley':
+                # Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['c'] * cf['a'] / \
+                                      (pobs_inic / pobs_inic[n]**cf['c'] + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo II_Hassell-Varley':
-                potenciales[n] = pobs_inic / pobs_inic[n]^c * a / (pobs_inic / pobs_inic[n]^c + b)
+            elif tipos_ec[n] == 'Tipo III_Hassell-Varley':
+                # Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['c'] * cf['a'] / \
+                                      (pobs_inic / pobs_inic[n]**cf['c'] + cf['b'])
                 continue
 
-            elif tipo_ec[n] == 'Tipo III_Hassell-Varley':
-                potenciales[n] = pobs_inic / pobs_inic[n]^c * a / (pobs_inic / pobs_inic[n]^c + b)
-                continue
+            elif tipos_ec[n] == 'Asíntota Doble':
+                # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
+                k = (cf['b'] * pobs_inic**2) / (pobs_inic**2 + cf['c'])
+                m = (1 / cf['a'] * - 1) * (cf['b'] / pobs_inic)
 
-            elif tipo_ec[n] == 'Asíntota Doble':
-                k = (b * pobs_inic^2) / (pobs_inic^2 + c)
-                m = (1 / a * - 1) * (b / pobs_inic)
-
-                potenciales[n] =  k / (1 + m * pobs_inic[n])
+                depred_potencial[n_etp] = k / (1 + m * pobs_inic[n])
                 continue
 
             else:
+                # Si el tipo de ecuación no estaba definida arriba, hay un error.
                 raise ValueError
 
+        # Convertir depredación por depredador a depredación total (multiplicar por la población de cada depredador)
+        depred_potencial *= pobs_inic
 
-        # Calcular las presas disponibles por depredador
+        # Ajustar por la presencia de varios depredadores
+        depred_total = np.sum(depred_potencial, axis=0)
+        poblaciones_totales = np.sum(pobs_inic, axis=0)
 
-        #
-        for etapa in símismo.etapas:
-            if (ecuación de presa) is None:
-                continue
-            elif (ecuación de presa) == 'Tipo I_Dependiente presa':
+        factor_ajuste = depred_total / poblaciones_totales
+        depred = depred_potencial * factor_ajuste
 
-                continue
-            elif :
+        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
+        depred = símismo.redondear(depred)
 
-                continue
-            else:
-                raise ValueError
+        return depred
 
     def calc_muertes(símismo, pobs_inic, paso):
-        pass
+        muertes = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
+        tipo_ec = símismo.tipos_ecuaciones['Muertes']
+
+        for n, etapa in enumerate(símismo.etapas):  # Para cada organismo...
+            if tipo_ec[n] is None:
+                # Si no hay ecuación específica para la muerte del organismo (si ya está implícito en la ecuación de
+                # crecimiento, por ejemplo), seguir al próximo insecto de inmediato
+                continue
+
+            elif tipo_ec[n] == 'Proporcional':
+                # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
+                # exponencial.
+
+                muertes[n] = pobs_inic * q
+                continue
+
+            elif tipo_ec[n] == 'Log Normal Temperatura':
+                # Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
+                #
+                # Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
+                #   Podisus maculiventris (Hemiptera: Pentatomidae): implications for mass rearing and biological
+                #   control. Journal of Pest Science 87(2): 331-340.
+
+                sobrevivencia = mat.exp(-0.5*(mat.log(temp_máx/t) / p) ** 2)
+                muertes[n] = pobs_inic * sobrevivencia
+                continue
+
+            else:
+                raise ValueError
+
+    def calc_trans(símismo, pobs_inic, paso):
+        trans = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
+        tipo_ec = símismo.tipos_ecuaciones['Transiciones']
+
+        for n, etapa in enumerate(símismo.etapas):  # Para cada organismo...
+            if tipo_ec[n] is None:
+                # Si no hay ecuación específica para la muerte del organismo (si ya está implícito en la ecuación de
+                # crecimiento, por ejemplo), seguir al próximo insecto de inmediato
+                continue
+
+            elif tipo_ec[n] == 'Proporcional':
+                # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
+                # exponencial.
+
+                trans[n] = pobs_inic * q
+                continue
+
+            elif tipo_ec[n] == 'Normal':
+                #
+                dist_pob[n] =
+
+
+                trans[n] = pobs_inic * q
+                continue
+
+
+            else:
+                raise ValueError
+
+        return trans
 
     def calc_mov(símismo, inic, paso):
         """
@@ -292,3 +402,78 @@ class Red(object):
 
         except IOError as e:
             raise IOError(e)
+
+    # Funciones auxiliares
+    @staticmethod
+    def redondear(matriz):
+        redondeado = np.round(matriz)
+        residuos = matriz - redondeado
+
+        prob = np.random.rand(*matriz.shape)
+
+        redondeado += (prob > residuos) * 1
+
+        return redondeado
+
+    @staticmethod
+    def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
+        """
+        Esta función calcula los días grados basados en vectores de temperaturas mínimas y máximas diarias.
+        Información sobre los métodos utilizados aquí se puede encontrar en:
+        http://www.ipm.ucdavis.edu/WEATHER/ddconcepts.html
+
+        :type mín: float
+        :param mín:
+        :type máx: float
+        :param máx:
+        :type umbrales: tuple
+        :param umbrales:
+        :param método:
+        :param corte:
+        :return: número de días grados (número entero)
+        """
+
+        if método == 'Triangular':
+            # Método triangular único
+            sup_arriba = max(12 * (máx - umbrales[1])**2 / (máx - mín), 0) / 24
+            sup_centro = max(12 * (umbrales[1] - umbrales[0])**2 / (umbrales[1] - mín), 0) / 24
+            sup_lados = max(24 * (máx - umbrales[1]) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
+
+        elif método == 'Sinusoidal':
+            # Método sinusoidal único
+            # NOTA: Probablemente lleno de bogues
+            amp = (máx - mín) / 2
+            prom = (máx + mín) / 2
+            if umbrales[1] >= máx:
+                intersect_máx = 0
+                sup_arriba = 0
+            else:
+                intersect_máx = 24 * mat.acos((umbrales[1] - prom) / amp)
+                sup_arriba = 2 * (intersect_máx * (prom - máx) + 2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx))
+
+            if umbrales[0] <= mín:
+                intersect_mín = intersect_máx
+            else:
+                intersect_mín = 24 * mat.acos((umbrales[0] - prom) / amp)
+
+            sup_centro = 2 * intersect_máx * (máx - mín)
+            sup_lados = 2 * (2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_mín) -
+                             2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx) +
+                             (intersect_mín - intersect_máx) * (umbrales[0] - prom)
+                             )
+
+        else:
+            raise ValueError
+
+        if corte == 'Horizontal':
+            días_grados = sup_centro + sup_lados
+        elif corte == 'Intermediario':
+            días_grados = sup_centro + sup_lados - sup_arriba
+        elif corte == 'Vertical':
+            días_grados = sup_lados
+        elif corte == 'Ninguno':
+            días_grados = sup_lados + sup_centro + sup_arriba
+        else:
+            raise ValueError
+
+        return días_grados
