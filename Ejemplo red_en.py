@@ -41,7 +41,7 @@ There are 5 important steps (sorry this is still beta technology):
 5. Save your food web
 """
 
-
+"""
 # 1. Here is hhow you can make a new insect (a wasp) that eats spiders and flies:
 wasp = Simple('wasp')
 wasp.secome(spider)
@@ -62,3 +62,4 @@ my_food_web.simul(estado_cultivo={'onion': 100000}, tiempo_final=300)
 # 5. Save everything (always a good idea)
 my_food_web.guardar()
 
+"""
