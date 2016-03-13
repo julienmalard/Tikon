@@ -491,6 +491,7 @@ class Fase(Coso):
         else:
             print("Tipo de ecuación no reconocido.")
 
+
     def actualizar(símismo):
 
         # Implementar los cambios de poblaciones
