@@ -86,7 +86,7 @@ class Coso(object):
 
         try:
             with open(documento, mode="w") as d:
-                json.dump(dic_temp, d)
+                json.dump(dic_temp, d, indent=2, sort_keys=True)
         except IOError:
             print("Documento " + documento + " no se pudo abrir para guadar datos.")
 
@@ -96,7 +96,7 @@ class Coso(object):
                 convertir_fechas(dic_incert_temp)
                 try:
                     with open(documento_incert, mode="w") as d:
-                        json.dump(dic_incert_temp, d)
+                        json.dump(dic_incert_temp, d, sort_keys=True, indent=2)
                 except IOError:
                     print("Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre.")
             except AttributeError:

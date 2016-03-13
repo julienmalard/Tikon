@@ -56,17 +56,13 @@ class Red(object):
 
         # Crear las listas de ecuaciones de cada organismo
         tipos_ec = símismo.tipos_ecuaciones
-        tipos_ec['Crecimiento']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
-                                             etp.receta['Ecuaciones']['Crecimiento'] is not None]
-        tipos_ec['Crecimiento']['Ecuación'] = [etp.receta['Ecuaciones']['Crecimiento'] for etp in símismo.etapas]
 
-        tipos_ec['Depredación']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
-                                             etp.receta['Ecuaciones']['Depredación'] is not None]
-        tipos_ec['Depredación']['Ecuación'] = [etp.receta['Ecuaciones']['Depredación'] for etp in símismo.etapas]
+        for tipo_cálc in símismo.etapas[0].receta['Ecuaciones']:
+            etps = [(n, etp.receta['Ecuaciones'][tipo_cálc]) for n, etp in enumerate(símismo.etapas) if
+                    etp.receta['Ecuaciones'][tipo_cálc] is not None]
+            tipos_ec[tipo_cálc]['Etapas'] = [i[0] for i in etps]
+            tipos_ec[tipo_cálc]['Ecuación'] = [i[1] for i in etps]
 
-        tipos_ec['Movimiento']['Etapas'] = [n for n, etp in enumerate(símismo.etapas) if
-                                             etp.receta['Ecuaciones']['Movimiento'] is not None]
-        tipos_ec['Movimiento']['Ecuación'] = [etp.receta['Ecuaciones']['Movimiento'] for etp in símismo.etapas]
 
         # Crear las matrices de coeficientes
         núm_etapas = len(símismo.etapas)
@@ -110,9 +106,9 @@ class Red(object):
         """
 
         crec = np.zeros(shape=pobs_act.shape)
-        etapas = enumerate(símismo.tipos_ecuaciones['Crecimiento']['Etapas'])
-        tipos_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']
-        modif_ec = símismo.tipos_ecuaciones['Reproducción']['Modif']
+        etapas = símismo.tipos_ecuaciones['Crecimiento']['Etapas']
+        tipos_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']['Base']
+        modif_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']['Modif']
 
         for n, n_etp in enumerate(etapas):
 
@@ -132,12 +128,12 @@ class Red(object):
                 raise ValueError
 
             # Calcular el crecimiento de la población
-            if tipos_ec[n] == 'exponencial':
+            if tipos_ec[n] == 'Exponencial':
                 # Crecimiento exponencial
 
                 crec[n] = pobs_act[n] * (r * paso)
 
-            elif tipos_ec[n] == 'logístico':
+            elif tipos_ec[n] == 'Logístico':
                 # Crecimiento logístico
 
                 # coefs_k es una matriz del impacto de cada otro organismo en la capacidad de carga de
@@ -187,7 +183,7 @@ class Red(object):
                 M.P. Hassell, G.C. Varley. New inductive population model for insect parasites and its bearing on
                     biological control. Nature, 223 (1969), pp. 1133–1136
 
-                P en las respuestas funcionales arriba se reemplaza por P/(D^c)
+                P en las respuestas funcionales arriba cambia a P/(D^m)
 
             Asíntota doble (Kovai):
                 y = k / (1 + m * D), donde
@@ -204,7 +200,7 @@ class Red(object):
 
         depred_potencial = np.zeros(shape=(pobs_inic[0], pobs_inic[0], pobs_inic[1]))
         tipos_ec = símismo.tipos_ecuaciones['Depredación']['Ecuación']
-        etapas = enumerate(símismo.tipos_ecuaciones['Depredación']['Etapas'])
+        etapas = símismo.tipos_ecuaciones['Depredación']['Etapas']
 
 
         for n, n_etp in etapas:  # Para cada depredador...
@@ -253,19 +249,19 @@ class Red(object):
 
             elif tipos_ec[n] == 'Tipo I_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
-                depred_potencial[n_etp] = pobs_inic / pobs_inic[n] ** cf['c'] * cf['a']
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n] ** cf['m'] * cf['a']
                 continue
 
             elif tipos_ec[n] == 'Tipo II_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
-                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['c'] * cf['a'] / \
-                                      (pobs_inic / pobs_inic[n]**cf['c'] + cf['b'])
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['m'] * cf['a'] / \
+                                      (pobs_inic / pobs_inic[n]**cf['m'] + cf['b'])
                 continue
 
             elif tipos_ec[n] == 'Tipo III_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
-                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['c'] * cf['a'] / \
-                                      (pobs_inic / pobs_inic[n]**cf['c'] + cf['b'])
+                depred_potencial[n_etp] = pobs_inic / pobs_inic[n]**cf['m'] * cf['a'] / \
+                                      (pobs_inic / pobs_inic[n]**cf['m'] + cf['b'])
                 continue
 
             elif tipos_ec[n] == 'Asíntota Doble':
@@ -296,23 +292,21 @@ class Red(object):
         return depred
 
     def calc_muertes(símismo, pobs_inic, paso):
+
         muertes = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
-        tipo_ec = símismo.tipos_ecuaciones['Muertes']
+        depred_potencial = np.zeros(shape=(pobs_inic[0], pobs_inic[0], pobs_inic[1]))
+        tipos_ec = símismo.tipos_ecuaciones['Muertes']['Ecuación']
+        etapas = símismo.tipos_ecuaciones['Muertes']['Etapas']
 
-        for n, etapa in enumerate(símismo.etapas):  # Para cada organismo...
-            if tipo_ec[n] is None:
-                # Si no hay ecuación específica para la muerte del organismo (si ya está implícito en la ecuación de
-                # crecimiento, por ejemplo), seguir al próximo insecto de inmediato
-                continue
-
-            elif tipo_ec[n] == 'Proporcional':
+        for n, n_etp in enumerate(etapas):
+            if tipos_ec[n] == 'Proporcional':
                 # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
                 muertes[n] = pobs_inic * q
                 continue
 
-            elif tipo_ec[n] == 'Log Normal Temperatura':
+            elif tipos_ec[n] == 'Log Normal Temperatura':
                 # Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
                 #
                 # Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
@@ -328,15 +322,13 @@ class Red(object):
 
     def calc_trans(símismo, pobs_inic, paso):
         trans = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
-        tipo_ec = símismo.tipos_ecuaciones['Transiciones']
 
-        for n, etapa in enumerate(símismo.etapas):  # Para cada organismo...
-            if tipo_ec[n] is None:
-                # Si no hay ecuación específica para la muerte del organismo (si ya está implícito en la ecuación de
-                # crecimiento, por ejemplo), seguir al próximo insecto de inmediato
-                continue
+        etapas = símismo.tipos_ecuaciones['Transiciones']['Etapas']
+        tipo_edad = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Edad']
+        tipo_prob = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Prob']
 
-            elif tipo_ec[n] == 'Proporcional':
+        for n, n_etp in enumerate(etapas):  # Para cada organismo...
+            if tipo_ec[n] == 'Proporcional':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
@@ -366,8 +358,6 @@ class Red(object):
         :param paso:
         :return:
         """
-
-
 
     def guardar(símismo, archivo=''):
         """

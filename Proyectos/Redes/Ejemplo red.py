@@ -34,4 +34,4 @@ red_cebolla.datos = {'fictitios': {'mosca': {'Adulto': (list(range(10)),
                                    }
                      }
 
-red_cebolla.calibrar(estado_cultivo={'cebolla': 100000}, iteraciones=10000, quema=100)
+# red_cebolla.calibrar(estado_cultivo={'cebolla': 100000}, iteraciones=10000, quema=100)

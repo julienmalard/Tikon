@@ -117,7 +117,7 @@ class Red(Simulable):
         return poblaciones  # Para comunicación con el submódulo PARCELA
 
     # Una funcción para simular las plagas en isolación del cultivo (estado del cultivo es un constante exógeno)
-    def simul(símismo, tiempo_final, estado_cultivo, tiempo_inic=0, vals_inic=None, paso=1, rep=10, dibujar=True):
+    def simul(símismo, tiempo_final, estado_cultivo, tiempo_inic=0, vals_inic=None, paso=1, rep=100, dibujar=True):
         if not vals_inic:
             vals_inic = símismo.vals_inic
 
@@ -166,7 +166,7 @@ class Red(Simulable):
             poblaciones = símismo.poblaciones
 
         for núm, nombre in enumerate(insectos):
-            colores = ("red", "orange", "yellow", "green", "blue", "purple", "fuchsia", "black")
+            colores = ("red", "orange", "green", "blue", "purple", "fuchsia", "black")
 
             # Un gráfico por insecto (con todas las fases en sub-gráficos). El 'squeeze' es necesario.
             fig, sub = dib.subplots(len(poblaciones[nombre].keys()), 1, sharex=True, sharey=True, squeeze=False)
