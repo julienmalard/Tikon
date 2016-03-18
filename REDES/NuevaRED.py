@@ -328,7 +328,7 @@ class Red(object):
         tipo_prob = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Prob']
 
         for n, n_etp in enumerate(etapas):  # Para cada organismo...
-            if tipo_ec[n] == 'Proporcional':
+            if tipo_ec[n] == 'Constante':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
@@ -343,6 +343,8 @@ class Red(object):
                 trans[n] = pobs_inic * q
                 continue
 
+            elif tipo_ec[n] == 'Linear':
+                raise NotImplementedError
 
             else:
                 raise ValueError
