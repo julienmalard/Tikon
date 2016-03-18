@@ -17,85 +17,85 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                                     'p': {'límites': (0, np.inf),
                                                                           'inter': None}}
                                          },
-                               'Ecuaciones': {None: None,
-                                              'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
-                                              'Logístico': {'K': {'límites': (0, np.inf),
-                                                                  'inter': 'presa'}}
-                                              }
+                               'Ecuación': {None: None,
+                                            'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
+                                            'Logístico': {'K': {'límites': (0, np.inf),
+                                                                'inter': 'presa'}}
+                                            }
                                },
 
-                  Depredación={'Ecuaciones': {None: None,
+                  Depredación={'Ecuación': {None: None,
 
-                                              'Tipo I_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                            'Tipo I_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                                                               'inter': 'presa'}
+                                                                         },
+
+                                            'Tipo II_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                                                                'inter': 'presa'},
+                                                                          'b': {'límites': (0, np.inf),
+                                                                                'inter': 'presa'}
+                                                                          },
+
+                                            'Tipo III_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                                                                 'inter': 'presa'},
+                                                                           'b': {'límites': (0, np.inf),
                                                                                  'inter': 'presa'}
                                                                            },
 
-                                              'Tipo II_Dependiente presa': {'a': {'límites': (0, np.inf),
-                                                                                  'inter': 'presa'},
-                                                                            'b': {'límites': (0, np.inf),
-                                                                                  'inter': 'presa'}
-                                                                            },
+                                            'Tipo I_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                                                               'inter': 'presa'}
+                                                                         },
 
-                                              'Tipo III_Dependiente presa': {'a': {'límites': (0, np.inf),
-                                                                                   'inter': 'presa'},
-                                                                             'b': {'límites': (0, np.inf),
-                                                                                   'inter': 'presa'}
-                                                                             },
+                                            'Tipo II_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                                                                'inter': 'presa'},
+                                                                          'b': {'límites': (0, np.inf),
+                                                                                'inter': 'presa'}
+                                                                          },
 
-                                              'Tipo I_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                            'Tipo III_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                                                                 'inter': 'presa'},
+                                                                           'b': {'límites': (0, np.inf),
                                                                                  'inter': 'presa'}
                                                                            },
 
-                                              'Tipo II_Dependiente ratio': {'a': {'límites': (0, np.inf),
-                                                                                  'inter': 'presa'},
-                                                                            'b': {'límites': (0, np.inf),
-                                                                                  'inter': 'presa'}
-                                                                            },
+                                            'Beddington-DeAngelis': {'a': {'límites': (0, np.inf),
+                                                                           'inter': 'presa'},
+                                                                     'b': {'límites': (0, np.inf),
+                                                                           'inter': 'presa'},
+                                                                     'c': {'límites': (0, np.inf),
+                                                                           'inter': 'presa'}
+                                                                     },
 
-                                              'Tipo III_Dependiente ratio': {'a': {'límites': (0, np.inf),
-                                                                                   'inter': 'presa'},
-                                                                             'b': {'límites': (0, np.inf),
-                                                                                   'inter': 'presa'}
-                                                                             },
+                                            'Tipo I_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                                                            'inter': 'presa'},
+                                                                      'm': {'límites': (0, np.inf),
+                                                                            'inter': 'presa'}
+                                                                      },
 
-                                              'Beddington-DeAngelis': {'a': {'límites': (0, np.inf),
+                                            'Tipo II_Hassell-Varley': {'a': {'límites': (0, np.inf),
                                                                              'inter': 'presa'},
                                                                        'b': {'límites': (0, np.inf),
                                                                              'inter': 'presa'},
-                                                                       'c': {'límites': (0, np.inf),
+                                                                       'm': {'límites': (0, np.inf),
                                                                              'inter': 'presa'}
                                                                        },
 
-                                              'Tipo I_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                            'Tipo III_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                                                              'inter': 'presa'},
+                                                                        'b': {'límites': (0, np.inf),
                                                                               'inter': 'presa'},
                                                                         'm': {'límites': (0, np.inf),
                                                                               'inter': 'presa'}
                                                                         },
 
-                                              'Tipo II_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                               'inter': 'presa'},
-                                                                         'b': {'límites': (0, np.inf),
-                                                                               'inter': 'presa'},
-                                                                         'm': {'límites': (0, np.inf),
-                                                                               'inter': 'presa'}
-                                                                         },
-
-                                              'Tipo III_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                                'inter': 'presa'},
-                                                                          'b': {'límites': (0, np.inf),
-                                                                                'inter': 'presa'},
-                                                                          'm': {'límites': (0, np.inf),
-                                                                                'inter': 'presa'}
-                                                                          },
-
-                                              'Asíntota Doble': {'a': {'límites': (0, np.inf),
-                                                                       'inter': 'presa'},
-                                                                 'b': {'límites': (0, np.inf),
-                                                                       'inter': 'presa'},
-                                                                 'c': {'límites': (0, np.inf),
-                                                                       'inter': 'presa'}
-                                                                 }
-                                              },
+                                            'Asíntota Doble': {'a': {'límites': (0, np.inf),
+                                                                     'inter': 'presa'},
+                                                               'b': {'límites': (0, np.inf),
+                                                                     'inter': 'presa'},
+                                                               'c': {'límites': (0, np.inf),
+                                                                     'inter': 'presa'}
+                                                               }
+                                            },
                                },
 
                   Muertes={'Edad': {None: None,

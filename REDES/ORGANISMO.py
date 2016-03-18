@@ -1,5 +1,6 @@
 import io
 import json
+import numpy as np
 
 import REDES.Ecuaciones as Ec
 
@@ -9,7 +10,6 @@ class Organismo(object):
         símismo.archivo = None
         símismo.nombre = None
         símismo.etapas = {}
-        símismo.config = {}
 
         símismo.receta = dict(nombre=nombre,
                               etapas={},
@@ -102,24 +102,101 @@ class Organismo(object):
         # Actualizar el organismo
         símismo.actualizar()
 
-    def usar_ecuación(símismo, etapa, categoría_ec, tipo_ec):
-        dic_etapa = símismo.receta['etapas'][etapa]
-        if tipo_ec not in símismo.receta['etapas']['ecuaciones'][categoría_ec]:
-            dist_ec = gen_dic_coefs(categoría_ec, tipo_ec)
-            dic_etapa['ecuaciones'][categoría_ec][tipo_ec] = dist_ec
+    def aplicar_ecuación(símismo, etapa, tipo_ec):
+        """
+        Esta función aplica una configuración de ecuaciones a una etapa específica del organismo. No borar otras
+          ecuaciones, sino simplemente cambia la ecuación activa usada para calibraciones, simulaciones, etc.
 
-        símismo.receta['config']['ecuaciones'][etapa][categoría_ec] = tipo_ec
+        :param etapa: El nombre de la etapa a cual esta ecuación se aplicará
+        :type etapa: str
+
+        :param tipo_ec: Un diccionario del tipo de ecuación que se aplicará. Debe tener el formato
+          {categoría: {sub_categoría: opción_ecuación, sub_categoría: opción_ecuación, ...}, categoría: ...}
+        :type tipo_ec: dict
+        """
+
+        for categ, dic_categ in tipo_ec.items():
+            for sub_categ, opción_ec in dic_categ.items():
+                símismo.receta['config']['ecuaciones'][etapa][categ][sub_categ] = opción_ec
 
     def secome(símismo, presa, etps_depred=None, etps_presa=None):
+        """
+        Esta función establece relaciones de depredador y presa entre organismos.
 
-        for e in etps_depred:
-            id_etp_presa =
-            símismo.config['presas'][e] = id_etp_presa
+        :param presa: La presa (usar un objeto Organismo, no el nombre de la presa).
+        :type presa: Organismo
 
-    def nosecome(símismo, otro_org, etps_depred=None, etps_presa=None):
+        :param etps_depred: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
+          que se comen a la presa. Si se deja como "None", tomará todas las fases.
+        :type etps_depred: list
 
-        for e in etps_depred:
-            símismo.config['presas'][e].pop()
+        :param etps_presa: Lista de los nombres (cadena de carácteres) de las fases de la presa que se come el
+          depredador (este organismo). Si se deja como "None", tomará todas las fases.
+        :type etps_presa: list
+
+        """
+
+        # Si no se especificaron estapas específicas, tomar todas las etapas de los organismos.
+        if etps_depred is None:
+            etps_depred = [x for x in símismo.receta['etapas']]
+        if etps_presa is None:
+            etps_presa = [x for x in presa.receta['etapas']]
+
+        # Si se le olvidó al utilisador poner sus etapas en forma de lista, hacerlo aquí
+        if type(etps_presa) is str:
+            etps_presa = [etps_presa]
+        if type(etps_depred) is str:
+            etps_depred = [etps_depred]
+
+        # Guardar la relación de deprededor y presa en la configuración del organismo
+        for e_depred in etps_depred:
+            símismo.receta['config']['presas'][e_depred] = etps_presa
+
+        # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
+        # todos los coeficientes necesarios para la nueva presa
+        símismo.actualizar()
+
+    def nosecome(símismo, presa, etps_depred=None, etps_presa=None):
+        """
+        Esta función borra relaciones de depredador y presa entre organismos.
+
+        :param presa: La presa que ya no se come (usar un objeto Organismo, no el nombre de la presa).
+        :type presa: Organismo
+
+        :param etps_depred: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
+          que ya no se comen a la presa. Si se deja como "None", tomará todas las fases.
+        :type etps_depred: list
+
+        :param etps_presa: Lista de los nombres (cadena de carácteres) de las fases de la presa que ya no se come el
+          depredador (este organismo). Si se deja como "None", tomará todas las fases.
+        :type etps_presa: list
+
+        """
+
+        # Si no se especificaron estapas específicas, tomar todas las etapas de los organismos.
+        if etps_depred is None:
+            etps_depred = [x for x in símismo.receta['etapas']]
+        if etps_presa is None:
+            etps_presa = [x for x in presa.receta['etapas']]
+
+        # Si se le olvidó al utilisador poner sus etapas en forma de lista, hacerlo aquí
+        if type(etps_presa) is str:
+            etps_presa = [etps_presa]
+        if type(etps_depred) is str:
+            etps_depred = [etps_depred]
+
+        # Quitar la relación de deprededor y presa en la configuración del organismo
+        for e_depred in etps_depred:  # Para cada etapa especificada del depredador...
+            # Quitar cada etapa especificada de la presa
+            for e_presa in etps_presa:
+                símismo.receta['config']['presas'][e_depred].pop(e_presa)
+
+            # Si ya no quedan estapas del organismo como presas, quitar su nombre del diccionario de presas
+            if len(símismo.receta['config']['presas'][e_depred]) == 0:
+                símismo.receta['config']['presas'].pop(e_depred)
+
+        # No se reactualiza el organismo; los parámetros de interacciones con la antigua presa se quedan la receta
+        # del organismo para uso futuro potencial.
 
     def cargar(símismo, archivo):
         """
@@ -185,14 +262,19 @@ def vaciar_dic(d):
             d[ll] = None
 
 
-def gen_ec_inic(dic_ecs, d=None):
+def gen_ec_inic(dic_ecs, inter=None, d=None):
     """
     Esta función toma un diccionario de especificaciones de parámetros de ecuaciones y lo convierte en un diccionario
       de distribuciones iniciales.
 
     :param d: Parámetro que siempre se debe dejar a "None" cuando de usa esta función. Está allí para permetir las
-    funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
+      funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
     :type d: dict
+
+    :param inter: Un diccionario, si se aplica, de las interacciones con otros organismos necesarios para establecer
+      las ecuaciones de manera correcta. Un ejemplo común sería el diccionario de las presas de una etapa
+      para establecer las ecuaciones de depredación.
+    :type inter: dict
 
     :param dic_ecs: El diccionario de las especificaciones de parámetros para cada tipo de ecuación posible
     :type dic_ecs: dict
@@ -210,10 +292,28 @@ def gen_ec_inic(dic_ecs, d=None):
         # Si v también es un diccionario, crear el diccionario correspondiente en d
         if type(v) is dict:
             d[ll] = {}
-            gen_ec_inic(v, d)  # y llamar esta función de nuevo
+            gen_ec_inic(v, inter, d)  # y llamar esta función de nuevo
+
         elif ll == 'límites':  # Si llegamos a la especificación de límites del parámetro
-            d[ll] = {}  # Crear el diccionario para contener las calibraciones
-            d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
+
+            # Si no hay interacciones con otros organismos para este parámetro...
+            if dic_ecs['inter'] is None:
+                d[ll] = {}  # Crear el diccionario para contener las calibraciones
+                d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
+
+            # Si hay interacciones con las presas de la etapa...
+            elif dic_ecs['inter'] == 'presa':
+                try:
+                    d[ll] = dict([(p, None) for p in inter['presas']])
+                except KeyError:  # Si no hay presas, el parámetro se queda vacío
+                    d[ll] = {}
+                    continue
+                for p in d[ll]:
+                    d[ll][p] = dict([(etp, límites_a_dist(v)) for etp in inter['presas'][p]])
+
+            else:
+                raise ValueError
+
         else:
             pass
 
@@ -221,32 +321,60 @@ def gen_ec_inic(dic_ecs, d=None):
 
 
 def límites_a_dist(límites, cont=True):
+    """
+    Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
+      destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
+      distribuciones de los parámetros de ecuaciones.
+
+    :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
+      -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
+      (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
+      variable en las ecuaciones que lo utilisan.
+    :type límites: tuple
+
+    :param cont: Determina si el variable es continuo o discreto
+    :type cont: bool
+
+    :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
+      cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
+      en distribución de scipy o de pymc donde necesario.
+    :rtype: str
+    """
+
+    # Sacar el mínimo y máximo de los límites.
     mín = límites[0]
     máx = límites[1]
-    if abs(mín) == np.inf:
-        if abs(máx) == np.inf:
+
+    # Verificar que máx > mín
+    if máx <= mín:
+        raise ValueError('El valor máximo debe ser superior al valor máximo.')
+
+    # Pasar a través de todos los casos posibles
+    if mín == -np.inf:
+        if máx == np.inf:  # El caso (-np.inf, np.inf)
             if cont:
-                dist = estad.norm(loc=0, scale=1e10)
+                dist = 'Normal(0, 1e10)'
             else:
-                dist = estad.randint(1e-10, 1e10)
-        else:
-            if cont:
-                dist = NotImplemented
-            else:
-                dist = NotImplemented
+                dist = 'DiscrUnif(1e-10, 1e10)'
+
+        else:  # El caso (-np.inf, R)
+            raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
+                             'crear un variable en el intervalo (R, inf) y utilisar su valor negativo en las '
+                             'ecuaciones.')
 
     else:
-        if abs(máx) == np.inf:
+        if máx == np.inf:  # El caso (R, np.inf)
             if cont:
-                dist = estad.expon(loc=mín, scale=1e10)
+                dist = 'Expon({}, 1e10)'.format(mín)
             else:
-                dist = estad.geom(1e-8, loc=mín-1)
-        else:
+                loc = mín - 1
+                dist = 'Geom(1e-8, {})'.format(loc)
+
+        else:  # El caso (R, R)
             if cont:
-                dist = estad.uniform(mín, máx)
+                dist = 'Unif~({}, {})'.format(mín, máx)
             else:
-                dist = estad.randint(mín, mín+1)
+                dist = 'DiscrUnif~({}, {})'.format(mín, mín+1)
 
 
     return dist
-
