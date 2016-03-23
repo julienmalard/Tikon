@@ -7,7 +7,7 @@ import REDES.Ecuaciones as Ec
 
 class Organismo(object):
     def __init__(símismo, nombre=None, fuente=None):
-        símismo.archivo = None
+        símismo.fuente = fuente
         símismo.nombre = None
         símismo.etapas = {}
 
@@ -17,15 +17,39 @@ class Organismo(object):
                                       'presas': None}
                               )
 
+        # Si se especificó un archivo para cargar, cargarlo.
         if fuente is not None:
-            símismo.cargar(fuente)
-        else:
-            símismo.actualizar()
+            try:  # Intentar cargar el archivo (con formato UTF-8)
+                with open(fuente, 'r', encoding='utf8') as d:
+                    nuevo_dic = json.load(d)
+
+                llenar_dic(símismo.receta, nuevo_dic)
+
+                # Convertir listas a matrices numpy en las ecuaciones (coeficientes) de las etapas
+                for dic_etp in símismo.receta['etapas']:
+                    lista_a_np(dic_etp['ecuaciones'])
+
+            except IOError as e:  # Si no funcionó, hay que quejarse.
+                raise IOError(e)
+
+        # Actualizar el insecto
+        símismo.actualizar()
 
     def actualizar(símismo):
+        """
+        Esta función simplemente se asegura de que todo en el organismo esté actualizado según la configuración
+          actual en la receta. Si hay cualquier atributo del organismo que depiende de valore(s) en la receta,
+          aquí es el lugar par actualizarlos.
+        Esta función se llama automáticamente después de funciones tales como "secome()" y "quitar_etapa()".
+
+        :return: Nada
+        """
+
+        # Actualizar el nombre del organismo
         símismo.nombre = símismo.receta['nombre']
+
+        # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['etapas']], key=lambda d: d['posición'])
-        símismo.receta['config'] =
 
     def añadir_etapa(símismo, nombre, posición, ecuaciones):
         """
@@ -198,24 +222,6 @@ class Organismo(object):
         # No se reactualiza el organismo; los parámetros de interacciones con la antigua presa se quedan la receta
         # del organismo para uso futuro potencial.
 
-    def cargar(símismo, archivo):
-        """
-        Esta función carga un documento de organismo ya guardado
-        :param archivo:
-        :return:
-        """
-
-        try:  # Intentar cargar el archivo
-            with open(archivo, 'r', encoding='utf8') as d:
-                nuevo_dic = json.load(d)
-            llenar_dic(símismo.receta, nuevo_dic)
-            símismo.archivo = archivo  # Guardar la ubicación del archivo activo de la red
-
-            símismo.actualizar()
-
-        except IOError as e:
-            raise IOError(e)
-
     def guardar(símismo, archivo=''):
         """
         Esta función guardar el organismo para uso futuro
@@ -225,41 +231,42 @@ class Organismo(object):
 
         # Si no se especificó archivo...
         if archivo == '':
-            if símismo.archivo != '':
-                archivo = símismo.archivo  # utilizar el archivo existente
+            if símismo.fuente != '':
+                archivo = símismo.fuente  # utilizar el archivo existente
             else:
                 # Si no hay archivo existente, tenemos un problema.
                 raise FileNotFoundError('Hay que especificar un archivo para guardar el organismo.')
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
+        for dic_etp in símismo.receta['etapas']:  # Convertir matrices a formato de lista
+            np_a_lista(dic_etp['ecuaciones'])
+
         with io.open(archivo, 'w', encoding='utf8') as d:
-            json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)
+            json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
 
-def llenar_dic(d_orig, d_nuevo):
-    vaciar_dic(d_orig)
-    for ll, v in d_nuevo.items:
-        if isinstance(v, dict):
-            llenar_dic(d_orig[ll], v)
-        else:
-            try:
-                d_orig[ll] = d_nuevo[ll]
-            except KeyError:
-                raise Warning('Diccionario pariente no contiene todas las llaves a llenar.')
-
-
-def vaciar_dic(d):
+def llenar_dic(d_vacío, d_nuevo):
     """
-    Esta función vacía un diccionario y poner cada valor igual a "None". Es muy útil para asegurarse de que un
-      diccionario esté vacío antes de llenarlo con nuevas valores.
-    :param d: diccionario a vaciar
+    Esta función llena un diccionario con los valores de otro diccionario. Es util para situaciones dónde hay que
+      asegurarse de que el formato de un diccionario que estamos cargando esté correcto.
+
+    :param d_vacío: El diccionario vacío original para llenar
+    :type d_vacío: dict
+
+    :param d_nuevo: El diccionario con cuyas valores hay que llenar el anterior.
+    :type d_nuevo: dict
+
     :return: nada
     """
-    for ll, v in d.items():
+
+    for ll, v in d_nuevo.items():
         if isinstance(v, dict):
-            vaciar_dic(v)
+            llenar_dic(d_vacío[ll], v)
         else:
-            d[ll] = None
+            try:
+                d_vacío[ll] = d_nuevo[ll]
+            except KeyError:
+                raise Warning('Diccionario pariente no contiene todas las llaves a llenar.')
 
 
 def gen_ec_inic(dic_ecs, inter=None, d=None):
@@ -376,5 +383,40 @@ def límites_a_dist(límites, cont=True):
             else:
                 dist = 'DiscrUnif~({}, {})'.format(mín, mín+1)
 
-
     return dist
+
+
+def np_a_lista(d):
+    """
+    Esta función toma las matrices numpy contenidas en un diccionario de estructura arbitraria y las convierte
+      en listas numéricas. Cambia el diccionario in situ, así que no devuelve ningún valor.
+
+    :param d: El diccionario a convertir
+    :type d: dict
+    :return: nada
+    """
+
+    for ll, v in d.items():
+        if type(v) is dict:
+            np_a_lista(v)
+        elif type(v) is list:
+            try:
+                d[ll] = np.array(v, dtype=float)
+            except ValueError:
+                pass
+
+
+def lista_a_np(d):
+    """
+    Esta función toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las convierte
+      en matrices de numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
+    :param d: El diccionario a convertir
+    :type d: dict
+    :return: nada
+    """
+
+    for ll, v in d.items():
+        if type(v) is dict:
+            lista_a_np(v)
+        elif type(v) is np.ndarray:
+            d[ll] = v.tolist()
