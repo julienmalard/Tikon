@@ -7,9 +7,11 @@ from REDES.ORGANISMO import Organismo, Etapa
 
 
 class Red(object):
-    def __init__(símismo, archivo = ''):
+    def __init__(símismo, fuente=None):
+
         símismo.receta = dict(Organismos=[])  # La información necesaria para recrear la red
-        símismo.archivo = archivo  # El archivo en que podemos guardar esta red
+
+        símismo.fuente = fuente  # El archivo en que podemos guardar esta red
 
         símismo.organismos = {}  # Contendrá los objetos de los organismos que existen en la red
         símismo.etapas = []  # Contendrá los objetos de las etapas de los organismos que existen en la red
@@ -22,8 +24,8 @@ class Red(object):
         símismo.coefs = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
         símismo.pobs = None  # Contendrá la matriz de datos de poblaciones durante las simulaciones
 
-        if archivo != '':  # Si se especificó un archivo, cargarlo
-            símismo.cargar(archivo)
+        if fuente is not None:  # Si se especificó un archivo, cargarlo
+            símismo.cargar(fuente)
 
     def añadir_organismo(símismo, organismo):
 
