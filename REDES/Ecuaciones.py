@@ -20,6 +20,8 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                'Ecuación': {None: None,
                                             'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
                                             'Logístico': {'K': {'límites': (0, np.inf),
+                                                                'inter': None}},
+                                            'Logístico presa': {'K': {'límites': (0, np.inf),
                                                                 'inter': 'presa'}}
                                             }
                                },
@@ -88,13 +90,13 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                                               'inter': 'presa'}
                                                                         },
 
-                                            'Asíntota Doble': {'a': {'límites': (0, np.inf),
-                                                                     'inter': 'presa'},
-                                                               'b': {'límites': (0, np.inf),
-                                                                     'inter': 'presa'},
-                                                               'c': {'límites': (0, np.inf),
-                                                                     'inter': 'presa'}
-                                                               }
+                                            'Kovai': {'a': {'límites': (0, np.inf),
+                                                            'inter': 'presa'},
+                                                      'b': {'límites': (0, np.inf),
+                                                            'inter': 'presa'},
+                                                      'c': {'límites': (0, np.inf),
+                                                            'inter': 'presa'}
+                                                      }
                                             },
                                },
 
@@ -172,3 +174,157 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                   Movimiento={}
 
                   )
+
+
+# Funciones necesarias para el manejo de diccionarios de ecuaciones y de parámetros
+def gen_ec_inic(dic_ecs, inter=None, d=None):
+    """
+    Esta función toma un diccionario de especificaciones de parámetros de ecuaciones y lo convierte en un diccionario
+      de distribuciones iniciales.
+
+    :param d: Parámetro que siempre se debe dejar a "None" cuando de usa esta función. Está allí para permetir las
+      funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
+    :type d: dict
+
+    :param inter: Un diccionario, si se aplica, de las interacciones con otros organismos necesarios para establecer
+      las ecuaciones de manera correcta. Un ejemplo común sería el diccionario de las presas de una etapa
+      para establecer las ecuaciones de depredación.
+    :type inter: dict
+
+    :param dic_ecs: El diccionario de las especificaciones de parámetros para cada tipo de ecuación posible
+    :type dic_ecs: dict
+
+    :return: d
+    :rtype: dict
+    """
+
+    # Si es la primera iteración, crear un diccionario vacío
+    if d is None:
+        d = {}
+
+    # Para cada llave el en diccionario
+    for ll, v in dic_ecs.items():
+        # Si v también es un diccionario, crear el diccionario correspondiente en d
+        if type(v) is dict:
+            d[ll] = {}
+            gen_ec_inic(v, inter, d)  # y llamar esta función de nuevo
+
+        elif ll == 'límites':  # Si llegamos a la especificación de límites del parámetro
+
+            # Si no hay interacciones con otros organismos para este parámetro...
+            if dic_ecs['inter'] is None:
+                d[ll] = {}  # Crear el diccionario para contener las calibraciones
+                d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
+
+            # Si hay interacciones con las presas de la etapa...
+            elif dic_ecs['inter'] == 'presa':
+                try:
+                    d[ll] = dict([(p, None) for p in inter['presas']])
+                except KeyError:  # Si no hay presas, el parámetro se queda vacío
+                    d[ll] = {}
+                    continue
+                for p in d[ll]:
+                    d[ll][p] = dict([(etp, límites_a_dist(v)) for etp in inter['presas'][p]])
+
+            else:
+                raise ValueError
+
+        else:
+            pass
+
+    return d
+
+
+def límites_a_dist(límites, cont=True):
+    """
+    Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
+      destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
+      distribuciones de los parámetros de ecuaciones.
+
+    :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
+      -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
+      (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
+      variable en las ecuaciones que lo utilisan.
+    :type límites: tuple
+
+    :param cont: Determina si el variable es continuo o discreto
+    :type cont: bool
+
+    :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
+      cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
+      en distribución de scipy o de pymc donde necesario.
+    :rtype: str
+    """
+
+    # Sacar el mínimo y máximo de los límites.
+    mín = límites[0]
+    máx = límites[1]
+
+    # Verificar que máx > mín
+    if máx <= mín:
+        raise ValueError('El valor máximo debe ser superior al valor máximo.')
+
+    # Pasar a través de todos los casos posibles
+    if mín == -np.inf:
+        if máx == np.inf:  # El caso (-np.inf, np.inf)
+            if cont:
+                dist = 'Normal(0, 1e10)'
+            else:
+                dist = 'DiscrUnif(1e-10, 1e10)'
+
+        else:  # El caso (-np.inf, R)
+            raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
+                             'crear un variable en el intervalo (R, inf) y utilisar su valor negativo en las '
+                             'ecuaciones.')
+
+    else:
+        if máx == np.inf:  # El caso (R, np.inf)
+            if cont:
+                dist = 'Expon({}, 1e10)'.format(mín)
+            else:
+                loc = mín - 1
+                dist = 'Geom(1e-8, {})'.format(loc)
+
+        else:  # El caso (R, R)
+            if cont:
+                dist = 'Unif~({}, {})'.format(mín, máx)
+            else:
+                dist = 'DiscrUnif~({}, {})'.format(mín, mín+1)
+
+    return dist
+
+
+def np_a_lista(d):
+    """
+    Esta función toma las matrices numpy contenidas en un diccionario de estructura arbitraria y las convierte
+      en listas numéricas. Cambia el diccionario in situ, así que no devuelve ningún valor.
+
+    :param d: El diccionario a convertir
+    :type d: dict
+    :return: nada
+    """
+
+    for ll, v in d.items():
+        if type(v) is dict:
+            np_a_lista(v)
+        elif type(v) is list:
+            try:
+                d[ll] = np.array(v, dtype=float)
+            except ValueError:
+                pass
+
+
+def lista_a_np(d):
+    """
+    Esta función toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las convierte
+      en matrices de numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
+    :param d: El diccionario a convertir
+    :type d: dict
+    :return: nada
+    """
+
+    for ll, v in d.items():
+        if type(v) is dict:
+            lista_a_np(v)
+        elif type(v) is np.ndarray:
+            d[ll] = v.tolist()

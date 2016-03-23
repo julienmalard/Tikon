@@ -1,21 +1,40 @@
 import io
 import json
-import numpy as np
 
 import REDES.Ecuaciones as Ec
 
 
 class Organismo(object):
     def __init__(símismo, nombre=None, fuente=None):
-        símismo.fuente = fuente
-        símismo.nombre = None
-        símismo.etapas = {}
+        """
+        Esta clase representa cualquier organismo vivo en una red agroecológica. Esta clase se llama directamente muy
+          rara vez, porque se llama más facilmente por el uso de una de sus subclases (Insecto, Enfermedad, etc.) o de
+          subclases.
+
+        :param nombre: El nombre del organismo
+        :type nombre: str
+
+        :param fuente: Un archivo de organismo guardada (opcional) para cargar.
+        :type fuente: str
+
+        :return:
+        """
+
+        # La receta del organismo es dónde se guarda toda la información necesaria para recrearlo de cero.
+        # Contiene su nombre, un diccionario de los diccionarios de sus etapas, y la configuración actual del
+        # organismo (ecuaciones activas y presas actuales para cada etapa.)
 
         símismo.receta = dict(nombre=nombre,
                               etapas={},
                               config={'ecuaciones': None,
                                       'presas': None}
                               )
+
+        # Algunos atributos para facilitar el uso del organismo (a parte "fuente", estos se pueden determinar por la
+        # información en símismo.receta.
+        símismo.fuente = fuente
+        símismo.nombre = None
+        símismo.etapas = []
 
         # Si se especificó un archivo para cargar, cargarlo.
         if fuente is not None:
@@ -27,9 +46,9 @@ class Organismo(object):
 
                 # Convertir listas a matrices numpy en las ecuaciones (coeficientes) de las etapas
                 for dic_etp in símismo.receta['etapas']:
-                    lista_a_np(dic_etp['ecuaciones'])
+                    Ec.lista_a_np(dic_etp['ecuaciones'])
 
-            except IOError as e:  # Si no funcionó, hay que quejarse.
+            except IOError as e:  # Si no funcionó, quejarse.
                 raise IOError(e)
 
         # Actualizar el insecto
@@ -61,18 +80,18 @@ class Organismo(object):
         :param posición: La posición cronológica de la etapa. Por ejemplo, "huevo" tendría posición 1, etc.
         :type posición: int
 
-        :param ecuaciones: Un diccionario con los tipos de ecuaciones para este insecto usa. (Siempre se puede cambiar
-        más tarde con la función usar_ecuación()). Notar que los nuevos insectos tendrán TODAS las ecuaciones posibles
-        en su diccionario inicial; la especificación de ecuación aquí únicamente determina cual(es) de estas se usarán
-        para la calibración, simulación, etc.
-        Tiene el formato: {nombre_de_la_etapa_1: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...} } }
+        :param ecuaciones: Un diccionario con los tipos de ecuaciones para esta etapa. (Siempre se puede cambiar
+          más tarde con la función usar_ecuación()). Notar que las nuevas etapas tendrán TODAS las ecuaciones posibles
+          en su diccionario inicial; la especificación de ecuación aquí únicamente determina cual(es) de estas se usarán
+          para la calibración, simulación, etc.
+          Tiene el formato: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...}, Categoría_2: {...}, ...}
         :type ecuaciones: dict
         """
 
         # Crear el diccionario inicial para la etapa
         dic_etapa = dict(nombre=nombre,
                          posición=posición,
-                         ecuaciones=gen_ec_inic(Ec.ecuaciones),
+                         ecuaciones=Ec.gen_ec_inic(Ec.ecuaciones),
                          presas=[]
                          )
 
@@ -80,12 +99,11 @@ class Organismo(object):
         símismo.receta['etapas'][nombre] = dic_etapa
 
         # Copiar la selección de ecuaciones para la etapa a la configuración activa del organismo
-        for etp, dic_etp in ecuaciones.items():
-            config_etp = símismo.receta['config']['ecuaciones'][etp] = {}
-            for categ, dic_categ in dic_etp.items():
-                config_etp[categ] = {}
-                for subcateg, opción in dic_categ.items():
-                    config_etp[categ][subcateg] = opción
+        config_etp = símismo.receta['config']['ecuaciones'][nombre] = {}
+        for categ, dic_categ in ecuaciones.items():
+            config_etp[categ] = {}
+            for subcateg, opción in dic_categ.items():
+                config_etp[categ][subcateg] = opción
 
         # Crear una lista vaciá para eventualmente guardar las presas (si hay) de la nueva etapa
         símismo.receta['config']['presas'][nombre] = []
@@ -239,7 +257,7 @@ class Organismo(object):
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
         for dic_etp in símismo.receta['etapas']:  # Convertir matrices a formato de lista
-            np_a_lista(dic_etp['ecuaciones'])
+            Ec.np_a_lista(dic_etp['ecuaciones'])
 
         with io.open(archivo, 'w', encoding='utf8') as d:
             json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
@@ -267,156 +285,3 @@ def llenar_dic(d_vacío, d_nuevo):
                 d_vacío[ll] = d_nuevo[ll]
             except KeyError:
                 raise Warning('Diccionario pariente no contiene todas las llaves a llenar.')
-
-
-def gen_ec_inic(dic_ecs, inter=None, d=None):
-    """
-    Esta función toma un diccionario de especificaciones de parámetros de ecuaciones y lo convierte en un diccionario
-      de distribuciones iniciales.
-
-    :param d: Parámetro que siempre se debe dejar a "None" cuando de usa esta función. Está allí para permetir las
-      funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
-    :type d: dict
-
-    :param inter: Un diccionario, si se aplica, de las interacciones con otros organismos necesarios para establecer
-      las ecuaciones de manera correcta. Un ejemplo común sería el diccionario de las presas de una etapa
-      para establecer las ecuaciones de depredación.
-    :type inter: dict
-
-    :param dic_ecs: El diccionario de las especificaciones de parámetros para cada tipo de ecuación posible
-    :type dic_ecs: dict
-
-    :return: d
-    :rtype: dict
-    """
-
-    # Si es la primera iteración, crear un diccionario vacío
-    if d is None:
-        d = {}
-
-    # Para cada llave el en diccionario
-    for ll, v in dic_ecs.items():
-        # Si v también es un diccionario, crear el diccionario correspondiente en d
-        if type(v) is dict:
-            d[ll] = {}
-            gen_ec_inic(v, inter, d)  # y llamar esta función de nuevo
-
-        elif ll == 'límites':  # Si llegamos a la especificación de límites del parámetro
-
-            # Si no hay interacciones con otros organismos para este parámetro...
-            if dic_ecs['inter'] is None:
-                d[ll] = {}  # Crear el diccionario para contener las calibraciones
-                d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
-
-            # Si hay interacciones con las presas de la etapa...
-            elif dic_ecs['inter'] == 'presa':
-                try:
-                    d[ll] = dict([(p, None) for p in inter['presas']])
-                except KeyError:  # Si no hay presas, el parámetro se queda vacío
-                    d[ll] = {}
-                    continue
-                for p in d[ll]:
-                    d[ll][p] = dict([(etp, límites_a_dist(v)) for etp in inter['presas'][p]])
-
-            else:
-                raise ValueError
-
-        else:
-            pass
-
-    return d
-
-
-def límites_a_dist(límites, cont=True):
-    """
-    Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
-      destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
-      distribuciones de los parámetros de ecuaciones.
-
-    :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
-      -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
-      (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
-      variable en las ecuaciones que lo utilisan.
-    :type límites: tuple
-
-    :param cont: Determina si el variable es continuo o discreto
-    :type cont: bool
-
-    :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
-      cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
-      en distribución de scipy o de pymc donde necesario.
-    :rtype: str
-    """
-
-    # Sacar el mínimo y máximo de los límites.
-    mín = límites[0]
-    máx = límites[1]
-
-    # Verificar que máx > mín
-    if máx <= mín:
-        raise ValueError('El valor máximo debe ser superior al valor máximo.')
-
-    # Pasar a través de todos los casos posibles
-    if mín == -np.inf:
-        if máx == np.inf:  # El caso (-np.inf, np.inf)
-            if cont:
-                dist = 'Normal(0, 1e10)'
-            else:
-                dist = 'DiscrUnif(1e-10, 1e10)'
-
-        else:  # El caso (-np.inf, R)
-            raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
-                             'crear un variable en el intervalo (R, inf) y utilisar su valor negativo en las '
-                             'ecuaciones.')
-
-    else:
-        if máx == np.inf:  # El caso (R, np.inf)
-            if cont:
-                dist = 'Expon({}, 1e10)'.format(mín)
-            else:
-                loc = mín - 1
-                dist = 'Geom(1e-8, {})'.format(loc)
-
-        else:  # El caso (R, R)
-            if cont:
-                dist = 'Unif~({}, {})'.format(mín, máx)
-            else:
-                dist = 'DiscrUnif~({}, {})'.format(mín, mín+1)
-
-    return dist
-
-
-def np_a_lista(d):
-    """
-    Esta función toma las matrices numpy contenidas en un diccionario de estructura arbitraria y las convierte
-      en listas numéricas. Cambia el diccionario in situ, así que no devuelve ningún valor.
-
-    :param d: El diccionario a convertir
-    :type d: dict
-    :return: nada
-    """
-
-    for ll, v in d.items():
-        if type(v) is dict:
-            np_a_lista(v)
-        elif type(v) is list:
-            try:
-                d[ll] = np.array(v, dtype=float)
-            except ValueError:
-                pass
-
-
-def lista_a_np(d):
-    """
-    Esta función toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las convierte
-      en matrices de numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
-    :param d: El diccionario a convertir
-    :type d: dict
-    :return: nada
-    """
-
-    for ll, v in d.items():
-        if type(v) is dict:
-            lista_a_np(v)
-        elif type(v) is np.ndarray:
-            d[ll] = v.tolist()
