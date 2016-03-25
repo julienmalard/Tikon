@@ -17,26 +17,17 @@ class Red(object):
         símismo.etapas = []  # Una lista de las etapas de los organismos en la red
 
         # Diccionario que contendrá matrizes de los coeficientes de la red
-        símismo.coefs = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
+        símismo.coefs_act = {}
 
-        símismo.ecs = {'Crecimiento': {'etapas': [], }}
+        # Para guardar los tipos de ecuaciones de los organismos en la red
+        símismo.ecs = {}
 
-        # La matriz de datos de poblaciones de las simulaciones
-        símismo.pobs = None
+        # La matriz de datos de las simulaciones (incluso los datos de poblaciones)
+        símismo.datos = {'Pobs': None, 'Transiciones': None, 'Depredación': None}
 
         # Si se especificó un archivo, cargarlo.
         if fuente is not None:
-            try:  # Intentar cargar el archivo (con formato UTF-8)
-                with open(fuente, 'r', encoding='utf8') as d:
-                    nuevo_dic = json.load(d)
-
-            except IOError as e:  # Si no funcionó, quejarse.
-                raise IOError(e)
-
-            else:  # Si se cargó el documento con éxito, usarlo
-                pass
-                # Copiar el documento a la receta de esta red
-                # para hacer: llenar_dic(símismo.receta, nuevo_dic)
+            símismo.cargar(fuente)
 
         # Actualizar el organismo
         símismo.actualizar()
@@ -124,27 +115,91 @@ class Red(object):
             for subcateg in dic_categ:
                 subcateg.ecs[categ][subcateg] = [etp['ecuaciones'][categ][subcateg] for etp in símismo.etapas]
 
+    def llenar_coefs(símismo, n_etps, n_parc, n_rep_parám, n_rep_estoc, calibs):
 
-        # Crear las matrices de coeficientes vacías (se llenan cuande se llama la simulación)
-        símismo.coefs_act = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
+        # Crear las matrices de coeficientes
+        símismo.coefs_act = {}
         for categ, dic_categ in Ec.ecuaciones.items():
             símismo.coefs_act[categ] = {}
+
             for subcateg in dic_categ:
-                símismo.coefs_act[categ][subcateg] = [ for etp in símismo.etapas if ]
+                lista_parám = símismo.coefs_act[categ][subcateg] = []
+
+                for etp in símismo.etapas:
+                    dic_parám = {}
+                    opción = etp['ecuaciones'][categ][subcateg]['opción']
+
+                    for parám in Ec.ecuaciones[categ][subcateg][opción]:
+
+                        if parám['inter'] is None:
+
+                            if calibs == 'Todo':
+                                calibs_etp = list(etp['ecuaciones'][categ][subcateg]['paráms'][parám].keys())
+                            else:
+                                calibs_etp = calibs
+
+                            n_calibs = len(calibs_etp)
+                            rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
+                            resto = n_rep_parám % n_calibs
+                            rep_per_calib[:resto+1] += 1
+
+                            for n_id, id in enumerate(calibs_etp):
+
+                                traza_parám = etp['ecuaciones'][categ][subcateg]['paráms'][parám][id]
+
+                                if type(traza_parám) is np.ndarray:
+                                    if rep_per_calib[n_id] > calibs_etp[id]:
+                                        raise Warning('Número de replicaciones superior al tamaño de la traza de '
+                                                      'parámetro disponible.')
+
+                                    dic_parám[parám] = np.random.choice(calibs_etp[id], size=rep_per_calib[n_id])
+
+                                elif type(traza_parám) is str:
+                                    dist_np = Ec.txdist_a_distnp(traza_parám)
+                                    dic_parám[parám] = dist_np.rvs(rep_per_calib[n_id])
+
+                                else:
+                                    raise TypeError
 
 
-        núm_etapas = len(símismo.etapas)
-        símismo.coefs['Depredación'] = np.zeros(shape=(núm_etapas, núm_etapas))
+                        elif parám['inter'] == 'presa':
+                            dic_parám[parám] = np.zeros(shape=(n_rep_parám, n_etps))
 
-    def simular(símismo, paso=1, tiempo_final=120, pobs_inic=None):
+                        else:
+                            raise ValueError
+
+                    lista_parám += dic_parám
+
+
+        # Crear las matrices para guardar resultados:
+        símismo.datos['Pobs'] = np.empty(shape=(n_etps, n_parc, n_rep_parám, n_rep_estoc), dtype=int)
+
+        símismo.datos['Depredación'] = np.zeros(shape=(n_etps, n_etps, n_parc, n_rep_parám, n_rep_estoc), dtype=int)
+
+        símismo.datos['Transiciones'] = np.zeros(shape=(n_etps, n_parc, n_rep_parám, n_rep_estoc), dtype=np.int)
+
+
+        símismo.listo = True
+
+
+
+    def simular(símismo, paso=1, tiempo_final=120, rep_parám=100, rep_estoc=1, pobs_inic=None):
 
         # Determinar el número de parcelas y el número de especies
         n_parcelas = pobs_inic.shape[2]
-        n_especies = len(símismo.etapas)
+        n_etps = len(símismo.etapas)
+
+
+        if not símismo.listo:
+            símismo.llenar_coefs(n_etps=n_etps, n_parc=n_parcelas, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc)
+
+
+
+
 
         # Crear una matriz para guardar los resultados.
         # Eje 0 es el día de simulacion, eje 1 la especie y eje 2 las distintas parcelas
-        símismo.pobs = np.empty(shape=(tiempo_final, n_especies, n_parcelas))
+        símismo.pobs = np.empty(shape=(tiempo_final, n_etps, n_parcelas))
 
         # para hacer: inicializar las poblaciones a t=0
         for i in range(0, tiempo_final, paso):
@@ -459,20 +514,23 @@ class Red(object):
         with io.open(archivo, 'w', encoding='utf8') as d:
             json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)
 
-    def cargar(símismo, archivo):
+    def cargar(símismo, fuente):
         """
         Esta función carga un documento de red ya guardado
         :param archivo:
         :return:
         """
+        try:  # Intentar cargar el archivo (con formato UTF-8)
+            with open(fuente, 'r', encoding='utf8') as d:
+                nuevo_dic = json.load(d)
 
-        try:  # Intentar cargar el archivo
-            with open(archivo, 'r', encoding='utf8') as d:
-                símismo.receta = json.load(d)
-            símismo.archivo = archivo  # Guardar la ubicación del archivo activo de la red
-
-        except IOError as e:
+        except IOError as e:  # Si no funcionó, quejarse.
             raise IOError(e)
+
+        else:  # Si se cargó el documento con éxito, usarlo
+            pass
+            # Copiar el documento a la receta de esta red
+            # para hacer: llenar_dic(símismo.receta, nuevo_dic)
 
     # Funciones auxiliares
     @staticmethod

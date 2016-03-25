@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats as estad
 
 
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
@@ -328,3 +329,7 @@ def lista_a_np(d):
             lista_a_np(v)
         elif type(v) is np.ndarray:
             d[ll] = v.tolist()
+
+
+def txdist_a_distnp(txdist):
+    pass
