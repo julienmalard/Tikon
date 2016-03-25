@@ -3,70 +3,136 @@ import json
 import math as mat
 import numpy as np
 
-from REDES.ORGANISMO import Organismo, Etapa
+import REDES.Ecuaciones as Ec
+from REDES.ORGANISMO import Organismo
 
 
 class Red(object):
     def __init__(símismo, fuente=None):
 
-        símismo.receta = dict(Organismos=[])  # La información necesaria para recrear la red
+        símismo.receta = dict(Organismos={})  # La información necesaria para recrear la red
 
         símismo.fuente = fuente  # El archivo en que podemos guardar esta red
+        símismo.organismos = {}  # Para los objetos de los organismos en la red
+        símismo.etapas = []  # Una lista de las etapas de los organismos en la red
 
-        símismo.organismos = {}  # Contendrá los objetos de los organismos que existen en la red
-        símismo.etapas = []  # Contendrá los objetos de las etapas de los organismos que existen en la red
-        # Listas de los tipos de ecuaciones
-        símismo.tipos_ecuaciones = {'Crecimiento': {'Base': [], 'Modif': []},
-                                    'Depredación': [],
-                                    'Muertes': [],
-                                    'Migración': []}
         # Diccionario que contendrá matrizes de los coeficientes de la red
         símismo.coefs = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
-        símismo.pobs = None  # Contendrá la matriz de datos de poblaciones durante las simulaciones
 
-        if fuente is not None:  # Si se especificó un archivo, cargarlo
-            símismo.cargar(fuente)
+        símismo.ecs = {'Crecimiento': {'etapas': [], }}
+
+        # La matriz de datos de poblaciones de las simulaciones
+        símismo.pobs = None
+
+        # Si se especificó un archivo, cargarlo.
+        if fuente is not None:
+            try:  # Intentar cargar el archivo (con formato UTF-8)
+                with open(fuente, 'r', encoding='utf8') as d:
+                    nuevo_dic = json.load(d)
+
+            except IOError as e:  # Si no funcionó, quejarse.
+                raise IOError(e)
+
+            else:  # Si se cargó el documento con éxito, usarlo
+                pass
+                # Copiar el documento a la receta de esta red
+                # para hacer: llenar_dic(símismo.receta, nuevo_dic)
+
+        # Actualizar el organismo
+        símismo.actualizar()
 
     def añadir_organismo(símismo, organismo):
+        """
 
-        if isinstance(organismo, Organismo):  # Si le pasaste un objeto de organismo ya existente, usarlo
-            símismo.receta['Organismos'].append(organismo.nombre)
+        :param organismo:
+        :type organismo: Organismo or str
+        """
+
+        if isinstance(organismo, Organismo):  # 'organismo' es un objeto de tipo Organismo...
+
+            # Añadir el organismo a la receta
+            símismo.receta['Organismos'][organismo.nombre] = organismo.receta['config']
+
+            # Poner el organismo en la lista activa
             símismo.organismos[organismo.nombre] = organismo
-        elif isinstance(organismo, str):  # Si en vez le pasaste el nombre de un organismo, intentar crearlo
-            símismo.receta['Organismos'].append(organismo)
-            símismo.organismos[organismo] = Organismo(organismo)
 
+        elif isinstance(organismo, str):  #  ...o 'organismo' es una cadena de carácteres
+
+            obj_org = Organismo(organismo)  # Crear el organismo correspondiente
+
+            # Poner el organismo en la receta
+            símismo.receta['Organismos'][organismo] = obj_org.receta['config']
+
+            # Poner el organismo en la lista activa
+            símismo.organismos[organismo] = obj_org
+
+        # Actualizar la red
         símismo.actualizar()
 
     def quitar_organismo(símismo, organismo):
-        símismo.receta['Organismos'].remove(organismo.nombre)
-        símismo.organismos.pop(organismo.nombre)
+        """
 
+        :param organismo:
+        :type organismo: Organismo or str
+        :return:
+        """
+
+        if isinstance(organismo, Organismo):  # 'organismo' es un objeto de tipo Organismo...
+            símismo.receta['Organismos'].pop(organismo.nombre)  # Quitar su nombre a la receta
+            símismo.organismos.pop(organismo.nombre)  # Poner el organismo en la lista activa
+
+
+        elif isinstance(organismo, str):  #  ...o 'organismo' es una cadena de carácteres
+            símismo.receta['Organismos'].pop(organismo)  # Poner el nombre en la receta
+            símismo.organismos.pop(organismo)  # Crear el organismo correspondiente
+
+        # Actualizar la red
         símismo.actualizar()
 
     def actualizar(símismo):
         """
         Actualiza la lista de etapas y las matrices de coeficientes de la red.
+
         :return: Nada
         """
 
-        símismo.etapas.clear()  # Borrar la lista de etapas existentes
+        # Verificar que todos los organismos en la receta, y únicamente los organismos en la receta, estén en la
+        # lista de organismos activos de la red.
+
+        for nombre, config in símismo.receta['Organismos'].items():
+            if nombre not in símismo.organismos:  # Si el organismo no existía...
+                # Crear el organismo...
+                símismo.organismos[nombre] = Organismo(nombre)
+
+                # Y aplicar las configuraciones guardadas en la red
+                símismo.organismos[nombre].receta['config'] = config
+
+        for org in símismo.organismos:
+            if org not in símismo.receta['Organismos']:
+                símismo.organismos.pop(org)
 
         # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
-        for organismo in [org for (nom, org) in sorted(símismo.organismos.items())]:
-            símismo.etapas += organismo.etapas
 
-        # Crear las listas de ecuaciones de cada organismo
-        tipos_ec = símismo.tipos_ecuaciones
+        símismo.etapas.clear()  # Borrar la lista de etapas existentes
 
-        for tipo_cálc in símismo.etapas[0].receta['Ecuaciones']:
-            etps = [(n, etp.receta['Ecuaciones'][tipo_cálc]) for n, etp in enumerate(símismo.etapas) if
-                    etp.receta['Ecuaciones'][tipo_cálc] is not None]
-            tipos_ec[tipo_cálc]['Etapas'] = [i[0] for i in etps]
-            tipos_ec[tipo_cálc]['Ecuación'] = [i[1] for i in etps]
+        for organismo in [org for (nombre, org) in sorted(símismo.organismos.items())]:
+            símismo.etapas += [etp for etp in sorted(organismo.receta.values())]
+
+        # Guardar los tipos de ecuaciones activos de las etapas en un diccionario central
+        for categ, dic_categ in Ec.ecuaciones:
+            símismo.ecs[categ] = {}
+            for subcateg in dic_categ:
+                subcateg.ecs[categ][subcateg] = [etp['ecuaciones'][categ][subcateg] for etp in símismo.etapas]
 
 
-        # Crear las matrices de coeficientes
+        # Crear las matrices de coeficientes vacías (se llenan cuande se llama la simulación)
+        símismo.coefs_act = {'Crecimiento': {}, 'Depredación': {}, 'Migración': {}}
+        for categ, dic_categ in Ec.ecuaciones.items():
+            símismo.coefs_act[categ] = {}
+            for subcateg in dic_categ:
+                símismo.coefs_act[categ][subcateg] = [ for etp in símismo.etapas if ]
+
+
         núm_etapas = len(símismo.etapas)
         símismo.coefs['Depredación'] = np.zeros(shape=(núm_etapas, núm_etapas))
 
@@ -98,39 +164,47 @@ class Red(object):
     def calc_crec(símismo, pobs_act, externo, paso):
         """
         Calcula las reproducciones y las transiciones de etapas de crecimiento
+
         :type externo: dict
         :param externo: diccionario de factores externos a la red (plantas, clima, etc.)
+
         :type paso: int
         :type pobs_act: np.ndarray
+
         :param pobs_act: matriz numpy de poblaciones actuales. Eje 0 = especie, eje 1 = parcela
         :param paso:
+
         :return: matriz numpy de reproducción (insectos/tiempo). Eje 0 = especie, eje 1 = parcela
         """
 
         crec = np.zeros(shape=pobs_act.shape)
-        etapas = símismo.tipos_ecuaciones['Crecimiento']['Etapas']
-        tipos_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']['Base']
-        modif_ec = símismo.tipos_ecuaciones['Crecimiento']['Ecuación']['Modif']
+        n_etapas = símismo.ecs['Crecimiento']['n_etps']
+        coefs = [etp['Crecimiento'] for etp in símismo.coefs_act]
 
-        for n, n_etp in enumerate(etapas):
+        modifs = símismo.ecs['Crecimiento']['modifs']
+        ecs = símismo.ecs['Crecimiento']['ecuaciones']
 
-            cf = símismo.coefs_act[n_etp]
+        for n, n_etp in enumerate(n_etapas):
 
-            r = cf['r']
+            cf = coefs[n_etp]
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
-            if modif_ec[n] is None:
+            if modifs[n] is None:
                 # Si no hay modificaciones ambientales, no hacer nada
                 pass
 
-            elif modif_ec[n] == 'Log Normal Temperatura':
+            elif modifs[n] == 'Regular':
+                r = cf['r']
+
+            elif modifs[n] == 'Log Normal Temperatura':
+                r = cf['r']
                 r *= mat.exp(-0.5*(mat.log(externo['temp_máx'] /cf['t']) / cf['p']) ** 2)
 
             else:
                 raise ValueError
 
             # Calcular el crecimiento de la población
-            if tipos_ec[n] == 'Exponencial':
+            if ecs[n] == 'Exponencial':
                 # Crecimiento exponencial
 
                 crec[n] = pobs_act[n] * (r * paso)
@@ -140,7 +214,7 @@ class Red(object):
 
                 # coefs_k es una matriz del impacto de cada otro organismo en la capacidad de carga de
                 # este organismo (n). Eje 0 = vacío, eje 1 = especie
-                coefs_k = cf['K'][n]
+                coefs_k = cf['K']
                 k = pobs_act * coefs_k
                 crec[n_etp] = pobs_act[n_etp] * (1 - pobs_act[n_etp] / k)
 
@@ -189,8 +263,8 @@ class Red(object):
 
             Asíntota doble (Kovai):
                 y = k / (1 + m * D), donde
-                k = (b * P^2) / (P^2 + c), y
-                m = (1/a - 1) * (b / P)
+                  k = (b * P^2) / (P^2 + c)
+                  m = (1/a - 1) * (b / P)
 
 
         :param pobs_inic: matriz numpy de poblaciones actuales. Eje 0 = especie, eje 1 = parcela
@@ -362,6 +436,9 @@ class Red(object):
         :param paso:
         :return:
         """
+
+    def poner_val(símismo, ):
+        pass
 
     def guardar(símismo, archivo=''):
         """

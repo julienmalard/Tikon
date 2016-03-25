@@ -4,24 +4,27 @@ from REDES.ORGANISMO import Organismo
 class Insecto(Organismo):
     def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones):
         """
+        Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses.
 
-
-        :param nombre:
+        :param nombre: El nombre del insecto
         :type nombre: str
 
-        :param huevo:
+        :param huevo: Si incluimos la etapa del huevo en el modelo o no.
         :type huevo: bool
 
-        :param njuvenil:
+        :param njuvenil: Cuantas fases juveniles incluimos en el modelo (puede ser 0).
         :type njuvenil: int
 
-        :param pupa:
+        :param pupa: Si incluimos la etapa de la pupa en el modelo o no.
         :type pupa: bool
 
-        :param adulto:
+        :param adulto: Si incluimos la etapa del adulto en el modelo o no.
         :type adulto: bool
 
-        :param tipo_ecuaciones:
+        :param tipo_ecuaciones: Un diccionario con los tipos de ecuaciones para cada etapa. (Siempre se puede cambiar
+          más tarde con la función usar_ecuación()).
+          Tiene el formato: {Etapa_1: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...}, Categoría_2: {...} },
+           Etapa_2: {Categoría_1: {subcategoría...}, ...}, ...}
         :type tipo_ecuaciones: dict
 
         """
@@ -33,6 +36,7 @@ class Insecto(Organismo):
             símismo.añadir_etapa('huevo', posición=pos, ecuaciones=tipo_ecuaciones['huevo'])
             pos += 1
 
+        assert(type(njuvenil) is int and njuvenil >= 0)
         for i in range(0, njuvenil):
             símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
             pos += 1
@@ -46,16 +50,13 @@ class Insecto(Organismo):
 
 # Unas clases prehechas para simplificar la creación de insectos
 class Sencillo(Insecto):
-    def __init__(símismo, nombre, huevo=False):
+    def __init__(símismo, nombre):
         """
+        Esta clase representa insectos con ciclos de vida sencillos (para cuales sólo se incluye la etapa adulta en el
+          modelo).
 
-
-        :param nombre:
+        :param nombre: El nombre del insecto
         :type nombre: str
-
-        :param huevo:
-        :type huevo: bool
-
         """
 
         tipo_ec = dict(Crecimiento={'Modif': 'Regular', 'Ecuación': 'Logístico presa'},
@@ -65,19 +66,27 @@ class Sencillo(Insecto):
                        Movimiento={}
                        )
 
-        super().__init__(nombre=nombre, huevo=huevo, njuvenil=0, pupa=False, adulto=True,
+        super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
                          tipo_ecuaciones=dict(adulto=tipo_ec))
 
 
 class MetamCompleta(Insecto):
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
         """
+        Esta clase representa insectos que tienen una metamórfosis completa.
 
-        :param nombre:
-        :param huevo:
-        :param njuvenil:
-        :param adulto:
-        :return:
+        :param nombre: El nombre del insecto
+        :type nombre: str
+
+        :param huevo: Si incluimos la etapa del huevo en el modelo o no.
+        :type huevo: bool
+
+        :param njuvenil: Cuantas fases juveniles incluimos en el modelo.
+        :type njuvenil: int
+
+        :param adulto: Si incluimos la etapa del adulto en el modelo o no.
+        :type adulto: bool
+
         """
 
         tipo_ec = {}
@@ -118,12 +127,20 @@ class MetamCompleta(Insecto):
 class MetamIncompleta(Insecto):
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
         """
+        Esta clase representa insectos que tienen una metamórfosis incompleta.
 
-        :param nombre:
-        :param huevo:
-        :param njuvenil:
-        :param adulto:
-        :return:
+        :param nombre: El nombre del insecto
+        :type nombre: str
+
+        :param huevo: Si incluimos la etapa del huevo en el modelo o no.
+        :type huevo: bool
+
+        :param njuvenil: Cuantas etapas juveniles incluimos en el modelo.
+        :type njuvenil: int
+
+        :param adulto: Si incluimos la etapa del adulto en el modelo o no.
+        :type adulto: bool
+
         """
 
         tipo_ec = {}
