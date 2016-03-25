@@ -1,3 +1,3 @@
 __author__ = 'Julien Malard'
 
-__all__ = ['INSECTOS', 'REDES']
+__all__ = ['INSECTO', 'RED']
