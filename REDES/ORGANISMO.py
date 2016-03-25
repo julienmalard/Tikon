@@ -1,4 +1,5 @@
 import io
+import os.path
 import json
 
 import REDES.Ecuaciones as Ec
@@ -38,20 +39,9 @@ class Organismo(object):
 
         # Si se especificó un archivo para cargar, cargarlo.
         if fuente is not None:
-            try:  # Intentar cargar el archivo (con formato UTF-8)
-                with open(fuente, 'r', encoding='utf8') as d:
-                    nuevo_dic = json.load(d)
+            símismo.cargar(fuente)
 
-                llenar_dic(símismo.receta, nuevo_dic)
-
-                # Convertir listas a matrices numpy en las ecuaciones (coeficientes) de las etapas
-                for dic_etp in símismo.receta['etapas']:
-                    Ec.lista_a_np(dic_etp['ecuaciones'])
-
-            except IOError as e:  # Si no funcionó, quejarse.
-                raise IOError(e)
-
-        # Actualizar el insecto
+        # Actualizar el organismo
         símismo.actualizar()
 
     def actualizar(símismo):
@@ -92,7 +82,6 @@ class Organismo(object):
         dic_etapa = dict(nombre=nombre,
                          posición=posición,
                          ecuaciones=Ec.gen_ec_inic(Ec.ecuaciones),
-                         presas=[]
                          )
 
         # Guardar el diccionario en la receta del organismo
@@ -119,7 +108,7 @@ class Organismo(object):
     def quitar_etapa(símismo, nombre):
         # Quitar el diccionario de la etapa
         """
-        Esta función quita una etapa del insecto.
+        Esta función quita una etapa del organismo.
         :param nombre: El nombre de la etapa a quitar (p. ej., "huevo" o "adulto")
         :type nombre: str
         """
@@ -261,6 +250,40 @@ class Organismo(object):
 
         with io.open(archivo, 'w', encoding='utf8') as d:
             json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+
+    def cargar(símismo, fuente):
+        """
+        Esta función carga un archivo '.org' para crear el organismo. NO usar esta función directamente; se debe
+          llamar únicamente por la función __init__(). Si quieres cargar un organismo existente de otra fuente,
+          crear un nuevo organismo con la nueva fuente.
+
+        :param fuente:
+        :type fuente: str
+
+        :return:
+        """
+
+        # Si necesario, agregar la extensión y el directorio
+        if os.path.splitext(fuente)[1] != '.org':
+            fuente += '.org'
+        if os.path.split(fuente)[0] == '':
+            fuente = os.path.join(os.path.split(__file__)[0], 'Archivos', 'Organismos', fuente)
+
+        # Intentar cargar el archivo (con formato UTF-8)
+        try:
+            with open(fuente, 'r', encoding='utf8') as d:
+                nuevo_dic = json.load(d)
+
+        except IOError as e:  # Si no funcionó, quejarse.
+            raise IOError(e)
+
+        else:  # Si se cargó el documento con éxito, usarlo
+            # Copiar el documento a la receta de este organismo
+            llenar_dic(símismo.receta, nuevo_dic)
+
+            # Convertir listas a matrices numpy en las ecuaciones (coeficientes) de las etapas
+            for dic_etp in símismo.receta['etapas']:
+                Ec.lista_a_np(dic_etp['ecuaciones'])
 
 
 def llenar_dic(d_vacío, d_nuevo):
