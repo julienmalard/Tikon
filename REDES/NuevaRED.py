@@ -4,6 +4,7 @@ import math as mat
 import numpy as np
 
 import REDES.Ecuaciones as Ec
+import INCERT.Distribuciones as Ds
 from REDES.ORGANISMO import Organismo
 
 
@@ -155,8 +156,8 @@ class Red(object):
                                     dic_parám[parám] = np.random.choice(calibs_etp[id], size=rep_per_calib[n_id])
 
                                 elif type(traza_parám) is str:
-                                    dist_np = Ec.txdist_a_distnp(traza_parám)
-                                    dic_parám[parám] = dist_np.rvs(rep_per_calib[n_id])
+                                    dist_sp = Ds.texto_a_distscipy(traza_parám)
+                                    dic_parám[parám] = dist_sp.rvs(rep_per_calib[n_id])
 
                                 else:
                                     raise TypeError
@@ -448,6 +449,23 @@ class Red(object):
                 muertes[n] = pobs_inic * sobrevivencia
                 continue
 
+            elif tipos_ec[n] == 'Asimptótico Humedad':
+
+                # M. P. Lepage, G. Bourgeois, J. Brodeur, G. Boivin. 2012. Effect of Soil Temperature and Moisture on
+                #   Survival of Eggs and First-Instar Larvae of Delia radicum. Environmental Entomology 41(1): 159-165.
+
+                sobrevivencia = max(0, a * (1-mat.exp(-b * (humedad - c))))
+                muertes[n] = pobs_inic * sobrevivencia
+                continue
+
+
+            elif tipos_ec[n] == 'Sigmoidal Temperatura':
+
+                sobrevivencia = a / (1 + mat.exp((temp_máx - b) / c))
+                muertes[n] = pobs_inic * sobrevivencia
+                continue
+
+
             else:
                 raise ValueError
 
@@ -459,6 +477,22 @@ class Red(object):
         tipo_prob = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Prob']
 
         for n, n_etp in enumerate(etapas):  # Para cada organismo...
+
+            'Briere Temperatura':
+            # ABDUL MONIM MOKHTAR and SALEM SAIF AL NABHANI. 2010. Temperature-dependent development of dubas bug, Ommatissus lybicus (Hemiptera: Tropiduchidae), an endemic
+            #   pest of date palm, Phoenix dactylifera. Eur. J. Entomol. 107: 681–685
+            #
+            #
+            edad += a * (temp_prom)(temp_prom- t_dev_mín) * mat.sqrt(t_letal - temp_prom)
+
+            'Logan Temperatura':
+
+            # Modelling temperature-dependent development and survival of Otiorhynchus sulcatus (Coleoptera: Curculionidae)
+            # Youngsoo Son andEdwin E. Lewis
+            # Agricultural and Forest Entomology Volume 7, Issue 3, pages 201–209, August 2005
+
+            edad += phi * (mat.exp(rho * temp_prom) - exp(rho * t_dev_mín - (t_letal - temp_prom)/delta))
+
             if tipo_ec[n] == 'Constante':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
@@ -493,6 +527,15 @@ class Red(object):
         """
 
     def poner_val(símismo, ):
+        pass
+
+    def calibrar(símismo):
+        pass
+
+    def añadir_exp(símismo, experimento):
+        pass
+
+    def validar(símismo, experimento):
         pass
 
     def guardar(símismo, archivo=''):
