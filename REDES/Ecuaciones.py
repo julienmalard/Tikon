@@ -1,6 +1,4 @@
 import numpy as np
-import scipy.stats as estad
-
 
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
 # pedazos de inforamción: 1) sus límites y 2) si interactua con la estructura de la red. Por ejemplo, si un
@@ -269,9 +267,9 @@ def límites_a_dist(límites, cont=True):
     if mín == -np.inf:
         if máx == np.inf:  # El caso (-np.inf, np.inf)
             if cont:
-                dist = 'Normal(0, 1e10)'
+                dist = 'Normal~(0, 1e10)'
             else:
-                dist = 'DiscrUnif(1e-10, 1e10)'
+                dist = 'DiscrUnif~(1e-10, 1e10)'
 
         else:  # El caso (-np.inf, R)
             raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
@@ -281,10 +279,10 @@ def límites_a_dist(límites, cont=True):
     else:
         if máx == np.inf:  # El caso (R, np.inf)
             if cont:
-                dist = 'Expon({}, 1e10)'.format(mín)
+                dist = 'Gamma~({}, 0.0001, 0.0001)'.format(mín)
             else:
                 loc = mín - 1
-                dist = 'Geom(1e-8, {})'.format(loc)
+                dist = 'Geom~(1e-8, {})'.format(loc)
 
         else:  # El caso (R, R)
             if cont:
@@ -329,7 +327,3 @@ def lista_a_np(d):
             lista_a_np(v)
         elif type(v) is np.ndarray:
             d[ll] = v.tolist()
-
-
-def txdist_a_distnp(txdist):
-    pass
