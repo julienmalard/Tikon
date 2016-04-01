@@ -9,18 +9,17 @@ import numpy as np
 
 ecuaciones = dict(Crecimiento={'Modif': {None: None,
 
-                                         'Regular': {'r': {'límites': (0, np.inf),
+                                         'Ninguna': {'r': {'límites': (0, np.inf),
                                                            'inter': None}},
                                          'Log Normal Temperatura': {'t': {'límites': (0, np.inf),
                                                                           'inter': None},
                                                                     'p': {'límites': (0, np.inf),
                                                                           'inter': None}}
                                          },
-                               'Ecuación': {None: None,
-                                            'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
+                               'Ecuación': {'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
                                             'Logístico': {'K': {'límites': (0, np.inf),
                                                                 'inter': None}},
-                                            'Logístico presa': {'K': {'límites': (0, np.inf),
+                                            'Logístico Presa': {'K': {'límites': (0, np.inf),
                                                                 'inter': 'presa'}}
                                             }
                                },
@@ -108,23 +107,41 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                     'máx': {'límites': (-np.inf, np.inf),
                                                             'inter': None}
                                                     },
-                                    },
-
-                           'Prob': {None: None,
-
-                                    'Constante': {'a': {'límites': (0, np.inf),
-                                                        'inter': None}
-                                                  },
 
                                     'Log Normal Temperatura': {'t': {'límites': (-np.inf, np.inf),
                                                                      'inter': None},
                                                                'p': {'límites': (),
                                                                      'inter': None}
                                                                },
+                                    },
 
-                                    'Proporcional': {'q': {'límites': (0, 1),
-                                                           'inter': None}
-                                                     },
+                           'Prob': {None: None,
+                                    'Constante': {'q': {'límites': (0, 1),
+                                                        'inter': None}
+                                                  },
+                                    'Normal': {'mu': {'límites': (0, np.inf),
+                                                      'inter': None},
+                                               'sigma': {'límites': (0, np.inf),
+                                                         'inter': None}
+                                               },
+                                    'Linear': {'m': {'límites': (0, np.inf),
+                                                     'inter': None},
+                                               'b': {'límites': (0, np.inf),
+                                                     'inter': None}
+                                               },
+                                    'Cauchy': {'a': {'límites': (0, np.inf),
+                                                     'inter': None},
+                                               'b': {'límites': (0, np.inf),
+                                                     'inter': None}
+                                               },
+                                    'Gamma': {'a': {'límites': (0, np.inf),
+                                                    'inter': None},
+                                              'b': {'límites': (0, np.inf),
+                                                    'inter': None}
+                                              },
+                                    'T': {'k': {'límites': (0, np.inf),
+                                                'inter': None}
+                                          }
                                     },
                            },
 

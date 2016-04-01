@@ -6,413 +6,413 @@ from pymc import Beta, Cauchy, Chi2, Exponential, Exponweib, Gamma, HalfCauchy, 
     Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
 
 
-dists = {'cont': {'alpha': {'scipy': estad.alpha,
+dists = {'cont': {'Alpha': {'scipy': estad.alpha,
                             'pymc': None,
                             'límites': (0, np.inf)
                             },
-                  'anglit': {'scipy': estad.anglit,
+                  'Anglit': {'scipy': estad.anglit,
                              'pymc': None,
                              'límites': (-mat.pi/4, mat.pi/4)
                              },
-                  'arcsine': {'scipy': estad.arcsine,
-                              'pymc': None,
-                              'límites': (0, 1)
-                              },
-                  'beta': {'scipy': estad.beta,
+                  'Arcsen': {'scipy': estad.arcsine,
+                             'pymc': None,
+                             'límites': (0, 1)
+                             },
+                  'Beta': {'scipy': estad.beta,
                            'pymc': Beta,
                            'límites': (0, 1)
                            },
-                  'betaprime': {'scipy': estad.betaprime,
+                  'BetaPrima': {'scipy': estad.betaprime,
                                 'pymc': None,
                                 'límites': (0, np.inf)
                                 },
-                  'bradford': {'scipy': estad.bradford,
+                  'Bradford': {'scipy': estad.bradford,
                                'pymc': None,
                                'límites': (0, 1)
                                },
-                  'burr': {'scipy': estad.burr,
+                  'Burr': {'scipy': estad.burr,
                            'pymc': None,
                            'límites': (0, np.inf)
                            },
-                  'cauchy': {'scipy': estad.cauchy,
+                  'Cauchy': {'scipy': estad.cauchy,
                              'pymc': Cauchy,
                              'límites': (-np.inf, np.inf)
                              },
-                  'chi': {'scipy': estad.chi,
+                  'Chi': {'scipy': estad.chi,
                           'pymc': None,
                           'límites': (0, np.inf)
                           },
-                  'chi2': {'scipy': estad.chi2,
-                           'pymc': Chi2,
-                           'límites': (0, np.inf)
-                           },
-                  'cosine': {'scipy': estad.cosine,
+                  'ChiCuadrado': {'scipy': estad.chi2,
+                                  'pymc': Chi2,
+                                  'límites': (0, np.inf)
+                                  },
+                  'Cosine': {'scipy': estad.cosine,
                              'pymc': None,
                              'límites': (-mat.pi, mat.pi)
                              },
-                  'dgamma': {'scipy': estad.dgamma,
+                  'DobleGamma': {'scipy': estad.dgamma,
+                                 'pymc': None,
+                                 'límites': (0, np.inf)
+                                 },
+                  'DobleWeibull': {'scipy': estad.dweibull,
+                                   'pymc': None,
+                                   'límites': (0, np.inf)
+                                   },
+                  'Erlang': {'scipy': estad.erlang,
                              'pymc': None,
                              'límites': (0, np.inf)
                              },
-                  'dweibull': {'scipy': estad.dweibull,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'erlang': {'scipy': estad.erlang,
-                             'pymc': None,
-                             'límites': (0, np.inf)
-                             },
-                  'expon': {'scipy': estad.arcsine,
-                            'pymc': Exponential,
-                            'límites': (0, np.inf)
-                            },
-                  'exponnorm': {'scipy': estad.arcsine,
-                                'pymc': None,
-                                'límites': (-np.inf, np.inf)
-                                },
-                  'exponweib': {'scipy': estad.arcsine,
-                                'pymc': Exponweib,
-                                'límites': (0, np.inf)
-                                },
-                  'exponpow': {'scipy': estad.exponpow,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'f': {'scipy': estad.f,
+                  'Exponencial': {'scipy': estad.arcsine,
+                                  'pymc': Exponential,
+                                  'límites': (0, np.inf)
+                                  },
+                  'NormalExponencial': {'scipy': estad.arcsine,
+                                        'pymc': None,
+                                        'límites': (-np.inf, np.inf)
+                                        },
+                  'WeibullExponencial': {'scipy': estad.arcsine,
+                                         'pymc': Exponweib,
+                                         'límites': (0, np.inf)
+                                         },
+                  'PotencialExponencial': {'scipy': estad.exponpow,
+                                           'pymc': None,
+                                           'límites': (0, np.inf)
+                                           },
+                  'F': {'scipy': estad.f,
                         'pymc': None,
                         'límites': (0, np.inf)
                         },
-                  'fatiguelife': {'scipy': estad.fatiguelife,
-                                  'pymc': None,
-                                  'límites': (0, np.inf)
-                                  },
-                  'fisk': {'scipy': estad.fisk,
+                  'BirnbaumSaunders': {'scipy': estad.fatiguelife,
+                                       'pymc': None,
+                                       'límites': (0, np.inf)
+                                       },
+                  'Fisk': {'scipy': estad.fisk,
                            'pymc': None,
                            'límites': (0, np.inf)
                            },
-                  'foldcauchy': {'scipy': estad.foldcauchy,
-                                 'pymc': None,
-                                 'límites': (0, np.inf)
-                                 },
-                  'foldnorm': {'scipy': estad.foldnorm,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'frechet_r': {'scipy': estad.frechet_r,
-                                'pymc': None,
-                                'límites': (0, np.inf)
-                                },
-                  # 'frechet_l': {'scipy': estad.frechet_l,
-                  #               'pymc': None,
-                  #               'límites': (-np.inf, 0)
-                  #               },
-                  'genlogistic': {'scipy': estad.genlogistic,
-                                  'pymc': None,
-                                  'límites': (0, np.inf)
-                                  },
-                  'gennorm': {'scipy': estad.gennorm,
-                              'pymc': None,
-                              'límites': (-np.inf, np.inf)
-                              },
-                  'genpareto': {'scipy': estad.genpareto,
-                                'pymc': None,
-                                'límites': (0, np.inf)
-                                },
-                  'genexpon': {'scipy': estad.genexpon,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'genextreme': {'scipy': estad.genextreme,
-                                 'pymc': None,
-                                 'límites': (-np.inf, np.inf)
-                                 },
-                  'gausshyper': {'scipy': estad.gausshyper,
-                                 'pymc': None,
-                                 'límites': (0, 1)
-                                 },
-                  'gamma': {'scipy': estad.gamma,
-                            'pymc': Gamma,
-                            'límites': (0, np.inf)
-                            },
-                  'gengamma': {'scipy': estad.gengamma,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'genhalflogistic': {'scipy': estad.genhalflogistic,
-                                      'pymc': None,
-                                      'límites': (0, 1)  # El límite es (0, 1/c)
-                                      },
-                  'gilbrat': {'scipy': estad.gilbrat,
-                              'pymc': None,
-                              'límites': (0, np.inf)
-                              },
-                  'gompertz': {'scipy': estad.gompertz,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'gumbel_r': {'scipy': estad.gumbel_r,
-                               'pymc': None,
-                               'límites': (-np.inf, np.inf)
-                               },
-                  'gumbel_l': {'scipy': estad.gumbel_l,
-                               'pymc': None,
-                               'límites': (-np.inf, np.inf)
-                               },
-                  'halfcauchy': {'scipy': estad.halfcauchy,
-                                 'pymc': HalfCauchy,
-                                 'límites': (0, np.inf)
-                                 },
-                  'halflogistic': {'scipy': estad.halflogistic,
-                                   'pymc': None,
-                                   'límites': (0, np.inf)
-                                   },
-                  'halfnorm': {'scipy': estad.halfnorm,
-                               'pymc': HalfNormal,
-                               'límites': (0, np.inf)
-                               },
-                  'halfgennorm': {'scipy': estad.halfgennorm,
-                                  'pymc': None,
-                                  'límites': (0, np.inf)
-                                  },
-                  'hypsecant': {'scipy': estad.hypsecant,
-                                'pymc': None,
-                                'límites': (-np.inf, np.inf)
-                                },
-                  'invgamma': {'scipy': estad.invgamma,
-                               'pymc': InverseGamma,
-                               'límites': (0, np.inf)
-                               },
-                  'invgauss': {'scipy': estad.invgauss,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'invweibull': {'scipy': estad.invweibull,
-                                 'pymc': None,
-                                 'límites': (0, np.inf)
-                                 },
-                  'johnsonsb': {'scipy': estad.johnsonsb,
-                                'pymc': None,
-                                'límites': (0, 1)
-                                },
-                  'johnsonsu': {'scipy': estad.johnsonsu,
-                                'pymc': None,
-                                'límites': (0, np.inf)
-                                },
-                  'ksone': {'scipy': estad.ksone,
-                            'pymc': None,
-                            'límites': (0, np.inf)
-                            },
-                  'kstwobign': {'scipy': estad.kstwobign,
-                                'pymc': None,
-                                'límites': (0, np.inf)
-                                },
-                  'laplace': {'scipy': estad.laplace,
-                              'pymc': Laplace,
-                              'límites': (-np.inf, np.inf)
-                              },
-                  'levy': {'scipy': estad.levy,
-                           'pymc': None,
-                           'límites': (0, np.inf)
-                           },
-                  # 'levy_l': {'scipy': estad.levy_l,
-                  #            'pymc': None,
-                  #            'límites': (-np.inf, 0)
-                  #            },
-                  'levy_stable': {'scipy': estad.levy_stable,
-                                  'pymc': None,
-                                  'límites': (0, np.inf)
-                                  },
-                  'logistic': {'scipy': estad.logistic,
-                               'pymc': Logistic,
-                               'límites': (-np.inf, np.inf)
-                               },
-                  'loggamma': {'scipy': estad.loggamma,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'loglaplace': {'scipy': estad.loglaplace,
-                                 'pymc': None,
-                                 'límites': (0, np.inf)
-                                 },
-                  'lognorm': {'scipy': estad.lognorm,
-                              'pymc': Lognormal,
-                              'límites': (0, np.inf)
-                              },
-                  'lomax': {'scipy': estad.lomax,
-                            'pymc': None,
-                            'límites': (0, np.inf)
-                            },
-                  'maxwell': {'scipy': estad.maxwell,
-                              'pymc': None,
-                              'límites': (0, np.inf)
-                              },
-                  'mielke': {'scipy': estad.mielke,
-                             'pymc': None,
-                             'límites': (0, np.inf)
-                             },
-                  'nakagami': {'scipy': estad.nakagami,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'ncx2': {'scipy': estad.ncx2,
-                           'pymc': None,
-                           'límites': (0, np.inf)
-                           },
-                  'ncf': {'scipy': estad.ncf,
-                          'pymc': None,
-                          'límites': (0, np.inf)
-                          },
-                  'nct': {'scipy': estad.nct,
-                          'pymc': NoncentralT,
-                          'límites': (-np.inf, np.inf)
-                          },
-                  'norm': {'scipy': estad.norm,
-                           'pymc': Normal,
-                           'límites': (-np.inf, np.inf)
-                           },
-                  'pareto': {'scipy': estad.pareto,
-                             'pymc': Pareto,
-                             'límites': (1, np.inf)
-                             },
-                  'pearson3': {'scipy': estad.pearson3,
-                               'pymc': None,
-                               'límites': (-np.inf, np.inf)
-                               },
-                  'powerlaw': {'scipy': estad.powerlaw,
-                               'pymc': None,
-                               'límites': (0, 1)
-                               },
-                  'powerlognorm': {'scipy': estad.powerlognorm,
-                                   'pymc': None,
-                                   'límites': (0, np.inf)
-                                   },
-                  'powernorm': {'scipy': estad.powernorm,
-                                'pymc': None,
-                                'límites': (0, np.inf)
-                                },
-                  'rdist': {'scipy': estad.rdist,
-                            'pymc': None,
-                            'límites': (-1, 1)
-                            },
-                  'reciprocal': {'scipy': estad.reciprocal,
-                                 'pymc': None,
-                                 'límites': (0, 1)  # El límite es (a, b)
-                                 },
-                  'rayleigh': {'scipy': estad.rayleigh,
-                               'pymc': None,
-                               'límites': (0, np.inf)
-                               },
-                  'rice': {'scipy': estad.rice,
-                           'pymc': None,
-                           'límites': (0, np.inf)
-                           },
-                  'recipinvgauss': {'scipy': estad.recipinvgauss,
+                  'CauchyDoblada': {'scipy': estad.foldcauchy,
                                     'pymc': None,
                                     'límites': (0, np.inf)
                                     },
-                  'semicircular': {'scipy': estad.semicircular,
-                                   'pymc': None,
-                                   'límites': (-1, 1)
-                                   },
-                  't': {'scipy': estad.t,
-                        'pymc': T,
-                        'límites': (-np.inf, np.inf)
-                        },
-                  'triang': {'scipy': estad.triang,
-                             'pymc': None,
-                             'límites': (0, 1)  # El límite es (a, b)
-                             },
-                  'truncexpon': {'scipy': estad.truncexpon,
-                                 'pymc': None,
-                                 'límites': (0, 1)  # El límite es (0, b)
-                                 },
-                  'truncnorm': {'scipy': estad.truncnorm,
-                                'pymc': TruncatedNormal,
-                                'límites': (0, 1)  # El límite es (a, b)
-                                },
-                  'tukeylambda': {'scipy': estad.tukeylambda,
-                                  'pymc': None,
-                                  'límites': (-np.inf, np.inf)
-                                  },
-                  'uniform': {'scipy': estad.uniform,
-                              'pymc': Uniform,
-                              'límites': (0, 1)  # El límite es (a, b)
-                              },
-                  'vonmises': {'scipy': estad.vonmises,
-                               'pymc': VonMises,
-                               'límites': (-mat.pi, mat.pi)
-                               },
-                  'vonmises_line': {'scipy': estad.vonmises_line,
+                  'NormalDoblada': {'scipy': estad.foldnorm,
                                     'pymc': None,
-                                    'límites': (-mat.pi, mat.pi)
+                                    'límites': (0, np.inf)
                                     },
-                  'wald': {'scipy': estad.wald,
+                  'FrechetDerecha': {'scipy': estad.frechet_r,
+                                     'pymc': None,
+                                     'límites': (0, np.inf)
+                                     },
+                  # 'FrechetIzquierda': {'scipy': estad.frechet_l,
+                  #               'pymc': None,
+                  #               'límites': (-np.inf, 0)
+                  #               },
+                  'LogísticaGeneral': {'scipy': estad.genlogistic,
+                                       'pymc': None,
+                                       'límites': (0, np.inf)
+                                       },
+                  'NormalGeneral': {'scipy': estad.gennorm,
+                                    'pymc': None,
+                                    'límites': (-np.inf, np.inf)
+                                    },
+                  'ParetoGeneral': {'scipy': estad.genpareto,
+                                    'pymc': None,
+                                    'límites': (0, np.inf)
+                                    },
+                  'ExponencialGeneral': {'scipy': estad.genexpon,
+                                         'pymc': None,
+                                         'límites': (0, np.inf)
+                                         },
+                  'ExtremaGeneral': {'scipy': estad.genextreme,
+                                     'pymc': None,
+                                     'límites': (-np.inf, np.inf)
+                                     },
+                  'HyperGauss': {'scipy': estad.gausshyper,
+                                 'pymc': None,
+                                 'límites': (0, 1)
+                                 },
+                  'Gamma': {'scipy': estad.gamma,
+                            'pymc': Gamma,
+                            'límites': (0, np.inf)
+                            },
+                  'GammaGeneral': {'scipy': estad.gengamma,
+                                   'pymc': None,
+                                   'límites': (0, np.inf)
+                                   },
+                  'MitadLogísticaGeneral': {'scipy': estad.genhalflogistic,
+                                            'pymc': None,
+                                            'límites': (0, 1)  # El límite es (0, 1/c)
+                                            },
+                  'Gilbrat': {'scipy': estad.gilbrat,
+                              'pymc': None,
+                              'límites': (0, np.inf)
+                              },
+                  'Gompertz': {'scipy': estad.gompertz,
+                               'pymc': None,
+                               'límites': (0, np.inf)
+                               },
+                  'GumbelDerecho': {'scipy': estad.gumbel_r,
+                                    'pymc': None,
+                                    'límites': (-np.inf, np.inf)
+                                    },
+                  'GumbelIzquierda': {'scipy': estad.gumbel_l,
+                                      'pymc': None,
+                                      'límites': (-np.inf, np.inf)
+                                      },
+                  'MitadCauchy': {'scipy': estad.halfcauchy,
+                                  'pymc': HalfCauchy,
+                                  'límites': (0, np.inf)
+                                  },
+                  'MitadLogística': {'scipy': estad.halflogistic,
+                                     'pymc': None,
+                                     'límites': (0, np.inf)
+                                     },
+                  'MitadNormal': {'scipy': estad.halfnorm,
+                                  'pymc': HalfNormal,
+                                  'límites': (0, np.inf)
+                                  },
+                  'MitadNormalGeneral': {'scipy': estad.halfgennorm,
+                                         'pymc': None,
+                                         'límites': (0, np.inf)
+                                         },
+                  'HyperSecante': {'scipy': estad.hypsecant,
+                                   'pymc': None,
+                                   'límites': (-np.inf, np.inf)
+                                   },
+                  'GammaInversa': {'scipy': estad.invgamma,
+                                   'pymc': InverseGamma,
+                                   'límites': (0, np.inf)
+                                   },
+                  'GaussInversa': {'scipy': estad.invgauss,
+                                   'pymc': None,
+                                   'límites': (0, np.inf)
+                                   },
+                  'WeibullInversa': {'scipy': estad.invweibull,
+                                     'pymc': None,
+                                     'límites': (0, np.inf)
+                                     },
+                  'JohnsonSB': {'scipy': estad.johnsonsb,
+                                'pymc': None,
+                                'límites': (0, 1)
+                                },
+                  'JohnsonSU': {'scipy': estad.johnsonsu,
+                                'pymc': None,
+                                'límites': (0, np.inf)
+                                },
+                  'KSUno': {'scipy': estad.ksone,
+                            'pymc': None,
+                            'límites': (0, np.inf)
+                            },
+                  'KSDosNLargo': {'scipy': estad.kstwobign,
+                                  'pymc': None,
+                                  'límites': (0, np.inf)
+                                  },
+                  'Laplace': {'scipy': estad.laplace,
+                              'pymc': Laplace,
+                              'límites': (-np.inf, np.inf)
+                              },
+                  'Levy': {'scipy': estad.levy,
                            'pymc': None,
                            'límites': (0, np.inf)
                            },
-                  'weibull_min': {'scipy': estad.weibull_min,
+                  # 'LevyIzquierda': {'scipy': estad.levy_l,
+                  #            'pymc': None,
+                  #            'límites': (-np.inf, 0)
+                  #            },
+                  'LevyEstable': {'scipy': estad.levy_stable,
                                   'pymc': None,
                                   'límites': (0, np.inf)
                                   },
-                  'weibull_max': {'scipy': estad.weibull_max,
-                                  'pymc': None,
-                                  'límites': (0, np.inf)
-                                  },
-                  'wrapcauchy': {'scipy': estad.wrapcauchy,
+                  'Logística': {'scipy': estad.logistic,
+                                'pymc': Logistic,
+                                'límites': (-np.inf, np.inf)
+                                },
+                  'LogGamma': {'scipy': estad.loggamma,
+                               'pymc': None,
+                               'límites': (0, np.inf)
+                               },
+                  'LogLaplace': {'scipy': estad.loglaplace,
                                  'pymc': None,
-                                 'límites': (0, 2*mat.pi)
-                                 }
-                  },
-
-         'disc': {'bernoulli': {'scipy': estad.bernoulli,
-                                'pymc': Bernoulli,
-                                'límites': (0, 1)
+                                 'límites': (0, np.inf)
+                                 },
+                  'LogNormal': {'scipy': estad.lognorm,
+                                'pymc': Lognormal,
+                                'límites': (0, np.inf)
                                 },
-                  'binom': {'scipy': estad.binom,
-                            'pymc': Binomial,
-                            'límites': (0, 1)  # Límite es de (0, N)
+                  'Lomax': {'scipy': estad.lomax,
+                            'pymc': None,
+                            'límites': (0, np.inf)
                             },
-                  'boltzmann': {'scipy': estad.boltzmann,
-                                'pymc': None,
-                                'límites': (0, 1)  # Límite es de (0, N-1)
-                                },
-                  'dlaplace': {'scipy': estad.dlaplace,
+                  'Maxwell': {'scipy': estad.maxwell,
+                              'pymc': None,
+                              'límites': (0, np.inf)
+                              },
+                  'Mielke': {'scipy': estad.mielke,
+                             'pymc': None,
+                             'límites': (0, np.inf)
+                             },
+                  'Nakagami': {'scipy': estad.nakagami,
+                               'pymc': None,
+                               'límites': (0, np.inf)
+                               },
+                  'Chi2NoCentral': {'scipy': estad.ncx2,
+                                    'pymc': None,
+                                    'límites': (0, np.inf)
+                                    },
+                  'FNoCentral': {'scipy': estad.ncf,
+                                 'pymc': None,
+                                 'límites': (0, np.inf)
+                                 },
+                  'TNoCentral': {'scipy': estad.nct,
+                                 'pymc': NoncentralT,
+                                 'límites': (-np.inf, np.inf)
+                                 },
+                  'Normal': {'scipy': estad.norm,
+                             'pymc': Normal,
+                             'límites': (-np.inf, np.inf)
+                             },
+                  'Pareto': {'scipy': estad.pareto,
+                             'pymc': Pareto,
+                             'límites': (1, np.inf)
+                             },
+                  'Pearson3': {'scipy': estad.pearson3,
                                'pymc': None,
                                'límites': (-np.inf, np.inf)
                                },
-                  'geom': {'scipy': estad.geom,
-                           'pymc': Geometric,
-                           'límites': (1, np.inf)
-                           },
-                  'hypergeom': {'scipy': estad.hypergeom,
-                                'pymc': Hypergeometric,
-                                'límites': (0, 1)  # El límite es (0, N)
+                  'Potencial': {'scipy': estad.powerlaw,
+                                'pymc': None,
+                                'límites': (0, 1)
                                 },
-                  'logser': {'scipy': estad.logser,
+                  'PotencialLogNormal': {'scipy': estad.powerlognorm,
+                                         'pymc': None,
+                                         'límites': (0, np.inf)
+                                         },
+                  'PotencialNormal': {'scipy': estad.powernorm,
+                                      'pymc': None,
+                                      'límites': (0, np.inf)
+                                      },
+                  'R': {'scipy': estad.rdist,
+                        'pymc': None,
+                        'límites': (-1, 1)
+                        },
+                  'Recíproco': {'scipy': estad.reciprocal,
+                                'pymc': None,
+                                'límites': (0, 1)  # El límite es (a, b)
+                                },
+                  'Rayleigh': {'scipy': estad.rayleigh,
+                               'pymc': None,
+                               'límites': (0, np.inf)
+                               },
+                  'Rice': {'scipy': estad.rice,
+                           'pymc': None,
+                           'límites': (0, np.inf)
+                           },
+                  'GaussInversaRecíproco': {'scipy': estad.recipinvgauss,
+                                            'pymc': None,
+                                            'límites': (0, np.inf)
+                                            },
+                  'Semicircular': {'scipy': estad.semicircular,
+                                   'pymc': None,
+                                   'límites': (-1, 1)
+                                   },
+                  'T': {'scipy': estad.t,
+                        'pymc': T,
+                        'límites': (-np.inf, np.inf)
+                        },
+                  'Triang': {'scipy': estad.triang,
                              'pymc': None,
-                             'límites': (1, np.inf)
+                             'límites': (0, 1)  # El límite es (a, b)
                              },
-                  'nbinom': {'scipy': estad.nbinom,
-                             'pymc': NegativeBinomial,
+                  'ExponencialTrunc': {'scipy': estad.truncexpon,
+                                       'pymc': None,
+                                       'límites': (0, 1)  # El límite es (0, b)
+                                       },
+                  'NormalTrunc': {'scipy': estad.truncnorm,
+                                  'pymc': TruncatedNormal,
+                                  'límites': (0, 1)  # El límite es (a, b)
+                                  },
+                  'TukeyLambda': {'scipy': estad.tukeylambda,
+                                  'pymc': None,
+                                  'límites': (-np.inf, np.inf)
+                                  },
+                  'Uniforme': {'scipy': estad.uniform,
+                               'pymc': Uniform,
+                               'límites': (0, 1)  # El límite es (a, b)
+                               },
+                  'VonMises': {'scipy': estad.vonmises,
+                               'pymc': VonMises,
+                               'límites': (-mat.pi, mat.pi)
+                               },
+                  'VonMisesLín': {'scipy': estad.vonmises_line,
+                                  'pymc': None,
+                                  'límites': (-mat.pi, mat.pi)
+                                  },
+                  'Wald': {'scipy': estad.wald,
+                           'pymc': None,
+                           'límites': (0, np.inf)
+                           },
+                  'WeibullMínimo': {'scipy': estad.weibull_min,
+                                    'pymc': None,
+                                    'límites': (0, np.inf)
+                                    },
+                  'WeibullMáximo': {'scipy': estad.weibull_max,
+                                    'pymc': None,
+                                    'límites': (0, np.inf)
+                                    },
+                  'CauchyEnvuelto': {'scipy': estad.wrapcauchy,
+                                     'pymc': None,
+                                     'límites': (0, 2*mat.pi)
+                                     }
+                  },
+
+         'disc': {'Bernoulli': {'scipy': estad.bernoulli,
+                                'pymc': Bernoulli,
+                                'límites': (0, 1)
+                                },
+                  'Binomial': {'scipy': estad.binom,
+                               'pymc': Binomial,
+                               'límites': (0, 1)  # Límite es de (0, N)
+                               },
+                  'Boltzmann': {'scipy': estad.boltzmann,
+                                'pymc': None,
+                                'límites': (0, 1)  # Límite es de (0, N-1)
+                                },
+                  'LaplaceDiscreta': {'scipy': estad.dlaplace,
+                                      'pymc': None,
+                                      'límites': (-np.inf, np.inf)
+                                      },
+                  'Geométrica': {'scipy': estad.geom,
+                                 'pymc': Geometric,
+                                 'límites': (1, np.inf)
+                                 },
+                  'Hypergeométrica': {'scipy': estad.hypergeom,
+                                      'pymc': Hypergeometric,
+                                      'límites': (0, 1)  # El límite es (0, N)
+                                      },
+                  'Logarítmico': {'scipy': estad.logser,
+                                  'pymc': None,
+                                  'límites': (1, np.inf)
+                                  },
+                  'BinomialNegativo': {'scipy': estad.nbinom,
+                                       'pymc': NegativeBinomial,
+                                       'límites': (0, np.inf)
+                                       },
+                  'Planck': {'scipy': estad.planck,
+                             'pymc': None,
                              'límites': (0, np.inf)
                              },
-                  'planck': {'scipy': estad.alpha,
-                             'pymc': None,
-                             'límites': (0, np.inf)
-                             },
-                  'poisson': {'scipy': estad.poisson,
+                  'Poisson': {'scipy': estad.poisson,
                               'pymc': Poisson,
                               'límites': (0, np.inf)
                               },
-                  'randint': {'scipy': estad.randint,
-                              'pymc': DiscreteUniform,
-                              'límites': (0, 1)  # Límite es de (a, b)
-                              },
-                  'skellam': {'scipy': estad.skellam,
+                  'EnteroAleatorio': {'scipy': estad.randint,
+                                      'pymc': DiscreteUniform,
+                                      'límites': (0, 1)  # Límite es de (a, b)
+                                      },
+                  'Skellam': {'scipy': estad.skellam,
                               'pymc': None,
                               'límites': (-np.inf, np.inf)
                               },
-                  'zipf': {'scipy': estad.alpha,
+                  'Zipf': {'scipy': estad.zipf,
                            'pymc': None,
                            'límites': (1, np.inf)
                            }
@@ -428,8 +428,8 @@ def texto_a_distscipy(texto):
     nombre, paráms = texto.split('~')
 
     for categ_dist in dists:
-        for dic_dist in dists[categ_dist].values():
-            if dic_dist['nombre'] == nombre:
+        for ll, dic_dist in dists[categ_dist].items():
+            if ll == nombre:
                 dist = dic_dist['scipy'](paráms)
                 return dist
 

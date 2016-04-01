@@ -4,7 +4,7 @@ from pymc import deterministic, Gamma, Normal, MCMC
 import INCERT.Distribuciones as Ds
 
 
-class Modelo(object):
+class ModBayes(object):
     def __init__(símismo, función, obs, dic_parám, lista_apriori, dic_líms):
         """
         Esta clase merece una descripción detallada. Al fin, un Modelo es lo que trae junto simulación, observaciones y
