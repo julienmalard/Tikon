@@ -169,7 +169,7 @@ class Coso(object):
             dic_lista(símismo.dic['coefs'], símismo.dic_incert)
 
 
-# Una subclase de Coso que se puede simular como modelo independiente (p. ej., redes AE y cultivos, pero no suelos).
+# Una subclase de Coso que se puede simular como modelo independiente (p. ej., redes AE y parcelas, pero no suelos).
 class Simulable(Coso):
     def simul(símismo, **kwargs):
         raise NotImplementedError
