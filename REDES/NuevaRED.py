@@ -213,7 +213,7 @@ class Red(object):
         # Calcular la depredación, muerters, reproducción, y movimiento entre parcelas
         símismo.calc_depred(pobs=pobs_ant, paso=paso)
         símismo.calc_crec(pobs=pobs_ant, externo=climaYplantas, paso=paso)
-        muerte = símismo.calc_muertes()
+        muertes = símismo.calc_muertes()
         trans = símismo.calc_trans()
         mov = símismo.calc_mov(pobs_ant, paso)
 
@@ -467,8 +467,8 @@ class Red(object):
 
         """
         Esta función calcula las muertes de causas naturales de la etapa.
-
-        :param externo:
+        
+        :param externo: 
         :param pobs:
         :param paso:
         """
@@ -491,11 +491,11 @@ class Red(object):
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
             cf = coefs_ed[n]
+            
             if ec_ed is None:
-                pass
+                edad_extra = None
 
             else:
-
                 if ec_ed == 'Días':
                     edad_extra = 1
                 elif ec_ed == 'Días Grados':
@@ -504,7 +504,7 @@ class Red(object):
                                                      )
                 else:
                     raise ValueError
-            np.ndarray
+
             # Y ya pasamos a calcular el número de individuos de esta etapa que se murieron en este paso de tiempo
             cf = coefs_pr[n]
             if probs[n] is None:
@@ -541,13 +541,16 @@ class Red(object):
 
             else:
                 # Aquí tenemos todas las probabilidades de muerte dependientes en distribuciones de cohortes:
-                cohortes =
-                edades =
-
-                dic_cohorte = símismo.datos['Cohortes'][n]
+                cohortes = símismo.datos['Cohortes'][n]['Pobs']
+                edades = símismo.datos['Cohortes'][n]['Edades']['Muertes']
+                
+                if edad_extra is None:
+                    raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
+                                     'en el cálculo de muertes de inviduos.')
+                
                 try:
-                    muerte_etp[n] = símismo.eval_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
-                                                         tipo_dist=probs[n], paráms_dist=cf)
+                    muerte_etp[n] = símismo.trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
+                                                          tipo_dist=probs[n], paráms_dist=cf)
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
 
@@ -560,18 +563,21 @@ class Red(object):
     def calc_trans(símismo, pobs_inic, paso):
         """
         Esta función calcula las transiciones de organismos de una etapa a otra. Esto puede incluir la reproducción.
-
-        :param pobs_inic:
-        :param paso:
-        :return:
+        
+        :param pobs_inic: 
+        :param paso: 
         """
-        trans = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
 
-        etapas = símismo.tipos_ecuaciones['Transiciones']['Etapas']
-        tipo_edad = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Edad']
-        tipo_prob = símismo.tipos_ecuaciones['Transiciones']['Ecuación']['Prob']
+        trans = símismo.datos['Transiciones']
 
-        for n, n_etp in enumerate(etapas):  # Para cada organismo...
+        ec_edad = símismo.ecs['Transiciones']['Edad']
+        probs = símismo.ecs['Muertes']['Prob']
+
+        coefs_ed = símismo.coefs_act['Transiciones']['Edad']
+        coefs_pr = símismo.coefs_act['Transiciones']['Prob']
+
+
+        for n, ec_ed in enumerate(ec_edad):
 
             if tipo_edad == 'Briere Temperatura':
                 # Mokhtar, Abrul Monim y Salem Saif al Nabhani. 2010. Temperature-dependent development of dubas bug, Ommatissus lybicus (Hemiptera: Tropiduchidae), an endemic
@@ -609,7 +615,8 @@ class Red(object):
             else:
                 raise ValueError
 
-        return trans
+        trans *= paso
+        símismo.redondear(trans)
 
     def calc_mov(símismo, inic, paso):
         """
@@ -620,6 +627,7 @@ class Red(object):
         :param paso:
         :return:
         """
+        pass
 
     def poner_val(símismo, ):
         pass
@@ -751,13 +759,12 @@ class Red(object):
 
         return días_grados
 
-
     @staticmethod
-    def eval_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist):
+    def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist):
         """
 
         :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
-          el número de individúos en una edad particular (determinada por el valor correspondiente en la matriz edades).
+          el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
             Eje 0: Cohorte
             Eje 1: Parcela
             Eje 2: Repetición estocástica
@@ -781,7 +788,7 @@ class Red(object):
         :param paráms_dist: Los parámetros de la distribución de probabilidad.
         :type paráms_dist: dict
 
-        :return: El número total de individúos que transicionaron.
+        :return: El número total de individuos que transicionaron.
         :rtype: float
         """
 
@@ -806,3 +813,33 @@ class Red(object):
         pobs -= n_cambian
 
         return np.sum(pobs, axis=0)
+
+
+    def limpiar_cohortes(símismo, dic_cohorte):
+        for n, etp in enumerate(símismo.datos['Cohortes']):
+            vacíos = (etp['Pobs']==0)
+            for ed in etp['Edades'].values():
+                ed[vacíos] = np.nan
+
+    @staticmethod
+    def añadir_a_cohorte(dic_cohorte, nuevos):
+
+        try:
+            primer_vacío = np.where(dic_cohorte['Pobs']==0)[0][0]
+        except IndexError:
+            primer_vacío = dic_cohorte['Pobs'].size()
+            np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
+
+            for ed in dic_cohorte['Edades'].values():
+                np.append(ed, np.zeros_like(ed), axis=0)
+
+        dic_cohorte['Pobs'][primer_vacío] = nuevos
+
+        for ed in dic_cohorte['Edades'].values():
+            ed[primer_vacío] = 0
+
+    @staticmethod
+    def quitar_de_cohorte(dic_cohorte, muertes):
+        quitar_por_cohorte =
+
+        dic_cohorte['Pobs'] -= quitar_por_cohorte
