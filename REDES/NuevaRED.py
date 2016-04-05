@@ -466,11 +466,13 @@ class Red(object):
     def calc_muertes(símismo, pobs, externo, paso):
 
         """
+        Esta función calcula las muertes de causas naturales de la etapa.
 
         :param externo:
         :param pobs:
         :param paso:
         """
+
         muertes = símismo.datos['Muertes']
 
         ec_edad = símismo.ecs['Muertes']['Edad']
@@ -479,31 +481,42 @@ class Red(object):
         coefs_ed = símismo.coefs_act['Muertes']['Edad']
         coefs_pr = símismo.coefs_act['Muertes']['Prob']
 
-        for n, ed in enumerate(ec_edad):
+        for n, ec_ed in enumerate(ec_edad):
+
+            # Si no hay cálculos de muertes para esta etapa, sigamos a la próxima etapa de una vez. Esto se detecta
+            # por etapas que tienen 'None' como ecuación de probabilidad de muerte.
 
             if probs[n] is None:
                 continue
 
+            # Si hay que guardar cuenta de cohortes, hacerlo aquí
             cf = coefs_ed[n]
-            if ed is None:
-                pass
-            elif ed == '':
+            if ec_ed is None:
                 pass
 
-            cf = coefs_pr[n]
-            if probs[n] ==  'Constante':
-                muertes[n] = pobs * cf['q']
             else:
-                símismo.dist_cohorte(probs[n])
-            elif probs[n] ==
-            elif probs[n] == 'Proporcional':
+
+                if ec_ed == 'Días':
+                    edad_extra = 1
+                elif ec_ed == 'Días Grados':
+                    edad_extra = símismo.días_grados(externo['temp_máx'], externo['temp_mín'],
+                                                     umbrales=(cf['mín'], cf['máx'])
+                                                     )
+                else:
+                    raise ValueError
+            np.ndarray
+            # Y ya pasamos a calcular el número de individuos de esta etapa que se murieron en este paso de tiempo
+            cf = coefs_pr[n]
+            if probs[n] is None:
+                pass
+
+            elif probs[n] ==  'Constante':
                 # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
+                muerte_etp = pobs * cf['q']
 
-
-
-            elif ec_edad[n] == 'Log Normal Temperatura':
+            elif probs[n]  == 'Log Normal Temperatura':
                 # Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
                 #
                 # Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
@@ -511,35 +524,47 @@ class Red(object):
                 #   control. Journal of Pest Science 87(2): 331-340.
 
                 sobrevivencia = mat.exp(-0.5*(mat.log(externo['temp_máx']/cf['t']) / cf['p']) ** 2)
-                muertes[n] = pobs * sobrevivencia
+                muerte_etp = pobs * sobrevivencia
 
-
-            elif ec_edad[n] == 'Asimptótico Humedad':
+            elif probs[n] == 'Asimptótico Humedad':
 
                 # M. P. Lepage, G. Bourgeois, J. Brodeur, G. Boivin. 2012. Effect of Soil Temperature and Moisture on
                 #   Survival of Eggs and First-Instar Larvae of Delia radicum. Environmental Entomology 41(1): 159-165.
 
-                sobrevivencia = max(0, a * (1-mat.exp(-b * (externo['humedad'] - c))))
-                muertes[n] = pobs * sobrevivencia
+                sobrevivencia = max(0, 1-mat.exp(-cf['a'] * (externo['humedad'] - cf['b'])))
+                muerte_etp[n] = pobs * sobrevivencia
 
+            elif probs[n] == 'Sigmoidal Temperatura':
 
-
-            elif ec_edad[n] == 'Sigmoidal Temperatura':
-
-                sobrevivencia = a / (1 + mat.exp((temp_máx - b) / c))
-                muertes[n] = pobs * sobrevivencia
-
-
-
-            if probs[n] is None:
-                pass
-
-
+                sobrevivencia = 1/(1 + mat.exp((externo['temp_máx'] - cf['a']) / cf['b']))
+                muerte_etp[n] = pobs * sobrevivencia
 
             else:
-                raise ValueError
+                # Aquí tenemos todas las probabilidades de muerte dependientes en distribuciones de cohortes:
+                cohortes =
+                edades =
+
+                dic_cohorte = símismo.datos['Cohortes'][n]
+                try:
+                    muerte_etp[n] = símismo.eval_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
+                                                         tipo_dist=probs[n], paráms_dist=cf)
+                except ValueError:
+                    raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
+
+            muertes[:, :, :, n] = muerte_etp
+
+        muertes *= paso
+        símismo.redondear(muertes)
+
 
     def calc_trans(símismo, pobs_inic, paso):
+        """
+        Esta función calcula las transiciones de organismos de una etapa a otra. Esto puede incluir la reproducción.
+
+        :param pobs_inic:
+        :param paso:
+        :return:
+        """
         trans = np.zeros(shape=(pobs_inic[0], pobs_inic[1]))
 
         etapas = símismo.tipos_ecuaciones['Transiciones']['Etapas']
@@ -726,30 +751,58 @@ class Red(object):
 
         return días_grados
 
+
     @staticmethod
-    def dist_cohorte( 'Normal':
-        {'mu': {'límites': (0, np.inf),
-                'inter': None},
-         'sigma': {'límites': (0, np.inf),
-                   'inter': None}
-         },
+    def eval_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist):
+        """
 
-elif probs[n]
-'Linear': {'m': {'límites': (0, np.inf),
-                 'inter': None},
-           'b': {'límites': (0, np.inf),
-                 'inter': None}
-           },
-'Cauchy': {'a': {'límites': (0, np.inf),
-                 'inter': None},
-           'b': {'límites': (0, np.inf),
-                 'inter': None}
-           },
-'Gamma': {'a': {'límites': (0, np.inf),
-                'inter': None},
-          'b': {'límites': (0, np.inf),
-                'inter': None}
-          },
-'T': {'k': {'límites': (0, np.inf),
-            'inter': None}
+        :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
+          el número de individúos en una edad particular (determinada por el valor correspondiente en la matriz edades).
+            Eje 0: Cohorte
+            Eje 1: Parcela
+            Eje 2: Repetición estocástica
+            Eje 3: Repetición paramétrica
+        :type pobs: np.ndarray
 
+        :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
+          ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
+          (por ejemplo, exposición cumulativo a días grados).
+          Los ejes son iguales que en 'pobs'.
+        :type edades: np.ndarray
+
+        :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar.
+          Podría ser 1 día, o una cantidad de días grados.
+          Ejes iguales a 'edades'.
+        :type cambio: np.ndarray or float
+
+        :param tipo_dist: El tipo de distribución usado para calcular probabilidades de transiciones.
+        :type tipo_dist: str
+
+        :param paráms_dist: Los parámetros de la distribución de probabilidad.
+        :type paráms_dist: dict
+
+        :return: El número total de individúos que transicionaron.
+        :rtype: float
+        """
+
+        if tipo_dist == 'Normal':
+            paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
+        elif tipo_dist == 'Triang':
+            paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
+        elif tipo_dist == 'Cauchy':
+            paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
+        elif tipo_dist == 'Gamma':
+            paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
+        elif tipo_dist == 'T':
+            paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
+        else:
+            raise ValueError
+
+        dist = Ds.dists['cont'][tipo_dist]['scipy'](**paráms)
+
+        probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
+        n_cambian = np.random.binomial(pobs, probs)
+
+        pobs -= n_cambian
+
+        return np.sum(pobs, axis=0)
