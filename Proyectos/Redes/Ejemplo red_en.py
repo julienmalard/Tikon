@@ -1,5 +1,5 @@
-from REDES.INSECTOS import Simple
-from REDES.REDES import Red
+from RAE.INSECTOS import Simple
+from RAE.REDES import Red
 
 # Stuff above this line just loads the other modules needed to make a food web. Ignore it.
 

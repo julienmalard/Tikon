@@ -1,3 +1,4 @@
+import csv
 import numpy as np
 from pymc import deterministic, Gamma, Normal, MCMC
 
@@ -125,18 +126,59 @@ class ModBayes(object):
 
 
 class Experimento(object):
-    def __init__(símismo):
+    def __init__(símismo, nombre):
+
+        símismo.nombre = nombre
+
+        símismo.datos = {'Organismos': {'tiempo': None,
+                                        'obs': {}
+                                        }
+                         }
+
+    def estab_bd_rae(símismo, archivo, tiempo):
+        dic_datos = símismo.leer_datos(archivo)
+
+        if tiempo not in dic_datos:
+            raise ValueError('No se encontró la columna de tiempo en la base de datos.')
+
+        for col in dic_datos:
+            if col == tiempo:
+                símismo.datos['Organismos']['tiempo'] = dic_datos[tiempo]
+            else:
+                símismo.datos['Organismos']['obs'][col] = dic_datos[col]
+
+    def estab_bd_cultivo(símismo, archivo):
         pass
 
-    def estab_bd(símismo, archivo):
-        pass
+    @staticmethod
+    def leer_datos(archivo):
+        datos = {}
 
-    def estab_datos(símismo):
-        pass
+        with open(archivo, newline='') as d:
+            n = 0
+            l = csv.reader(d)
+            valores = []
+            cols = []
+            for r in l:
+                if n == 0:
+                    cols = r
+                else:
+                    i = np.array(r)
+                    i[i == ''] = np.nan
+                    valores.append(i.astype(np.float))
+
+                n += 1
+
+        for n, col in enumerate(cols):
+            datos[col] = [x[n] for x in valores]
+
+        return datos
+
+
+
 
 
 def trazas_a_aprioris(id_calib, d_pm, d_lms, lista_apriori, i=0, l=None):
-
     if l is None:
         l = []
 
@@ -163,7 +205,6 @@ def trazas_a_aprioris(id_calib, d_pm, d_lms, lista_apriori, i=0, l=None):
 
 
 def pymc_a_trazas_tx(d_pm, id_calib):
-
     for ll, v in d_pm:
         if type(v) is dict:
             pymc_a_trazas_tx(d_pm=v, id_calib=id_calib)

@@ -1,5 +1,5 @@
 from COSO import Coso
-from REDES.REDES import Red
+from RAE.REDES import Red
 from pymc import *
 import numpy as np
 

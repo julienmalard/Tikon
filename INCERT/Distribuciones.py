@@ -442,6 +442,7 @@ def ajustar_dist(datos, límites, cont, pymc=False, nombre=None):
       distribución, escoge la distribución de PyMC la más apropriada y ajusta sus parámetros. Al momento únicamente
       puede generar distribuciones continuas.
 
+    :param nombre:
     :param cont:
     :param pymc:
     :param datos: Lista de parámetros

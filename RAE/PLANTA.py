@@ -1,4 +1,4 @@
-from REDES.ORGANISMO import Organismo
+from RAE.ORGANISMO import Organismo
 
 
 class Planta(Organismo):

@@ -98,76 +98,27 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                             },
                                },
 
-                  Muertes={'Edad': {None: None,
-
-                                    'Días': {},
-
-                                    'Días grados': {'mín': {'límites': (-np.inf, np.inf),
-                                                            'inter': None},
-                                                    'máx': {'límites': (-np.inf, np.inf),
+                  Muertes={'Ecuación': {'Constante': {'q': {'límites': (0, 1),
                                                             'inter': None}
-                                                    },
+                                                      },
 
-                                    },
+                                        'Log Normal Temperatura': {'t': {'límites': (-np.inf, np.inf),
+                                                                         'inter': None},
+                                                                   'p': {'límites': (0, np.inf),
+                                                                         'inter': None}
+                                                                   },
 
-                           'Prob': {None: None,
-                                    'Constante': {'q': {'límites': (0, 1),
-                                                        'inter': None}
-                                                  },
-
-                                    'Log Normal Temperatura': {'t': {'límites': (-np.inf, np.inf),
-                                                                     'inter': None},
-                                                               'p': {'límites': (0, np.inf),
-                                                                     'inter': None}
-                                                               },
-
-                                    'Asimptótico Humedad': {'a': {'límites': (0, np.inf),
-                                                                  'inter': None},
-                                                            'b': {'límites': (-np.inf, np.inf),
-                                                                  'inter': None}
-                                                            },
-                                    'Sigmoidal Temperatura': {'a': {'límites': (-np.inf, np.inf),
-                                                                    'inter': None},
-                                                              'b': {'límites': (0, np.inf),
-                                                                    'inter': None}
-                                                              },
-
-                                    'Normal': {'mu': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                               'sigma': {'límites': (0, np.inf),
-                                                         'inter': None}
-                                               },
-
-                                    'Triang': {'a': {'límites': (0, np.inf),
-                                                     'inter': None},
-                                               'b': {'límites': (0, np.inf),
-                                                     'inter': None},
-                                               'c': {'límites': (0, np.inf),
-                                                     'inter': None}
-                                               },
-
-                                    'Cauchy': {'a': {'límites': (0, np.inf),
-                                                     'inter': None},
-                                               'b': {'límites': (0, np.inf),
-                                                     'inter': None}
-                                               },
-
-                                    'Gamma': {'a': {'límites': (0, np.inf),
-                                                    'inter': None},
-                                              'b': {'límites': (0, np.inf),
-                                                    'inter': None},
-                                              'c': {'límites': (0, np.inf),
-                                                    'inter': None}
-                                              },
-
-                                    'T': {'k': {'límites': (0, np.inf),
-                                                'inter': None},
-                                          'mu': {'límites': (0, np.inf),
-                                                 'inter': None},
-                                          'sigma': {'límites': (0, np.inf),
-                                                    'inter': None}
-                                          }
-                                    },
+                                        'Asimptótico Humedad': {'a': {'límites': (0, np.inf),
+                                                                      'inter': None},
+                                                                'b': {'límites': (-np.inf, np.inf),
+                                                                      'inter': None}
+                                                                },
+                                        'Sigmoidal Temperatura': {'a': {'límites': (-np.inf, np.inf),
+                                                                        'inter': None},
+                                                                  'b': {'límites': (0, np.inf),
+                                                                        'inter': None}
+                                                                  },
+                                        },
                            },
 
                   Transiciones={'Edad': {None: None,
@@ -179,7 +130,27 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                          'máx': {'límites': (-np.inf, np.inf),
                                                                  'inter': None}
                                                          },
+                                         'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                              'inter': None},
+                                                                't_letal': {'límites': {-np.inf, np.inf},
+                                                                            'inter': None}
+                                                                },
+                                         'Logan Temperatura': {'rho': {'límites': (0, 1),
+                                                                       'inter': None},
+                                                               'delta': {'límites': (0, 1),
+                                                                         'inter': None},
+                                                               't_letal': {'límites': {-np.inf, np.inf},
+                                                                           'inter': None}
+                                                               },
+                                         'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                                        'inter': None},
+                                                                          't_letal': {'límites': {-np.inf, np.inf},
+                                                                                      'inter': None},
+                                                                          'm': {'límites': (0, np.inf),
+                                                                                'inter': None}
+                                                                          },
                                          },
+
                                 'Prob': {None: None,
 
                                          'Constante': {'a': {'límites': (0, np.inf),
@@ -210,6 +181,11 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                    'a': {'límites': (0, np.inf),
                                                          'inter': None}
                                                    },
+                                         'Logística': {'u': {'límites': (0, np.inf),
+                                                             'inter': None},
+                                                       'f': {'límites': (0, np.inf),
+                                                             'inter': None},
+                                                       },
                                          'T': {'k': {'límites': (0, np.inf),
                                                      'inter': None},
                                                'mu': {'límites': (0, np.inf),
@@ -217,7 +193,7 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                'sigma': {'límites': (0, np.inf),
                                                          'inter': None}
                                                }
-                                         }
+                                         },
                                 },
 
                   Movimiento={}
@@ -260,23 +236,9 @@ def gen_ec_inic(dic_ecs, inter=None, d=None):
 
         elif ll == 'límites':  # Si llegamos a la especificación de límites del parámetro
 
-            # Si no hay interacciones con otros organismos para este parámetro...
-            if dic_ecs['inter'] is None:
-                d[ll] = {}  # Crear el diccionario para contener las calibraciones
-                d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
-
-            # Si hay interacciones con las presas de la etapa...
-            elif dic_ecs['inter'] == 'presa':
-                try:
-                    d[ll] = dict([(p, None) for p in inter['presas']])
-                except KeyError:  # Si no hay presas, el parámetro se queda vacío
-                    d[ll] = {}
-                    continue
-                for p in d[ll]:
-                    d[ll][p] = dict([(etp, límites_a_dist(v)) for etp in inter['presas'][p]])
-
-            else:
-                raise ValueError
+            d[ll] = {}  # Crear el diccionario para contener las calibraciones
+            print(d[ll])
+            d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
 
         else:
             pass
@@ -343,37 +305,3 @@ def límites_a_dist(límites, cont=True):
     return dist
 
 
-def np_a_lista(d):
-    """
-    Esta función toma las matrices numpy contenidas en un diccionario de estructura arbitraria y las convierte
-      en listas numéricas. Cambia el diccionario in situ, así que no devuelve ningún valor.
-
-    :param d: El diccionario a convertir
-    :type d: dict
-    :return: nada
-    """
-
-    for ll, v in d.items():
-        if type(v) is dict:
-            np_a_lista(v)
-        elif type(v) is list:
-            try:
-                d[ll] = np.array(v, dtype=float)
-            except ValueError:
-                pass
-
-
-def lista_a_np(d):
-    """
-    Esta función toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las convierte
-      en matrices de numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
-    :param d: El diccionario a convertir
-    :type d: dict
-    :return: nada
-    """
-
-    for ll, v in d.items():
-        if type(v) is dict:
-            lista_a_np(v)
-        elif type(v) is np.ndarray:
-            d[ll] = v.tolist()

@@ -1,5 +1,5 @@
-from REDES.REDES import Red
-from REDES.INSECTOS import Simple
+from RAE.REDES import Red
+from RAE.INSECTOS import Simple
 
 # Inicializar los insectos en la red
 குளவி = Simple("குளவி")
