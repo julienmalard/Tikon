@@ -132,19 +132,19 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                                          },
                                          'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
                                                                               'inter': None},
-                                                                't_letal': {'límites': {-np.inf, np.inf},
+                                                                't_letal': {'límites': (-np.inf, np.inf),
                                                                             'inter': None}
                                                                 },
                                          'Logan Temperatura': {'rho': {'límites': (0, 1),
                                                                        'inter': None},
                                                                'delta': {'límites': (0, 1),
                                                                          'inter': None},
-                                                               't_letal': {'límites': {-np.inf, np.inf},
+                                                               't_letal': {'límites': (-np.inf, np.inf),
                                                                            'inter': None}
                                                                },
                                          'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
                                                                                         'inter': None},
-                                                                          't_letal': {'límites': {-np.inf, np.inf},
+                                                                          't_letal': {'límites': (-np.inf, np.inf),
                                                                                       'inter': None},
                                                                           'm': {'límites': (0, np.inf),
                                                                                 'inter': None}
@@ -237,7 +237,6 @@ def gen_ec_inic(dic_ecs, inter=None, d=None):
         elif ll == 'límites':  # Si llegamos a la especificación de límites del parámetro
 
             d[ll] = {}  # Crear el diccionario para contener las calibraciones
-            print(d[ll])
             d[ll]['0'] = límites_a_dist(v)  # La distribución inicial siempre tiene el número de identificación '0'.
 
         else:

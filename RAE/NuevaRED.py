@@ -31,7 +31,7 @@ class Red(Simulable):
         super().__init__(nombre=nombre, fuente=fuente)
 
         # La información necesaria para recrear la red
-        símismo.receta['estr'] = dict(organismos={})
+        símismo.receta['estr'] = dict(Organismos={})
 
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
         símismo.etapas = []  # Una lista de las recetas de las etapas de los organismos en la red
@@ -49,11 +49,11 @@ class Red(Simulable):
                        }
 
         # La matriz de datos de las simulaciones (incluso los datos de poblaciones)
-        símismo.datos = {'Pobs': np.array(),
-                         'Depredación': np.array(),
-                         'Crecimiento:': np.array(),
-                         'Transiciones': np.array(),
-                         'Movimiento': np.array()
+        símismo.datos = {'Pobs': np.array([]),
+                         'Depredación': np.array([]),
+                         'Crecimiento:': np.array([]),
+                         'Transiciones': np.array([]),
+                         'Movimiento': np.array([])
                          }
 
         # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
@@ -74,7 +74,7 @@ class Red(Simulable):
         if isinstance(organismo, Organismo):  # 'organismo' es un objeto de tipo Organismo...
 
             # Añadir el organismo a la receta
-            símismo.receta['Organismos'][organismo.nombre] = organismo.receta['config']
+            símismo.receta['estr']['Organismos'][organismo.nombre] = organismo.receta['config']
 
             # Poner el organismo en la lista activa
             símismo.organismos[organismo.nombre] = organismo
@@ -121,7 +121,7 @@ class Red(Simulable):
         # Verificar que todos los organismos en la receta, y únicamente los organismos en la receta, estén en la
         # lista de organismos activos de la red.
 
-        for nombre, config in símismo.receta['Organismos'].items():
+        for nombre, config in símismo.receta['estr']['Organismos'].items():
             if nombre not in símismo.organismos:  # Si el organismo no existía...
                 # Crear el organismo...
                 símismo.organismos[nombre] = Organismo(nombre)
@@ -130,15 +130,16 @@ class Red(Simulable):
                 símismo.organismos[nombre].receta['config'] = config
 
         for org in símismo.organismos:
-            if org not in símismo.receta['Organismos']:
+            if org not in símismo.receta['estr']['Organismos']:
                 símismo.organismos.pop(org)
 
         # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
 
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
-
+        """
         for organismo in [org for (nombre, org) in sorted(símismo.organismos.items())]:
-            símismo.etapas += [dict(etp for etp in sorted(organismo.receta.values()))]
+
+            símismo.etapas += [dict(etp[1] for etp in sorted(organismo.receta.items()))]
 
         # Guardar los tipos de ecuaciones activos de las etapas en un diccionario central
         for categ, dic_categ in Ec.ecuaciones:
@@ -159,6 +160,7 @@ class Red(Simulable):
                     lista[n + len(pos_etps) - 1] = -1  # Para la última etapa, ponemos -1
 
             n += len(pos_etps)
+        """
 
     def llenar_coefs(símismo, n_etps, n_parc, n_rep_parám, n_rep_estoc, calibs):
 
@@ -236,6 +238,9 @@ class Red(Simulable):
 
     def simul_calib(símismo):
         pass
+
+    def añadir_exp(símismo, experimento, corresp, categ='Organismos'):
+        super().añadir_exp(experimento=experimento, corresp=corresp, categ=categ)
 
     def incrementar(símismo, paso, i, mov=False, extrn=None):
 

@@ -139,7 +139,7 @@ class Simulable(Coso):
         # símismo.modelo = ModBayes(función=símismo.simul_calib, obs=, dic_parám=, lista_apriori=, dic_líms=)
         pass
 
-    def añadir_exp(símismo, experimento, corresp):
+    def añadir_exp(símismo, experimento, corresp, categ):
 
         """
 
@@ -152,25 +152,25 @@ class Simulable(Coso):
         """
         dic_datos = símismo.observ[experimento.nombre] = corresp.copy()
 
-        llenar_obs(d=dic_datos, exp=experimento)
-
-
+        llenar_obs(d=dic_datos, exp=experimento, categ=categ)
 
     def validar(símismo, experimento):
         pass
 
 
-def llenar_obs(d, exp):
+def llenar_obs(d, exp, categ):
 
     for ll, v in d.items():
-
+        print (ll, v)
         if type(v) is dict:
-            llenar_obs(d=v, exp=exp)
+            llenar_obs(d=v, exp=exp, categ=categ)
 
         elif type(v) is list:
-            matriz_datos = np.stack([exp.datos[x] for x in v])
+
+            matriz_datos = np.stack([exp.datos[categ]['obs'][x] for x in v])
 
             d[ll] = matriz_datos.sum(axis=0)
+
 
 def llenar_dic(d_vacío, d_nuevo):
     """

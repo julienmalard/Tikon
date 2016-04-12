@@ -31,8 +31,8 @@ class Organismo(Coso):
         símismo.receta = dict(nombre=nombre,
                               etapas={},
                               coefs={},
-                              config={'ecuaciones': None,
-                                      'presas': None
+                              config={'ecuaciones': {},
+                                      'presas': {}
                                       }
                               )
 
@@ -56,7 +56,7 @@ class Organismo(Coso):
         símismo.nombre = símismo.receta['nombre']
 
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
-        símismo.etapas = sorted([x for x in símismo.receta['etapas']], key=lambda d: d['posición'])
+        símismo.etapas = sorted([x for x in símismo.receta['etapas'].values()], key=lambda d: d['posición'])
 
     def añadir_etapa(símismo, nombre, posición, ecuaciones, paralela=False):
         """
