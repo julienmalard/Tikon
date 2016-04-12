@@ -1,8 +1,11 @@
-﻿from COSO import Coso
+﻿from NuevoCOSO import Coso
 
 
 # Esta clase representa los suelos de una parcela.
 class Suelo(Coso):
+
+    ext = '.suel'
+
     def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada suelo
         dic = dict(Nombre=nombre, Textura_suelo="", Profundidad_suelo=(), Color="", Albedo=(), Límite_evap=(),

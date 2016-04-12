@@ -8,7 +8,7 @@ from PARCELA import Parcela
 from CULTIVO.SUELO import Suelo
 from CULTIVO.VARIEDAD import Variedad
 from CLIMA.CLIMA import Diario
-from REDES.REDES import Red
+from RAE.REDES import Red
 
 
 class Paisaje(Coso):

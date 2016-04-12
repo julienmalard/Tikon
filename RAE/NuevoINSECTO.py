@@ -1,10 +1,15 @@
-from REDES.ORGANISMO import Organismo
+from RAE.ORGANISMO import Organismo
 
 
 class Insecto(Organismo):
-    def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones):
+
+    """
+    Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses.
+    """
+
+    def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones) -> object:
         """
-        Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses.
+        La funciôn de inicializaciôn crea un objeto Organismo y después crea las etapas apropiadas.
 
         :param nombre: El nombre del insecto
         :type nombre: str
@@ -32,7 +37,7 @@ class Insecto(Organismo):
         super().__init__(nombre=nombre)
 
         pos = 0
-        if huevo is not None:
+        if huevo:
             símismo.añadir_etapa('huevo', posición=pos, ecuaciones=tipo_ecuaciones['huevo'])
             pos += 1
 
@@ -41,10 +46,10 @@ class Insecto(Organismo):
             símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
             pos += 1
 
-        if pupa is not None:
+        if pupa:
             símismo.añadir_etapa('pupa', posición=pos, ecuaciones=tipo_ecuaciones['pupa'])
 
-        if adulto is not None:
+        if adulto:
             símismo.añadir_etapa('adulto', posición=pos, ecuaciones=tipo_ecuaciones['adulto'])
 
 
@@ -71,9 +76,12 @@ class Sencillo(Insecto):
 
 
 class MetamCompleta(Insecto):
+    """
+    Esta clase representa insectos que tienen una metamórfosis completa.
+    """
+
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
         """
-        Esta clase representa insectos que tienen una metamórfosis completa.
 
         :param nombre: El nombre del insecto
         :type nombre: str
@@ -125,9 +133,12 @@ class MetamCompleta(Insecto):
 
 
 class MetamIncompleta(Insecto):
+    """
+    Esta clase representa insectos que tienen una metamórfosis incompleta.
+    """
+
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
         """
-        Esta clase representa insectos que tienen una metamórfosis incompleta.
 
         :param nombre: El nombre del insecto
         :type nombre: str
@@ -169,3 +180,69 @@ class MetamIncompleta(Insecto):
 
         super().__init__(nombre=nombre,  huevo=huevo, njuvenil=njuvenil, pupa=False, adulto=adulto,
                          tipo_ecuaciones=tipo_ec)
+
+
+class Parasitoide(Insecto):
+    def __init__(símismo, nombre, pupa=False):
+
+        tipo_ec = {}
+
+        if pupa:
+            tipo_ec['pupa'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
+                                   Depredación={'Ecuación': None},
+                                   Muertes={'Edad': None, 'Prob': None},
+                                   Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                   Movimiento={}
+                                   )
+
+        tipo_ec['adulto'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
+                                 Depredación={'Ecuación': 'Kovai'},
+                                 Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                 Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                 Movimiento={}
+                                 )
+
+        super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=pupa, adulto=True,
+                         tipo_ecuaciones=tipo_ec)
+
+    def parasita(símismo, víctima, etps_infec, etp_sale):
+
+        """
+
+        :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
+        :type víctima: Insecto
+
+        """
+
+        pass
+
+    def noparasita(símismo, víctima, etps_infec=None):
+        pass
+
+
+class Esfécido(Insecto):
+    def __init__(símismo, nombre):
+
+        tipo_ec = {'adulto': dict(Crecimiento={'Modif': None, 'Ecuación': None},
+                                  Depredación={'Ecuación': 'Kovai'},
+                                  Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                  Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                  Movimiento={}
+                                  )}
+
+        super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
+                         tipo_ecuaciones=tipo_ec)
+
+    def ataca(símismo, víctima, etps_víc):
+        """
+
+        :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
+        :type víctima: Insecto
+
+        """
+
+        pass
+
+    def noataca(símismo, víctima, etps_víc):
+
+        pass
