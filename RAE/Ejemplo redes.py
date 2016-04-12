@@ -34,6 +34,7 @@ Red_campos_de_coco.añadir_exp(Experimento_A,
                                            )
                               )
 
+print(Red_campos_de_coco.observ)
 
 """
 
