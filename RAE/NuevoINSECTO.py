@@ -7,7 +7,9 @@ class Insecto(Organismo):
     Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses.
     """
 
-    def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones) -> object:
+    ext = '.ins'
+
+    def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones, fuente=None):
         """
         La funciôn de inicializaciôn crea un objeto Organismo y después crea las etapas apropiadas.
 
@@ -34,23 +36,25 @@ class Insecto(Organismo):
 
         """
 
-        super().__init__(nombre=nombre)
+        super().__init__(nombre=nombre, fuente=fuente)
 
-        pos = 0
-        if huevo:
-            símismo.añadir_etapa('huevo', posición=pos, ecuaciones=tipo_ecuaciones['huevo'])
-            pos += 1
+        # Únicamente añadir las etapas si estamos creando un nuevo Insecto (sin cargarlo de un archivo existente)
+        if fuente is None:
+            pos = 0
+            if huevo:
+                símismo.añadir_etapa('huevo', posición=pos, ecuaciones=tipo_ecuaciones['huevo'])
+                pos += 1
 
-        assert(type(njuvenil) is int and njuvenil >= 0)
-        for i in range(0, njuvenil):
-            símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
-            pos += 1
+            assert(type(njuvenil) is int and njuvenil >= 0)
+            for i in range(0, njuvenil):
+                símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
+                pos += 1
 
-        if pupa:
-            símismo.añadir_etapa('pupa', posición=pos, ecuaciones=tipo_ecuaciones['pupa'])
+            if pupa:
+                símismo.añadir_etapa('pupa', posición=pos, ecuaciones=tipo_ecuaciones['pupa'])
 
-        if adulto:
-            símismo.añadir_etapa('adulto', posición=pos, ecuaciones=tipo_ecuaciones['adulto'])
+            if adulto:
+                símismo.añadir_etapa('adulto', posición=pos, ecuaciones=tipo_ecuaciones['adulto'])
 
 
 # Unas clases prehechas para simplificar la creación de insectos
@@ -183,7 +187,10 @@ class MetamIncompleta(Insecto):
 
 
 class Parasitoide(Insecto):
-    def __init__(símismo, nombre, pupa=False):
+
+    ext = 'prs'
+
+    def __init__(símismo, nombre, pupa=False, fuente=None):
 
         tipo_ec = {}
 
@@ -203,7 +210,7 @@ class Parasitoide(Insecto):
                                  )
 
         super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=pupa, adulto=True,
-                         tipo_ecuaciones=tipo_ec)
+                         tipo_ecuaciones=tipo_ec, fuente=fuente)
 
     def parasita(símismo, víctima, etps_infec, etp_sale):
 
@@ -221,7 +228,10 @@ class Parasitoide(Insecto):
 
 
 class Esfécido(Insecto):
-    def __init__(símismo, nombre):
+
+    ext = '.esf'
+
+    def __init__(símismo, nombre, fuente=None):
 
         tipo_ec = {'adulto': dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                   Depredación={'Ecuación': 'Kovai'},
@@ -231,7 +241,7 @@ class Esfécido(Insecto):
                                   )}
 
         super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
-                         tipo_ecuaciones=tipo_ec)
+                         tipo_ecuaciones=tipo_ec, fuente=fuente)
 
     def ataca(símismo, víctima, etps_víc):
         """
@@ -246,3 +256,4 @@ class Esfécido(Insecto):
     def noataca(símismo, víctima, etps_víc):
 
         pass
+

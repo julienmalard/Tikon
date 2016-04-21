@@ -175,9 +175,6 @@ class Experimento(object):
         return datos
 
 
-
-
-
 def trazas_a_aprioris(id_calib, d_pm, d_lms, lista_apriori, i=0, l=None):
     if l is None:
         l = []

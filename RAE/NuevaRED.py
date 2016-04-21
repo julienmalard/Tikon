@@ -3,6 +3,8 @@ import numpy as np
 
 from NuevoCOSO import Simulable
 from RAE.ORGANISMO import Organismo
+import RAE.NuevoINSECTO
+
 import RAE.Ecuaciones as Ec
 import INCERT.Distribuciones as Ds
 
@@ -236,8 +238,31 @@ class Red(Simulable):
 
             # para hacer: inicializar las poblaciones a t=0
 
-    def simul_calib(símismo):
-        pass
+    def simul_calib(símismo, paso, extrn):
+
+        egresos = np.array()
+
+        i_obs = np.array(())
+        list_obs = np.array(())
+
+        for exp, d_exp in símismo.observ.items():
+            for org, d_org in d_exp[''].items():
+                for etp, datos in d_org.items():
+                    pass
+
+            # Para cada paso de tiempo, incrementar el modelo
+            tiempo_final = max(i_obs)
+            símismo.simular(paso=paso, tiempo_final=tiempo_final, rep_parám=1, rep_estoc=1)
+
+            for org, d_org in d_exp.items():
+                for etp_datos in d_org.items():
+                    pass
+            i = None
+            símismo.incrementar(paso, i=i + 1, extrn=extrn)
+
+
+
+        return egresos
 
     def añadir_exp(símismo, experimento, corresp, categ='Organismos'):
         super().añadir_exp(experimento=experimento, corresp=corresp, categ=categ)
@@ -929,3 +954,18 @@ class Red(Simulable):
             pobs -= quitar_por_cohorte
 
             muertes -= np.sum(quitar_por_cohorte, axis=0)
+
+
+def encontrar_sub_org(ext):
+
+    def sacar_subclasses(cls):
+        return cls.__subclasses__() + [g for s in cls.__subclasses__()
+                                       for g in sacar_subclasses(s)]
+
+    for sub in sacar_subclasses(Organismo):
+        if sub.ext == ext:
+            return sub
+
+    raise ValueError
+
+print(encontrar_sub_org('.esf'))

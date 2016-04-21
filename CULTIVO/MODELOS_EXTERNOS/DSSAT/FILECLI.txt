@@ -1,6 +1,6 @@
 *CLIMATE : {[SITE]:<50}
 @ INSI      LAT     LONG  ELEV   TAV   AMP  SRAY  TMXY  TMNY  RAIY
- {[INSI]:>5} {[LAT]:>8} {[LONG]:>8} {[ELEV]}:>5 {[TAV]:>5} {[AMP]:>5} {[SRAY]:>5} {[TMXY]:>5} {[TMNY]:>5} {[RAIY]:>5}
+ {[INSI]:>5} {[LAT]:>8} {[LONG]:>8} {[ELEV]:>5} {[TAV]:>5} {[AMP]:>5} {[SRAY]:>5} {[TMXY]:>5} {[TMNY]:>5} {[RAIY]:>5}
 @START  DURN  ANGA  ANGB REFHT WNDHT SOURCE
  {[START]:>5} {[DURN]:>5} {[ANGA]:>5} {[ANGB]:>5} {[REFHT]:>5} {[WNDHT]:>5} {[SOURCE]:<20}
 @ GSST  GSDU

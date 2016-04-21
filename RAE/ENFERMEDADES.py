@@ -2,5 +2,9 @@ from RAE.ORGANISMO import Organismo
 
 
 class Enfermedad(Organismo):
-    # ¡Marcela éste es para ti! :)
-    pass
+
+    ext = '.enf'  # La extensión para guardar archivos de esta clase.
+
+    # ¡Marcela esta es para ti! :)
+
+    # Te recomiendo que lo escribieras según el ejemplo de la clase Insecto
