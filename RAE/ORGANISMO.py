@@ -3,15 +3,30 @@ import RAE.Ecuaciones as Ec
 
 
 class Organismo(Coso):
+    """
+    Esta clase representa cualquier organismo vivo en una red agroecológica.: insectos, agentes de
+       enfermedad, etc. Maneja las ecuaciones y bases de datos de distribuciones probabilísticas para sus parámetros.
+    Esta clase se llama directamente muy rara vez, porque se llama más facilmente por el uso de una de sus subclases
+      (Insecto, Enfermedad, etc.). Hablando de subclases, puedes crear más subclases o sub-sub clases si te da las
+      ganas. Por ejemplo, hay subclases de "Insecto" para la mayoría de los ciclos de vida posibles para insectos
+      (Metamórfosis Completa, Metamórfosis Incompleta, etc.) y hacia sub-subclases de estas, si quieres.
+      Un ejemplo de algo que podrías añadir sería una sub-subclase de "Sencillo" para pulgones, o sub-clases de
+      Enfermedades para distintos tipos de enfermedades (enfermedades de insectos, enfermedades de hojas, de raíces,
+      etc.) (¡Marcela!) :)
+    Una cosa importante: si quieres crear una nueva subclase, sub-subclase, sub-sub-subclase (no importa), y quieres
+      que la clase tenga métodos (fundiones) propias DISTINTAS de los métodos yá implementados en Organismo aquí,
+      (por ejemplo, un método de .parasita() para parasitoides), tendrás que especificar un tipo de extensión de
+      archivo único para tu clase (p.ej., '.ins' para Insecto) para que el módulo de Redes pueda distinguir archivos
+      guardados específicos a tu nueva clase.
+
+    """
 
     # La extensión de base para organismos
     ext = '.org'
 
     def __init__(símismo, nombre=None, fuente=None):
         """
-        Esta clase representa cualquier organismo vivo en una red agroecológica. Esta clase se llama directamente muy
-          rara vez, porque se llama más facilmente por el uso de una de sus subclases (Insecto, Enfermedad, etc.) o de
-          subclases.
+
 
         :param nombre: El nombre del organismo
         :type nombre: str
@@ -25,19 +40,16 @@ class Organismo(Coso):
         super().__init__(nombre=nombre, fuente=fuente)
 
         # La receta del organismo es dónde se guarda toda la información necesaria para recrearlo de cero.
-        # Contiene su nombre, un diccionario de los diccionarios de sus etapas, y la configuración actual del
-        # organismo (ecuaciones activas y presas actuales para cada etapa.)
-
-        símismo.receta = dict(nombre=nombre,
-                              etapas={},
-                              coefs={},
-                              config={'ecuaciones': {},
-                                      'presas': {}
-                                      }
-                              )
+        # La parte de estructura contiene un diccionario de los diccionarios de sus etapas.
 
         # Una lista de las etapas para facilitar el uso del organismo
         símismo.etapas = []
+
+        # Aquí se guardan cambios al estátus del organismo que NO se guardan con su receta (hay que definirlas cada
+        # vez que se crea el objeto del organismo).
+        símismo.config = {'presas': {},
+                          'huéspedes': {}
+                          }
 
         # Actualizar el organismo
         símismo.actualizar()
@@ -58,7 +70,7 @@ class Organismo(Coso):
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['etapas'].values()], key=lambda d: d['posición'])
 
-    def añadir_etapa(símismo, nombre, posición, ecuaciones, paralela=False):
+    def añadir_etapa(símismo, nombre, posición, ecuaciones):
         """
         Esta función añade una etapa al organismo.
 
@@ -75,37 +87,33 @@ class Organismo(Coso):
           Tiene el formato: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...}, Categoría_2: {...}, ...}
         :type ecuaciones: dict
 
-        :param paralela: Indica si esta etapa se añnade de manera paralela a las otras etapas o de manera consecutiva.
-        :type paralela: bool
-
         """
 
         # Crear el diccionario inicial para la etapa
-        dic_etapa = dict(nombre=nombre,
-                         posición=posición,
+        dic_etapa = dict(posición=posición,
+                         ecs_activas={}
                          )
 
         # Guardar el diccionario en la receta del organismo
-        símismo.receta['etapas'][nombre] = dic_etapa
+        símismo.receta['estr'][nombre] = dic_etapa
 
         # Guardar las ecuaciones del organismo en la sección 'Coefs'] de la receta
         símismo.receta['coefs'][nombre] = Ec.gen_ec_inic(Ec.ecuaciones)
 
         # Copiar la selección de ecuaciones para la etapa a la configuración activa del organismo
-        config_etp = símismo.receta['config']['ecuaciones'][nombre] = {}
+        ecs_activas = símismo.receta['estr'][nombre]['ecs_activas']
         for categ, dic_categ in ecuaciones.items():
-            config_etp[categ] = {}
+            ecs_activas[categ] = {}
             for subcateg, opción in dic_categ.items():
-                config_etp[categ][subcateg] = opción
+                ecs_activas[categ][subcateg] = opción
 
         # Crear una lista vaciá para eventualmente guardar las presas (si hay) de la nueva etapa
         símismo.receta['config']['presas'][nombre] = []
 
         # Aumentar la posición de las etapas que siguen la que añadiste
-        if not paralela:
-            for etp, dic_etp in símismo.receta['etapas'].items():
-                if dic_etp['posición'] >= posición:
-                    dic_etp['posición'] += 1
+        for etp, dic_etp in símismo.receta['etapas'].items():
+            if dic_etp['posición'] >= posición:
+                dic_etp['posición'] += 1
 
         # Actualizar el organismo
         símismo.actualizar()

@@ -1,9 +1,10 @@
 import os
 import io
 import json
+import numpy as np
+import pymc
 
 from INCERT.NuevaCALIB import Experimento, ModBayes
-import numpy as np
 
 
 class Coso(object):
@@ -44,16 +45,14 @@ class Coso(object):
                 raise FileNotFoundError('Hay que especificar un archivo para guardar el organismo.')
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
-        np_a_lista(símismo.receta['Coefs'])  # Convertir matrices a formato de lista
+        prep_json(símismo.receta['Coefs'])  # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
 
         with io.open(archivo, 'w', encoding='utf8') as d:
             json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
     def cargar(símismo, fuente):
         """
-        Esta función carga un archivo de receta para crear el Coso. NO usar esta función directamente; se debe
-          llamar únicamente por la función __init__(). Si quieres cargar un objeto existente de otra fuente,
-          crear un nuevo objeto con la nueva fuente.
+        Esta función carga un archivo de receta para crear el Coso.
 
         :param fuente:
         :type fuente: str
@@ -77,10 +76,11 @@ class Coso(object):
 
         else:  # Si se cargó el documento con éxito, usarlo
             # Copiar el documento a la receta de este organismo
+            símismo.receta.clear()
             llenar_dic(símismo.receta, nuevo_dic)
 
             # Convertir listas a matrices numpy en las ecuaciones (coeficientes)
-            lista_a_np(símismo.receta['Coefs'])
+            lista_a_np(símismo.receta['coefs'])
 
 
 class Simulable(Coso):
@@ -131,7 +131,7 @@ class Simulable(Coso):
         # Dejamos la implementación del incremento del modelo a las subclases individuales.
         raise NotImplementedError
 
-    def simul_calib(símismo):
+    def simul_calib(símismo, tiempo_final, paso, extrn):
         raise NotImplementedError
 
     def calibrar(símismo):
@@ -174,8 +174,8 @@ def llenar_obs(d, exp, categ):
 
 def llenar_dic(d_vacío, d_nuevo):
     """
-    Esta función llena un diccionario con los valores de otro diccionario. Es util para situaciones dónde hay que
-      asegurarse de que el formato de un diccionario que estamos cargando esté correcto.
+    Esta función llena un diccionario con los valores de otro diccionario. Es util para evitar quebrar referencias a
+      un diccionario mientras tienes que cargarlo de nuevo.
 
     :param d_vacío: El diccionario vacío original para llenar
     :type d_vacío: dict
@@ -215,7 +215,7 @@ def lista_a_np(d):
 
     for ll, v in d.items():  # Para cada itema (llave, valor) del diccionario
         if type(v) is dict:  # Si el itema era otro diccionario...
-            np_a_lista(v)  # Llamar esta función de nuevo
+            prep_json(v)  # Llamar esta función de nuevo
         elif type(v) is list:  # Si el itema era una lista...
             try:
                 d[ll] = np.array(v, dtype=float)  # Ver si se puede convertir a una matriz numpy
@@ -223,7 +223,7 @@ def lista_a_np(d):
                 pass  # Si no funcionó, pasar al siguiente
 
 
-def np_a_lista(d):
+def prep_json(d):
     """
     Esta función toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las convierte
       en matrices de numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
@@ -237,6 +237,10 @@ def np_a_lista(d):
 
     for ll, v in d.items():  # Para cada itema (llave, valor) del diccionario
         if type(v) is dict:  # Si el itema era otro diccionario...
-            lista_a_np(v)  # Llamar esta función de nuevo con el nuevo diccionario
+            lista_a_np(v)  # ...llamar esta función de nuevo con el nuevo diccionario
+
         elif type(v) is np.ndarray:  # Si el itema era una matriz numpy...
-            d[ll] = v.tolist()  # Convertir la matriz al formato de lista.
+            d[ll] = v.tolist()  # ...convertir la matriz al formato de lista.
+
+        elif isinstance(v, pymc.Stochastic):  # Si el itema es un variable de PyMC...
+            d.pop(ll)  # ... borrarlo
