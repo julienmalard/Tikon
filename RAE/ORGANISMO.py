@@ -37,19 +37,15 @@ class Organismo(Coso):
         :return:
         """
 
+        # Iniciar el Organismo como Coso
         super().__init__(nombre=nombre, fuente=fuente)
 
-        # La receta del organismo es dónde se guarda toda la información necesaria para recrearlo de cero.
-        # La parte de estructura contiene un diccionario de los diccionarios de sus etapas.
-
-        # Una lista de las etapas para facilitar el uso del organismo
+        # Una lista ordenada de las etapas del organismo (para facilitar su acceso)
         símismo.etapas = []
 
         # Aquí se guardan cambios al estátus del organismo que NO se guardan con su receta (hay que definirlas cada
-        # vez que se crea el objeto del organismo).
-        símismo.config = {'presas': {},
-                          'huéspedes': {}
-                          }
+        # vez que se crea el objeto del organismo). Ejemplo: presas y huéspedes de cada etapa del organismo.
+        símismo.config = {}
 
         # Actualizar el organismo
         símismo.actualizar()
@@ -68,7 +64,7 @@ class Organismo(Coso):
         símismo.nombre = símismo.receta['nombre']
 
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
-        símismo.etapas = sorted([x for x in símismo.receta['etapas'].values()], key=lambda d: d['posición'])
+        símismo.etapas = sorted([x for x in símismo.receta['estr'].values()], key=lambda d: d['posición'])
 
     def añadir_etapa(símismo, nombre, posición, ecuaciones):
         """
@@ -91,7 +87,7 @@ class Organismo(Coso):
 
         # Crear el diccionario inicial para la etapa
         dic_etapa = dict(posición=posición,
-                         ecs_activas={}
+                         ecs=ecuaciones.copy()  # Compiar la selección de tipos de ecuaciones
                          )
 
         # Guardar el diccionario en la receta del organismo
@@ -100,18 +96,11 @@ class Organismo(Coso):
         # Guardar las ecuaciones del organismo en la sección 'Coefs'] de la receta
         símismo.receta['coefs'][nombre] = Ec.gen_ec_inic(Ec.ecuaciones)
 
-        # Copiar la selección de ecuaciones para la etapa a la configuración activa del organismo
-        ecs_activas = símismo.receta['estr'][nombre]['ecs_activas']
-        for categ, dic_categ in ecuaciones.items():
-            ecs_activas[categ] = {}
-            for subcateg, opción in dic_categ.items():
-                ecs_activas[categ][subcateg] = opción
-
-        # Crear una lista vaciá para eventualmente guardar las presas (si hay) de la nueva etapa
-        símismo.receta['config']['presas'][nombre] = []
+        # Crear diccionarios para eventualmente contener las presas o huéspedes (si hay) de la nueva etapa
+        símismo.config[nombre] = {'presas': {}, 'huéspedes': {}}
 
         # Aumentar la posición de las etapas que siguen la que añadiste
-        for etp, dic_etp in símismo.receta['etapas'].items():
+        for etp, dic_etp in símismo.receta['estr'].items():
             if dic_etp['posición'] >= posición:
                 dic_etp['posición'] += 1
 
@@ -127,23 +116,21 @@ class Organismo(Coso):
         """
 
         # Guardar la posición de la etapa a quitar
-        posición = símismo.receta['etapas'][nombre]['posición']
+        posición = símismo.receta['estr'][nombre]['posición']
 
         # Quitar el diccionario de la etapa de la receta del organismo
-        símismo.receta['etapas'].pop(nombre)
+        símismo.receta['estr'].pop(nombre)
 
-        # Quitar las ecuaciones de la etapa de la lista de ecuaciones de la configuración actual del organismo
-        símismo.receta['config']['ecuaciones'].pop(nombre)
+        # Quitar las ecuaciones de la etapa de la lista de ecuaciones del organismo
+        símismo.receta['coefs']['ecuaciones'].pop(nombre)
 
-        # Quitar la lista de presas de esta etapa de la configuración actual del organismo
-        símismo.receta['config']['presas'].pop(nombre)
+        # Quitar la etapa de la configuración actual del organismo
+        símismo.config.pop(nombre)
 
         # Disminuir la posición de las etapas que siguen la que acabas de quitar
-        if posición not in [x['posición'] for x in símismo.receta['etapas'].values()]:
-            # Sólo hacer el cambio si la etapa a quitar no era una etapa paralela
-            for dic_etp in símismo.receta['etapas'].values():
-                if dic_etp['posición'] >= posición:
-                    dic_etp['posición'] -= 1
+        for dic_etp in símismo.receta['estr'].values():
+            if dic_etp['posición'] > posición:
+                dic_etp['posición'] -= 1
 
         # Actualizar el organismo
         símismo.actualizar()
@@ -163,83 +150,121 @@ class Organismo(Coso):
 
         for categ, dic_categ in tipo_ec.items():
             for sub_categ, opción_ec in dic_categ.items():
-                símismo.receta['config']['ecuaciones'][etapa][categ][sub_categ] = opción_ec
+                símismo.receta['estr'][etapa]['ecuaciones'][categ][sub_categ] = opción_ec
 
-    def secome(símismo, presa, etps_depred=None, etps_presa=None):
+    def victimiza(símismo, víctima, etps_símismo=None, etps_víctima=None, método='presa'):
         """
-        Esta función establece relaciones de depredador y presa entre organismos.
+        Esta función establece relaciones de  entre organismos.
 
-        :param presa: La presa (usar un objeto Organismo, no el nombre de la presa).
-        :type presa: Organismo
+        :param víctima: La presa (usar un objeto Organismo, no el nombre de la presa).
+        :type víctima: Organismo
 
-        :param etps_depred: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
+        :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que se comen a la presa. Si se deja como "None", tomará todas las fases.
-        :type etps_depred: list
+        :type etps_símismo: list | str
 
-        :param etps_presa: Lista de los nombres (cadena de carácteres) de las fases de la presa que se come el
+        :param etps_víctima: Lista de los nombres (cadena de carácteres) de las fases de la presa que se come el
           depredador (este organismo). Si se deja como "None", tomará todas las fases.
-        :type etps_presa: list
+        :type etps_víctima: list | str
+
+        :param método:
+        :type método:
 
         """
 
-        # Si no se especificaron estapas específicas, tomar todas las etapas de los organismos.
-        if etps_depred is None:
-            etps_depred = [x for x in símismo.receta['etapas']]
-        if etps_presa is None:
-            etps_presa = [x for x in presa.receta['etapas']]
+        # Verificar que el método es válido
+        if método not in ['presa', 'huésped']:
+            raise ValueError('Método de relación víctima no válido.')
 
-        # Si se le olvidó al utilisador poner sus etapas en forma de lista, hacerlo aquí
-        if type(etps_presa) is str:
-            etps_presa = [etps_presa]
-        if type(etps_depred) is str:
-            etps_depred = [etps_depred]
+        # Si no se especificaron etapas específicas, tomar todas las etapas de los organismos.
+
+        if etps_símismo is None:
+            etps_símismo = [x for x in símismo.receta['estr']]
+        if etps_víctima is None:
+            etps_víctima = [x for x in víctima.receta['estr']]
+
+        # Si se te olvidó poner el nombre de tus etapasen forma de lista, el programa lo hará para ti
+
+        if type(etps_víctima) is str:
+            etps_víctima = [etps_víctima]
+        if type(etps_símismo) is str:
+            etps_símismo = [etps_símismo]
 
         # Guardar la relación de deprededor y presa en la configuración del organismo
-        for e_depred in etps_depred:
-            símismo.receta['config']['presas'][e_depred] = etps_presa
+        for e_depred in etps_símismo:
+            dic_víc = símismo.receta['estr'][e_depred][método]
+
+            # Si necesario, añadir el nombre de la presa al diccionario de víctimas
+            if víctima.nombre not in dic_víc:
+                dic_víc[víctima.nombre] = []
+
+            for e_presa in etps_víctima:
+                if e_presa not in dic_víc:  # Evitar de añadir una presa más que una vez por error
+                    dic_víc[víctima.nombre].append(e_presa)
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
         # todos los coeficientes necesarios para la nueva presa
         símismo.actualizar()
 
-    def nosecome(símismo, presa, etps_depred=None, etps_presa=None):
+    def novictimiza(símismo, víctima, etps_símismo=None, etps_víctima=None, método='presa'):
         """
         Esta función borra relaciones de depredador y presa entre organismos.
 
-        :param presa: La presa que ya no se come (usar un objeto Organismo, no el nombre de la presa).
-        :type presa: Organismo
+        :param víctima: La presa que ya no se come (usar un objeto Organismo, no el nombre de la presa).
+        :type víctima: Organismo
 
-        :param etps_depred: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
+        :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que ya no se comen a la presa. Si se deja como "None", tomará todas las fases.
-        :type etps_depred: list
+        :type etps_símismo: list | str
 
-        :param etps_presa: Lista de los nombres (cadena de carácteres) de las fases de la presa que ya no se come el
+        :param etps_víctima: Lista de los nombres (cadena de carácteres) de las fases de la presa que ya no se come el
           depredador (este organismo). Si se deja como "None", tomará todas las fases.
-        :type etps_presa: list
+        :type etps_víctima: list | str
+
+        :param método:
+        :type método:
 
         """
 
-        # Si no se especificaron estapas específicas, tomar todas las etapas de los organismos.
-        if etps_depred is None:
-            etps_depred = [x for x in símismo.receta['etapas']]
-        if etps_presa is None:
-            etps_presa = [x for x in presa.receta['etapas']]
+        # Verificar que el método es válido
+        if método not in ['presa', 'huésped']:
+            raise ValueError('Método de relación víctima no válido.')
 
-        # Si se le olvidó al utilisador poner sus etapas en forma de lista, hacerlo aquí
-        if type(etps_presa) is str:
-            etps_presa = [etps_presa]
-        if type(etps_depred) is str:
-            etps_depred = [etps_depred]
+        # Si no se especificaron etapas específicas, tomar todas las etapas de los organismos.
+
+        if etps_símismo is None:
+            etps_símismo = [x for x in símismo.receta['estr']]
+        if etps_víctima is None:
+            etps_víctima = [x for x in víctima.receta['estr']]
+
+        # Si se te olvidó poner el nombre de tus etapasen forma de lista, el programa lo hará para ti
+
+        if type(etps_víctima) is str:
+            etps_víctima = [etps_víctima]
+        if type(etps_símismo) is str:
+            etps_símismo = [etps_símismo]
 
         # Quitar la relación de deprededor y presa en la configuración del organismo
-        for e_depred in etps_depred:  # Para cada etapa especificada del depredador...
+
+        for e_depred in etps_símismo:  # Para cada etapa especificada del depredador...
+
+            dic_víc = símismo.receta['estr'][e_depred][método]
+
             # Quitar cada etapa especificada de la presa
-            for e_presa in etps_presa:
-                símismo.receta['config']['presas'][e_depred].pop(e_presa)
+            for e_presa in etps_víctima:
+
+                # Vamos a ignorar etapas que no eran en la lista de víctimas para empezar (posible por error del
+                # usuario o por uso de 'etps_víctima = None' para referenciar todas las etapas de la víctima.
+                try:
+                    dic_víc[víctima.nombre].pop(e_presa)
+                except KeyError:
+                    pass
 
             # Si ya no quedan estapas del organismo como presas, quitar su nombre del diccionario de presas
-            if len(símismo.receta['config']['presas'][e_depred]) == 0:
-                símismo.receta['config']['presas'].pop(e_depred)
+            if len(dic_víc[víctima.nombre]) == 0:
+                dic_víc.pop(víctima.nombre)
 
-        # No se reactualiza el organismo; los parámetros de interacciones con la antigua presa se quedan la receta
-        # del organismo para uso futuro potencial.
+        # No se reactualiza el organismo.
+
+        # Los parámetros de interacciones con la antigua presa se quedan la receta del organismo para uso futuro
+        # potencial.

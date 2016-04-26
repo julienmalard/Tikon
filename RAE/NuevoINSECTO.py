@@ -56,6 +56,40 @@ class Insecto(Organismo):
             if adulto:
                 símismo.añadir_etapa('adulto', posición=pos, ecuaciones=tipo_ecuaciones['adulto'])
 
+    def secome(símismo, presa, etps_presa=None, etps_depred=None):
+        """
+        Estabelce relaciones de depredador y presa.
+
+        :param presa:
+        :type presa: Organismo
+
+        :param etps_presa:
+        :type etps_presa:
+
+        :param etps_depred:
+        :type etps_depred:
+
+        """
+
+        símismo.victimiza(víctima=presa, etps_símismo=etps_depred, etps_víctima=etps_presa, método='presa')
+
+    def nosecome(símismo, presa, etps_presa=None, etps_depred=None):
+        """
+        Para quitar una relación de depredador y presa.
+
+        :param presa:
+        :type presa: Organismo
+
+        :param etps_presa:
+        :type etps_presa:
+
+        :param etps_depred:
+        :type etps_depred:
+
+        """
+
+        símismo.novictimiza(víctima=presa, etps_símismo=etps_depred, etps_víctima=etps_presa, método='presa')
+
 
 # Unas clases prehechas para simplificar la creación de insectos
 class Sencillo(Insecto):
@@ -188,7 +222,7 @@ class MetamIncompleta(Insecto):
 
 class Parasitoide(Insecto):
 
-    ext = 'prs'
+    ext = 'ptd'
 
     def __init__(símismo, nombre, pupa=False, fuente=None):
 
@@ -219,12 +253,26 @@ class Parasitoide(Insecto):
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
         :type víctima: Insecto
 
+        :param etps_infec:
+        :type etps_infec: list | str
+
         """
 
-        pass
+        símismo.victimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec, método='huésped')
 
     def noparasita(símismo, víctima, etps_infec=None):
-        pass
+
+        """
+
+        :param víctima:
+        :type víctima: Organismo
+
+        :param etps_infec:
+        :type etps_infec: list | str
+
+        """
+
+        símismo.novictimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec)
 
 
 class Esfécido(Insecto):
@@ -251,9 +299,8 @@ class Esfécido(Insecto):
 
         """
 
-        pass
+        símismo.victimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_víc, método='presa')
 
     def noataca(símismo, víctima, etps_víc):
 
-        pass
-
+        símismo.novictimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_víc, método='presa')
