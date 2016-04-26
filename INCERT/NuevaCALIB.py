@@ -6,7 +6,7 @@ import INCERT.Distribuciones as Ds
 
 
 class ModBayes(object):
-    def __init__(símismo, función, obs, dic_parám, lista_apriori, dic_líms):
+    def __init__(símismo, función, obs, dic_parám, lista_apriori, dic_líms, id_calib):
         """
         Esta clase merece una descripción detallada. Al fin, un Modelo es lo que trae junto simulación, observaciones y
           parámetros para calibrar estos últimos por medio de inferencia Bayesiana (usando el módulo de Python PyMC).
@@ -68,7 +68,7 @@ class ModBayes(object):
         # calibración.
 
         símismo.dic_parám = dic_parám
-        símismo.id = np.random.uniform()
+        símismo.id = id_calib
 
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y

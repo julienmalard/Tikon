@@ -1,7 +1,7 @@
 import math as mat
 import numpy as np
 
-from NuevoCOSO import Simulable
+from NuevoCOSO import Simulable, filtrar_comunes, gen_matr_coefs
 from RAE.ORGANISMO import Organismo
 import RAE.NuevoINSECTO
 
@@ -138,6 +138,8 @@ class Red(Simulable):
         # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
 
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
+
+        símismo.dic_coefs_interés = {}  # para hacer
         """
         for organismo in [org for (nombre, org) in sorted(símismo.organismos.items())]:
 
@@ -166,57 +168,51 @@ class Red(Simulable):
 
     def llenar_coefs(símismo, n_etps, n_parc, n_rep_parám, n_rep_estoc, calibs):
 
+        # Preparar la lista de calibraciones para utilizar:
+
+        if type(calibs) is list:
+            pass
+        elif calibs == 'Todos':
+            pass
+        elif calibs == 'Comunes':
+            calibs = filtrar_comunes(símismo.dic_coefs_interés)
+        elif calibs == 'Correspondientes':
+            corr = [x for x in calibs if x in símismo.receta['Calibraciones']]
+            calibs = corr
+        elif type(calibs) is str:
+            calibs == [calibs]
+
         # Crear las matrices de coeficientes
         símismo.coefs_act = {}
-        for categ, dic_categ in Ec.ecuaciones.items():
-            símismo.coefs_act[categ] = {}
 
-            for subcateg in dic_categ:
-                lista_parám = símismo.coefs_act[categ][subcateg] = []
+        for etp, dic_coefs_etp in símismo.dic_coefs_interés.items():
 
-                for etp in símismo.etapas:
-                    dic_parám = {}
-                    opción = etp['ecuaciones'][categ][subcateg]['opción']
+            for categ, dic_categ_etp in dic_coefs_etp.items():
+                if categ not in símismo.coefs_act.keys():
+                    símismo.coefs_act[categ] = {}
 
-                    for parám in Ec.ecuaciones[categ][subcateg][opción]:
+                símismo.coefs_act[categ][etp] = {}
 
-                        if parám['inter'] is None:
+                for subcateg in dic_categ_etp:
+                    dic_coefs_act = símismo.coefs_act[categ][etp][subcateg] = {}
 
-                            if calibs == 'Todo':
-                                calibs_etp = list(etp['ecuaciones'][categ][subcateg]['paráms'][parám].keys())
-                            else:
-                                calibs_etp = calibs
+                    tipo_ec = dic_categ_etp[subcateg].keys()[0]
 
-                            n_calibs = len(calibs_etp)
-                            rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
-                            resto = n_rep_parám % n_calibs
-                            rep_per_calib[:resto+1] += 1
+                    for parám, d_parám in dic_categ_etp[subcateg][tipo_ec]:
 
-                            for n_id, id_calib in enumerate(calibs_etp):
+                        if d_parám['inter'] is None:
+                            dic_coefs_act[parám] = gen_matr_coefs(dic_parám=d_parám, calibs=calibs,
+                                                                  n_rep_parám=n_rep_parám)
 
-                                traza_parám = etp['ecuaciones'][categ][subcateg]['paráms'][parám][id_calib]
+                        elif d_parám['inter'] == 'presa':
 
-                                if type(traza_parám) is np.ndarray:
-                                    if rep_per_calib[n_id] > calibs_etp[id_calib]:
-                                        raise Warning('Número de replicaciones superior al tamaño de la traza de '
-                                                      'parámetro disponible.')
+                            dic_coefs_act[parám] = np.array(shape=(len(símismo.etapas), n_rep_parám))
 
-                                    dic_parám[parám] = np.random.choice(calibs_etp[id_calib], size=rep_per_calib[n_id])
-
-                                elif type(traza_parám) is str:
-                                    dist_sp = Ds.texto_a_distscipy(traza_parám)
-                                    dic_parám[parám] = dist_sp.rvs(rep_per_calib[n_id])
-
-                                else:
-                                    raise TypeError
-
-                        elif parám['inter'] == 'presa':
-                            dic_parám[parám] = np.zeros(shape=(n_rep_parám, n_etps))
+                            for etp_presa in símismo.etapas:
 
                         else:
                             raise ValueError
 
-                    lista_parám += dic_parám
 
         # Crear las matrices para guardar resultados:
         símismo.datos['Pobs'] = np.empty(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps), dtype=int)
@@ -227,42 +223,20 @@ class Red(Simulable):
 
         símismo.listo = True
 
-    def simular(símismo, paso=1, tiempo_final=120, rep_parám=100, rep_estoc=1, pobs_inic=None, mov=True):
+    def prep_simul(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas, calibs):
 
-        # Determinar el número de parcelas y el número de especies
-        n_parcelas = pobs_inic.shape[0]
-        n_etps = len(símismo.etapas)
+        n_etapas = len(símismo.etapas)
 
-        if not símismo.listo:
-            símismo.llenar_coefs(n_etps=n_etps, n_parc=n_parcelas, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc)
+        for dato in símismo.datos:
+            if dato == 'Pobs':
+                símismo.datos[dato] = np.zeros(shape=(n_parcelas, rep_estoc, rep_parám, n_etapas, n_pasos),
+                                               dtype=int)
+            else:
+                símismo.datos[dato] = np.zeros(shape=(n_parcelas, rep_estoc, rep_parám, n_etapas),
+                                               dtype=int)
 
-            # para hacer: inicializar las poblaciones a t=0
-
-    def simul_calib(símismo, paso, extrn):
-
-        egresos = np.array()
-
-        i_obs = np.array(())
-        list_obs = np.array(())
-
-        for exp, d_exp in símismo.observ.items():
-            for org, d_org in d_exp[''].items():
-                for etp, datos in d_org.items():
-                    pass
-
-            # Para cada paso de tiempo, incrementar el modelo
-            tiempo_final = max(i_obs)
-            símismo.simular(paso=paso, tiempo_final=tiempo_final, rep_parám=1, rep_estoc=1)
-
-            for org, d_org in d_exp.items():
-                for etp_datos in d_org.items():
-                    pass
-            i = None
-            símismo.incrementar(paso, i=i + 1, extrn=extrn)
-
-
-
-        return egresos
+        símismo.llenar_coefs(n_etps=n_etapas, n_parc=n_parcelas, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc,
+                             calibs=calibs)
 
     def añadir_exp(símismo, experimento, corresp, categ='Organismos'):
         super().añadir_exp(experimento=experimento, corresp=corresp, categ=categ)
@@ -277,6 +251,8 @@ class Red(Simulable):
 
         crec = símismo.calc_crec(pobs=pobs, extrn=extrn, paso=paso)
         pobs += crec
+
+        reprod = NotImplemented
 
         muertes = símismo.calc_muertes(pobs=símismo.datos['Pobs'][..., i], extrn=extrn, paso=paso)
         pobs -= muertes
@@ -546,6 +522,9 @@ class Red(Simulable):
 
         return crec
 
+    def calc_reprod(símismo, pobs, extrn, paso):
+        pass
+
     def calc_muertes(símismo, pobs, extrn, paso):
 
         """
@@ -785,6 +764,39 @@ class Red(Simulable):
             vacíos = (etp['Pobs'] == 0)
             for ed in etp['Edades'].values():
                 ed[vacíos] = np.nan
+
+    def prep_calib(símismo, exper):
+
+        for etp in símismo.dic_coefs_interés:
+            for
+
+    def simul_calib(símismo, paso=1, extrn=None):
+
+        egresos = np.array()
+
+        i_obs = np.array(())
+        list_obs = np.array(())
+
+        for exp, d_exp in símismo.observ.items():
+            for org, d_org in d_exp[''].items():
+                for etp, datos in d_org.items():
+                    pass
+
+            # para hacer: inicializar las poblaciones a t=0
+
+            # Para cada paso de tiempo, incrementar el modelo
+            tiempo_final = max(i_obs)
+            for
+            símismo.simular(paso=paso, tiempo_final=tiempo_final, rep_parám=1, rep_estoc=1)
+
+            for org, d_org in d_exp.items():
+                for etp_datos in d_org.items():
+                    pass
+            i = None
+            símismo.incrementar(paso, i=i + 1, extrn=extrn)
+
+        return egresos
+
 
     def poner_val(símismo, ):
         pass
