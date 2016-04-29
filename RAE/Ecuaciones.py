@@ -20,7 +20,7 @@ ecuaciones = dict(Crecimiento={'Modif': {None: None,
                                             'Logístico': {'K': {'límites': (0, np.inf),
                                                                 'inter': None}},
                                             'Logístico Presa': {'K': {'límites': (0, np.inf),
-                                                                'inter': 'presa'}}
+                                                                      'inter': 'presa'}}
                                             }
                                },
 

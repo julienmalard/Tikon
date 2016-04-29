@@ -368,20 +368,37 @@ def valid_vals_inic(d, n=None):
     return n
 
 
-def filtrar_comunes(dic_coefs):
+def filtrar_comunes(lista_paráms):
+    """
+    Esta función devuelve los nombres de las calibraciones que están en común entre todos los parámetros de una lista
+      de diccionarios de parámetros.
+
+    :param lista_paráms: El diccionario con los parámetros.
+    :type lista_paráms: list
+
     """
 
-    :type calibs: list
-    """
-    for
+    # Crear una lista con únicamente los nombres de las calibraciones de cada parámetro, sin cualquier otra
+    # estructura de diccionario. La lista final tiene la forma:
+    #   [[calib1, calib2, calib3], [calib2, calib3, calib4], [calib1, calib4], ...]
+
+    lista_comunes = [x for y in lista_paráms for x in y if False not in [x in z for z in lista_paráms]]
+    lista_comunes = list(set(lista_comunes))  # Quitar valores duplicados
+
+    return lista_comunes
 
 
 def gen_matr_coefs(dic_parám, calibs, n_rep_parám):
     """
+    Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
+      que queremos usar y el número de repeticiones que queremos.
 
     :param dic_parám: Un diccionario de un parámetro con todas sus calibraciones
     :param calibs: Cuales calibraciones hay que incluir
+
     :return:
+    :rtype: np.ndarray
+
     """
 
     # Hacer una lista con únicamente las calibraciones que estén presentes y en la lista de calibraciones acceptables,

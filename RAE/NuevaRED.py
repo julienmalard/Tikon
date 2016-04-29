@@ -4,6 +4,7 @@ import numpy as np
 from NuevoCOSO import Simulable, filtrar_comunes, gen_matr_coefs
 from RAE.ORGANISMO import Organismo
 import RAE.NuevoINSECTO
+import RAE.ENFERMEDADES
 
 import RAE.Ecuaciones as Ec
 import INCERT.Distribuciones as Ds
@@ -36,7 +37,7 @@ class Red(Simulable):
         símismo.receta['estr'] = dict(Organismos={})
 
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
-        símismo.etapas = []  # Una lista de las recetas de las etapas de los organismos en la red
+        símismo.etapas = {}  # Un diccionario de las recetas (y más) de las etapas de los organismos en la red
 
         # Diccionario que contendrá matrices de los coeficientes de la red
         símismo.coefs_act = {}
@@ -139,7 +140,23 @@ class Red(Simulable):
 
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
 
-        símismo.dic_coefs_interés = {}  # para hacer
+        símismo.lista_etps = [] # para hacer
+
+        # Crear una lista con únicamente las listas de calibraciones para cada parámetro. Será útil para las funciones
+        # de simulación, calibración y validación más adelante.
+        símismo.lista_calibs_paráms_interés = []
+        for d_etp in símismo.lista_etps:
+            for categ in d_etp['estr']['ecs'].values():
+                for sub_categ in categ.values():
+                    for parám in sub_categ.values():
+                        if type(list(parám.values())[0]) is np.ndarray:
+                            símismo.lista_calibs_paráms_interés.append(list(parám))
+                        else:
+                            for inter in parám.values():
+                                símismo.lista_calibs_paráms_interés.append(list(inter))
+
+
+
         """
         for organismo in [org for (nombre, org) in sorted(símismo.organismos.items())]:
 
@@ -166,6 +183,39 @@ class Red(Simulable):
             n += len(pos_etps)
         """
 
+        # Crear el diccionario de tipos de ecuaciones actuales
+
+        símismo.ecs.clear()  # Borrar todo en el diccionario existente para evitar posibilidades de cosas raras
+
+        for categ in Ec.ecuaciones:  # Para cada tipo de ecuación posible...
+
+            # Crear la llave correspondiente en el diccionario de tipos de ecuaciones de la red.
+            símismo.ecs[categ] = {}
+
+            # Para cada subcategoría de ecuación posible...
+            for sub_categ in Ec.ecuaciones[categ]:
+
+                # Crear una lista de tamaño igual al número de etapas en la red
+                símismo.ecs[categ][sub_categ] = [None] * len(símismo.etapas)
+
+                # Para cada etapa de esta red...
+                for d_etp in símismo.etapas.values():
+
+                    # Leer el tipo de ecuación activo para esta simulación
+                    tipo_ec = d_etp['estr']['ecs'][categ][sub_categ]
+
+                    # El número de la etapa en las matrices de esta red.
+                    n_etp = d_etp['núm']
+
+                    # Guardar el tipo de ecuación en su lugar en símismo.ecs
+                    símismo.ecs[categ][sub_categ][n_etp] = tipo_ec
+
+
+        símismo.lista_dic_paráms_interés = [] # para hacer
+
+        # La red ya está lista para simular
+        símismo.listo = True
+
     def llenar_coefs(símismo, n_etps, n_parc, n_rep_parám, n_rep_estoc, calibs):
 
         # Preparar la lista de calibraciones para utilizar:
@@ -175,7 +225,7 @@ class Red(Simulable):
         elif calibs == 'Todos':
             pass
         elif calibs == 'Comunes':
-            calibs = filtrar_comunes(símismo.dic_coefs_interés)
+            calibs = filtrar_comunes(símismo.lista_calibs_paráms_interés)
         elif calibs == 'Correspondientes':
             corr = [x for x in calibs if x in símismo.receta['Calibraciones']]
             calibs = corr
@@ -185,31 +235,48 @@ class Red(Simulable):
         # Crear las matrices de coeficientes
         símismo.coefs_act = {}
 
-        for etp, dic_coefs_etp in símismo.dic_coefs_interés.items():
+        # Para cada categoría de ecuación posible...
+        for categ, dic_categ in Ec.ecuaciones.items():
+            símismo.coefs_act[categ] = {}  # Crear una llave correspondiente en coefs_act
 
-            for categ, dic_categ_etp in dic_coefs_etp.items():
-                if categ not in símismo.coefs_act.keys():
-                    símismo.coefs_act[categ] = {}
+            # Para cada subcategoría de ecuación posible...
+            for subcateg in dic_categ:
+                # Crear una lista en coefs_act para guardar los diccionarios de los parámetros de cada etapa
+                coefs_act = símismo.coefs_act[categ][subcateg] = []
 
-                símismo.coefs_act[categ][etp] = {}
+                # Para cada etapa en la lista de diccionarios de parámetros de interés...
+                for n_etp, dic_coefs_etp in enumerate(símismo.lista_etps):
 
-                for subcateg in dic_categ_etp:
-                    dic_coefs_act = símismo.coefs_act[categ][etp][subcateg] = {}
+                    # Añadir el diccionario de parámetros para esta etapa en la lista
+                    coefs_act[n_etp] = {}
 
-                    tipo_ec = dic_categ_etp[subcateg].keys()[0]
+                    # Para cada parámetro en el diccionario de las ecuaciones de esta etapa en uso actual
+                    # (Ignoramos los parámetros para ecuaciones que no se usarán en esta simulación)...
+                    for parám, d_parám in dic_coefs_etp[categ][subcateg]:
 
-                    for parám, d_parám in dic_categ_etp[subcateg][tipo_ec]:
-
+                        # Si no hay interacciones entre este parámetro y otras etapas...
                         if d_parám['inter'] is None:
-                            dic_coefs_act[parám] = gen_matr_coefs(dic_parám=d_parám, calibs=calibs,
-                                                                  n_rep_parám=n_rep_parám)
+                            # Generar la matríz de valores para este parámetro de una vez
+                            coefs_act[n_etp][parám] = gen_matr_coefs(dic_parám=d_parám, calibs=calibs,
+                                                                     n_rep_parám=n_rep_parám)
 
+                        # Si, al contrario, hay interacciones (aquí con las presas de la etapa)...
                         elif d_parám['inter'] == 'presa':
 
-                            dic_coefs_act[parám] = np.array(shape=(len(símismo.etapas), n_rep_parám))
+                            matr = coefs_act[n_etp][parám] = np.empty(shape=(len(símismo.etapas), n_rep_parám),
+                                                                             dtype=float)
+                            matr.fill(np.nan)
 
-                            for etp_presa in símismo.etapas:
+                            for org_prs, l_etps_prs in símismo.lista_etps[n_etp]['config']['presas'].items():
+                                for etp_prs in l_etps_prs:
+                                    n_etp_prs = símismo.etapas[org_prs][etp_prs]['núm']
+                                    matr[n_etp_prs] = gen_matr_coefs(dic_parám=d_parám,
+                                                                     calibs=calibs,
+                                                                     n_rep_parám=n_rep_parám)
 
+                        # Al momento, solamente es posible tener interacciones con las presas de la etapa. Si
+                        # un día alguien quiere incluir más tipos de interacciones (como, por ejemplo, interacciones
+                        # entre competidores), se tendrían que añadir aquí.
                         else:
                             raise ValueError
 
@@ -217,11 +284,14 @@ class Red(Simulable):
         # Crear las matrices para guardar resultados:
         símismo.datos['Pobs'] = np.empty(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps), dtype=int)
 
-        símismo.datos['Depredación'] = np.zeros(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_etps))
+        símismo.datos['Depredación'] = np.zeros(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_etps),
+                                                dtype=int)
 
-        símismo.datos['Transiciones'] = np.zeros(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps), dtype=np.int)
+        for categ in símismo.datos:
+            if categ not in ['Pobs', 'Depredación']:
+                símismo.datos[categ] = np.zeros(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps), dtype=np.int)
 
-        símismo.listo = True
+
 
     def prep_simul(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas, calibs):
 
@@ -767,8 +837,41 @@ class Red(Simulable):
 
     def prep_calib(símismo, exper):
 
-        for etp in símismo.dic_coefs_interés:
-            for
+
+        dic_líms = {}
+        dic_parám = {}
+
+        for org, d_org in símismo.etapas.items():
+            dic_líms[org] = {}
+            dic_parám[org] = {}
+
+            for etp, d_etp in org.items():
+                dic_líms[org][etp] = {}
+                dic_parám[org][etp] = {}
+
+                dic_ecs = d_etp['estr']['ecs']
+
+                for categ, d_categ in dic_ecs.items():
+                    dic_parám[org][etp][categ] = {}
+                    dic_líms[org][etp][categ] = {}
+
+                    for subcateg in d_categ:
+                        dic_parám[org][etp][categ][subcateg] =
+                        dic_líms[org][etp][categ][subcateg] =
+
+
+
+        for categ, d_categ in etp['estr']['ecs'].items():
+                dic_líms[categ] = {}
+                for
+
+        dic_parám =
+        dic_líms = Ec.ecuaciones
+
+        obs =
+
+
+        return obs, dic_parám, dic_líms
 
     def simul_calib(símismo, paso=1, extrn=None):
 
@@ -786,8 +889,6 @@ class Red(Simulable):
 
             # Para cada paso de tiempo, incrementar el modelo
             tiempo_final = max(i_obs)
-            for
-            símismo.simular(paso=paso, tiempo_final=tiempo_final, rep_parám=1, rep_estoc=1)
 
             for org, d_org in d_exp.items():
                 for etp_datos in d_org.items():
@@ -968,16 +1069,15 @@ class Red(Simulable):
             muertes -= np.sum(quitar_por_cohorte, axis=0)
 
 
-def encontrar_sub_org(ext):
+def encontrar_subclase_org(ext):
 
-    def sacar_subclasses(cls):
+    def sacar_subclases(cls):
         return cls.__subclasses__() + [g for s in cls.__subclasses__()
-                                       for g in sacar_subclasses(s)]
+                                       for g in sacar_subclases(s)]
 
-    for sub in sacar_subclasses(Organismo):
+    for sub in sacar_subclases(Organismo):
         if sub.ext == ext:
             return sub
 
     raise ValueError
 
-print(encontrar_sub_org('.esf'))
