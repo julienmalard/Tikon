@@ -3,6 +3,7 @@ import io
 import warnings
 import json
 from datetime import datetime as ft
+import matplotlib.pyplot as dib
 import numpy as np
 import pymc
 
@@ -126,7 +127,7 @@ class Simulable(Coso):
         raise NotImplementedError
 
     def simular(símismo, vals_inic, paso=1, tiempo_final=120, rep_parám=100, rep_estoc=1, extrn=None, mov=True,
-                calibs=1):
+                calibs='Todos'):
 
         # Actualizar el objeto, si necesario. Si ya se ha actualizado el objeto una vez, no se actualizará
         # automáticamente aquí (y no tendrá en cuenta cambios al objeto desde la última calibración).
@@ -245,6 +246,9 @@ class Simulable(Coso):
         # Guardar los resultados de la calibración
         símismo.modelo.guardar()
 
+        # Borrar el objeto de modelo, ya que no se necesita
+        símismo.modelo = None
+
     def añadir_exp(símismo, experimento, corresp, categ):
 
         """
@@ -260,8 +264,40 @@ class Simulable(Coso):
 
         llenar_obs(d=dic_datos, exp=experimento, categ=categ)
 
-    def validar(símismo, experimento):
-        pass
+    def validar(símismo, experimentos, calibs=None, paso=1, rep_parám=100, rep_estoc=100, dibujar=True):
+
+
+        if not type(experimentos) is list:
+            experimentos = [experimentos]
+
+        # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
+        # contrario tomamos el conjunto de todas las calibraciones anteriores.
+        if calibs is None:
+            if símismo.modelo is None:
+                calibs = 'Todos'
+            else:
+                calibs = símismo.modelo.id
+
+        for nombre_exp in experimentos:
+            vals_inic =
+            tiempo_final =
+            extrn =
+            mov =
+
+
+            símismo.simular(vals_inic, paso=paso, tiempo_final=tiempo_final,
+                            rep_parám=rep_parám, rep_estoc=rep_estoc,
+                            extrn=extrn, mov=mov,
+                            calibs=calibs)
+
+            if dibujar:
+                símismo.dibujar()
+
+    def dibujar(símismo, mostrar=True, archivo=''):
+        """
+        Una función para generar gráficos de los resultados del objeto.
+        """
+        raise NotImplementedError
 
 
 def llenar_obs(d, exp, categ):
@@ -459,3 +495,62 @@ def gen_matr_coefs(dic_parám, calibs, n_rep_parám):
         lista_calibs.append(nuevos_vals)
 
     return np.concatenate(lista_calibs)
+
+
+def gráfico(matr_predic, vector_obs, nombre, etiq_y='Población', etiq_x='Día', color=None, mostrar=True, archivo=''):
+    """
+
+    :param matr_predic:
+    :type matr_predic: np.ndarray
+
+    :param vector_obs:
+    :param nombre:
+    :param etiq_y:
+    :param etiq_x:
+    :param color:
+    :param mostrar:
+    :param archivo
+
+    """
+
+    assert len(vector_obs) == matr_predic.shape[2]
+
+    if color is None:
+        color = '#99CC00'
+
+    if mostrar is False:
+        if len(archivo) == 0:
+            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % nombre)
+
+    prom_predic = matr_predic.mean(axis=(0,1))
+
+    x = np.arange(len(vector_obs))
+
+    dib.plot(x, prom_predic, lw=2, color=color)
+
+    dib.plot(x, vector_obs, 'o', color=color)
+
+    # Una matriz sin el incertidumbre estocástico
+    matr_prom_estoc = matr_predic.mean(axis=0)
+
+    # Ahora, el eje 0 es el eje de incertidumbre paramétrica
+    máx_parám = matr_prom_estoc.max(axis=0)
+    mín_parám = matr_prom_estoc.min(axis=0)
+
+    dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5)
+
+    máx_total = matr_predic.max(axis=(0,1))
+    mín_total = matr_predic.min(axis=(0,1))
+
+    dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
+
+    dib.xlabel(etiq_x)
+    dib.ylabel(etiq_y)
+    dib.title(nombre)
+
+    if mostrar is True:
+        dib.show()
+    else:
+        if '.png' not in archivo:
+            archivo = os.path.join(archivo, nombre + '.png')
+        dib.savefig(archivo)
