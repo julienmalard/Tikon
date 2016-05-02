@@ -125,6 +125,7 @@ class ModBayes(object):
         pymc_a_trazas_tx(d_pm=símismo.dic_parám, id_calib=símismo.id)
 
 
+
 class Experimento(object):
     def __init__(símismo, nombre):
 
