@@ -21,8 +21,8 @@ Red_campos_de_coco = Red(nombre='Coco', organismos={O_arenosella, Parasitoides_l
 
 
 Experimento_A = Experimento(nombre='Sitio A')
-Experimento_A.estab_bd_rae(archivo='E:\\Julien\\PhD\\தமிழ்நாடு\\உபயோகான கட்டுரைகள்\\Oarenosella.csv',
-                           tiempo='Día',
+Experimento_A.estab_bd_red(archivo='E:\\Julien\\PhD\\தமிழ்நாடு\\உபயோகான கட்டுரைகள்\\Oarenosella.csv',
+                           col_tiempo='Día',
                            )
 
 print(Experimento_A.datos)
