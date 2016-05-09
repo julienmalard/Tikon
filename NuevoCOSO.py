@@ -142,7 +142,7 @@ class Simulable(Coso):
                            calibs=calibs)
 
         # Para cada paso de tiempo, incrementar el modelo
-        for i in range(0, tiempo_final // paso):
+        for i in range(0, n_pasos):
             símismo.incrementar(paso, i=i + 1, extrn=extrn, mov=mov)
 
     def incrementar(símismo, paso, i, extrn, mov):
@@ -186,7 +186,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def calibrar(símismo, nombre=None, aprioris=None, exper=None, descrip=''):
+    def calibrar(símismo, nombre=None, aprioris=None, exper=None, descrip='', rep=10000, quema=100, extraer=10):
         """
 
         :param aprioris:
@@ -230,6 +230,16 @@ class Simulable(Coso):
                                   lista_apriori=aprioris,
                                   dic_líms=dic_líms,
                                   id_calib=nombre)
+
+        símismo.modelo.calib(rep=rep, quema=quema, extraer=extraer)
+
+    def avanzar_calib(símismo, rep=10000, quema=100, extraer=10):
+
+        if símismo.modelo is None:
+            raise ValueError
+
+        símismo.modelo.calib(rep=rep, quema=quema, extraer=extraer)
+
 
     def guardar_calib(símismo, descrip):
 
@@ -279,16 +289,16 @@ class Simulable(Coso):
                 calibs = símismo.modelo.id
 
         for nombre_exp in experimentos:
+            símismo.simul_experimento(exper=,
+                                      paso=paso, tiempo_final=tiempo_final,
+                                      rep_parám=rep_parám, rep_estoc=rep_estoc,
+                                      extrn=extrn, mov=mov,
+                                      calibs=calibs
+                                      )
             vals_inic =
             tiempo_final =
             extrn =
             mov =
-
-
-            símismo.simular(vals_inic, paso=paso, tiempo_final=tiempo_final,
-                            rep_parám=rep_parám, rep_estoc=rep_estoc,
-                            extrn=extrn, mov=mov,
-                            calibs=calibs)
 
             if dibujar:
                 símismo.dibujar()
