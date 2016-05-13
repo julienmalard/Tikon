@@ -1,6 +1,6 @@
 import RAE.NuevoINSECTO as Ins
 from RAE.NuevaRED import Red
-from INCERT.NuevaCALIB import Experimento
+from INCERT.DATOS import Experimento
 
 
 O_arenosella_senc = Ins.Sencillo(nombre='O_arenosella_senc')
@@ -27,6 +27,7 @@ Experimento_A.estab_bd_red(archivo='E:\\Julien\\PhD\\தமிழ்நாடு
 
 print(Experimento_A.datos)
 
+
 Red_campos_de_coco.añadir_exp(Experimento_A,
                               corresp=dict(O_arenosella={'adulto': ['Larva', 'Pupa']},
                                            Parasitoides_larvas={'adulto': ['Para_larva_abs']},
@@ -36,17 +37,15 @@ Red_campos_de_coco.añadir_exp(Experimento_A,
 
 print(Red_campos_de_coco.observ)
 
-"""
+
 
 Experimento_B = Experimento()
 Experimento_B.estab_bd_rae('C:\\BasedeDatosB.csv')
 Experimento_B.estab_datos(dict(O_arenosella='', Parasitoides_larvas='', Parasitoides_pupa=''))
-
-Red_campos_de_coco.añadir_exp(Experimento_A)
 
 Red_campos_de_coco.calibrar()
 
 Red_campos_de_coco.validar(Experimento_B)
 
 Red_campos_de_coco.simular()
-"""
+

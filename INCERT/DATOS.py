@@ -127,13 +127,12 @@ class Experimento(object):
                 cols = []  # Para guardar los nombres de las columnas
                 valores = []  # Para guardar la lista de datos de cada línea
 
-                # Para cada fila en el csv...
-                for n, f in enumerate(l):
-                    if n == 0:  # Si es la primera fila, guardarla como nombres de columnas
-                        cols = f
-                    else:
-                        valores.append(f)
-                    # Incrementar el número de la línea
+                # Guardar la primera fila como nombres de columnas
+                cols = next(l)
+
+                # Para cada fila que sigue en el csv...
+                for f in l:
+                    valores.append(f)
 
             for n, col in enumerate(cols):
                 datos[col] = [x[n] for x in valores]
@@ -210,7 +209,7 @@ class Experimento(object):
 
                 try:
                     # Intentar de convertir todas las fechas a objetos ft.datetime
-                    fechas = [ft.datetime.strptime(x, format=formato) for x in lista]
+                    fechas = [ft.datetime.strptime(x, formato).date() for x in lista]
 
                     # Si funcionó, parar aquí
                     break
@@ -227,10 +226,11 @@ class Experimento(object):
                 # Pero si está bien, ya tenemos que encontrar la primera fecha y calcular la posición relativa de las
                 # otras con referencia en esta.
 
-                # La primera fecha de la base de datos.
+                # La primera fecha de la base de datos. Este paso se queda un poco lento, así que para largas bases de
+                # datos podría ser útil suponer que la primera fila también contiene la primera fecha.
                 fecha_inic_datos = min(fechas)
 
                 # La posición relativa de todas las fechas a esta
-                lista_datos = [(x - min(fechas)).days for x in fechas]
+                lista_datos = [(x - fecha_inic_datos).days for x in fechas]
 
         return fecha_inic_datos, lista_datos

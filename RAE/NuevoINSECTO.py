@@ -222,7 +222,7 @@ class MetamIncompleta(Insecto):
 
 class Parasitoide(Insecto):
 
-    ext = 'ptd'
+    ext = '.ptd'
 
     def __init__(símismo, nombre, pupa=False, fuente=None):
 

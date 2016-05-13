@@ -707,7 +707,7 @@ class Red(Simulable):
             elif ec_ed == 'Días':
                 # Edad calculada en días.
 
-                edad_extra = 1
+                edad_extra = paso
 
             elif ec_ed == 'Días Grados':
                 # Edad calculada por días grados.
