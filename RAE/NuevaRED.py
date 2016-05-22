@@ -280,7 +280,7 @@ class Red(Simulable):
                         else:
                             raise ValueError
 
-
+    def prep_predics(símismo):
         # Crear las matrices para guardar resultados:
         símismo.datos['Pobs'] = np.empty(shape=(n_parc, n_rep_estoc, n_rep_parám, n_etps), dtype=int)
 
@@ -293,7 +293,7 @@ class Red(Simulable):
 
 
 
-    def prep_simul(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas, calibs):
+    def prep_predics(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas, calibs):
 
         n_etapas = len(símismo.etapas)
 
@@ -304,9 +304,6 @@ class Red(Simulable):
             else:
                 símismo.datos[dato] = np.zeros(shape=(n_parcelas, rep_estoc, rep_parám, n_etapas),
                                                dtype=int)
-
-        símismo.llenar_coefs(n_etps=n_etapas, n_parc=n_parcelas, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc,
-                             calibs=calibs)
 
     def añadir_exp(símismo, experimento, corresp, categ='Organismos'):
         super().añadir_exp(experimento=experimento, corresp=corresp, categ=categ)
