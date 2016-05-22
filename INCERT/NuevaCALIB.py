@@ -5,7 +5,7 @@ import INCERT.Distribuciones as Ds
 
 
 class ModBayes(object):
-    def __init__(símismo, función, obs, dic_parám, lista_apriori, dic_líms, id_calib):
+    def __init__(símismo, función, obs, lista_paráms, lista_apriori, lista_líms, id_calib):
         """
         Esta clase merece una descripción detallada. Al fin, un Modelo es lo que trae junto simulación, observaciones y
           parámetros para calibrar estos últimos por medio de inferencia Bayesiana (usando el módulo de Python PyMC).
@@ -50,23 +50,24 @@ class ModBayes(object):
           observaciones.
         :type obs: np.ndarray
 
-        :param dic_parám: El diccionario de los parámetros para calibrar.
-        :type dic_parám: dict
+        :param lista_paráms: El diccionario de los parámetros para calibrar.
+        :type lista_paráms: list
 
         :param lista_apriori: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
           distribuciones a priori de los parámetros.
         :type lista_apriori: list
 
-        :param dic_líms: Un diccionario con los límites teoréticos de los parámetros en el modelo. Esto se usa para
+        :param lista_líms: Una lista con los límites teoréticos de los parámetros en el modelo. Esto se usa para
           determinar los tipos de funciones apropiados para aproximar las distribuciones a priori de los parámetros.
-          (Por ejemplo, no se emplearía una distribución normal para aproximar a un parámetro limitado al rango
+          (Por ejemplo, no se emplearía una distribución normal para aproximar un parámetro limitado al rango
           (0, +inf).
+
         """
 
-        # Guardar una conexión al diccionario de parámetros y crear un número de identificación único para esta
+        # Guardar una conexión a la lista de parámetros y crear un número de identificación único para esta
         # calibración.
 
-        símismo.dic_parám = dic_parám
+        símismo.lista_parám = lista_paráms
         símismo.id = id_calib
 
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
@@ -74,7 +75,7 @@ class ModBayes(object):
         # la maquinaría de calibración de PyMC.
 
         lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
-                                         d_pm=dic_parám, d_lms=dic_líms,
+                                         l_pm=lista_paráms, l_lms=lista_líms,
                                          lista_apriori=lista_apriori)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando.
@@ -121,19 +122,39 @@ class ModBayes(object):
         Esta función guarda las trazas de los parámetros generadas por la calibración en el diccionario del insecto como
           una nueva calibración.
         """
-        pymc_a_trazas_tx(d_pm=símismo.dic_parám, id_calib=símismo.id)
+        pymc_a_trazas_tx(d_pm=símismo.lista_parám, id_calib=símismo.id)
 
 
-def trazas_a_aprioris(id_calib, d_pm, d_lms, lista_apriori, i=0, l=None):
-    if l is None:
-        l = []
+def trazas_a_aprioris(id_calib, l_pm, l_lms, lista_apriori, i=0, l=None):
+    """
 
-    for ll, v in d_pm:
-        if type(v) is dict:
-            trazas_a_aprioris(id_calib=id_calib, d_pm=v, d_lms=d_lms[ll], lista_apriori=lista_apriori, i=i, l=l)
-        elif ll == 'coefs':
-            i += 1
-            tamaño_mín = min([len(d_pm[tr]) for tr in lista_apriori if type(d_pm[tr]) is np.ndarray])
+    :param id_calib:
+    :param l_pm:
+    :type l_pm: list
+
+    :param l_lms:
+    :type l_lms: list
+
+    :param lista_apriori:
+    :type lista_apriori: list
+
+    :return:
+
+    """
+
+    for n, parám in enumerate(l_pm):
+        nombre = 'parám_%i' % n
+
+        tamaño_mín = min([len(l_pm[tr]) for tr in lista_apriori if type(l_pm[tr]) is np.ndarray])
+
+        traza =
+
+        dist_apriori = Ds.ajustar_dist(datos=traza, límites=l_lms[ll], cont=True, pymc=True, nombre=nombre)['dist']
+
+    for ll, v in l_pm:
+
+
+
             traza = []
             for tr in lista_apriori:
                 if type(tr) is np.ndarray:
@@ -142,9 +163,9 @@ def trazas_a_aprioris(id_calib, d_pm, d_lms, lista_apriori, i=0, l=None):
                     traza.append(Ds.texto_a_distscipy(tr).rvs(size=tamaño_mín))
 
             nombre = 'll%i' % i
-            dist_apriori = Ds.ajustar_dist(datos=traza, límites=d_lms[ll], cont=True, pymc=True, nombre=nombre)['dist']
 
-            d_pm[id_calib] = dist_apriori
+
+            l_pm[id_calib] = dist_apriori
             l += dist_apriori
 
     return l

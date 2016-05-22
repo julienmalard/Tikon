@@ -439,18 +439,27 @@ def texto_a_distscipy(texto):
 def ajustar_dist(datos, límites, cont, pymc=False, nombre=None):
     """
     Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
-      distribución, escoge la distribución de PyMC la más apropriada y ajusta sus parámetros. Al momento únicamente
-      puede generar distribuciones continuas.
+      distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros. Al momento
+      únicamente puede generar distribuciones continuas.
+
+    :param datos: Lista de parámetros
+    :type datos: list
 
     :param nombre:
+    :type nombre: str
+
     :param cont:
+    :type cont: bool
+
     :param pymc:
-    :param datos: Lista de parámetros
+    :type pymc: bool
 
     :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
 
-    :return: Distribución PyMC
+    :return: Distribución PyMC y su ajuste (p)
+    :rtype: (pymc.Stochastic, float)
     """
+
     if cont:
         categ_dist = 'cont'
     else:
@@ -483,4 +492,4 @@ def ajustar_dist(datos, límites, cont, pymc=False, nombre=None):
     if mejor_ajuste['p'] <= 0.10:
         raise Warning('El ajuste de la mejor distribución quedó muy mala (p = %f).' % round(mejor_ajuste['p'], 4))
 
-    return mejor_ajuste
+    return mejor_ajuste['dist'], mejor_ajuste['p']
