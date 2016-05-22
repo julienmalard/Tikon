@@ -455,6 +455,7 @@ def ajustar_dist(datos, límites, cont, pymc=False, nombre=None):
     :type pymc: bool
 
     :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
+    :type límites: tuple
 
     :return: Distribución PyMC y su ajuste (p)
     :rtype: (pymc.Stochastic, float)
