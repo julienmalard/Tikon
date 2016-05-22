@@ -832,7 +832,7 @@ class Red(Simulable):
             for ed in etp['Edades'].values():
                 ed[vacíos] = np.nan
 
-    def prep_calib(símismo, exper):
+    def prep_obs_exper(símismo, exper):
 
 
         dic_líms = {}
