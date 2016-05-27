@@ -870,7 +870,7 @@ class Red(Simulable):
 
         return obs, dic_parám, dic_líms
 
-    def simul_calib(símismo, paso=1, extrn=None):
+    def simul_exps(símismo, paso=1, extrn=None):
 
         egresos = np.array()
 

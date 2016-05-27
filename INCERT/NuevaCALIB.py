@@ -69,6 +69,10 @@ class ModBayes(object):
           determinar los tipos de funciones apropiados para aproximar las distribuciones a priori de los parámetros.
           (Por ejemplo, no se emplearía una distribución normal para aproximar un parámetro limitado al rango
           (0, +inf).
+        :type lista_líms: list
+
+        :param id_calib:
+        :type id_calib:
 
         """
 

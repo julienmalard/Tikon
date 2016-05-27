@@ -228,7 +228,10 @@ class Experimento(object):
 
                 # La primera fecha de la base de datos. Este paso se queda un poco lento, así que para largas bases de
                 # datos podría ser útil suponer que la primera fila también contiene la primera fecha.
-                fecha_inic_datos = min(fechas)
+                # fecha_inic_datos = min(fechas)
+
+                # Mejor lo hagamos así:
+                fecha_inic_datos = min(fechas[0], fechas[-1])
 
                 # La posición relativa de todas las fechas a esta
                 lista_datos = [(x - fecha_inic_datos).days for x in fechas]
