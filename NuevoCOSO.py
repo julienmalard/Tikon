@@ -1,16 +1,17 @@
-import os
-import io
-import warnings
 import copy as copiar
+import io
 import json
+import os
+import warnings
 from datetime import datetime as ft
+
 import matplotlib.pyplot as dib
 import numpy as np
 import pymc
 
-from INCERT.NuevaCALIB import ModBayes
-from INCERT.DATOS import Experimento
 from INCERT import Distribuciones as Ds
+from INCERT.DATOS import Experimento
+from INCERT.NuevaCALIB import ModBayes
 
 
 class Coso(object):
@@ -67,7 +68,7 @@ class Coso(object):
                 archivo = símismo.fuente  # utilizar el archivo existente
             else:
                 # Si no hay archivo existente, tenemos un problema.
-                raise FileNotFoundError('Hay que especificar un archivo para guardar el organismo.')
+                raise FileNotFoundError('Hay que especificar un archivo para guardar el objeto.')
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
         prep_json(símismo.receta['Coefs'])  # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
@@ -85,10 +86,10 @@ class Coso(object):
         """
 
         # Si necesario, agregar la extensión y el directorio
-        if os.path.splitext(fuente)[1] != '.org':
-            fuente += '.org'
+        if os.path.splitext(fuente)[1] != símismo.ext:
+            fuente += símismo.ext
         if os.path.split(fuente)[0] == '':
-            fuente = os.path.join(os.path.split(__file__)[0], 'Archivos', 'Organismos', fuente)
+            fuente = os.path.join(os.path.split(__file__)[0], 'Proyectos', fuente)
 
         # Intentar cargar el archivo (con formato UTF-8)
         try:
@@ -101,7 +102,7 @@ class Coso(object):
         else:  # Si se cargó el documento con éxito, usarlo
             # Copiar el documento a la receta de este Coso
             símismo.receta.clear()
-            llenar_dic(símismo.receta, nuevo_dic)
+            símismo.receta.update(nuevo_dic)
 
             # Convertir listas a matrices numpy en las ecuaciones (coeficientes)
             dic_lista_a_np(símismo.receta['coefs'])
@@ -199,8 +200,8 @@ class Simulable(Coso):
         n_pasos = tiempo_final // paso
 
         # Preparar la lista de parámetros de interés
-        lista_paráms, _  = símismo.gen_lista_coefs_interés_todo()
-        calibs = filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+        lista_paráms, _ = símismo.gen_lista_coefs_interés_todo()
+        calibs = símismo.filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
         # Llenar las matrices internas de coeficientes
         símismo.llenar_coefs(n_rep_parám=rep_parám, calibs=calibs)
@@ -348,7 +349,7 @@ class Simulable(Coso):
         lista_paráms, lista_líms = símismo.gen_lista_coefs_interés_todo()
 
         # 3. Filtrar coeficientes por calib
-        lista_aprioris = filtrar_calibs(calibs=aprioris, lista_paráms=lista_paráms)
+        lista_aprioris = símismo.filtrar_calibs(calibs=aprioris, lista_paráms=lista_paráms)
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
@@ -415,7 +416,7 @@ class Simulable(Coso):
             else:
                 calibs = símismo.ModBayes.id
 
-        lista_calibs = filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+        lista_calibs = símismo.filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
         # Llenar coeficientes
         símismo.llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs)
@@ -435,6 +436,13 @@ class Simulable(Coso):
 
         # Procesar los datos de la validación
         return símismo.procesar_validación(vector_obs=obs, vector_preds=preds)
+
+    def dibujar(símismo, mostrar=True, archivo=''):
+        """
+        Una función para generar gráficos de los resultados del objeto.
+        """
+
+        raise NotImplementedError
 
     def gen_lista_coefs_interés_todo(símismo):
 
@@ -726,152 +734,259 @@ class Simulable(Coso):
         # Devolver exper
         return exper
 
-    def dibujar(símismo, mostrar=True, archivo=''):
+    def filtrar_calibs(símismo, calibs, lista_paráms):
         """
-        Una función para generar gráficos de los resultados del objeto.
+        Esta función, dado una lista de diccionarios de calibraciones de parámetros y una especificación de cuales
+          calibraciones guardar, genera un lista de los nombre de las calibraciones que hay que incluir.
+          Se usa para preparar simulaciones, calibraciones y validaciones.
+        Notar que distribuciones a priori especificadas por el usuario para una calibración se aplican más tarde, en
+          el objeto ModBayes sí mismo.
+
+        :param calibs: Una indicación de cuales calibraciones utilizar.
+          Puede ser un número o texto con el nombre/id de la calibración deseada.
+          Puede ser una lista de nombres de calibraciones deseadas.
+          Puede ser una de las opciones siguientes:
+             1. 'Todos': Usa todas las calibraciones disponibles en los objetos involucrados en la simulación.
+             2. 'Comunes': Usa únicamente las calibraciones comunes entre todos los objetos involucrados en la
+                simulación
+             3. 'Correspondientes': Usa únicamente las calibraciones que fueron calibradas con este objeto Simulable
+                en particular.
+
+        :type calibs: str | float | list
+
+        :param lista_paráms:
+        :type lista_paráms: list
+
+        :return: Una lista de las calibraciones que hay que utilizar.
+        :rtype: list
         """
 
-        raise NotImplementedError
+        # Preparar el parámetro "calibs"
 
+        if type(calibs) is str and calibs not in ['Todos', 'Comunes', 'Correspondientes']:
+            # Si calibs es el nombre de una calibración (y no un nombre especial)...
 
-def llenar_dic(d_vacío, d_nuevo):
-    """
-    Esta función llena un diccionario con los valores de otro diccionario. Es util para evitar quebrar referencias a
-      un diccionario mientras tienes que cargarlo de nuevo.
+            # Convertirlo en fecha
+            calibs = [calibs]
 
-    :param d_vacío: El diccionario vacío original para llenar
-    :type d_vacío: dict
+        # Si calibs es una lista...
+        if type(calibs) is list:
 
-    :param d_nuevo: El diccionario con cuyas valores hay que llenar el anterior.
-    :type d_nuevo: dict
+            # Para cada elemento de la lista...
+            for n, calib in enumerate(calibs):
 
-    """
+                # Asegurarse de que es en formato de texto.
+                calibs[n] = str(calib)
 
-    for ll, v in d_nuevo.items():  # Para cada itema (llave, valor) en el nuevo diccionario...
+        # Ahora, preparar la lista de calibraciones según las especificaciones en "calibs". Primero, los casos
+        # especiales.
 
-        if isinstance(v, dict):  # Si el valor es otro diccionario...
+        if type(calibs) is str:
+            # Si "calibs" es un nombre especial...
 
-            if ll not in d_vacío.keys():
-                d_vacío[ll] = {}
+            if calibs == 'Todos':
+                # Tomamos todas las calibraciones existentes en cualquier de los parámetros.
 
-            llenar_dic(d_vacío[ll], v)  # ... llamar esta misma función con el nuevo diccionario
+                # Una lista vacía para contener las calibraciones
+                lista_calibs = []
 
-        else:  # Si el valor NO era otro diccionario...
+                # Para cada parámetro...
+                for parám in lista_paráms:
 
-            # Copiar el nuevo valor a la llave
-            d_vacío[ll] = d_nuevo[ll]
+                    # Para cada calibración de este parámetro...
+                    for id_calib in parám:
+
+                        if id_calib not in lista_calibs:
+
+                            # Si no existe ya la calibración en nuestra lista, añadirla
+                            lista_calibs.append(id_calib)
+
+            elif calibs == 'Comunes':
+                # Tomamos todas las calibraciones en común entre los parámetros.
+
+                # Hacemos una lista de calibraciones con las calibraciones del primer parámetro.
+                lista_calibs = list(lista_paráms[0])
+
+                # Para cada otro parámetro en la lista...
+                for parám in lista_paráms[1:]:
+
+                    # Para cada calibración en nuestra lista...
+                    for id_calib in lista_calibs:
+
+                        # Si la calibración no existe para este parámetro...
+                        if id_calib not in parám:
+
+                            # Borrarla de nuestra lista.
+                            lista_calibs.remove(id_calib)
+
+            elif calibs == 'Correspondientes':
+
+                # Usar todas las calibraciones calibradas con este objeto Simulable.
+                lista_calibs = [x for x in calibs if x in símismo.receta['Calibraciones']]
+
+            else:
+
+                # Si se especificó otro valor (lo que no debería de ser posible dado la preparación que damos a
+                # "calibs" arriba), hay un error.
+                raise ValueError("Parámetro 'calibs' inválido.")
+
+            # Quitar la distribución a priori no informativa.
+            if '0' in lista_calibs:
+                lista_calibs.remove('0')
+
+        elif type(calibs) is list:
+            # Si se especificó una lista de calibraciones en particular, utilizarlas, si están en al menos un objeto
+            # involucrado en la simulación
+
+            # Una lista de todas las calibraciones en lista_paráms.
+            todos_calibs = [c for p in lista_paráms for c in p]
+
+            # Guardar únicamente las calibraciones de "calibs" si están en todos_calibs.
+            lista_calibs = [c for c in calibs if c in todos_calibs]
+
+        else:
+
+            # Si "calibs" no era ni texto ni una lista, hay un error.
+            raise ValueError("Parámetro 'calibs' inválido.")
+
+        # Verificar la lista de calibraciones generada
+        if len(lista_calibs) == 0:
+
+            # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa
+            lista_calibs = ['0']
+
+        elif len(lista_calibs) == 1:
+
+            # Si únicamente nos quedamos con la distribución a priori no informativa, sería mejor avisarle al
+            # usuario.
+            warnings.warn('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
+
+        # Devolver la lista de calibraciones.
+        return lista_calibs
 
 
 def dic_lista_a_np(d):
     """
-    Esta función recursiva toma las matrices numpy contenidas en un diccionario de estructura arbitraria y las
-      convierte en listas numéricas. Cambia el diccionario in situ, así que no devuelve ningún valor.
+    Esta función recursiva toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las
+      convierte en matrices numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
       Una nota importante: esta función puede tomar diccionarios de estructura arbitraria, pero no convertirá
       exitosamente diccionarios que contienen listas que a su turno contienen otras listas para convertir a matrices
       numpy. No hay problema con listas compuestas representando matrices multidimensionales.
-
-    :param d: El diccionario a convertir
-    :type d: dict
-
-    """
-
-    for ll, v in d.items():  # Para cada itema (llave, valor) del diccionario
-        if type(v) is dict:  # Si el itema era otro diccionario...
-            dic_lista_a_np(v)  # Llamar esta función de nuevo
-        elif type(v) is list:  # Si el itema era una lista...
-            try:
-                d[ll] = np.array(v, dtype=float)  # Ver si se puede convertir a una matriz numpy
-            except ValueError:
-                pass  # Si no funcionó, pasar al siguiente
-
-
-def prep_json(d):
-    """
-    Esta función recursiva toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las
-      convierte en matrices de numpy. También quita variables de typo PyMC que no sa han guardado en forma de matriz.
-      Cambia el diccionario in situ, así que no devuelve ningún valor.
-      Una nota importante: esta función puede tomar diccionarios de estructura arbitraria, pero no convertirá
-      exitosamente diccionarios que contienen listas.
 
     :param d: El diccionario para convertir
     :type d: dict
 
     """
 
-    for ll, v in d.items():  # Para cada itema (llave, valor) del diccionario
-        if type(v) is dict:  # Si el itema era otro diccionario...
-            prep_json(v)  # ...llamar esta función de nuevo con el nuevo diccionario
+    # Para cada itema (llave, valor) del diccionario
+    for ll, v in d.items():
+        if type(v) is dict:
+            # Si el itema era otro diccionario...
 
-        elif type(v) is np.ndarray:  # Si el itema era una matriz numpy...
-            d[ll] = v.tolist()  # ...convertir la matriz al formato de lista.
+            # Llamar esta función de nuevo
+            dic_lista_a_np(v)
 
-        elif isinstance(v, pymc.Stochastic):  # Si el itema es un variable de PyMC...
-            d.pop(ll)  # ... borrarlo
+        elif type(v) is list:
+            # Si el itema era una lista...
+            try:
+                # Ver si se puede convertir a una matriz numpy
+                d[ll] = np.array(v, dtype=float)
+            except ValueError:
+                # Si no funcionó, pasar al siguiente
+                pass
+
+
+def prep_json(d):
+    """
+    Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las listas
+      numéricas contenidas en un diccionario de estructura arbitraria y las convierte en matrices de numpy. También
+      quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
+      no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
+      pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
+
+    :param d: El diccionario para convertir
+    :type d: dict
+
+    """
+
+    # Para cada itema (llave, valor) del diccionario
+    for ll, v in d.items():
+
+        if type(v) is dict:
+
+            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+            prep_json(v)
+
+        elif type(v) is np.ndarray:
+
+            # Si el itema era una matriz numpy, convertir la matriz al formato de lista.
+            d[ll] = v.tolist()
+
+        elif isinstance(v, pymc.Stochastic):
+
+            # Si el itema es un variable de PyMC, borrarlo
+            d.pop(ll)
 
 
 def valid_vals_inic(d, n=None):
     """
+    Esta función valida que los datos iniciales de una simulación tengan dimensiones compatibles y que no haya errores.
+        Es una función recursiva que pasa a través de cada diccionario en d.
 
-    :param d:
+    :param d: El diccionario de datos iniciales.
     :type d: dict
-    :param n:
-    :type n:
-    :return:
-    :rtype:
+
+    :param n: El número de parcelas. No hay que definirla, por que sirve únicamente por la recursión de la función.
+    :type n: int
+
+    :return: El número de parcelas en los datos iniciales.
+    :rtype: int
+
     """
 
+    # Para cada elemento en el diccionario...
     for ll, v in d.items():
+
         if type(v) is dict:
+            # Si es otro diccionario, llamar la misma función con este nuevo diccionario.
             valid_vals_inic(v, n)
+
         elif type(v) is np.ndarray:
+            # Si es matriz numpy...
+
+            # Sacar el número de parcelas por el tamaño de la dimensión 0 de la matriz.
             n_parcelas = v.shape()[0]
+
             if n is None:
+                # Si este es la primera iteración, guardar el número de parcelas en "n".
                 n = n_parcelas
+
             elif n_parcelas != n:
+                # Si no es la primera iteración de la función, y el número de parcelas no corresponde con el número
+                # de parcelas anteriormente, hay un problema con los datos iniciales.
                 raise ValueError('Error en el formato de los datos iniciales')
 
+    # Devolver el número de parcelas en los datos iniciales.
     return n
 
 
-def filtrar_calibs(calibs, lista_paráms):
-    if type(calibs) is int:
-        calibs = [str(calibs)]
-    elif type(calibs) is str:
-        calibs = [calibs]
-        # para hacer
-
-    lista_aprioris =
-
-    return lista_aprioris
-
-
-def filtrar_comunes(lista_paráms):
-    """
-    Esta función devuelve los nombres de las calibraciones que están en común entre todos los parámetros de una lista
-      de diccionarios de parámetros.
-
-    :param lista_paráms: El diccionario con los parámetros.
-    :type lista_paráms: list
-
-    """
-
-    # Crear una lista con únicamente los nombres de las calibraciones de cada parámetro, sin cualquier otra
-    # estructura de diccionario. La lista final tiene la forma:
-    #   [[calib1, calib2, calib3], [calib2, calib3, calib4], [calib1, calib4], ...]
-
-    lista_comunes = [x for y in lista_paráms for x in y if False not in [x in z for z in lista_paráms]]
-    lista_comunes = list(set(lista_comunes))  # Quitar valores duplicados
-
-    return lista_comunes
-
-
-def gen_matr_coefs(dic_parám, calibs, n_rep_parám):
+def gen_matr_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
       que queremos usar y el número de repeticiones que queremos.
 
     :param dic_parám: Un diccionario de un parámetro con todas sus calibraciones
+    :type dic_parám: dict
+
     :param calibs: Cuales calibraciones hay que incluir
+    :type calibs: list
+
+    :param n_rep_parám: El número de repeticiones paramétricas que queremos en nuestra simulación.
+    :type n_rep_parám: int
+
+    :param comunes: Una matriz con la ubicación de cuál dato tomar de cada traza, si queremos que haya correspondencia
+      entre los datos elegidos de cada parámetro.
+    :type comunes: np.ndarray
 
     :return:
     :rtype: np.ndarray
@@ -880,77 +995,110 @@ def gen_matr_coefs(dic_parám, calibs, n_rep_parám):
 
     # Hacer una lista con únicamente las calibraciones que estén presentes y en la lista de calibraciones acceptables,
     # y en el diccionario del parámetro
-
-    if calibs == 'todos':
-        calibs_usables = [x for x in dic_parám]
-
-    elif type(calibs) == list:
-        calibs_usables = [x for x in dic_parám if x in calibs]
-
-    else:
-        raise ValueError
-
-    # Si el perámetro no tiene calibraciones acceptables, usar el a priori no informativo como calibración
-    if len(calibs_usables) == 0:
-        calibs_usables = ['0']
-
-        raise Warning('Un parámetro no tiene ninguna de las calibraciones especificadas. Voy a usar el a priori no '
-                      'informativo.')
+    calibs_usables = [x for x in dic_parám if x in calibs]
 
     # La lista para guardar las partes de las trazas de cada calibración que queremos incluir en la traza final
-    lista_calibs = []
+    lista_trazas = []
 
+    # El número de calibraciones en la lista de calibraciones usables
     n_calibs = len(calibs_usables)
+
+    # Calcular el número de repeticiones paramétricas por calibración. Produce una lista, en el mismo orden que calibs,
+    # del número de repeticiones para cada calibración.
     rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
 
+    # Calcular el número que repeticiones que no se dividieron igualmente entre las calibraciones...
     resto = n_rep_parám % n_calibs
+    # ...y añadirlas la principio de la lista de calibraciones.
     rep_per_calib[:resto + 1] += 1
 
+    # Para cada calibración en la lista...
     for n_id, id_calib in enumerate(calibs_usables):
 
+        # Sacar su traza (o distribución) del diccionario del parámetro.
         traza = dic_parám[id_calib]
 
+        # Si la traza es una matriz numpy...
         if type(traza) is np.ndarray:
+
+            # Verificamos si necesitamos más repeticiones de esta traza que tiene de datos disponibles.
             if rep_per_calib[n_id] > len(dic_parám[id_calib]):
 
+                # Si es el caso que la traza tiene menos datos que las repeticiones que queremos...
                 warnings.warn('Número de replicaciones superior al tamaño de la traza de '
                               'parámetro disponible.')
+
+                # Vamos a tener que repetir datos
                 devolver = True
+
             else:
+                # Si no, no hay pena
                 devolver = False
 
-            nuevos_vals = np.random.choice(traza, size=rep_per_calib[n_id], replace=devolver)
+            # Tomar, al hazar, datos de la traza. Si estamos usando calibraciones comunes para todos los parámetros,
+            # usar la ubicación de los datos predeterminada.
+            if comunes is not None:
+                ubic_datos = comunes[:rep_per_calib[n_id]]
+                nuevos_vals = traza[ubic_datos]
+            else:
+                nuevos_vals = np.random.choice(traza, size=rep_per_calib[n_id], replace=devolver)
 
         elif type(traza) is str:
+            # Si la traza es en formato de texto...
+
+            if comunes:
+                warnings.warn('No se pudo guardar la correspondencia entre todas las calibraciones por presencia'
+                              'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
+
+            # Convertir el texto a distribución de SciPy
             dist_sp = Ds.texto_a_distscipy(traza)
+
+            # Sacar los datos necesarios de la distribución SciPy
             nuevos_vals = dist_sp.rvs(rep_per_calib[n_id])
 
         elif isinstance(traza, pymc.Stochastic):
-            # Si es un variable de calibración activo, poner el variable sí mismo en la matriz
 
+            # Si es un variable de calibración activo, poner el variable sí mismo en la matriz
             nuevos_vals = traza
 
         else:
             raise ValueError
 
-        lista_calibs.append(nuevos_vals)
+        # Añadir los datos de esta calibración a la lista de datos para la traza general.
+        lista_trazas.append(nuevos_vals)
 
-    return np.concatenate(lista_calibs)
+    # Combinar las trazas de cada calibración en una única matriz numpy unidimensional.
+    return np.concatenate(lista_trazas)
 
 
 def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=None, mostrar=True, archivo=''):
     """
+    Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
-    :param matr_predic:
+    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástica, eje 1 = incertidumbre
+      paramétrica, eje 2 = día.
     :type matr_predic: np.ndarray
 
-    :param vector_obs:
-    :param nombre:
-    :param etiq_y:
-    :param etiq_x:
-    :param color:
-    :param mostrar:
-    :param archivo
+    :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
+    :type vector_obs: np.ndarray
+
+    :param nombre: El título del gráfico
+    :type nombre: str
+
+    :param etiq_y: La etiqueta para el eje y del gráfico.
+    :type etiq_y: str
+
+    :param etiq_x: La etiqueta para el eje x del gráfico
+    :type etiq_x: str
+
+    :param color: El color para el gráfico
+    :type color: str
+
+    :param mostrar: Si hay que mostrar el gráfico de inmediato, o solo guardarlo.
+    :type mostrar: bool
+
+    :param archivo: El archivo donde guardar el gráfico
+    :type archivo: str
 
     """
 
@@ -966,7 +1114,7 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
         if len(archivo) == 0:
             raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % nombre)
 
-    prom_predic = matr_predic.mean(axis=(0,1))
+    prom_predic = matr_predic.mean(axis=(0, 1))
 
     x = np.arange(len(vector_obs))
 
@@ -974,7 +1122,7 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
 
     dib.plot(x, vector_obs, 'o', color=color)
 
-    # Una matriz sin el incertidumbre estocástico
+    # Una matriz sin la incertidumbre estocástica
     matr_prom_estoc = matr_predic.mean(axis=0)
 
     # Ahora, el eje 0 es el eje de incertidumbre paramétrica
@@ -983,8 +1131,8 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
 
     dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5)
 
-    máx_total = matr_predic.max(axis=(0,1))
-    mín_total = matr_predic.min(axis=(0,1))
+    máx_total = matr_predic.max(axis=(0, 1))
+    mín_total = matr_predic.min(axis=(0, 1))
 
     dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
 
