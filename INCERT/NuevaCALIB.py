@@ -61,8 +61,7 @@ class ModBayes(object):
         :type lista_paráms: list
 
         :param lista_apriori: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
-          distribuciones a priori de los parámetros. Cada elemento de la lista es una lista de los códigos de
-          calibraciones para el parámetro correspondiente en lista_paráms.
+          distribuciones a priori de los parámetros.
         :type lista_apriori: list
 
         :param lista_líms: Una lista con los límites teoréticos de los parámetros en el modelo. Esto se usa para
@@ -166,6 +165,7 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, lista_apriori):
     :return:
 
     """
+    # para hacer: implementar disstribuciones definidas por el usuario
 
     # La lista para guardar las distribuciones de PyMC
     lista_dist = []
