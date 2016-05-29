@@ -1,7 +1,7 @@
 import math as mat
 import numpy as np
 
-from NuevoCOSO import Simulable, gen_matr_coefs
+from NuevoCOSO import Simulable
 from RAE.ORGANISMO import Organismo
 import RAE.NuevoINSECTO
 import RAE.ENFERMEDADES
