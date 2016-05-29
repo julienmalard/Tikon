@@ -2,6 +2,7 @@ import numpy as np
 from pymc import deterministic, Gamma, Normal, MCMC
 
 import INCERT.Distribuciones as Ds
+from INCERT.NuevoINCERT import gen_vector_coefs
 
 
 class ModBayes(object):
@@ -14,7 +15,7 @@ class ModBayes(object):
 
     """
 
-    def __init__(símismo, función, dic_argums, obs, lista_paráms, lista_apriori, lista_líms, id_calib):
+    def __init__(símismo, función, dic_argums, obs, lista_paráms, aprioris, lista_líms, id_calib):
         """
         Al iniciarse, un Modelo hace lo siguiente:
 
@@ -60,9 +61,9 @@ class ModBayes(object):
         :param lista_paráms: El diccionario de los parámetros para calibrar.
         :type lista_paráms: list
 
-        :param lista_apriori: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
+        :param aprioris: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
           distribuciones a priori de los parámetros.
-        :type lista_apriori: list
+        :type aprioris: list
 
         :param lista_líms: Una lista con los límites teoréticos de los parámetros en el modelo. Esto se usa para
           determinar los tipos de funciones apropiados para aproximar las distribuciones a priori de los parámetros.
@@ -70,8 +71,8 @@ class ModBayes(object):
           (0, +inf).
         :type lista_líms: list
 
-        :param id_calib:
-        :type id_calib:
+        :param id_calib: El nombre para identificar la calibración.
+        :type id_calib: str
 
         """
 
@@ -87,7 +88,7 @@ class ModBayes(object):
 
         lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
                                          l_pm=lista_paráms, l_lms=lista_líms,
-                                         lista_apriori=lista_apriori)
+                                         aprioris=aprioris)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
         # pasamos los argumentos necesarios, si aplican.
@@ -104,7 +105,6 @@ class ModBayes(object):
         dist_obs = Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-
         símismo.MCMC = MCMC(lista_paráms, dist_obs)
 
     def calib(símismo, rep=10000, quema=100, extraer=10):
@@ -146,28 +146,33 @@ class ModBayes(object):
             d_parám[id_calib] = d_parám[id_calib].trace(chain=None)[:]
 
 
-def trazas_a_aprioris(id_calib, l_pm, l_lms, lista_apriori):
+def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
     """
     Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
-      parámetros y genera las distribuciones apriori PyMC para los parámetros.
+      parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
+      PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
+      id_calib.
 
-    :param id_calib:
-    :param l_pm:
+    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
+    :type id_calib: str
+
+    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
+      parámetro.
     :type l_pm: list
 
-    :param l_lms:
+    :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
     :type l_lms: list
 
-    :param lista_apriori: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
+    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
       es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
-    :type lista_apriori: list
+    :type aprioris: list
 
-    :return:
+    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
+    :rtype: list
 
     """
-    # para hacer: implementar disstribuciones definidas por el usuario
 
-    # La lista para guardar las distribuciones de PyMC
+    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
     lista_dist = []
 
     # Para cada parámetro en la lista...
@@ -176,31 +181,14 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, lista_apriori):
         # El nombre para el variable PyMC
         nombre = 'parám_%i' % n
 
-        # El tamaño mínimo de las trazas de typo numpy en el diccionario del parámetro
-        tamaño_mín = min([len(d_parám[tr]) for tr in lista_apriori
-                          if type(d_parám[tr]) is np.ndarray and tr in lista_apriori[n]])
+        # Si el usuario especificó una distribución a priori, usarla. Sino, usar la lista de aprioris general.
+        if 'especificado' in d_parám:
+            calibs = 'especificado'
+        else:
+            calibs = aprioris
 
-        # Un vector numpy para guardar la traza de datos para generar la distribución PyMC
-        traza = np.ndarray([])
-
-        # Para cada calibración anterior que querremos incluir para calcular la distribución a priori...
-        for tr in lista_apriori[n]:
-
-            if type(d_parám[tr]) is np.ndarray:
-                # Si la calibración es en formato de vector...
-
-                # Añadirlo a trazas, guardando un tamaño estándar para todas las trazas
-                np.concatenate((traza, d_parám[tr][:tamaño_mín]))
-
-            elif type(d_parám[tr]) is str:
-                # Si la calibración es en formato de texto (distribución SciPy)...
-
-                # Convertirla a una distribución SciPy y generar valores aleatorios
-                traza.append(Ds.texto_a_distscipy(d_parám[tr]).rvs(size=tamaño_mín-1))
-
-            else:
-                # Sino, hay error
-                raise ValueError
+        # Un vector numpy de la traza de datos para generar la distribución PyMC
+        traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
 
         # Generar la distribución PyMC
         dist_apriori = Ds.ajustar_dist(datos=traza, límites=l_lms[n], cont=True, pymc=True, nombre=nombre)[0]
@@ -208,7 +196,8 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, lista_apriori):
         # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
         d_parám[id_calib] = dist_apriori
 
-        # Añadir una referencia a la distribución en la lista de distribuciones
+        # Añadir una referencia al variable PyMC en la lista de distribuciones
         lista_dist += dist_apriori
 
+    # Devolver la lista de variables PyMC
     return lista_dist
