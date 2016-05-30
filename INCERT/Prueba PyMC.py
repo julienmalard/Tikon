@@ -47,7 +47,7 @@ M = MCMC({disasters, early_mean, late_mean, rate})
 M.sample(iter=10000, burn=1000, thin=10)
 
 from pymc.Matplot import hist, plot
-from pymc import show
+
 hist(M.trace('late_mean')[:])
-show()
+
 plot(M)

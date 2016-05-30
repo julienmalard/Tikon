@@ -597,16 +597,40 @@ def ajustar_dist(datos, límites, cont, pymc=False, nombre=None):
         mín_dist, máx_dist = dic_dist['límites']
 
         # Verificar que los límites del parámetro y de la distribución son compatibles
-        lím_igual = (((mín_dist == mín_parám == np.inf) or
+        lím_igual = (((mín_dist == mín_parám == -np.inf) or
                      (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
                      ((máx_dist == máx_parám == np.inf) or
                      (not np.isinf(máx_dist) and not np.isinf(máx_parám))))
 
+        # Si son compatibles...
         if lím_igual:
-            # Si son compatibles...
+
+            # Restringimos las posibilidades para las distribuciones a ajustar, si necesario
+            if np.isinf(mín_parám):
+
+                if np.isinf(máx_parám):
+                    # Para el caso de un parámetro sín límites teoréticos (-inf, inf), no hay restricciones en la
+                    # distribución.
+                    restric = {}
+
+                else:
+                    # TIKON (por culpa de SciPy), no puede tomar distribuciones en (-inf, R].
+                    raise ValueError('Tikon no puede tomar distribuciones en el intervalo (-inf, R]. Hay que '
+                                     'cambiar tus ecuaciones para usar un variable en el intervalo [R, inf). '
+                                     'Disculpas. Pero de verdad es la culpa del módulo SciPy.')
+            else:
+
+                if np.isinf(máx_parám):
+                    # En el caso [R, inf), limitamos el valor inferior de la distribución al límite inferior del
+                    # parámtro
+                    restric = {'floc': mín_parám}
+
+                else:
+                    # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
+                    restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
 
             # Ajustar los parámetros de la distribución SciPy para caber con los datos.
-            args = dic_dist['scipy'].fit(datos)
+            args = dic_dist['scipy'].fit(datos, **restric)
 
             # Medir el ajuste de la distribución
             p = estad.kstest(datos, nombre_dist, args=args)[1]
