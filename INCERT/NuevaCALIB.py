@@ -1,8 +1,7 @@
 import numpy as np
 from pymc import deterministic, Gamma, Normal, MCMC
 
-import INCERT.Distribuciones as Ds
-from INCERT.NuevoINCERT import gen_vector_coefs
+import INCERT.NuevoIncert as Incert
 
 
 class ModBayes(object):
@@ -188,10 +187,10 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
             calibs = aprioris
 
         # Un vector numpy de la traza de datos para generar la distribución PyMC
-        traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
+        traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
 
         # Generar la distribución PyMC
-        dist_apriori = Ds.ajustar_dist(datos=traza, límites=l_lms[n], cont=True, pymc=True, nombre=nombre)[0]
+        dist_apriori = Incert.ajustar_dist(datos=traza, límites=l_lms[n], cont=True, usar_pymc=True, nombre=nombre)[0]
 
         # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
         d_parám[id_calib] = dist_apriori

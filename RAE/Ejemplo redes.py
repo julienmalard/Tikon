@@ -1,6 +1,6 @@
 import RAE.NuevoINSECTO as Ins
-from RAE.NuevaRED import Red
-from INCERT.DATOS import Experimento
+from RAE.NuevaRedAE import Red
+from INCERT.Experimentos import Experimento
 
 
 O_arenosella_senc = Ins.Sencillo(nombre='O_arenosella_senc')
