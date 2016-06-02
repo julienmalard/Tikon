@@ -4,7 +4,7 @@ import datetime as ft
 from geopy.distance import vincenty as dist
 
 from COSO import Coso
-from PARCELA import Parcela
+from Parcela import Parcela
 from CULTIVO.SUELO import Suelo
 from CULTIVO.VARIEDAD import Variedad
 from CLIMA.CLIMA import Diario

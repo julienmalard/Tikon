@@ -3,3 +3,5 @@ import os
 
 # El directorio de pase del programa Tikon. Utilizado como referencia para encontrar y escribir documentos.
 directorio_base = os.path.dirname(__file__)
+
+

@@ -1,4 +1,6 @@
-# Código de Judy aquí.
+"""
+Para manejar datos de SIG de parcelas.
+"""
 
 
 class Parcela(object):

@@ -1,5 +1,5 @@
-from NuevoCOSO import Coso
-import RAE.Ecuaciones as Ec
+import INCERT.Ecuaciones as Ec
+from NuevoCoso import Coso
 
 
 class Organismo(Coso):
@@ -94,7 +94,7 @@ class Organismo(Coso):
         símismo.receta['estr'][nombre] = dic_etapa
 
         # Guardar las ecuaciones del organismo en la sección 'Coefs'] de la receta
-        símismo.receta['coefs'][nombre] = Ec.gen_ec_inic(Ec.ecuaciones)
+        símismo.receta['coefs'][nombre] = Ec.gen_ec_inic(Ec.ecs_orgs)
 
         # Crear diccionarios para eventualmente contener las presas o huéspedes (si hay) de la nueva etapa
         símismo.config[nombre] = {'presas': {}, 'huéspedes': {}}
@@ -268,3 +268,28 @@ class Organismo(Coso):
 
         # Los parámetros de interacciones con la antigua presa se quedan la receta del organismo para uso futuro
         # potencial.
+
+    def _sacar_coefs_interno(símismo):
+        lista_coefs = []
+
+        for etp in símismo.etapas:
+            for categ in sorted(Ec.ecs_orgs):
+                for sub_categ in sorted(Ec.ecs_orgs[categ]):
+                    nombre_ec = símismo.receta['estr'][etp]['ecuaciones'][categ][sub_categ]
+                    dic_parám = símismo.receta['coefs'][etp][categ][sub_categ][nombre_ec]
+                    lista_coefs.append(dic_parám)
+
+        return lista_coefs
+
+    def _sacar_líms_coefs_interno(símismo):
+        lista_líms = []
+
+        for etp in símismo.etapas:
+            for categ in sorted(Ec.ecs_orgs):
+                for sub_categ in sorted(Ec.ecs_orgs[categ]):
+                    dic_paráms = símismo.receta['estr'][etp]['ecuaciones'][categ][sub_categ]
+                    for parám in sorted(dic_paráms):
+                        líms = Ec.ecs_orgs[categ][sub_categ][parám]['límites']
+                        lista_líms.append(líms)
+
+        return lista_líms
