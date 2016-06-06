@@ -51,11 +51,11 @@ dists = {'Alpha': {'scipy': estad.alpha,
                  'límites': (0, np.inf),
                  'tipo': 'cont'
                  },
-         'ChiCuadrado': {'scipy': estad.chi2,
-                         'pymc': Chi2,
-                         'límites': (0, np.inf),
-                         'tipo': 'cont'
-                         },
+         'Chi2': {'scipy': estad.chi2,
+                  'pymc': Chi2,
+                  'límites': (0, np.inf),
+                  'tipo': 'cont'
+                  },
          'Cosine': {'scipy': estad.cosine,
                     'pymc': None,
                     'límites': (-mat.pi, mat.pi),
