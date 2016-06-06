@@ -1,10 +1,10 @@
 import math as mat
 import numpy as np
 
-import INCERT.Distribuciones as Ds
-import INCERT.Ecuaciones as Ec
-from INCERT.NuevoIncert import gen_vector_coefs
-from NuevoCoso import Simulable
+import MATEMÁTICAS.Distribuciones as Ds
+import MATEMÁTICAS.Ecuaciones as Ec
+from MATEMÁTICAS.NuevoIncert import gen_vector_coefs
+from NuevoCoso import Simulable, valid_vals_inic
 from RAE.ORGANISMO import Organismo
 
 
@@ -25,39 +25,51 @@ class Red(Simulable):
     def __init__(símismo, nombre, organismos=None, fuente=None):
 
         """
-        :param nombre:
-        :param organismos:
-        :param fuente:
+        :param nombre: El nombre de la red.
+        :type nombre: str
+
+        :param organismos: Una lista de objetos o nombres de organismos para añadir a la red, o una instancia única
+          de un tal objeto o nombre.
+        :type organismos: list
+
+        :param fuente: De dónde cargar la red, si estamos cargando una red ya definida.
+        :type fuente: str
         """
+
         super().__init__(nombre=nombre, fuente=fuente)
 
         # La información necesaria para recrear la red
         símismo.receta['estr'] = dict(Organismos={})
 
+        # Unas referencias internas para facilitar el manejo de la red.
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
-        símismo.etapas = {}  # Un diccionario de las recetas (y más) de las etapas de los organismos en la red
+        símismo.etapas = []  # Una lista de las recetas (y más) de las etapas de los organismos en la red
+        símismo.núms_etapas = {}
 
         # Diccionario que contendrá matrices de los coeficientes de la red
         símismo.coefs_act = {}
 
         # Para guardar los tipos de ecuaciones de los organismos en la red
-        símismo.ecs = {'Depredación': {},
-                       'Crecimiento': {},
-                       'Transiciones': {},
-                       'Movimiento': {},
-                       'Cohortes': {},
-                       'Orden': [],
-                       }
+        símismo.ecs = dict([(cat, dict([(sub_cat, [])
+                                        for sub_cat in Ec.ecs_orgs[cat].keys()]))
+                            for cat in Ec.ecs_orgs.keys()
+                            ]
+                           )
 
         # La matriz de datos de las simulaciones (incluso los datos de poblaciones)
-        símismo.datos = {'Pobs': np.array([]),
-                         'Depredación': np.array([]),
-                         'Crecimiento:': np.array([]),
-                         'Transiciones': np.array([]),
-                         'Movimiento': np.array([])
-                         }
+        símismo.predics = {'Pobs': np.array([]),
+                           'Depredación': np.array([]),
+                           'Crecimiento:': np.array([]),
+                           'Reproducción': np.array([]),
+                           'Muertes': np.array([]),
+                           'Transiciones': np.array([]),
+                           'Movimiento': np.array([])
+                           }
 
         # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
+        if type(organismos) is not list:
+            organismos = [organismos]
+
         if organismos is not None:
             for org in organismos:
                 símismo.añadir_org(org)
@@ -67,31 +79,36 @@ class Red(Simulable):
 
     def añadir_org(símismo, organismo):
         """
+        Esta función añade un organismo a la red.
 
-        :param organismo:
-        :type organismo: Organismo or str
+        :param organismo: El organismo que hay que añadir a la red
+        :type organismo: Organismo | str
         """
 
-        if isinstance(organismo, Organismo):  # 'organismo' es un objeto de tipo Organismo...
-
+        # Sacar el nombre del organismo, tanto como el objeto correspondiente.
+        if isinstance(organismo, Organismo):
+            # Si 'organismo' es un objeto de tipo Organismo, guardar su nombre y el objeto sí mismo
             nombre = organismo.nombre
             obj_org = organismo
 
-        elif isinstance(organismo, str):  # ...o 'organismo' es una cadena de carácteres
-
+        elif isinstance(organismo, str):
+            # Pero si 'organismo' es una cadena de carácteres, crear el objeto correspondiente y guardar su nombre
             obj_org = Organismo(organismo)  # Crear el organismo correspondiente
-
             nombre = organismo
 
         else:
-            raise TypeError
+            # Si organismo es ni objeto de Organismo ni el nombre de uno, hay un error.
+            raise TypeError('"organismo" debe ser de tipo Organismo o de texto.')
 
         # Añadir el organismo a la receta
-        símismo.receta['estr']['Organismos'][nombre] = organismo.receta['config']
+        dic_org = símismo.receta['estr']['Organismos'][nombre] = {}
+        dic_org['config'] = organismo.receta['config']
+        dic_org['fuente'] = organismo.fuente
 
         # Poner el organismo en la lista activa
         símismo.organismos[nombre] = obj_org
 
+        # Guardar el Organismo en la lista de objetos de la red.
         símismo.objetos.append(obj_org)
 
         # Actualizar la red
@@ -99,26 +116,40 @@ class Red(Simulable):
 
     def quitar_org(símismo, organismo):
         """
+        Esta función quita un organismo de la Red.
 
-        :param organismo:
+        :param organismo: El organismo para quitar
         :type organismo: Organismo or str
-        :return:
         """
 
-        if isinstance(organismo, Organismo):  # 'organismo' es un objeto de tipo Organismo...
+        if isinstance(organismo, Organismo):
+            # Si 'organismo' es un objeto de tipo Organismo...
             obj_org = organismo
             nombre = organismo.nombre
 
-        elif isinstance(organismo, str):  # ...o 'organismo' es una cadena de carácteres
-            obj_org = símismo.organismos[organismo]
+        elif isinstance(organismo, str):
+            # Si 'organismo' es una cadena de carácteres
             nombre = organismo
 
+            try:
+                obj_org = símismo.organismos[organismo]
+            except KeyError:
+                raise KeyError('El organismo especificado no existía en esta red.')
+
         else:
+            # Si "organismo" no es de tipo Organismo o texto, hay un error.
             raise TypeError
 
-        símismo.receta['Organismos'].pop(nombre)  # Quitar su nombre a la receta
-        símismo.organismos.pop(nombre)  # Quitar el organismo de los organismos activos
+        # Quitar el Organismo de la Red, pero con cuidado con los errores
+        try:
+            símismo.receta['estr']['Organismos'].pop(nombre)  # Quitar el nombre de la receta
+            símismo.organismos.pop(nombre)  # Quitar el organismo del diccionario de organismos
 
+        except KeyError:
+            # Si Organismo no existía en la Red, no se puede quitar.
+            raise KeyError('El organismo especificado no existía en esta red.')
+
+        # Quitar Organismo de la lista de objetos de la red.
         símismo.objetos.remove(obj_org)
 
         # Actualizar la red
@@ -126,78 +157,58 @@ class Red(Simulable):
 
     def actualizar(símismo):
         """
-        Actualiza la lista de etapas y las matrices de coeficientes de la red.
+        Actualiza la lista de etapas y las matrices de coeficientes de la red y sus objetos.
 
-        :return: Nada
         """
 
         # Verificar que todos los organismos en la receta, y únicamente los organismos en la receta, estén en la
         # lista de organismos activos de la red.
+        for nombre, dic_org in símismo.receta['estr']['Organismos'].items():
 
-        for nombre, config in símismo.receta['estr']['Organismos'].items():
-            if nombre not in símismo.organismos:  # Si el organismo no existía...
-                # Crear el organismo...
+            # Si el organismo en la receta de la Red no existía en el diccionario de organismos activos...
+            if nombre not in símismo.organismos:
+
+                # ...crear el organismo
                 símismo.organismos[nombre] = Organismo(nombre)
 
-                # Y aplicar las configuraciones guardadas en la red
-                símismo.organismos[nombre].receta['config'] = config
+                # ...y aplicar las configuraciones guardadas en la red
+                símismo.organismos[nombre].config = dic_org['config']
 
         for org in símismo.organismos:
             if org not in símismo.receta['estr']['Organismos']:
+                # Si un organismo activo en la Red no existe en la receta de la Red...
+
+                # ...quitar el organismo del diccionario de organismos activos
                 símismo.organismos.pop(org)
 
         # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
-
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
 
-        símismo.lista_etps = [] # para hacer
-
-        # Crear una lista con únicamente las listas de calibraciones para cada parámetro. Será útil para las funciones
-        # de simulación, calibración y validación más adelante.
-        símismo.lista_calibs_paráms_interés = []
-        for d_etp in símismo.lista_etps:
-            for categ in d_etp['estr']['ecs'].values():
-                for sub_categ in categ.values():
-                    for parám in sub_categ.values():
-                        if type(list(parám.values())[0]) is np.ndarray:
-                            símismo.lista_calibs_paráms_interés.append(list(parám))
-                        else:
-                            for inter in parám.values():
-                                símismo.lista_calibs_paráms_interés.append(list(inter))
-
-
-
-        """
-        for organismo in [org for (nombre, org) in sorted(símismo.organismos.items())]:
-
-            símismo.etapas += [dict(etp[1] for etp in sorted(organismo.receta.items()))]
-
-        # Guardar los tipos de ecuaciones activos de las etapas en un diccionario central
-        for categ, dic_categ in Ec.ecuaciones:
-            símismo.ecs[categ] = {}
-            for subcateg in dic_categ:
-                subcateg.ecs[categ][subcateg] = [etp['ecuaciones'][categ][subcateg] for etp in símismo.etapas]
-
-        # Crear una lista con el número de la etapa en el mismo organismo que sigue cada etapa.
-        lista = símismo.ecs['Orden'] = np.arange(len(símismo.etapas))
         n = 0
-        for org in [org for (nombre, org) in sorted(símismo.organismos.items())]:
-            pos_etps = [etp['posición'] for (nombre, etp) in sorted(org.receta['etapas'].items())]
+        for nombre_org, org in sorted(símismo.organismos.items()):
+            símismo.núms_etapas[nombre_org] = {}
+            for etp in org.etapas:
+                # Para cada etapa de cada organismo...
 
-            for i, j in enumerate(pos_etps):
-                try:
-                    lista[i] += pos_etps.index(j+1) - j
-                except IndexError:
-                    lista[n + len(pos_etps) - 1] = -1  # Para la última etapa, ponemos -1
+                # Crear un diccionario con la información de la etapa
+                dic_etp = dict(org=nombre_org,
+                               nombre=etp['nombre'],
+                               dic=etp,
+                               conf=org.config[etp['nombre']])
 
-            n += len(pos_etps)
-        """
+                # Y guardar este diccionario en la Red
+                símismo.etapas.append(dic_etp)
 
-        # Crear el diccionario de tipos de ecuaciones actuales
+                # Y guardamos una referencia al número de la etapa
+                símismo.núms_etapas[nombre_org][etp['nombre']] = n
 
+                n += 1
+
+        # Crear el diccionario de los tipos de las ecuaciones activas para cada etapa.
         símismo.ecs.clear()  # Borrar todo en el diccionario existente para evitar posibilidades de cosas raras
 
-        for categ in Ec.ecs_orgs:  # Para cada tipo de ecuación posible...
+        for categ in Ec.ecs_orgs:
+            # Para cada tipo de ecuación posible...
 
             # Crear la llave correspondiente en el diccionario de tipos de ecuaciones de la red.
             símismo.ecs[categ] = {}
@@ -206,27 +217,26 @@ class Red(Simulable):
             for sub_categ in Ec.ecs_orgs[categ]:
 
                 # Crear una lista de tamaño igual al número de etapas en la red
-                símismo.ecs[categ][sub_categ] = [None] * len(símismo.etapas)
+                símismo.ecs[categ][sub_categ] = []
 
                 # Para cada etapa de esta red...
-                for d_etp in símismo.etapas.values():
-
+                for d_etp in símismo.etapas:
                     # Leer el tipo de ecuación activo para esta simulación
-                    tipo_ec = d_etp['estr']['ecs'][categ][sub_categ]
-
-                    # El número de la etapa en las matrices de esta red.
-                    n_etp = d_etp['núm']
+                    tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
 
                     # Guardar el tipo de ecuación en su lugar en símismo.ecs
-                    símismo.ecs[categ][sub_categ][n_etp] = tipo_ec
-
-
-        símismo.lista_dic_paráms_interés = [] # para hacer
+                    símismo.ecs[categ][sub_categ].append(tipo_ec)
 
         # La red ya está lista para simular
         símismo.listo = True
 
-    def calc_depred(símismo, pobs, paso):
+    def añadir_exp(símismo, experimentos):
+        pass
+
+    def dibujar(símismo, mostrar=True, archivo=''):
+        pass
+
+    def _calc_depred(símismo, pobs, paso):
         """
         Calcula la depredación entre los varios organismos de la red. Aquí se implementan todas las ecuaciones
         de depredación posibles; el programa escoje la ecuación apropiada para cada depredador.
@@ -271,13 +281,17 @@ class Red(Simulable):
 
 
         :param pobs: matriz numpy de poblaciones actuales.
-        :param paso:
+        :type pobs: np.ndarray
+
+        :param paso: El paso de tiempo de la simulación.
+        :type paso: int
+
         """
 
         # Calcular cuántas presas cada especie de depredador podría comerse
 
         # A este punto, depred representa la depredación potencial per cápita de depredador
-        depred = símismo.datos['Depredación']
+        depred = símismo.predics['Depredación']
         tipos_ec = símismo.ecs['Depredación']['Ecuación']
 
         # La lista de los coeficientes de cada etapa para la depredación
@@ -395,26 +409,24 @@ class Red(Simulable):
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], depred_por_presa[..., n])
 
         # Actualizar la matriz de poblaciones
-        return depred_por_presa
+        pobs -= depred_por_presa
 
-    def calc_crec(símismo, pobs, extrn, paso):
+    def _calc_crec(símismo, pobs, extrn, paso):
         """
         Calcula las reproducciones y las transiciones de etapas de crecimiento
 
-        :type extrn: dict
-        :param extrn: diccionario de factores externos a la red (plantas, clima, etc.)
-
-        :type paso: int
-
-
-        :param pobs: matriz numpy de poblaciones actuales.
+        :param pobs: Matriz numpy de poblaciones actuales. Eje 0 =
         :type pobs: np.ndarray
 
-        :param paso:
+        :param extrn: Diccionario de factores externos a la red (plantas, clima, etc.)
+        :type extrn: dict
+
+        :param paso: El paso para la simulación.
+        :type paso: int
 
         """
 
-        crec = símismo.datos['Crecimiento']
+        crec = símismo.predics['Crecimiento']
         tipos_ec = símismo.ecs['Crecimiento']['Ecuación']
         modifs = símismo.ecs['Crecimiento']['Modif']
 
@@ -478,12 +490,16 @@ class Red(Simulable):
         for n in símismo.ecs['Cohortes']:
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], crec[..., n])
 
-        return crec
+        # Actualizar la matriz de poblaciones
+        pobs += crec
 
-    def calc_reprod(símismo, pobs, extrn, paso):
-        raise NotImplementedError
+    def _calc_reprod(símismo, pobs, extrn, paso):
+        reprod = NotImplemented
 
-    def calc_muertes(símismo, pobs, extrn, paso):
+        # Actualizar la matriz de predicciones
+        pobs += reprod
+
+    def _calc_muertes(símismo, pobs, extrn, paso):
 
         """
         Esta función calcula las muertes de causas ambientales de la etapa.
@@ -499,7 +515,7 @@ class Red(Simulable):
 
         """
 
-        muertes = símismo.datos['Muertes']
+        muertes = símismo.predics['Muertes']
 
         tipos_ec = símismo.ecs['Muertes']['Ecuación']
 
@@ -553,24 +569,26 @@ class Red(Simulable):
         for n in símismo.ecs['Cohortes']:
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], muertes[..., n])
 
-        return muertes
+        # Actualizar la matriz de predicciones
+        pobs -= muertes
 
-    def calc_trans(símismo, pobs, extrn, paso):
+    def _calc_trans(símismo, pobs, extrn, paso):
         """
         Esta función calcula las transiciones de organismos de una etapa a otra. Esto puede incluir muerte por
           viejez.
 
         :param pobs:
+        :type pobs: np.ndarray
 
         :param extrn:
         :type extrn: dict
 
         :param paso:
-
+        :type paso: int
 
         """
 
-        trans = símismo.datos['Transiciones']
+        trans = símismo.predics['Transiciones']
 
         ec_edad = símismo.ecs['Transiciones']['Edad']
         probs = símismo.ecs['Muertes']['Prob']
@@ -659,8 +677,8 @@ class Red(Simulable):
 
                 edad_extra *= paso
 
-                cohortes = símismo.datos['Cohortes'][n]['Pobs']
-                edades = símismo.datos['Cohortes'][n]['Edades']['Transiciones']
+                cohortes = símismo.predics['Cohortes'][n]['Pobs']
+                edades = símismo.predics['Cohortes'][n]['Edades']['Transiciones']
 
                 if edad_extra is None:
                     raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
@@ -688,88 +706,82 @@ class Red(Simulable):
 
         símismo.redondear(trans)
 
-        return trans
+        pobs += trans
 
-    def calc_mov(símismo, pobs, paso, extrn):
+    def _calc_mov(símismo, pobs, paso, extrn):
         """
         Calcula la imigración i emigración de organismos entre parcelas
 
-        :type pobs: np.narray
         :param pobs:
-        :type paso: int
-        :param paso:
-        :param extrn:
+        :type pobs: np.narray
 
-        :return:
+        :param paso:
+        :type paso: int
+
+        :param extrn:
+        :type extrn: dict
+
         """
-        mov = símismo.datos['Movimiento']
+
+        mov = símismo.predics['Movimiento']
 
         tipos_ec = símismo.ecs['Movimiento']
 
         coefs = símismo.coefs_act['Movimiento']
 
         for ec in tipos_ec:
-            pass
+            mobil =
+            peso = área * modif_peso
+
+            mov =
 
         # Si la etapa usa cohortes para cualquier otro cálculo, acutlizar los cohortes ahora.
         for n in símismo.ecs['Cohortes']:
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], mov[..., n])
 
-        return mov
+        # Actualizar la matriz de predicciones
+        pobs += mov
 
-    def limpiar_cohortes(símismo):
-        for n, etp in enumerate(símismo.datos['Cohortes']):
+    def _limpiar_cohortes(símismo):
+        for n, etp in enumerate(símismo.predics['Cohortes']):
             vacíos = (etp['Pobs'] == 0)
             for ed in etp['Edades'].values():
                 ed[vacíos] = np.nan
 
-    def prep_predics(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas, calibs):
-
-        n_etapas = len(símismo.etapas)
-
-        for dato in símismo.datos:
-            if dato == 'Pobs':
-                símismo.datos[dato] = np.zeros(shape=(n_parcelas, rep_estoc, rep_parám, n_etapas, n_pasos),
-                                               dtype=int)
-            else:
-                símismo.datos[dato] = np.zeros(shape=(n_parcelas, rep_estoc, rep_parám, n_etapas),
-                                               dtype=int)
-
-    def añadir_exp(símismo, experimentos):
-        pass
-
     def _poner_val(símismo, ):
-        pass
-
-    def dibujar(símismo, mostrar=True, archivo=''):
         pass
 
     def _incrementar(símismo, paso, i, mov=False, extrn=None):
 
-        pobs = símismo.datos['P'][i-1]
+        # Empezar con las poblaciones del paso anterior
+        pobs = símismo.predics['Pobs'][i - 1]
 
-        # Calcular la depredación, muertes, reproducción, y movimiento entre parcelas
-        depred = símismo.calc_depred(pobs=pobs, paso=paso)
-        pobs -= depred
+        # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
 
-        crec = símismo.calc_crec(pobs=pobs, extrn=extrn, paso=paso)
-        pobs += crec
+        # Una especie que mata a otra.
+        símismo._calc_depred(pobs=pobs, paso=paso)
 
-        reprod = NotImplemented
+        # Una población que crece (misma etapa)
+        símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
 
-        muertes = símismo.calc_muertes(pobs=símismo.datos['Pobs'][..., i], extrn=extrn, paso=paso)
-        pobs -= muertes
+        # Una etapa que crear más individuos de otra etapa
+        símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
 
-        trans = símismo.calc_trans(pobs=símismo.datos['Pobs'][..., i], extrn=extrn, paso=paso)
-        pobs += trans
+        # Muertes por el ambiente
+        símismo._calc_muertes(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
+
+        # Una etapa que cambia a otra, o que se muere por su edad.
+        símismo._calc_trans(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
 
         if mov:
-            mov = símismo.calc_mov(pobs=símismo.datos['Pobs'][..., i], extrn=extrn, paso=paso)
-            pobs += mov
+            # Movimientos de organismos de una parcela a otra.
+            símismo._calc_mov(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
 
-        símismo.datos['Pobs'][..., i] = pobs
+        # Añadir las predicciones de poblaciones para el paso de tiempo i en la matriz de predicciones.
+        símismo.predics['Pobs'][..., i] = pobs
 
-        símismo.limpiar_cohortes()
+        # Limpiar los cohortes de los organismos de la Red.
+        símismo._limpiar_cohortes()
 
     def _procesar_validación(símismo, vector_obs, vector_preds):
         pass
@@ -791,13 +803,72 @@ class Red(Simulable):
     def _procesar_predics_calib(símismo):
         pass
 
-    def _prep_args_simul_exps(símismo, exper, n_rep_paráms, n_rep_estoc):
-        pass
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_parám):
+        """
+        Ver la documentación de Coso.
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs):
+        :type exper: list
+        :type n_rep_estoc: int
+        :type n_rep_parám: int
+        :rtype: dict
 
-        # Crear las matrices de coeficientes.
-        símismo.coefs_act = {}
+        """
+
+        dic_args = dict(datos_inic={},
+                        n_pasos={},
+                        extrn={})
+
+        # El número de etapas se toma de la Red sí misma
+        n_etapas = len(símismo.etapas)
+
+        # Para cada experimento...
+        for exp in exper:
+            # Sacamos el objeto correspondiente al experimento
+            obj_exp = símismo.exps[exp]
+
+            # Calculamos el número de parcelas en el experimento
+            n_parc = valid_vals_inic(obj_exp.datos['Organismos']['obs'])
+
+            # El número de pasos necesarios es la última observación en la base de datos de organismos.
+            n_pasos = obj_exp.datos['Organismos']['tiempo'][-1]
+
+            # Generamos el diccionario (vacío) de datos iniciales
+            datos_inic = símismo.gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám,
+                                                     n_etps=n_etapas, n_pasos=n_pasos)
+
+            # Llenamos la poblaciones iniciales
+            for n_etp, etp in enumerate(símismo.etapas):
+                # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
+                matr_obs_inic = obj_exp.datos['Organismos']['obs'][etp['org']][etp['nombre']][:, 0]
+
+                # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
+                # en cuestión a tiempo 0.
+                datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+
+            # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
+            dic_args['datos_inic'][exp] = datos_inic
+
+            # También guardamos el número de pasos y diccionarios de ingresos externos.
+            dic_args['n_pasos'][exp] = n_pasos
+            dic_args['extrn'][exp] = None  # Para hacer para implementar clima, apliaciones y cultivos
+
+        return dic_args
+
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes):
+        """
+        Ver la documentación de Coso.
+
+        :type n_rep_parám: int
+        :type calibs: list | str
+        :type comunes: bool
+
+        """
+
+        # El número de etapas en la Red
+        n_etapas = len(símismo.etapas)
+
+        # Vaciar los coeficientes existentes.
+        símismo.coefs_act.clear()
 
         # Para cada categoría de ecuación posible...
         for categ, dic_categ in Ec.ecs_orgs.items():
@@ -809,119 +880,97 @@ class Red(Simulable):
             for subcateg in dic_categ:
 
                 # Crear una lista en coefs_act para guardar los diccionarios de los parámetros de cada etapa
-                coefs_act = símismo.coefs_act[categ][subcateg] = [{}] * len(símismo.lista_etps)
+                coefs_act = símismo.coefs_act[categ][subcateg] = [{}] * n_etapas
+
+                # La lista de los tipos de ecuaciones para esta subcategoría para todas las etapas
+                lista_tipos_ecs = símismo.ecs[categ][subcateg]
 
                 # Para cada etapa en la lista de diccionarios de parámetros de interés de las etapas...
-                for n_etp, dic_coefs_etp in enumerate(símismo.lista_etps):
+                for n_etp, tipo_ec in enumerate(lista_tipos_ecs):
 
                     # Para cada parámetro en el diccionario de las ecuaciones de esta etapa en uso actual
                     # (Ignoramos los parámetros para ecuaciones que no se usarán en esta simulación)...
-                    for parám, d_parám in dic_coefs_etp[categ][subcateg]:
+                    for parám, d_parám in Ec.ecs_orgs[categ][subcateg][tipo_ec]:
 
                         # Si no hay interacciones entre este parámetro y otras etapas...
                         if d_parám['inter'] is None:
                             # Generar la matríz de valores para este parámetro de una vez
                             coefs_act[n_etp][parám] = gen_vector_coefs(dic_parám=d_parám, calibs=calibs,
-                                                                       n_rep_parám=n_rep_parám)
+                                                                       n_rep_parám=n_rep_parám,
+                                                                       comunes=comunes)
 
                         # Si, al contrario, hay interacciones (aquí con las presas de la etapa)...
                         elif d_parám['inter'] == 'presa':
                             # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición paramétrica,
                             # eje 1 = presa.
-                            matr = coefs_act[n_etp][parám] = np.empty(shape=(len(símismo.lista_etps), n_rep_parám),
-                                                                             dtype=object)
+                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
+                                                                      dtype=object)
 
                             # Para cada presa del organismo...
-                            for org_prs, l_etps_prs in símismo.lista_etps[n_etp]['config']['presas'].items():
+                            for org_prs, l_etps_prs in símismo.etapas[n_etp]['conf']['presas'].items():
 
                                 for etp_prs in l_etps_prs:
 
-                                    n_etp_prs = símismo.etapas[org_prs][etp_prs]['núm']
+                                    n_etp_prs = símismo.núms_etapas[org_prs][etp_prs]
 
-                                    matr[n_etp_prs] = gen_vector_coefs(dic_parám=d_parám,
-                                                                       calibs=calibs,
-                                                                       n_rep_parám=n_rep_parám)
+                                    matr[:, n_etp_prs] = gen_vector_coefs(dic_parám=d_parám,
+                                                                          calibs=calibs,
+                                                                          n_rep_parám=n_rep_parám,
+                                                                          comunes=comunes)
 
                         else:
 
                             # Al momento, solamente es posible tener interacciones con las presas de la etapa. Si
                             # un día alguien quiere incluir más tipos de interacciones (como, por ejemplo,
                             # interacciones entre competidores), se tendrían que añadir aquí.
-                            raise ValueError
+                            raise ValueError('Interacción "%s" no reconocida.' % d_parám['inter'])
 
     def _prep_predics(símismo, n_pasos, n_rep_parám, n_rep_estoc, n_parcelas):
+        """
+        Ver la documentación de Coso para una explicación.
 
-        n_etps = len(símismo.etapas)
+        :type n_pasos: int
+        :type n_rep_parám: int
+        :type n_rep_estoc: int
+        :type n_parcelas: int
+
+        """
+
+        n_etapas = len(símismo.etapas)
+
+        símismo.predics['Pobs'] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etapas, n_pasos),
+                                           dtype=int)
+        símismo.predics['Depredación'] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etapas, n_etapas),
+                                                  dtype=int)
 
         # Crear las matrices para guardar resultados:
-        símismo.datos['Pobs'] = np.empty(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etps), dtype=int)
-
-        símismo.datos['Depredación'] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etps, n_etps),
-                                                dtype=int)
-
-        for categ in símismo.datos:
-            if categ not in ['Pobs', 'Depredación']:
-                símismo.datos[categ] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etps), dtype=np.int)
+        for categ in símismo.predics:
+            if categ not in ['Pobs', 'Depradación']:
+                símismo.predics[categ] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etapas),
+                                                  dtype=int)
 
     def _prep_obs_exper(símismo, exper):
+        """
+        Ver la documentación de Coso.
 
-        dic_líms = {}
-        dic_parám = {}
+        :type exper: list
+        :rtype: np.ndarray
 
-        for org, d_org in símismo.etapas.items():
-            dic_líms[org] = {}
-            dic_parám[org] = {}
+        """
 
-            for etp, d_etp in org.items():
-                dic_líms[org][etp] = {}
-                dic_parám[org][etp] = {}
+        lista_obs = []
 
-                dic_ecs = d_etp['estr']['ecs']
+        # Para cada experimento, en orden...
+        for exp in sorted(exper):
 
-                for categ, d_categ in dic_ecs.items():
-                    dic_parám[org][etp][categ] = {}
-                    dic_líms[org][etp][categ] = {}
+            # Para cada observación de organismos de este experimento, en orden...
+            for etp, datos_etp in sorted(exp.datos['Organismos']['obs'].items()):
 
-                    for subcateg in d_categ:
-                        dic_parám[org][etp][categ][subcateg] =
-                        dic_líms[org][etp][categ][subcateg] =
+                # Guardar los datos aplastados en una única dimensión de matriz numpy (esto combina las dimensiones
+                # de parcela (eje 0) y de tiempo (eje 1).
+                lista_obs.append(datos_etp.flatten())
 
-        for categ, d_categ in etp['estr']['ecs'].items():
-            dic_líms[categ] = {}
-            for
-
-        dic_parám =
-        dic_líms = Ec.ecs_orgs
-
-        obs =
-
-        return obs, dic_parám, dic_líms
-
-    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn):
-
-        egresos = np.array()
-
-        i_obs = np.array(())
-        list_obs = np.array(())
-
-        for exp, d_exp in símismo.observ.items():
-            for org, d_org in d_exp[''].items():
-                for etp, datos in d_org.items():
-                    pass
-
-            # para hacer: inicializar las poblaciones a t=0
-
-            # Para cada paso de tiempo, incrementar el modelo
-            tiempo_final = max(i_obs)
-
-            for org, d_org in d_exp.items():
-                for etp_datos in d_org.items():
-                    pass
-            i = None
-            símismo._incrementar(paso, i=i + 1, extrn=extrn)
-
-        return egresos
-
+        return np.concatenate(lista_obs)
 
     # Funciones auxiliares
     @staticmethod
@@ -1089,4 +1138,44 @@ class Red(Simulable):
 
             muertes -= np.sum(quitar_por_cohorte, axis=0)
 
+    @staticmethod
+    def gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos):
+        """
+        Esta función genera un diccionario con matrices del tamaño apropiado para guardar las predicciones del modelo.
+          Por usar una función auxiliar, se facilita la generación de matrices para simulaciones de muchos experimentos.
 
+        :param n_parc: El número de parcelas
+        :type n_parc: int
+
+        :param n_rep_estoc: El número de repeticiones estocásticas
+        :type n_rep_estoc: int
+
+        :param n_rep_parám: El número de repeticiones paramétricas
+        :type n_rep_parám: int
+
+        :param n_etps: El número de etapas de organismos en la Red.
+        :type n_etps: int
+
+        :param n_pasos: El número de pasos para la simulación
+        :type n_pasos: int
+
+        :return: Un diccionario del formato de símismo.predics según las especificaciones en los argumentos de la
+          función.
+        :rtype: dict
+
+        """
+
+        # El tamaño estándar para una matriz de resultados (algunos resultados tienen unas dimensiones adicionales).
+        tamaño_normal = (n_parc, n_rep_estoc, n_rep_parám, n_etps)
+
+        # El diccionario en formato símismo.predics
+        dic = {'Pobs': np.zeros(shape=(*tamaño_normal, n_pasos)),
+               'Depredación': np.zeros(shape=(*tamaño_normal, n_etps)),
+               'Crecimiento:': np.zeros(shape=tamaño_normal),
+               'Reproducción': np.zeros(shape=tamaño_normal),
+               'Muertes': np.zeros(shape=tamaño_normal),
+               'Transiciones': np.zeros(shape=tamaño_normal),
+               'Movimiento': np.zeros(shape=tamaño_normal)
+               }
+
+        return dic

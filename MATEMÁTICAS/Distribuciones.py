@@ -1,11 +1,9 @@
-import warnings as avisar
 import math as mat
 import numpy as np
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, Laplace, \
     Logistic, Lognormal, NoncentralT, Normal, Pareto, T, TruncatedNormal, Uniform, VonMises, Bernoulli, Binomial, \
     Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
-
 
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.
 dists = {'Alpha': {'scipy': estad.alpha,
@@ -78,17 +76,17 @@ dists = {'Alpha': {'scipy': estad.alpha,
                     'límites': (0, np.inf),
                     'tipo': 'cont'
                     },
-         'Exponencial': {'scipy': estad.arcsine,
+         'Exponencial': {'scipy': estad.expon,
                          'pymc': Exponential,
                          'límites': (0, np.inf),
                          'tipo': 'cont'
                          },
-         'NormalExponencial': {'scipy': estad.arcsine,
+         'NormalExponencial': {'scipy': estad.exponnorm,
                                'pymc': None,
                                'límites': (-np.inf, np.inf),
                                'tipo': 'cont'
                                },
-         'WeibullExponencial': {'scipy': estad.arcsine,
+         'WeibullExponencial': {'scipy': estad.exponweib,
                                 'pymc': Exponweib,
                                 'límites': (0, np.inf),
                                 'tipo': 'cont'
@@ -506,21 +504,19 @@ dists = {'Alpha': {'scipy': estad.alpha,
                      'límites': (0, np.inf),
                      'tipo': 'discr'
                      },
-         'EnteroAleatorio': {'scipy': estad.randint,
-                             'pymc': DiscreteUniform,
-                             'límites': (0, 1),  # Límite es de (a, b)
-                             'tipo': 'discr'
-                             },
          'Skellam': {'scipy': estad.skellam,
                      'pymc': None,
                      'límites': (-np.inf, np.inf),
                      'tipo': 'discr'
                      },
+         'UnifDiscr': {'scipy': estad.randint,
+                       'pymc': DiscreteUniform,
+                       'límites': (0, 1),  # Límite es de (a, b)
+                       'tipo': 'discr'
+                       },
          'Zipf': {'scipy': estad.zipf,
                   'pymc': None,
                   'límites': (1, np.inf),
                   'tipo': 'discr'
                   }
          }
-
-

@@ -1,4 +1,4 @@
-import INCERT.Ecuaciones as Ec
+import MATEMÁTICAS.Ecuaciones as Ec
 from NuevoCoso import Coso
 
 
@@ -59,9 +59,6 @@ class Organismo(Coso):
 
         :return: Nada
         """
-
-        # Actualizar el nombre del organismo
-        símismo.nombre = símismo.receta['nombre']
 
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['estr'].values()], key=lambda d: d['posición'])

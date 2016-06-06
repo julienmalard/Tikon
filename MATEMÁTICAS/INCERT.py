@@ -2,7 +2,7 @@ import numpy as np
 import random as aleatorio
 
 from COSO import Simulable
-from INCERT.CALIB import extraer_objetos, leerdatos
+from MATEMÁTICAS.CALIB import extraer_objetos, leerdatos
 
 
 # Este módulo maneja el análisis de incertidumbre de los modelos.

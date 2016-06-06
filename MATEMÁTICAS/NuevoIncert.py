@@ -1,18 +1,19 @@
 import os
 import warnings as avisar
 import numpy as np
+from scipy.optimize import minimize
 import scipy.stats as estad
 import matplotlib.pyplot as dib
 import pymc
 
-import INCERT.Distribuciones as Ds
+import MATEMÁTICAS.Distribuciones as Ds
 
 """
 Este código contiene funciones para manejar datos de incertidumbre.
 """
 
 
-def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
+def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
       que queremos usar y el número de repeticiones que queremos.
@@ -26,9 +27,8 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
     :param n_rep_parám: El número de repeticiones paramétricas que queremos en nuestra simulación.
     :type n_rep_parám: int
 
-    :param comunes: Una matriz con la ubicación de cuál dato tomar de cada traza, si queremos que haya correspondencia
-      entre los datos elegidos de cada parámetro.
-    :type comunes: np.ndarray
+    :param comunes: Di queremos que haya correspondencia entre los datos elegidos de cada parámetro.
+    :type comunes: bool
 
     :return: Una matriz unidimensional con los valores del parámetro.
     :rtype: np.ndarray
@@ -53,6 +53,16 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
     resto = n_rep_parám % n_calibs
     # ...y añadirlas la principio de la lista de calibraciones.
     rep_per_calib[:resto + 1] += 1
+
+    if comunes:
+        tamaño_mín = np.min([len(x) for x in dic_parám])
+        if tamaño_mín < np.max(rep_per_calib):
+            devolv_común = True
+        else:
+            devolv_común = False
+        ubic_datos = np.random.choice(range(tamaño_mín), size=np.max(rep_per_calib), replace=devolv_común)
+    else:
+        ubic_datos = None
 
     # Para cada calibración en la lista...
     for n_id, id_calib in enumerate(calibs_usables):
@@ -79,9 +89,9 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
 
             # Tomar, al hazar, datos de la traza. Si estamos usando calibraciones comunes para todos los parámetros,
             # usar la ubicación de los datos predeterminada.
-            if comunes is not None:
-                ubic_datos = comunes[:rep_per_calib[n_id]]
-                nuevos_vals = traza[ubic_datos]
+            if comunes:
+                ubic_datos_cort = ubic_datos[:rep_per_calib[n_id]]
+                nuevos_vals = traza[ubic_datos_cort]
             else:
                 nuevos_vals = np.random.choice(traza, size=rep_per_calib[n_id], replace=devolver)
 
@@ -93,7 +103,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
                             'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
 
             # Convertir el texto a distribución de SciPy
-            dist_sp = texto_a_distscipy(traza)
+            dist_sp = texto_a_dist(traza)
 
             # Sacar los datos necesarios de la distribución SciPy
             nuevos_vals = dist_sp.rvs(rep_per_calib[n_id])
@@ -113,21 +123,43 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=None):
     return np.concatenate(lista_trazas)
 
 
-def texto_a_distscipy(texto):
+def texto_a_dist(texto, usar_pymc=False, nombre=None):
     """
-    Esta función convierte texto a su distribución SciPy correspondiente.
+    Esta función convierte texto a su distribución SciPy of PyMC correspondiente.
 
     :param texto: La distribución a convertir.
     :type texto: str
+
+    :param usar_pymc: Si vamos a generar una distribución PyMC (en vez de una distribución de SciPy).
+    :type usar_pymc: bool
+
+    :param nombre: El nombre para dar a la distribución pymc, si aplica.
+    :type nombre: str
+
+    :return: Una distribución o SciPy, o PyMC.
+    :rtype: estad.Stochasic | pymc.Stocastic
     """
 
+    # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
+    if usar_pymc and nombre is None:
+        raise ValueError('Se debe especificar un nombre para el variable si quieres una distribución de PyMC.')
+
     # Dividir el nombre de la distribución de sus parámetros.
-    nombre, paráms = texto.split('~')
+    tipo_dist, paráms = texto.split('~')
 
     # Si el nombre de la distribución está en la lista arriba...
-    if nombre in Ds.dists:
-        # Devolver la distribución SciPy appropiada
-        return Ds.dists[nombre]['scipy'](paráms)
+    if tipo_dist in Ds.dists:
+        if usar_pymc:
+            clase_dist = Ds.dists['nombre']['pymc']
+            if clase_dist is not None:
+                dist = clase_dist(nombre, *paráms)  # Para hacer: verificar el órden de los parámetros
+            else:
+                raise ValueError
+        else:
+            dist = Ds.dists[tipo_dist]['scipy'](*paráms)
+
+        # Devolver la distribución appropiada
+        return dist
 
     # Si no encontramos el nombre de la distribución, hay un error.
     raise ValueError('No se pudo decodar la distribución "%s".' % texto)
@@ -157,6 +189,10 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
     :rtype: (pymc.Stochastic, float)
 
     """
+
+    # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
+    if usar_pymc and nombre is None:
+        raise ValueError('Se debe especificar un nombre para el variable si quieres una distribución de PyMC.')
 
     # Separar el mínimo y el máximo de la distribución
     mín_parám, máx_parám = límites
@@ -279,7 +315,7 @@ def límites_a_dist(límites, cont=True):
             if cont:
                 dist = 'Normal~(0, 1e10)'
             else:
-                dist = 'DiscrUnif~(1e-10, 1e10)'
+                dist = 'UnifDiscr~(1e-10, 1e10)'
 
         else:  # El caso (-np.inf, R)
             raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
@@ -292,13 +328,91 @@ def límites_a_dist(límites, cont=True):
                 dist = 'Gamma~({}, 0.0001, 0.0001)'.format(mín)
             else:
                 loc = mín - 1
-                dist = 'Geom~(1e-8, {})'.format(loc)
+                dist = 'Geométrica~(1e-8, {})'.format(loc)
 
         else:  # El caso (R, R)
             if cont:
-                dist = 'Unif~({}, {})'.format(mín, máx)
+                loc = máx-mín
+                dist = 'Uniforme~({}, {})'.format(mín, loc)
             else:
-                dist = 'DiscrUnif~({}, {})'.format(mín, mín+1)
+                dist = 'UnifDiscr~({}, {})'.format(mín, mín+1)
+
+    return dist
+
+
+def rango_a_texto_dist(rango, certidumbre, líms, cont):
+    """
+    Esta función genera distribuciones estadísticas (en formato texto) dado un rango de valores y la densidad de
+      probabilidad en este rango, además de las límites intrínsicas del parámetro.
+
+    :param rango: Un rango de valores.
+    :type rango: tuple
+
+    :param certidumbre: La probabilidad de que el variable se encuentre a dentro del rango.
+    :type certidumbre: float
+
+    :param líms: Los límites intrínsicos del parámetro.
+    :type líms: tuple
+
+    :param cont: Indica si la distribución es una distribución contínua o discreta.
+    :type cont: bool
+
+    :return: Una distribución (formato texto) con las características deseadas. Esta distribución se puede convertir
+      en objeto de distribución SciPy o PyMC mediante la función texto_a_dist.
+    :rtype: str
+
+    """
+
+    # Leer los límites intrínsicos del parámetro
+    mín = líms[0]
+    máx = líms[1]
+
+    # Asegurarse de que el rango cabe en los límites
+    if rango[0] < mín or rango[1] > máx:
+        raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
+
+    if certidumbre == 1:
+        # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
+        if cont:
+            dist = 'Uniforme~({}, {})'.format(mín, (máx-mín))
+        else:
+            dist = 'UnifDiscr~({}, {})'.format(mín, máx)
+
+    else:
+        # Si hay incertidumbre, asignar una distribución según cada caso posible
+        if mín == -np.inf:
+            if máx == np.inf:  # El caso (-np.inf, np.inf)
+                if cont:
+                    mu = np.average(rango)
+                    # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
+                    sigma = ((rango[1]-rango[0]) / 2) / estad.norm.ppf((1-certidumbre)/2 + certidumbre)
+                    dist = 'Normal~({}, {})'.format(mu, sigma)
+                else:
+                    raise ValueError('No se puede especificar a prioris con niveles de certidumbres inferiores a 100%'
+                                     'con parámetros discretos en el rango (-inf, +inf).')
+
+            else:  # El caso (-np.inf, R)
+                raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). '
+                                 'Puedes crear un variable en el intervalo (R, inf) y utilisar su valor negativo en '
+                                 'las ecuaciones.')
+
+        else:
+            if máx == np.inf:  # El caso (R, np.inf)
+                if cont:
+                    inic = np.array([1, 1])
+                    # Estimar los parámetros
+                    paráms = minimize(lambda x: abs((estad.gamma.cdf(rango[1], a=x[0], loc=mín, scale=x[1]) -
+                                                     estad.gamma.cdf(rango[0], a=x[0], loc=mín, scale=x[1])) -
+                                                    certidumbre).x,
+                                      x0=inic)
+                    dist = 'Gamma~({}, {}, {})'.format(paráms[0], mín, paráms[1])
+                else:
+                    raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
+                                     '(R, inf). Si lo quieres añadir, ¡dale!')
+
+            else:  # El caso (R, R)
+                raise ValueError('No se puede especificar una certidumbre de inferior a 100 % con una distribución'
+                                 'de parámetro limitada a un intervalo (R, R).')
 
     return dist
 

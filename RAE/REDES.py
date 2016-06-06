@@ -5,8 +5,8 @@ import matplotlib.pylab as dib
 from Controles import directorio_base
 from COSO import Simulable
 from RAE.INSECTOS import Insecto
-from INCERT.CALIB import genmodbayes, calib, guardar
-from INCERT.INCERT import anal_incert
+from MATEMÁTICAS.CALIB import genmodbayes, calib, guardar
+from MATEMÁTICAS.INCERT import anal_incert
 # dib.switch_backend('cairo')
 
 
