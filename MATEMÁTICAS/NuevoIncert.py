@@ -84,7 +84,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
                 devolver = True
 
             else:
-                # Si no, no hay pena
+                # Si no, mejor así
                 devolver = False
 
             # Tomar, al hazar, datos de la traza. Si estamos usando calibraciones comunes para todos los parámetros,
@@ -127,7 +127,8 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
     """
     Esta función convierte texto a su distribución SciPy of PyMC correspondiente.
 
-    :param texto: La distribución a convertir.
+    :param texto: La distribución a convertir. Sus parámetros deben ser en el orden de especificación de parámetros
+      de la distribución SciPy correspondiente.
     :type texto: str
 
     :param usar_pymc: Si vamos a generar una distribución PyMC (en vez de una distribución de SciPy).
@@ -149,13 +150,32 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 
     # Si el nombre de la distribución está en la lista arriba...
     if tipo_dist in Ds.dists:
+
         if usar_pymc:
-            clase_dist = Ds.dists['nombre']['pymc']
+            # Si querremos una distribución de PyMC...
+
+            # Sacar la clase PyMC para esta distribución
+            clase_dist = Ds.dists[tipo_dist]['pymc']
+
+            # Si existe clase PyMC correspondiente...
             if clase_dist is not None:
-                dist = clase_dist(nombre, *paráms)  # Para hacer: verificar el órden de los parámetros
+                # Convertir los parámetros al formato para PyMC
+                paráms, transform = paráms_scipy_a_pymc(tipo_dist=tipo_dist, paráms=paráms)
+
+                # Crear la distribución
+                dist = clase_dist(nombre, *paráms)
+
+                # Y aplicaar las transformaciones
+                if transform['sum'] != 0:
+                    dist = dist + transform['sum']
+                if transform['mult'] != 1:
+                    dist = dist * transform['mult']
+
             else:
-                raise ValueError
+                # Sino, hay error.
+                raise ValueError('No existe distribución pyMc correspondiente.')
         else:
+            # Sino, usar una distribución de SciPy
             dist = Ds.dists[tipo_dist]['scipy'](*paráms)
 
         # Devolver la distribución appropiada
@@ -268,8 +288,14 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
 
                 # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
                 if usar_pymc:
-                    mejor_ajuste['dist'] = dic_dist['pymc'](nombre, *args)
+                    # Convertir los argumentos a formato PyMC
+                    args, transform = paráms_scipy_a_pymc(tipo_dist=nombre, paráms=args)
+
+                    # Y crear la distribución.
+                    mejor_ajuste['dist'] = dic_dist['pymc'](nombre, *args) * transform
+
                 else:
+
                     mejor_ajuste['dist'] = dic_dist['scipy'](*args)
 
     # Si no logramos un buen aujste, avisar al usuario.
@@ -280,7 +306,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
     return mejor_ajuste['dist'], mejor_ajuste['p']
 
 
-def límites_a_dist(límites, cont=True):
+def límites_a_texto_apriori(límites, cont=True):
     """
     Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
       destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
@@ -325,9 +351,9 @@ def límites_a_dist(límites, cont=True):
     else:
         if máx == np.inf:  # El caso (R, np.inf)
             if cont:
-                dist = 'Gamma~({}, 0.0001, 0.0001)'.format(mín)
+                dist = 'Exponencial~({}, 1e10)'.format(mín)
             else:
-                loc = mín - 1
+                loc = mín - 1  # Para incluir mín en los valores posibles de la distribución.
                 dist = 'Geométrica~(1e-8, {})'.format(loc)
 
         else:  # El caso (R, R)
@@ -492,3 +518,126 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
         if '.png' not in archivo:
             archivo = os.path.join(archivo, nombre + '.png')
         dib.savefig(archivo)
+
+
+def paráms_scipy_a_pymc(tipo_dist, paráms):
+    """
+    Esta función transforma un tuple de parámetros de distribución SciPy a parámetros correspondientes para una función
+      de PyMC.
+
+    :param tipo_dist: El tipo de distribución.
+    :type tipo_dist: str
+
+    :param paráms: Los parámetros SciPy
+    :type paráms: tuple
+
+    :return: Un tuple de parámetros PyMC y un diccionario de transformaciones adicionales necesarias.
+    :rtype: (tuple, dict)
+
+    """
+
+    transform_pymc = {'mult': 1, 'sum': 0}
+
+    if tipo_dist == 'Beta':
+        paráms_pymc = (paráms[0], paráms[1])
+        transform_pymc['sum'] = paráms[2]
+        transform_pymc['mult'] = paráms[3]
+
+    elif tipo_dist == 'Cauchy':
+        paráms_pymc = (paráms[0], paráms[1])
+
+    elif tipo_dist == 'Chi2':
+        paráms_pymc = (paráms[0])
+        transform_pymc['sum'] = paráms[1]
+        transform_pymc['mult'] = paráms[2]
+
+    elif tipo_dist == 'Exponencial':
+        paráms_pymc = (1 / paráms[1])
+        transform_pymc['sum'] = paráms[0]
+
+    elif tipo_dist == 'WeibullExponencial':
+        paráms_pymc = (paráms[0], paráms[1], paráms[2], paráms[3])
+
+    elif tipo_dist == 'Gamma':
+        paráms_pymc = (paráms[0], 1 / paráms[2])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'MitadCauchy':
+        paráms_pymc = (paráms[0], 1 / paráms[2])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'MitadNormal':
+        paráms_pymc = (1 / paráms[1])
+        transform_pymc['sum'] = paráms[0]
+
+    elif tipo_dist == 'GammaInversa':
+        paráms_pymc = (paráms[0], paráms[1])
+        transform_pymc['sum'] = paráms[2]
+
+    elif tipo_dist == 'Laplace':
+        paráms_pymc = (paráms[0], 1 / paráms[1])
+
+    elif tipo_dist == 'Logística':
+        paráms_pymc = (paráms[0], 1 / paráms[1])
+
+    elif tipo_dist == 'LogNormal':
+        paráms_pymc = (paráms[0], paráms[1])
+        transform_pymc['sum'] = paráms[2]
+        transform_pymc['mult'] = paráms[3]
+
+    elif tipo_dist == 'TNoCentral':
+        paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
+
+    elif tipo_dist == 'Normal':
+        paráms_pymc = (paráms[0], 1 / paráms[1]**2)
+
+    elif tipo_dist == 'Pareto':
+        paráms_pymc = (paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'T':
+        paráms_pymc = (paráms[0])
+        transform_pymc['sum'] = paráms[1]
+        transform_pymc['mult'] = paráms[2]
+
+    elif tipo_dist == 'NormalTrunc':
+        paráms_pymc = (paráms[2], 1 / paráms[3]**2, paráms[0], paráms[1])
+
+    elif tipo_dist == 'Uniforme':
+        paráms_pymc = (paráms[0], paráms[1] + paráms[0])
+
+    elif tipo_dist == 'VonMises':
+        paráms_pymc = (paráms[1], paráms[0])
+        transform_pymc['mult'] = paráms[2]
+
+    elif tipo_dist == 'Bernoulli':
+        paráms_pymc = (paráms[0])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'Binomial':
+        paráms_pymc = (paráms[0], paráms[1])
+        transform_pymc['sum'] = paráms[2]
+
+    elif tipo_dist == 'Geométrica':
+        paráms_pymc = (paráms[0])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'Hypergeométrica':
+        paráms_pymc = (paráms[1], paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[3]
+
+    elif tipo_dist == 'BinomialNegativo':
+        paráms_pymc = (paráms[1], paráms[0])
+        transform_pymc['sum'] = paráms[2]
+
+    elif tipo_dist == 'Poisson':
+        paráms_pymc = (paráms[0])
+        transform_pymc['sum'] = paráms[1]
+
+    elif tipo_dist == 'UnifDiscr':
+        paráms_pymc = (paráms[0], paráms[1] - 1)
+
+    else:
+        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC.')
+
+    return paráms_pymc, transform_pymc
