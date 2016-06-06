@@ -1,6 +1,6 @@
 import RAE.NuevoINSECTO as Ins
 from RAE.NuevaRedAE import Red
-from INCERT.Experimentos import Experimento
+from MATEMÁTICAS.Experimentos import Experimento
 
 
 O_arenosella_senc = Ins.Sencillo(nombre='O_arenosella_senc')
@@ -17,13 +17,13 @@ Parasitoides_larvas.secome(O_arenosella)
 
 Parasitoides_pupa.secome(O_arenosella)
 
-Red_campos_de_coco = Red(nombre='Coco', organismos={O_arenosella, Parasitoides_larvas, Parasitoides_pupa})
+Red_campos_de_coco = Red(nombre='Coco', organismos=[O_arenosella, Parasitoides_larvas, Parasitoides_pupa])
 
 
 Experimento_A = Experimento(nombre='Sitio A')
-Experimento_A.estab_bd_red(archivo='E:\\Julien\\PhD\\தமிழ்நாடு\\உபயோகான கட்டுரைகள்\\Oarenosella.csv',
-                           col_tiempo='Día',
-                           )
+Experimento_A.cargar_orgs(archivo='E:\\Julien\\PhD\\தமிழ்நாடு\\உபயோகான கட்டுரைகள்\\Oarenosella.csv',
+                          col_tiempo='Día',
+                          )
 
 print(Experimento_A.datos)
 

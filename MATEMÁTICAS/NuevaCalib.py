@@ -1,7 +1,7 @@
 import numpy as np
 from pymc import deterministic, Gamma, Normal, MCMC
 
-import INCERT.NuevoIncert as Incert
+import MATEMÁTICAS.NuevoIncert as Incert
 
 
 class ModBayes(object):
@@ -182,15 +182,29 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
 
         # Si el usuario especificó una distribución a priori, usarla. Sino, usar la lista de aprioris general.
         if 'especificado' in d_parám:
-            calibs = 'especificado'
+            calibs = ['especificado']
         else:
             calibs = aprioris
 
-        # Un vector numpy de la traza de datos para generar la distribución PyMC
-        traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
+        # La distribución pymc del a priori
+        dist_apriori = None
 
-        # Generar la distribución PyMC
-        dist_apriori = Incert.ajustar_dist(datos=traza, límites=l_lms[n], cont=True, usar_pymc=True, nombre=nombre)[0]
+        # Si solo hay una calibración para aplicar y es en formato de distribución, intentar y ver si no se puede
+        # convertir directamente en distribución pymc.
+        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
+            try:
+                dist_apriori = Incert.texto_a_dist(calibs[0], usar_pymc=True)
+            except ValueError:
+                pass
+
+        # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+        if dist_apriori is None:
+            # Un vector numpy de la traza de datos para generar la distribución PyMC
+            traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
+
+            # Generar la distribución PyMC
+            dist_apriori = Incert.ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
+                                               usar_pymc=True, nombre=nombre)[0]
 
         # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
         d_parám[id_calib] = dist_apriori

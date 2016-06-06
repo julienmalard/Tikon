@@ -21,14 +21,18 @@ class Experimento(object):
                          'Aplicaciones': {'tiempo': None}  # Para hacer también
                          }
 
-    def estab_bd_red(símismo, archivo, col_tiempo, fecha_ref=None):
+    def cargar_orgs(símismo, archivo, col_tiempo, col_parcela=None, fecha_ref=None):
         """
+        Esta función establece la base de datos para las observaciones de organismos en el campo.
 
         :param archivo: La ubicación del archivo para leer
         :type archivo: str
 
         :param col_tiempo: El nombre de la columna que especifica el tiempo de las observaciones.
         :type col_tiempo: str
+
+        :param col_parcela: Una columna, si existe, que referencia la parcela.
+        :type col_parcela: str
 
         :param fecha_ref: Un parámetro opcional para especificar la fecha de referencia (la fecha para cual tiempo = 0
           en la columna 'col_tiempo'.

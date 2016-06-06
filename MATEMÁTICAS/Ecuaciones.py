@@ -1,6 +1,6 @@
 import numpy as np
 
-import INCERT.NuevoIncert as Incert
+import MATEMÁTICAS.NuevoIncert as Incert
 
 
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
@@ -101,7 +101,9 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                          },
                             },
 
-            'Muertes': {'Ecuación': {'Constante': {'q': {'límites': (0, 1),
+            'Muertes': {'Ecuación': {None: None,
+
+                                     'Constante': {'q': {'límites': (0, 1),
                                                          'inter': None}
                                                    },
 
@@ -120,8 +122,8 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                                                      'inter': None},
                                                                'b': {'límites': (0, np.inf),
                                                                      'inter': None}
-                                                               },
-                                     },
+                                                               }
+                                     }
                         },
 
             'Transiciones': {'Edad': {None: None,
@@ -199,7 +201,20 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                       },
                              },
 
-            'Movimiento': {}
+            'Movimiento': {'Ecuación': {None: None,
+                                        'Inversa cuadrada': {}
+                                        },
+                           'Modif': {None: None,
+                                     'Presas': {'p': {}
+                                                }
+                                     },
+                           'Mobil': {'Constante': {'m': {}},
+                                     'Temperatura': {'m': {},
+                                                     't': {}
+                                                     },
+                                     'Radiación': {}
+                                     },
+                           }
 
             }
 
