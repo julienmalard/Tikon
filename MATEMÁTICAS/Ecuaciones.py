@@ -10,7 +10,7 @@ import MATEMÁTICAS.NuevoIncert as Incert
 # se tiene que repetir por cada presa presente.
 
 
-ecs_orgs = {'Crecimiento': {'Modif': {None: None,
+ecs_orgs = {'Crecimiento': {'Modif': {None: {},
 
                                       'Ninguna': {'r': {'límites': (0, np.inf),
                                                         'inter': None}},
@@ -27,7 +27,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                          }
                             },
 
-            'Depredación': {'Ecuación': {None: None,
+            'Depredación': {'Ecuación': {None: {},
 
                                          'Tipo I_Dependiente presa': {'a': {'límites': (0, np.inf),
                                                                             'inter': 'presa'}
@@ -101,7 +101,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                          },
                             },
 
-            'Muertes': {'Ecuación': {None: None,
+            'Muertes': {'Ecuación': {None: {},
 
                                      'Constante': {'q': {'límites': (0, 1),
                                                          'inter': None}
@@ -126,7 +126,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                      }
                         },
 
-            'Transiciones': {'Edad': {None: None,
+            'Transiciones': {'Edad': {None: {},
 
                                       'Días': {},  # No se necesitan coeficientes en este caso
 
@@ -156,7 +156,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                                                        },
                                       },
 
-                             'Prob': {None: None,
+                             'Prob': {None: {},
 
                                       'Constante': {'a': {'límites': (0, np.inf),
                                                           'inter': None}
@@ -201,19 +201,20 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: None,
                                       },
                              },
 
-            'Movimiento': {'Ecuación': {None: None,
-                                        'Inversa cuadrada': {}
-                                        },
-                           'Modif': {None: None,
-                                     'Presas': {'p': {}
-                                                }
-                                     },
-                           'Mobil': {'Constante': {'m': {}},
-                                     'Temperatura': {'m': {},
-                                                     't': {}
-                                                     },
-                                     'Radiación': {}
-                                     },
+            'Movimiento': {
+                # 'Ecuación': {None: {},
+                #            'Inversa cuadrada': {}
+                #           },
+                # 'Modif': {None: {},
+                #          'Presas': {'p': {}
+                #                   }
+                #        },
+                # 'Mobil': {'Constante': {'m': {}},
+                #          'Temperatura': {'m': {},
+                #                         't': {}
+                #                       },
+                #       'Radiación': {}
+                #       },
                            }
 
             }
@@ -250,7 +251,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
     # Para cada llave el en diccionario
     for ll, v in d_ecs.items():
 
-        if type(v) is dict:
+        if type(v) is dict and len(v):
             # Si el valor es otro diccionario, crearlo en "d" también.
             d[ll] = {}
 
@@ -265,12 +266,19 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
 
                 else:
                     # Si hay interacciones, hay que repetir el parámetro para cada interacción.
-                    for i in inter:
-                        # Crear una versión del parámetro para cada interacción
-                        d[ll][i] = {}
+                    d[ll] = {}
 
-                        # Llenar el nuevo diccionario con su distribución no informativa
-                        d[ll][i]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                    if inter is not None:
+                        # Si se especificaron interaccciones...
+                        for i in inter[v['inter']]:
+                            # Crear una versión del parámetro para cada interacción
+                            d[ll][i] = {}
+
+                            # Llenar el nuevo diccionario con su distribución no informativa
+                            d[ll][i]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                    else:
+                        # Si no se especificarion, pasar
+                        pass
 
             else:
                 # Si, en cambio, no llegamos a la especificación de límites del parámetro, llamar esta función

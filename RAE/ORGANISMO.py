@@ -83,18 +83,19 @@ class Organismo(Coso):
         """
 
         # Crear el diccionario inicial para la etapa
-        dic_etapa = dict(posición=posición,
+        dic_etapa = dict(nombre=nombre,
+                         posición=posición,
                          ecs=ecuaciones.copy()  # Compiar la selección de tipos de ecuaciones
                          )
 
         # Guardar el diccionario en la receta del organismo
         símismo.receta['estr'][nombre] = dic_etapa
 
-        # Guardar las ecuaciones del organismo en la sección 'Coefs'] de la receta
+        # Guardar las ecuaciones del organismo en la sección 'Coefs' de la receta
         símismo.receta['coefs'][nombre] = Ec.gen_ec_inic(Ec.ecs_orgs)
 
         # Crear diccionarios para eventualmente contener las presas o huéspedes (si hay) de la nueva etapa
-        símismo.config[nombre] = {'presas': {}, 'huéspedes': {}}
+        símismo.config[nombre] = {'presa': {}, 'huésped': {}}
 
         # Aumentar la posición de las etapas que siguen la que añadiste
         for etp, dic_etp in símismo.receta['estr'].items():
@@ -189,7 +190,7 @@ class Organismo(Coso):
 
         # Guardar la relación de deprededor y presa en la configuración del organismo
         for e_depred in etps_símismo:
-            dic_víc = símismo.receta['estr'][e_depred][método]
+            dic_víc = símismo.config[e_depred][método]
 
             # Si necesario, añadir el nombre de la presa al diccionario de víctimas
             if víctima.nombre not in dic_víc:
@@ -272,8 +273,8 @@ class Organismo(Coso):
         for etp in símismo.etapas:
             for categ in sorted(Ec.ecs_orgs):
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
-                    nombre_ec = símismo.receta['estr'][etp]['ecuaciones'][categ][sub_categ]
-                    dic_parám = símismo.receta['coefs'][etp][categ][sub_categ][nombre_ec]
+                    nombre_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
+                    dic_parám = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][nombre_ec]
                     lista_coefs.append(dic_parám)
 
         return lista_coefs
