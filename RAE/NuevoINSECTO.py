@@ -104,7 +104,7 @@ class Sencillo(Insecto):
 
         tipo_ec = dict(Crecimiento={'Modif': 'Regular', 'Ecuación': 'Logístico presa'},
                        Depredación={'Ecuación': 'Kovai'},
-                       Muertes={'Edad': None, 'Prob': None},
+                       Muertes={'Ecuación': None},
                        Transiciones={'Edad': None, 'Prob': None},
                        Movimiento={}
                        )

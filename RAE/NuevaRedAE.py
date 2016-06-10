@@ -66,6 +66,10 @@ class Red(Simulable):
                            'Movimiento': np.array([])
                            }
 
+        # Un diccionario para guardar información específica a cada experimento asociado para poder procesar
+        # las predicciones de la red en función a cada experimento.
+        símismo.formatos_exps = {'etps_interés': {}, 'combin_etps': {}, 'días_interés': {}, 'nombres_cols': {}}
+
         # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
         if type(organismos) is not list:
             organismos = [organismos]
@@ -102,7 +106,7 @@ class Red(Simulable):
 
         # Añadir el organismo a la receta
         dic_org = símismo.receta['estr']['Organismos'][nombre] = {}
-        dic_org['config'] = organismo.receta['config']
+        dic_org['config'] = organismo.config
         dic_org['fuente'] = organismo.fuente
 
         # Poner el organismo en la lista activa
@@ -222,16 +226,18 @@ class Red(Simulable):
                 # Para cada etapa de esta red...
                 for d_etp in símismo.etapas:
                     # Leer el tipo de ecuación activo para esta simulación
-                    tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
+                    try:
+                        tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
+                    except KeyError:
+                        print(d_etp['dic']['ecs'])
+                        print(categ, sub_categ)
+                        raise KeyError
 
                     # Guardar el tipo de ecuación en su lugar en símismo.ecs
                     símismo.ecs[categ][sub_categ].append(tipo_ec)
 
         # La red ya está lista para simular
         símismo.listo = True
-
-    def añadir_exp(símismo, experimentos):
-        pass
 
     def dibujar(símismo, mostrar=True, archivo=''):
         pass
@@ -730,10 +736,12 @@ class Red(Simulable):
         coefs = símismo.coefs_act['Movimiento']
 
         for ec in tipos_ec:
-            mobil =
+            mobil = NotImplemented
+            modif_peso = NotImplemented
+            área = NotImplemented
             peso = área * modif_peso
 
-            mov =
+            mov = NotImplemented
 
         # Si la etapa usa cohortes para cualquier otro cálculo, acutlizar los cohortes ahora.
         for n in símismo.ecs['Cohortes']:
@@ -800,8 +808,100 @@ class Red(Simulable):
 
         return []
 
+    def _acción_añadir_exp(símismo, experimento, corresp):
+        """
+        Ver la documentación de Simulable.
+
+        :type experimento: Experimento
+        :type corresp: dict
+
+        """
+
+        # Verificar que los nombres de organismos y etapas estén correctos
+        for org, d_org in corresp.items():
+            if org not in símismo.receta['estr']['Organismos']:
+                raise ValueError('El organismo "%s" no existe en la red.' % org)
+
+            for etp, d_etp in d_org.items():
+                if etp not in símismo.núms_etapas[org]:
+                    raise ValueError('Organismo "%s" no tiene etapa "%s".' % (org, etp))
+
+        # El nombre del experimento
+        nombre = experimento.nombre
+
+        # Crear las llaves para este experimento en el diccionario de formatos de la red.
+        for ll in símismo.formatos_exps:
+            símismo.formatos_exps[ll][nombre] = []
+
+        # Los días de observaciones
+        símismo.formatos_exps['días_interés'][nombre] = experimento.datos['Organismos']['tiempo']
+
+        # Para simplificar el código
+        lista_nombres_cols = símismo.formatos_exps['nombres_cols'][nombre]
+
+        # Para guardar las etapas que corresponden a la misma columna en la base de datos, si aplica.
+        lista_comunes = [[]] * len(símismo.etapas)
+
+        # Para cada organismo en el diccionario de correspondencias
+        for org, d_org in corresp.items():
+
+            # Para cada etapa del organismo en el diccionario de correspondencias
+            for etp, d_etp in d_org.items():
+
+                # Si hay más que una columna de la base de datos
+                lista_cols = corresp[org][etp]
+
+                # Asegurar el formato correcto
+                if type(lista_cols) is not list:
+                    lista_cols = [lista_cols]
+
+                # Si hay más que una columna de la base de datos correspondiendo a la etapa, sumarlos
+                if len(lista_cols) > 1:
+                    # El nombre de la nueva columna sumada
+                    nombre_col = '&'.join(str(x) for x in sorted(lista_cols))
+
+                    # Hacer la suma
+                    suma = np.sum([experimento.datos['Organismos']['obs'][x] for x in lista_cols])
+
+                    # Guardar la nueva columna en el Experimento
+                    experimento.datos['Organismos']['obs'][nombre_col] = suma
+
+                else:
+                    # Si solo hay una columna para la etapa, utilizar esta.
+                    nombre_col = lista_cols[0]
+
+                # Guardar el número de la etapa en la Red
+                núm_etp = símismo.núms_etapas[org][etp]
+
+                lista_comunes[núm_etp].append(núm_etp)
+
+                # Si la columna ya no se utilizó para otra etapa...
+                if len(lista_comunes[núm_etp]) == 1:
+                    símismo.formatos_exps['etps_interés'][nombre].append(núm_etp)
+                    lista_nombres_cols.append(nombre_col)
+
+        símismo.formatos_exps['combin_etps'][nombre] = [(n, x) for n, x in enumerate(lista_comunes) if len(x) > 1]
+
     def _procesar_predics_calib(símismo):
-        pass
+
+        vector_predics = np.array([])
+
+        for nombre, predic in sorted(símismo.predics_exps.items()):
+
+            etps_interés = símismo.formatos_exps['etps_interés']
+
+            # {exp: [(1, [3,4]), etc...], ...}
+            combin_etps = símismo.formatos_exps['combin_etps']
+
+            días_interés = símismo.formatos_exps['días_interés']
+
+            for i in combin_etps[nombre]:
+                predic['Pobs'][..., i[0], :] += predic['Pobs'][..., i[1], :]
+
+            np.concatenate((vector_predics, predic[..., etps_interés, días_interés].flatten()))
+
+        return vector_predics
+
 
     def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_parám):
         """
@@ -903,7 +1003,7 @@ class Red(Simulable):
                         elif d_parám['inter'] == 'presa':
                             # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición paramétrica,
                             # eje 1 = presa.
-                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
+                            matr = coefs_act[n_etp][parám] = np.zeros(shape=(n_rep_parám, len(símismo.etapas)),
                                                                       dtype=object)
 
                             # Para cada presa del organismo...
@@ -964,7 +1064,10 @@ class Red(Simulable):
         for exp in sorted(exper):
 
             # Para cada observación de organismos de este experimento, en orden...
-            for etp, datos_etp in sorted(exp.datos['Organismos']['obs'].items()):
+            for nombre_col in símismo.formatos_exps['nombres_cols'][exp.nombre]:
+
+                # Sacar los datos del Experimento
+                datos_etp = exp.datos['Organismos']['obs'][nombre_col]
 
                 # Guardar los datos aplastados en una única dimensión de matriz numpy (esto combina las dimensiones
                 # de parcela (eje 0) y de tiempo (eje 1).
