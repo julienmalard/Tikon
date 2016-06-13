@@ -251,7 +251,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
     # Para cada llave el en diccionario
     for ll, v in d_ecs.items():
 
-        if type(v) is dict and len(v):
+        if type(v) is dict:
             # Si el valor es otro diccionario, crearlo en "d" también.
             d[ll] = {}
 
@@ -283,7 +283,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
             else:
                 # Si, en cambio, no llegamos a la especificación de límites del parámetro, llamar esta función
                 # con el nuevo diccionario.
-                gen_ec_inic(d_ecs=v, inter=inter, d=d)
+                gen_ec_inic(d_ecs=v, inter=inter, d=d[ll])
 
         else:
             # Si el valor no era diccionario, ignorarlo.

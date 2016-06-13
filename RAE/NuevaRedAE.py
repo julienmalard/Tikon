@@ -3,7 +3,7 @@ import numpy as np
 
 import MATEMÁTICAS.Distribuciones as Ds
 import MATEMÁTICAS.Ecuaciones as Ec
-from MATEMÁTICAS.NuevoIncert import gen_vector_coefs
+from MATEMÁTICAS.NuevoIncert import límites_a_texto_apriori, gen_vector_coefs
 from NuevoCoso import Simulable, valid_vals_inic
 from RAE.ORGANISMO import Organismo
 
@@ -194,17 +194,20 @@ class Red(Simulable):
             for etp in org.etapas:
                 # Para cada etapa de cada organismo...
 
+                # Una referencia al nombre de la etapa
+                nombre_etp = etp['nombre']
                 # Crear un diccionario con la información de la etapa
                 dic_etp = dict(org=nombre_org,
-                               nombre=etp['nombre'],
+                               nombre=nombre_etp,
                                dic=etp,
-                               conf=org.config[etp['nombre']])
+                               conf=org.config[nombre_etp],
+                               coefs=org.receta['coefs'][nombre_etp])
 
                 # Y guardar este diccionario en la Red
                 símismo.etapas.append(dic_etp)
 
                 # Y guardamos una referencia al número de la etapa
-                símismo.núms_etapas[nombre_org][etp['nombre']] = n
+                símismo.núms_etapas[nombre_org][nombre_etp] = n
 
                 n += 1
 
@@ -229,8 +232,6 @@ class Red(Simulable):
                     try:
                         tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
                     except KeyError:
-                        print(d_etp['dic']['ecs'])
-                        print(categ, sub_categ)
                         raise KeyError
 
                     # Guardar el tipo de ecuación en su lugar en símismo.ecs
@@ -861,7 +862,7 @@ class Red(Simulable):
                     nombre_col = '&'.join(str(x) for x in sorted(lista_cols))
 
                     # Hacer la suma
-                    suma = np.sum([experimento.datos['Organismos']['obs'][x] for x in lista_cols])
+                    suma = np.sum([experimento.datos['Organismos']['obs'][x] for x in lista_cols], axis=0)
 
                     # Guardar la nueva columna en el Experimento
                     experimento.datos['Organismos']['obs'][nombre_col] = suma
@@ -902,14 +903,13 @@ class Red(Simulable):
 
         return vector_predics
 
-
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_parám):
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
         """
         Ver la documentación de Coso.
 
         :type exper: list
         :type n_rep_estoc: int
-        :type n_rep_parám: int
+        :type n_rep_paráms: int
         :rtype: dict
 
         """
@@ -930,16 +930,19 @@ class Red(Simulable):
             n_parc = valid_vals_inic(obj_exp.datos['Organismos']['obs'])
 
             # El número de pasos necesarios es la última observación en la base de datos de organismos.
-            n_pasos = obj_exp.datos['Organismos']['tiempo'][-1]
+            n_pasos = int(obj_exp.datos['Organismos']['tiempo'][-1])
 
             # Generamos el diccionario (vacío) de datos iniciales
-            datos_inic = símismo.gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám,
+            datos_inic = símismo.gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
                                                      n_etps=n_etapas, n_pasos=n_pasos)
 
             # Llenamos la poblaciones iniciales
-            for n_etp, etp in enumerate(símismo.etapas):
+            for i, n_etp in enumerate(símismo.formatos_exps['etps_interés'][exp]):
+
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
-                matr_obs_inic = obj_exp.datos['Organismos']['obs'][etp['org']][etp['nombre']][:, 0]
+                # noinspection PyTypeChecker
+                nombre_col = símismo.formatos_exps['nombres_cols'][exp][i]
+                matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
                 # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
                 # en cuestión a tiempo 0.
@@ -995,9 +998,10 @@ class Red(Simulable):
                         # Si no hay interacciones entre este parámetro y otras etapas...
                         if d_parám['inter'] is None:
                             # Generar la matríz de valores para este parámetro de una vez
-                            coefs_act[n_etp][parám] = gen_vector_coefs(dic_parám=d_parám, calibs=calibs,
+                            d_parám_etp = símismo.etapas[n_etp]['coefs']
+                            coefs_act[n_etp][parám] = gen_vector_coefs(dic_parám=d_parám_etp, calibs=calibs,
                                                                        n_rep_parám=n_rep_parám,
-                                                                       comunes=comunes)
+                                                                       comunes=comunes)  # para hacer: d_parám
 
                         # Si, al contrario, hay interacciones (aquí con las presas de la etapa)...
                         elif d_parám['inter'] == 'presa':
@@ -1011,9 +1015,11 @@ class Red(Simulable):
 
                                 for etp_prs in l_etps_prs:
 
+                                    d_parám_etp = símismo.etapas[n_etp]['coefs'][org_prs][etp_prs]
+
                                     n_etp_prs = símismo.núms_etapas[org_prs][etp_prs]
 
-                                    matr[:, n_etp_prs] = gen_vector_coefs(dic_parám=d_parám,
+                                    matr[:, n_etp_prs] = gen_vector_coefs(dic_parám=d_parám_etp,
                                                                           calibs=calibs,
                                                                           n_rep_parám=n_rep_parám,
                                                                           comunes=comunes)
@@ -1051,7 +1057,7 @@ class Red(Simulable):
 
     def _prep_obs_exper(símismo, exper):
         """
-        Ver la documentación de Coso.
+        Ver la documentación de Simulable.
 
         :type exper: list
         :rtype: np.ndarray
@@ -1063,11 +1069,11 @@ class Red(Simulable):
         # Para cada experimento, en orden...
         for exp in sorted(exper):
 
-            # Para cada observación de organismos de este experimento, en orden...
-            for nombre_col in símismo.formatos_exps['nombres_cols'][exp.nombre]:
+            # Para cada observación de organismos de este experimento para cual tenemos datos, en orden...
+            for nombre_col in símismo.formatos_exps['nombres_cols'][exp]:
 
                 # Sacar los datos del Experimento
-                datos_etp = exp.datos['Organismos']['obs'][nombre_col]
+                datos_etp = símismo.exps[exp].datos['Organismos']['obs'][nombre_col]
 
                 # Guardar los datos aplastados en una única dimensión de matriz numpy (esto combina las dimensiones
                 # de parcela (eje 0) y de tiempo (eje 1).

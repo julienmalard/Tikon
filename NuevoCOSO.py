@@ -8,8 +8,9 @@ from datetime import datetime as ft
 import numpy as np
 import pymc
 
-from INCERT.DATOS import Experimento
-from INCERT.NuevaCALIB import ModBayes
+import MATEMÁTICAS.NuevoIncert as Incert
+from MATEMÁTICAS.Experimentos import Experimento
+from MATEMÁTICAS.NuevaCalib import ModBayes
 
 
 class Coso(object):
@@ -23,6 +24,9 @@ class Coso(object):
 
     # La extensión para guardar recetas de este tipo de objeto
     ext = NotImplemented
+
+    # Una referancia al diccionario con la información de los parámetros del objeto.
+    dic_ecs = NotImplemented
 
     def __init__(símismo, nombre, fuente=None):
         """
@@ -51,6 +55,50 @@ class Coso(object):
         # Si se especificó un archivo para cargar, cargarlo.
         if fuente is not None:
             símismo.cargar(fuente)
+
+    def especificar_apriori(símismo, ubic_parám, rango, certidumbre):
+        """
+        Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
+
+        :param ubic_parám: Una lista de las llaves que traerán uno a través del diccionario de coeficientes del Coso
+          hasta el parámetro de interés.
+        :type ubic_parám: list
+
+        :param rango: El rango a cuál queremos limitar el parámetro
+        :type rango: tuple
+
+        :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
+        :type certidumbre: float
+
+        """
+
+        # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
+        if certidumbre > 1:
+            avisar.warn('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
+                        'porcentaje.')
+            certidumbre /= 100
+
+        # Asegurarse de que "certidumbre" esté entre 0 y 1
+        if not 0 < certidumbre <= 1:
+            raise ValueError('El parámetro "certidumbre" debe ser un número en el rango (0, 1].')
+
+        dic_parám = símismo.receta['coefs']
+        dic_ecs = símismo.dic_ecs
+        líms = None
+        for llave in ubic_parám:
+            try:
+                dic_parám = dic_parám[llave]
+            except KeyError:
+                raise KeyError('Ubicación de parámetro errónea.')
+
+            dic_ecs = dic_ecs[llave]
+            if 'límites' in dic_ecs:
+                líms = dic_ecs['límites']
+
+            assert líms is not None
+
+            dic_parám['especificado'] = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
+                                                                  cont=True)  # para hacer: parámetros discretos
 
     def guardar(símismo, archivo=''):
         """
@@ -104,6 +152,45 @@ class Coso(object):
 
             # Convertir listas a matrices numpy en las ecuaciones (coeficientes)
             dic_lista_a_np(símismo.receta['coefs'])
+
+    def _sacar_coefs_interno(símismo):
+        """
+        Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
+          Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+        :rtype: list
+
+        """
+
+        raise NotImplementedError
+
+    def _sacar_líms_coefs_interno(símismo):
+        """
+        Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
+          calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Un tuple, conteniendo:
+          1. Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+
+           2. Una lista de los límites de los coeficientes, en el mismo orden que (1.)
+        :rtype: (list, list)
+
+        """
+
+        raise NotImplementedError
 
 
 class Simulable(Coso):
@@ -198,95 +285,18 @@ class Simulable(Coso):
         n_pasos = tiempo_final // paso
 
         # Preparar la lista de parámetros de interés
-        lista_paráms, _ = símismo.gen_lista_coefs_interés_todo()
-        calibs = símismo.filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+        lista_paráms, _ = símismo._gen_lista_coefs_interés_todo()
+        calibs_filtr = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
         # Llenar las matrices internas de coeficientes
-        símismo.llenar_coefs(n_rep_parám=rep_parám, calibs=calibs)
+        comunes = (calibs == 'Comunes')
+        símismo._llenar_coefs(n_rep_parám=rep_parám, calibs=calibs_filtr, comunes=comunes)
 
         # Preparar las matrices internas para guardar las predicciones
-        símismo.prep_predics(n_pasos=n_pasos, rep_parám=rep_parám, rep_estoc=rep_estoc, n_parcelas=n_parcelas)
+        símismo._prep_predics(n_pasos=n_pasos, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc, n_parcelas=n_parcelas)
 
         # Simular el modelo
-        símismo.calc_simul(paso=paso, n_pasos=n_pasos, extrn=extrn)
-
-    def llenar_coefs(símismo, n_rep_parám, calibs):
-        """
-        Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
-          Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
-          tienen la forma siguiente: eje 0 = parcela, eje 1 = repetición estocástica, eje 2 = repetición paramétrica,
-          eje 3+ : dimensiones opcionales.
-
-        :param n_rep_parám: El número de repeticiones paramétricas que incluir.
-        :type n_rep_parám: int
-
-        :param calibs: Una lista de los nombres de las calibraciones, o el nomre de una calibración, que hay que
-          incluir.
-        :type calibs: list | str
-
-        """
-
-        raise NotImplementedError
-
-    def prep_predics(símismo, n_pasos, rep_parám, rep_estoc, n_parcelas):
-        """
-        Esta función prepara el diccionario de predicciones para guardar los resultados de una simulación.
-          Se tiene que implementar para cada tipo de Simulable. Modifica símismo.predics, así que no devuelve
-          ningún valor.
-
-        :param n_pasos: El número de pasos de la simulación que vamos a hacer.
-        :type n_pasos: int
-
-        :param rep_parám: El número de repeticiones paramétricas.
-        :type rep_parám: int
-
-        :param rep_estoc: El número de repeticiones estocásticas.
-        :type rep_estoc: int
-
-        :param n_parcelas: El número de parcelas en la simulación.
-        :type n_parcelas: int
-
-        """
-
-        raise NotImplementedError
-
-    def calc_simul(símismo, paso, n_pasos, extrn=None):
-        """
-        Esta función aumenta el modelo para cada paso en la simulación. Se usa en simulaciones normales, tanto como en
-          simulaciones de experimentos.
-
-        :param paso: El paso para la simulación
-        :type paso: int
-
-        :param n_pasos: El número de pasos en la simulación.
-        :type n_pasos: int
-
-        :param extrn: Un diccionario externo, si necesario, con información para la simulación.
-        :type extrn: dict
-
-        """
-
-        # Para cada paso de tiempo, incrementar el modelo
-        for i in range(0, n_pasos):
-            símismo.incrementar(paso, i=i + 1, extrn=extrn)
-
-    def incrementar(símismo, paso, i, extrn):
-        """
-        Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
-        
-        :param paso: El paso con cual incrementar el modelo
-        :type paso: int
-
-        :param i: El número de este incremento en la simulación
-        :type i: int
-
-        :param extrn: Un diccionario de valores externos al modelo, si necesario
-        :type extrn: dict
-
-        """
-
-        # Dejamos la implementación del incremento del modelo a las subclases individuales.
-        raise NotImplementedError
+        símismo._calc_simul(paso=paso, n_pasos=n_pasos, extrn=extrn)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
                  n_iter=10000, quema=100, extraer=10):
@@ -344,24 +354,26 @@ class Simulable(Coso):
                 nombre = int(np.random.uniform() * 1e10)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
-        lista_paráms, lista_líms = símismo.gen_lista_coefs_interés_todo()
+        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
 
         # 3. Filtrar coeficientes por calib
-        lista_aprioris = símismo.filtrar_calibs(calibs=aprioris, lista_paráms=lista_paráms)
+        if aprioris is None:
+            aprioris = ['0']
+        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, lista_paráms=lista_paráms)
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
 
-        exper = símismo.prep_lista_exper(exper=exper)
+        exper = símismo._prep_lista_exper(exper=exper)
 
-        dic_argums = símismo.prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1)
-        dic_argums[paso] = paso  # Guardar el paso en el diccionario también
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1)
+        dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
 
         # 5. Generar el vector numpy de observaciones para los experimentos
-        obs = símismo.prep_obs_exper(exper=exper)
+        obs = símismo._prep_obs_exper(exper=exper)
 
         # 6. Creamos el modelo ModBayes de calibración, lo cual genera variables PyMC
-        símismo.ModBayes = ModBayes(función=símismo.simul_exps,
+        símismo.ModBayes = ModBayes(función=símismo._simul_exps,
                                     dic_argums=dic_argums,
                                     obs=obs,
                                     lista_paráms=lista_paráms,
@@ -371,247 +383,10 @@ class Simulable(Coso):
                                     )
 
         # 7. Llenamos las matrices de coeficientes con los variables PyMC recién creados
-        símismo.llenar_coefs(n_rep_parám=1, calibs=nombre)
+        símismo._llenar_coefs(n_rep_parám=1, calibs=nombre, comunes=False)
 
         # 8. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
         símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
-
-    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True):
-        """
-        Esta función valida el modelo con datos de observaciones de experimentos.
-
-        :param exper: Los experimentos vinculados al objeto a usar para la calibración. exper=None lleva al uso de
-          todos los experimentos disponibles.
-        :type exper: list | str | Experimento | None
-
-        :param calibs: Las calibraciones que hay que usar para la validación.
-        :type calibs: list | str | None
-
-        :param paso: El paso para la validación
-        :type paso: int
-
-        :param n_rep_parám: El número de repeticiones de parámetros.
-        :type n_rep_parám: int
-
-        :param n_rep_estoc: El número de repeticiones estocásticas.
-        :type n_rep_estoc: int
-
-        :param dibujar: Si hay que generar gráficos de los resultados.
-        :type dibujar: bool
-
-        :return: Un diccionario con los resultados de la validación.
-        :rtype: dict
-        """
-
-        # Encontrar los parámetros de interés
-        lista_paráms = símismo.gen_lista_coefs_interés_todo()[0]
-
-        # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
-        # contrario tomamos el conjunto de todas las calibraciones anteriores.
-        if calibs is None:
-            if símismo.ModBayes is None:
-                calibs = 'Todos'
-            else:
-                calibs = símismo.ModBayes.id
-
-        lista_calibs = símismo.filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
-
-        # Llenar coeficientes
-        símismo.llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs)
-
-        exper = símismo.prep_lista_exper(exper=exper)
-
-        # Generar el vector numpy de observaciones para los experimentos
-        obs = símismo.prep_obs_exper(exper=exper)
-
-        # Simular los experimentos
-        dic_argums = símismo.prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám)
-        preds = símismo.simul_exps(**dic_argums, paso=paso)
-
-        # Si hay que dibujar, dibujar
-        if dibujar:
-            símismo.dibujar()
-
-        # Procesar los datos de la validación
-        return símismo.procesar_validación(vector_obs=obs, vector_preds=preds)
-
-    def dibujar(símismo, mostrar=True, archivo=''):
-        """
-        Una función para generar gráficos de los resultados del objeto.
-        """
-
-        raise NotImplementedError
-
-    def gen_lista_coefs_interés_todo(símismo):
-
-        """
-        Esta función devuelve una lista de todos los coeficientes de un Simulable y de sus objetos de manera
-          recursiva, tanto como una lista, en el mismo orden, de los límites de dichos coeficientes.
-
-        :return: Un tuple conteniendo una lista de todos los coeficientes de interés para la calibración y una lista
-          de sus límites.
-        :rtype: (list, list)
-
-        """
-
-        def sacar_coefs_recursivo(objeto):
-            """
-            La implementación recursiva de la función.
-
-            :param objeto: El objeto Simulable a cual hay que sacar los coeficientes.
-            :type objeto: Simulable
-
-            :return: Un tuple, como descrito en la documentación de la función arriba.
-            :rtype: (list, list)
-            """
-
-            # Inicializar las listas de coeficientes y de límites con los coeficientes y límites del objeto actual.
-            lista_coefs = objeto.sacar_coefs_interno()
-            lista_líms = objeto.sacar_líms_coefs_interno()
-
-            # Ahora, hacer lo mismo para cada objeto contenido en este objeto.
-            for obj in objeto.objetos:
-                resultado = sacar_coefs_recursivo(obj)
-                lista_coefs += resultado[0]
-                lista_líms += resultado[1]
-
-            # Devolver la lista de coeficientes y la lista de límites
-            return lista_coefs, lista_líms
-
-        # Implementar la función recursiva arriba
-        return sacar_coefs_recursivo(símismo)
-
-    def sacar_coefs_interno(símismo):
-        """
-        Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
-          Se debe implementar para cada Coso (objeto) que tiene coeficientes.
-
-        :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
-           [ {calib1: distribución o [lista de valores],
-              calib2: ibid,
-              ...},
-              {coeficiente 2...},
-              ...
-           ]
-        :rtype: list
-
-        """
-
-        raise NotImplementedError
-
-    def sacar_líms_coefs_interno(símismo):
-        """
-        Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
-          calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
-
-        :return: Un tuple, conteniendo:
-          1. Una lista de diccionarios de coeficientes, con el formato siguiente:
-           [ {calib1: distribución o [lista de valores],
-              calib2: ibid,
-              ...},
-              {coeficiente 2...},
-              ...
-           ]
-
-           2. Una lista de los límites de los coeficientes, en el mismo orden que (1.)
-        :rtype: (list, list)
-
-        """
-
-        raise NotImplementedError
-
-    def prep_obs_exper(símismo, exper):
-        """
-        Prepara un vector numpy de las obsevaciones de los experimentos.
-
-        :param exper: Una lista de los nombres de los experimentos que vamos a incluir para esta calibración.
-        :type exper: list
-
-        :return: Un vector, en orden reproducible, de las observaciones de los experimentos.
-        :rtype: np.ndarray
-        """
-
-        raise NotImplementedError
-
-    def prep_args_simul_exps(símismo, exper, n_rep_paráms, n_rep_estoc):
-        """
-        Prepara un diccionaro de los argumentos para simul_exps. El diccionario debe de tener la forma elaborada
-          abajo. Se implementa para cada subclase de Simulable.
-
-        :param exper: Una lista de los nombres de los experimentos para incluir
-        :type exper: list
-
-        :param n_rep_paráms: El número de repeticiones paramétricas para las simulaciones.
-        :type n_rep_paráms: int
-
-        :param n_rep_estoc: El número de repeticiones estocásticas para las simulaciones.
-        :type n_rep_estoc: int
-
-        :return: Un diccionario del formato siguiente:
-           {
-            datos_inic: {},
-            n_pasos: {},
-            extrn: {}
-            )
-          Donde cada elemento del diccionario es un diccionario con los nombres de los experimentos como llaves.
-        :rtype: dict
-
-        """
-
-        raise NotImplementedError
-
-    def simul_exps(símismo, datos_inic, paso, n_pasos, extrn):
-        """
-        Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
-          correspondiendo a los valores observados, y eso en el mismo orden.
-        Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
-          simular como llaves.
-
-        :param datos_inic: Un diccionario de los datos iniciales para la simulación de cada experimento.
-        :type datos_inic: dict
-
-        :param paso: El paso para la simulación
-        :type paso: int
-
-        :param n_pasos: Un diccionario con el número de pasos para cada simulación
-        :type n_pasos: dict
-
-        :param extrn: Un diccionario de valores externas a pasar a la simulación, si aplica.
-        :type extrn: dict
-
-        :return: Matriz unidimensional Numpy de las predicciones del modelo correspondiendo a los valores observados.
-        :rtype: np.ndarray
-
-        """
-
-        # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
-        # datos iniciales para las próximas).
-        símismo.predics_exps = copiar.deepcopy(datos_inic)
-
-        # Para cada experimento...
-        for exp in datos_inic:
-            # Apuntar el diccionario de predicciones del Simulable al diccionario apropiado en símismo.predics_exps.
-            símismo.predics = símismo.predics_exps[exp]
-
-            # Simular el modelo
-            símismo.calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
-
-        # Convertir los diccionarios de predicciones en un vector numpy.
-        vector_predics = símismo.procesar_predics_calib()
-
-        # Devolver el vector de predicciones.
-        return vector_predics
-
-    def procesar_predics_calib(símismo):
-        """
-        Procesa las predicciones de simulación de experimentos (predics_exps) del modelo y genera una matriz numpy
-          unidimensional de las predicciones. Se debe implementar para cada subclase de Simulable.
-
-        :return: Un vector numpy de las predicciones del modelo.
-        :rtype: np.ndarray
-        """
-
-        raise NotImplementedError
 
     def avanzar_calib(símismo, rep=10000, quema=100, extraer=10):
         """
@@ -673,22 +448,355 @@ class Simulable(Coso):
         # Borrar el objeto de modelo, ya que no se necesita
         símismo.ModBayes = None
 
-    def añadir_exp(símismo, experimentos):
+    def añadir_exp(símismo, experimento, corresp):
         """
         Esta función añade un experimento al Simulable.
 
-        :param experimentos: El experimento (o lista de experimentos) para añadir
-        :type experimentos: list
+        :param experimento: El experimento para añadir
+        :type experimento: Experimento
+
+        :param corresp: Un diccionario con la información necesaria para hacer la conexión entre el experimento
+          y las predicciones del Simulable.
+        :type corresp: dict
 
         """
 
-        if type(experimentos) is not list:
-            experimentos = [experimentos]
+        símismo.exps[experimento.nombre] = experimento
 
-        for exp in experimentos:
-            símismo.exps[exp.nombre] = exp
+        símismo._acción_añadir_exp(experimento=experimento, corresp=corresp)
 
-    def procesar_validación(símismo, vector_obs, vector_preds):
+    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True):
+        """
+        Esta función valida el modelo con datos de observaciones de experimentos.
+
+        :param exper: Los experimentos vinculados al objeto a usar para la calibración. exper=None lleva al uso de
+          todos los experimentos disponibles.
+        :type exper: list | str | Experimento | None
+
+        :param calibs: Las calibraciones que hay que usar para la validación.
+        :type calibs: list | str | None
+
+        :param paso: El paso para la validación
+        :type paso: int
+
+        :param n_rep_parám: El número de repeticiones de parámetros.
+        :type n_rep_parám: int
+
+        :param n_rep_estoc: El número de repeticiones estocásticas.
+        :type n_rep_estoc: int
+
+        :param dibujar: Si hay que generar gráficos de los resultados.
+        :type dibujar: bool
+
+        :return: Un diccionario con los resultados de la validación.
+        :rtype: dict
+        """
+
+        # Encontrar los parámetros de interés
+        lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
+
+        # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
+        # contrario tomamos el conjunto de todas las calibraciones anteriores.
+        if calibs is None:
+            if símismo.ModBayes is None:
+                calibs = 'Todos'
+            else:
+                calibs = símismo.ModBayes.id
+
+        lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+
+        # Llenar coeficientes
+        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'))
+
+        exper = símismo._prep_lista_exper(exper=exper)
+
+        # Generar el vector numpy de observaciones para los experimentos
+        obs = símismo._prep_obs_exper(exper=exper)
+
+        # Simular los experimentos
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám)
+        preds = símismo._simul_exps(**dic_argums, paso=paso)
+
+        # Si hay que dibujar, dibujar
+        if dibujar:
+            símismo.dibujar()
+
+        # Procesar los datos de la validación
+        return símismo._procesar_validación(vector_obs=obs, vector_preds=preds)
+
+    def dibujar(símismo, mostrar=True, archivo=''):
+        """
+        Una función para generar gráficos de los resultados del objeto.
+        """
+
+        raise NotImplementedError
+
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes):
+        """
+        Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
+          Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
+          tienen la forma siguiente: eje 0 = repetición paramétrica, eje 1+ : dimensiones opcionales.
+
+        :param n_rep_parám: El número de repeticiones paramétricas que incluir.
+        :type n_rep_parám: int
+
+        :param calibs: Una lista de los nombres de las calibraciones, o el nomre de una calibración, que hay que
+          incluir.
+        :type calibs: list | str
+
+        :param comunes: Si queremos guardar las correspondencias de la distribución multidimensional entre
+          parámetros calibrados en la misma calibración.
+        :type comunes: bool
+
+        """
+
+        raise NotImplementedError
+
+    def _prep_predics(símismo, n_pasos, n_rep_parám, n_rep_estoc, n_parcelas):
+        """
+        Esta función prepara el diccionario de predicciones para guardar los resultados de una simulación.
+          Se tiene que implementar para cada tipo de Simulable. Modifica símismo.predics, así que no devuelve
+          ningún valor.
+
+        :param n_pasos: El número de pasos de la simulación que vamos a hacer.
+        :type n_pasos: int
+
+        :param n_rep_parám: El número de repeticiones paramétricas.
+        :type n_rep_parám: int
+
+        :param n_rep_estoc: El número de repeticiones estocásticas.
+        :type n_rep_estoc: int
+
+        :param n_parcelas: El número de parcelas en la simulación.
+        :type n_parcelas: int
+
+        """
+
+        raise NotImplementedError
+
+    def _calc_simul(símismo, paso, n_pasos, extrn=None):
+        """
+        Esta función aumenta el modelo para cada paso en la simulación. Se usa en simulaciones normales, tanto como en
+          simulaciones de experimentos.
+
+        :param paso: El paso para la simulación
+        :type paso: int
+
+        :param n_pasos: El número de pasos en la simulación.
+        :type n_pasos: int
+
+        :param extrn: Un diccionario externo, si necesario, con información para la simulación.
+        :type extrn: dict
+
+        """
+
+        # Para cada paso de tiempo, incrementar el modelo
+        for i in range(n_pasos):
+            símismo._incrementar(paso, i=i + 1, extrn=extrn)
+
+    def _incrementar(símismo, paso, i, extrn):
+        """
+        Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
+        
+        :param paso: El paso con cual incrementar el modelo
+        :type paso: int
+
+        :param i: El número de este incremento en la simulación
+        :type i: int
+
+        :param extrn: Un diccionario de valores externos al modelo, si necesario
+        :type extrn: dict
+
+        """
+
+        # Dejamos la implementación del incremento del modelo a las subclases individuales.
+        raise NotImplementedError
+
+    def _gen_lista_coefs_interés_todo(símismo):
+
+        """
+        Esta función devuelve una lista de todos los coeficientes de un Simulable y de sus objetos de manera
+          recursiva, tanto como una lista, en el mismo orden, de los límites de dichos coeficientes.
+
+        :return: Un tuple conteniendo una lista de todos los coeficientes de interés para la calibración y una lista
+          de sus límites.
+        :rtype: (list, list)
+
+        """
+
+        def sacar_coefs_recursivo(objeto):
+            """
+            La implementación recursiva de la función.
+
+            :param objeto: El objeto Simulable a cual hay que sacar los coeficientes.
+            :type objeto: Simulable
+
+            :return: Un tuple, como descrito en la documentación de la función arriba.
+            :rtype: (list, list)
+            """
+
+            # Inicializar las listas de coeficientes y de límites con los coeficientes y límites del objeto actual.
+            lista_coefs = objeto._sacar_coefs_interno()
+            lista_líms = objeto._sacar_líms_coefs_interno()
+
+            if isinstance(objeto, Simulable):
+                # Ahora, hacer lo mismo para cada objeto Simulable contenido en este objeto.
+                for obj in objeto.objetos:
+                    resultado = sacar_coefs_recursivo(obj)
+                    lista_coefs += resultado[0]
+                    lista_líms += resultado[1]
+
+            # Devolver la lista de coeficientes y la lista de límites
+            return lista_coefs, lista_líms
+
+        # Implementar la función recursiva arriba
+        return sacar_coefs_recursivo(símismo)
+
+    def _sacar_coefs_interno(símismo):
+        """
+        Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
+          Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+        :rtype: list
+
+        """
+
+        raise NotImplementedError
+
+    def _sacar_líms_coefs_interno(símismo):
+        """
+        Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
+          calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Un tuple, conteniendo:
+          1. Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+
+           2. Una lista de los límites de los coeficientes, en el mismo orden que (1.)
+        :rtype: (list, list)
+
+        """
+
+        raise NotImplementedError
+
+    def _acción_añadir_exp(símismo, experimento, corresp):
+        """
+
+        :param experimento:
+        :type experimento:
+        :param corresp:
+        :type corresp:
+        :return:
+        :rtype:
+        """
+        raise NotImplementedError
+
+    def _prep_obs_exper(símismo, exper):
+        """
+        Prepara un vector numpy de las obsevaciones de los experimentos.
+
+        :param exper: Una lista de los nombres de los experimentos que vamos a incluir para esta calibración.
+        :type exper: list
+
+        :return: Un vector, en orden reproducible, de las observaciones de los experimentos.
+        :rtype: np.ndarray
+        """
+
+        raise NotImplementedError
+
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
+        """
+        Prepara un diccionaro de los argumentos para simul_exps. El diccionario debe de tener la forma elaborada
+          abajo. Se implementa para cada subclase de Simulable.
+
+        :param exper: Una lista de los nombres de los experimentos para incluir
+        :type exper: list
+
+        :param n_rep_estoc: El número de repeticiones estocásticas para las simulaciones.
+        :type n_rep_estoc: int
+
+        :param n_rep_paráms: El número de repeticiones paramétricas para las simulaciones.
+        :type n_rep_paráms: int
+
+        :return: Un diccionario del formato siguiente:
+           {
+            datos_inic: {},
+            n_pasos: {},
+            extrn: {}
+            }
+          Donde cada elemento del diccionario es un diccionario con los nombres de los experimentos como llaves.
+        :rtype: dict
+
+        """
+
+        raise NotImplementedError
+
+    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn):
+        """
+        Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
+          correspondiendo a los valores observados, y eso en el mismo orden.
+        Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
+          simular como llaves.
+
+        :param datos_inic: Un diccionario de los datos iniciales para la simulación de cada experimento.
+        :type datos_inic: dict
+
+        :param paso: El paso para la simulación
+        :type paso: int
+
+        :param n_pasos: Un diccionario con el número de pasos para cada simulación
+        :type n_pasos: dict
+
+        :param extrn: Un diccionario de valores externas a pasar a la simulación, si aplica.
+        :type extrn: dict
+
+        :return: Matriz unidimensional Numpy de las predicciones del modelo correspondiendo a los valores observados.
+        :rtype: np.ndarray
+
+        """
+
+        # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
+        # datos iniciales para las próximas).
+        símismo.predics_exps = copiar.deepcopy(datos_inic)
+
+        # Para cada experimento...
+        for exp in datos_inic:
+            # Apuntar el diccionario de predicciones del Simulable al diccionario apropiado en símismo.predics_exps.
+            símismo.predics = símismo.predics_exps[exp]
+
+            # Simular el modelo
+            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
+
+        # Convertir los diccionarios de predicciones en un vector numpy.
+        vector_predics = símismo._procesar_predics_calib()
+
+        # Devolver el vector de predicciones.
+        return vector_predics
+
+    def _procesar_predics_calib(símismo):
+        """
+        Procesa las predicciones de simulación de experimentos (predics_exps) del modelo y genera una matriz numpy
+          unidimensional de las predicciones. Se debe implementar para cada subclase de Simulable.
+
+        :return: Un vector numpy de las predicciones del modelo.
+        :rtype: np.ndarray
+        """
+
+        raise NotImplementedError
+
+    def _procesar_validación(símismo, vector_obs, vector_preds):
         """
         Esta función procesa los resultados de la validación del modelo. Se tiene que implementar para cada subclase
           de Simulable.
@@ -705,7 +813,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def prep_lista_exper(símismo, exper):
+    def _prep_lista_exper(símismo, exper):
         """
         Esta lista prepara la lista de nombres de los experimentos para validación o calibración.
 
@@ -732,7 +840,7 @@ class Simulable(Coso):
         # Devolver exper
         return exper
 
-    def filtrar_calibs(símismo, calibs, lista_paráms):
+    def _filtrar_calibs(símismo, calibs, lista_paráms):
         """
         Esta función, dado una lista de diccionarios de calibraciones de parámetros y una especificación de cuales
           calibraciones guardar, genera un lista de los nombre de las calibraciones que hay que incluir.
@@ -915,14 +1023,11 @@ def prep_json(d):
             # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
             prep_json(v)
 
-        elif type(v) is np.ndarray:
+        elif type(v) is str:
 
-            # Si el itema era una matriz numpy, convertir la matriz al formato de lista, al menos que sea una
-            # distribución a priori especificada por el usuario para una calibración, en cual caso la quitamos.
+            # Quitar distribuciones a priori especificadas por el usuario.
             if ll == 'especificado':
                 d.pop(ll)
-            else:
-                d[ll] = v.tolist()
 
         elif isinstance(v, pymc.Stochastic):
 
@@ -957,7 +1062,7 @@ def valid_vals_inic(d, n=None):
             # Si es matriz numpy...
 
             # Sacar el número de parcelas por el tamaño de la dimensión 0 de la matriz.
-            n_parcelas = v.shape()[0]
+            n_parcelas = v.shape[0]
 
             if n is None:
                 # Si este es la primera iteración, guardar el número de parcelas en "n".

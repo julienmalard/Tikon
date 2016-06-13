@@ -84,7 +84,12 @@ class Experimento(object):
         # Ahora, para cada columna de datos (excluyendo fechas) en la base de datos...
         for col in dic_datos:
             if col != col_tiempo:  # Si no es la columna de fecha...
-                símismo.datos['Organismos']['obs'][col] = símismo.texto_a_datos(dic_datos[col])
+                if col_parcela is None:
+                    matr = símismo.texto_a_datos(dic_datos[col])[np.newaxis, :]
+                else:
+                    pass
+                    # para hacer
+                símismo.datos['Organismos']['obs'][col] = matr
 
     def estab_bd_cultivo(símismo, archivo):
         pass  # Para hacer

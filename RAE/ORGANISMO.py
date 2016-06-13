@@ -1,5 +1,6 @@
-import MATEMÁTICAS.Ecuaciones as Ec
 from NuevoCoso import Coso
+import MATEMÁTICAS.Ecuaciones as Ec
+from MATEMÁTICAS.NuevoIncert import límites_a_texto_apriori
 
 
 class Organismo(Coso):
@@ -196,9 +197,27 @@ class Organismo(Coso):
             if víctima.nombre not in dic_víc:
                 dic_víc[víctima.nombre] = []
 
+            # Y también añadir el nombre de las etapas de la presa que caen víctimas
             for e_presa in etps_víctima:
                 if e_presa not in dic_víc:  # Evitar de añadir una presa más que una vez por error
                     dic_víc[víctima.nombre].append(e_presa)
+
+        # Ahora, tenemos que asegurarnos de que cada parámetro con interacción con las presas tenga una versión para
+        # cada etapa de la presa.
+        for categ, dic_categ in Ec.ecs_orgs.items():
+            for sub_categ, dic_sub_categ in dic_categ.items():
+                for tipo_ec, dic_ec in dic_sub_categ.items():
+                    for parám, dic_parám in dic_ec.items():
+                        if dic_parám['inter'] == 'presa':
+                            límites = dic_parám['límites']
+                            for e_depred in etps_símismo:
+                                dic = símismo.receta['coefs'][e_depred][categ][sub_categ][tipo_ec][parám]
+                                if víctima.nombre not in dic:
+                                    dic[víctima.nombre] = {}
+                                for e_presa in etps_víctima:
+                                    if e_presa not in dic[víctima.nombre]:
+                                        no_informativo = límites_a_texto_apriori(límites=límites)
+                                        dic[víctima.nombre][e_presa] = {'0': no_informativo}
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
         # todos los coeficientes necesarios para la nueva presa
@@ -268,14 +287,51 @@ class Organismo(Coso):
         # potencial.
 
     def _sacar_coefs_interno(símismo):
+        """
+        Ver la documentación de Coso.
+
+        :rtype: list
+
+        """
+
+        # Una lista para guardar los diccionarios de coeficientes.
         lista_coefs = []
 
+        # Para cada etapa del organismo...
         for etp in símismo.etapas:
+
             for categ in sorted(Ec.ecs_orgs):
+                # Para cada categoría de ecuación...
+
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
-                    nombre_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
-                    dic_parám = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][nombre_ec]
-                    lista_coefs.append(dic_parám)
+                    # Para cada subcategoría de ecuación...
+
+                    # Guardar el tipo de ecuación activo para esta etapa.
+                    tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
+
+                    # Sacar el diccionario correspondiente en la lista general de ecuaciones
+                    dic_info_paráms = Ec.ecs_orgs[categ][sub_categ][tipo_ec]
+
+                    for parám in sorted(dic_info_paráms):
+                        # Para cada parámetro...
+
+                        # Sacar el diccionario correspondiente en el diccionario de coeficientes del organismo.
+                        dic = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec][parám]
+
+                        if dic_info_paráms[parám]['inter'] is None:
+                            # Si no hay interacciones, guardamos el diccionario como está.
+                            dic_coefs = [dic]
+
+                        elif dic_info_paráms[parám]['inter'] == 'presa':
+                            dic_coefs = []
+                            for org_presa, lista_etps_presa in símismo.config[etp['nombre']]['presa'].items():
+                                for etp_presa in lista_etps_presa:
+                                    dic_coefs.append(dic[org_presa][etp_presa])
+
+                        else:
+                            raise NotImplementedError
+
+                        lista_coefs += dic_coefs
 
         return lista_coefs
 
@@ -285,9 +341,14 @@ class Organismo(Coso):
         for etp in símismo.etapas:
             for categ in sorted(Ec.ecs_orgs):
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
-                    dic_paráms = símismo.receta['estr'][etp]['ecuaciones'][categ][sub_categ]
+                    tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
+                    dic_paráms = Ec.ecs_orgs[categ][sub_categ][tipo_ec]
                     for parám in sorted(dic_paráms):
-                        líms = Ec.ecs_orgs[categ][sub_categ][parám]['límites']
-                        lista_líms.append(líms)
+                        if dic_paráms[parám]['inter'] is None:
+                            líms = [dic_paráms[parám]['límites']]
+                        else:
+                            núm_inter = len(símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec][parám])
+                            líms = [dic_paráms[parám]['límites']] * núm_inter
+                        lista_líms += líms
 
         return lista_líms
