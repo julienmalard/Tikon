@@ -147,6 +147,8 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 
     # Dividir el nombre de la distribución de sus parámetros.
     tipo_dist, paráms = texto.split('~')
+    paráms = paráms.replace('(', '').replace(')', '')
+    paráms = tuple([float(x) for x in paráms.split(',')])
 
     # Si el nombre de la distribución está en la lista arriba...
     if tipo_dist in Ds.dists:
@@ -238,6 +240,9 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
         # El diccionario de la distribución
         dic_dist = Ds.dists[nombre_dist]
 
+        # El tipo de distribución (nombre SciPy)
+        nombre_scipy = dic_dist['scipy'].name
+
         # El máximo y el mínimo de la distribución
         mín_dist, máx_dist = dic_dist['límites']
 
@@ -278,7 +283,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
             args = dic_dist['scipy'].fit(datos, **restric)
 
             # Medir el ajuste de la distribución
-            p = estad.kstest(datos, nombre_dist, args=args)[1]
+            p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
 
             # Si el ajuste es mejor que el mejor ajuste anterior...
             if p > mejor_ajuste['p']:
@@ -289,10 +294,10 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
                 # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
                 if usar_pymc:
                     # Convertir los argumentos a formato PyMC
-                    args, transform = paráms_scipy_a_pymc(tipo_dist=nombre, paráms=args)
+                    args, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
 
                     # Y crear la distribución.
-                    mejor_ajuste['dist'] = dic_dist['pymc'](nombre, *args) * transform
+                    mejor_ajuste['dist'] = (dic_dist['pymc'](nombre, *args) + transform['sum']) * transform['mult']
 
                 else:
 
@@ -547,12 +552,12 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], paráms[1])
 
     elif tipo_dist == 'Chi2':
-        paráms_pymc = (paráms[0])
+        paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
         transform_pymc['mult'] = paráms[2]
 
     elif tipo_dist == 'Exponencial':
-        paráms_pymc = (1 / paráms[1])
+        paráms_pymc = (1 / paráms[1], )
         transform_pymc['sum'] = paráms[0]
 
     elif tipo_dist == 'WeibullExponencial':
@@ -563,11 +568,10 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'MitadCauchy':
-        paráms_pymc = (paráms[0], 1 / paráms[2])
-        transform_pymc['sum'] = paráms[1]
+        paráms_pymc = (paráms[0], 1 / paráms[1])
 
     elif tipo_dist == 'MitadNormal':
-        paráms_pymc = (1 / paráms[1])
+        paráms_pymc = (1 / paráms[1], )
         transform_pymc['sum'] = paráms[0]
 
     elif tipo_dist == 'GammaInversa':
@@ -581,9 +585,8 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], 1 / paráms[1])
 
     elif tipo_dist == 'LogNormal':
-        paráms_pymc = (paráms[0], paráms[1])
-        transform_pymc['sum'] = paráms[2]
-        transform_pymc['mult'] = paráms[3]
+        paráms_pymc = (0, 1 / (paráms[0]**2))
+        transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'TNoCentral':
         paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
@@ -596,7 +599,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'T':
-        paráms_pymc = (paráms[0])
+        paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
         transform_pymc['mult'] = paráms[2]
 
@@ -611,7 +614,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['mult'] = paráms[2]
 
     elif tipo_dist == 'Bernoulli':
-        paráms_pymc = (paráms[0])
+        paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'Binomial':
@@ -619,7 +622,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[2]
 
     elif tipo_dist == 'Geométrica':
-        paráms_pymc = (paráms[0])
+        paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'Hypergeométrica':
@@ -631,13 +634,14 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[2]
 
     elif tipo_dist == 'Poisson':
-        paráms_pymc = (paráms[0])
+        paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'UnifDiscr':
         paráms_pymc = (paráms[0], paráms[1] - 1)
 
     else:
-        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC.')
+        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC.' %
+                         tipo_dist)
 
     return paráms_pymc, transform_pymc

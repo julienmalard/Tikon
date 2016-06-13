@@ -210,7 +210,7 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
         d_parám[id_calib] = dist_apriori
 
         # Añadir una referencia al variable PyMC en la lista de distribuciones
-        lista_dist += dist_apriori
+        lista_dist.append(dist_apriori)
 
     # Devolver la lista de variables PyMC
     return lista_dist

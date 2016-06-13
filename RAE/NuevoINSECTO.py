@@ -102,7 +102,7 @@ class Sencillo(Insecto):
         :type nombre: str
         """
 
-        tipo_ec = dict(Crecimiento={'Modif': 'Regular', 'Ecuación': 'Logístico presa'},
+        tipo_ec = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
                        Depredación={'Ecuación': 'Kovai'},
                        Muertes={'Ecuación': None},
                        Transiciones={'Edad': None, 'Prob': None},
