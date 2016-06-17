@@ -108,13 +108,13 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
             # Sacar los datos necesarios de la distribución SciPy
             nuevos_vals = dist_sp.rvs(rep_per_calib[n_id])
 
-        elif isinstance(traza, pymc.Stochastic):
+        elif isinstance(traza, pymc.Stochastic) or isinstance(traza, pymc.Deterministic):
 
             # Si es un variable de calibración activo, poner el variable sí mismo en la matriz
-            nuevos_vals = traza
+            nuevos_vals = [traza]
 
         else:
-            raise ValueError
+            raise ValueError('Hay un error con la traza, que no puede ser de tipo %s' % type(traza))
 
         # Añadir los datos de esta calibración a la lista de datos para la traza general.
         lista_trazas.append(nuevos_vals)
@@ -297,7 +297,13 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
                     args, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
 
                     # Y crear la distribución.
-                    mejor_ajuste['dist'] = (dic_dist['pymc'](nombre, *args) + transform['sum']) * transform['mult']
+                    dist = dic_dist['pymc'](nombre, *args)
+
+                    if transform['sum'] != 0:
+                        dist = dist + transform['sum']
+                    if transform['mult'] != 1:
+                        dist = dist + transform['mult']
+                    mejor_ajuste['dist'] = dist
 
                 else:
 
@@ -645,3 +651,36 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
                          tipo_dist)
 
     return paráms_pymc, transform_pymc
+
+
+def numerizar(d, c=None):
+    if c is None:
+        c = {}
+
+    if type(d) is list:
+        for n, v in enumerate(d):
+            if type(v) is dict:
+                c[n] = {}
+                numerizar(v, c=c[n])
+            elif type(v) is list:
+                c[n] = []
+                numerizar(v, c=c[n])
+            else:
+                c[n] = v.astype(float)
+
+    elif type(d) is dict:
+
+        for ll, v in d.items():
+
+            if type(v) is dict:
+                c[ll] = {}
+                numerizar(v, c=c[ll])
+
+            if type(v) is list:
+                c[ll] = []
+                numerizar(v, c=c[ll])
+
+            else:
+                c[ll] = v.astype(float)
+
+    return c

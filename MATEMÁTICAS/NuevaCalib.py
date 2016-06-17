@@ -1,5 +1,5 @@
 import numpy as np
-from pymc import deterministic, Gamma, Normal, MCMC
+from pymc import deterministic, Exponential, Normal, MCMC
 
 import MATEMÁTICAS.NuevoIncert as Incert
 
@@ -14,7 +14,7 @@ class ModBayes(object):
 
     """
 
-    def __init__(símismo, función, dic_argums, obs, lista_paráms, aprioris, lista_líms, id_calib):
+    def __init__(símismo, función, dic_argums, obs, lista_paráms, aprioris, lista_líms, id_calib, función_llenar_coefs):
         """
         Al iniciarse, un Modelo hace lo siguiente:
 
@@ -73,6 +73,10 @@ class ModBayes(object):
         :param id_calib: El nombre para identificar la calibración.
         :type id_calib: str
 
+        :param función_llenar_coefs: Una funcion que llenara los diccionarios del Simulable con los coeficientes PyMC
+          recién creados.
+        :type función_llenar_coefs: function
+
         """
 
         # Guardar una conexión a la lista de parámetros y crear un número de identificación único para esta
@@ -89,6 +93,9 @@ class ModBayes(object):
                                          l_pm=lista_paráms, l_lms=lista_líms,
                                          aprioris=aprioris)
 
+        # Llenamos las matrices de coeficientes con los variables PyMC recién creados
+        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, comunes=False)
+
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
         # pasamos los argumentos necesarios, si aplican.
 
@@ -99,12 +106,12 @@ class ModBayes(object):
         # Una distribución normal alrededor de las predicciones del modelo, conectado con las observaciones
         # correspondientes. Para la varianza de la distribución normal, se emplea un tau no informativo.
 
-        tau = Gamma('tau', alpha=0.0001, beta=0.0001)
+        tau = Exponential('tau', beta=1e10)
 
         dist_obs = Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = MCMC(lista_paráms, dist_obs)
+        símismo.MCMC = MCMC([dist_obs, tau, simular, *lista_paráms])
 
     def calib(símismo, rep=10000, quema=100, extraer=10):
         """
@@ -192,10 +199,7 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
         # Si solo hay una calibración para aplicar y es en formato de distribución, intentar y ver si no se puede
         # convertir directamente en distribución pymc.
         if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
-            try:
-                dist_apriori = Incert.texto_a_dist(calibs[0], usar_pymc=True)
-            except ValueError:
-                pass
+            dist_apriori = Incert.texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
 
         # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
         if dist_apriori is None:

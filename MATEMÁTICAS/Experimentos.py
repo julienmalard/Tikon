@@ -87,7 +87,7 @@ class Experimento(object):
                 if col_parcela is None:
                     matr = símismo.texto_a_datos(dic_datos[col])[np.newaxis, :]
                 else:
-                    pass
+                    raise NotImplementedError
                     # para hacer
                 símismo.datos['Organismos']['obs'][col] = matr
 
@@ -206,7 +206,7 @@ class Experimento(object):
             fecha_inic_datos = None
 
             # Pero podemos regresar un vector numpy con los números de cada fecha
-            lista_datos = np.array(lista, dtype=float)
+            lista_datos = np.array(lista, dtype=int)
 
         else:
 
@@ -243,6 +243,6 @@ class Experimento(object):
                 fecha_inic_datos = min(fechas[0], fechas[-1])
 
                 # La posición relativa de todas las fechas a esta
-                lista_datos = [(x - fecha_inic_datos).days for x in fechas]
+                lista_datos = np.array([(x - fecha_inic_datos).days for x in fechas], dtype=int)
 
         return fecha_inic_datos, lista_datos

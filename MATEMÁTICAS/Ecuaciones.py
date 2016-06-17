@@ -95,7 +95,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                                          'inter': 'presa'},
                                                    'b': {'límites': (0, np.inf),
                                                          'inter': 'presa'},
-                                                   'c': {'límites': (0, np.inf),
+                                                   'c': {'límites': (1, np.inf),
                                                          'inter': 'presa'}
                                                    }
                                          },
