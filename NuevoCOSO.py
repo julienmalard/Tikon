@@ -352,6 +352,7 @@ class Simulable(Coso):
             # Evitar el caso muy improbable de que el código aleatorio ya existe
             while nombre in símismo.receta['Calibraciones']:
                 nombre = int(np.random.uniform() * 1e10)
+        nombre = str(nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
         lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
@@ -379,11 +380,9 @@ class Simulable(Coso):
                                     lista_paráms=lista_paráms,
                                     aprioris=lista_aprioris,
                                     lista_líms=lista_líms,
-                                    id_calib=nombre
+                                    id_calib=nombre,
+                                    función_llenar_coefs=símismo._llenar_coefs
                                     )
-
-        # 7. Llenamos las matrices de coeficientes con los variables PyMC recién creados
-        símismo._llenar_coefs(n_rep_parám=1, calibs=nombre, comunes=False)
 
         # 8. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
         símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
@@ -592,7 +591,7 @@ class Simulable(Coso):
 
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(n_pasos):
-            símismo._incrementar(paso, i=i + 1, extrn=extrn)
+            símismo._incrementar(paso, i=i, extrn=extrn)
 
     def _incrementar(símismo, paso, i, extrn):
         """
