@@ -13,6 +13,9 @@ lista_móds = ['numpy-1.11.0+mkl-cp35-cp35m-win32.whl',
               'scipy-0.17.1-cp35-cp35m-win32.whl',
               'pymc-2.3.6-cp35-none-win32.whl']
 
+comanda_pip = '%s install --upgrade pip' % (os.path.join(directorio_python, 'Scripts', 'pip'))
+run(comanda_pip)
+
 for mód in lista_móds:
     comanda = '%s install %s' % (os.path.join(directorio_python, 'Scripts', 'pip'),
                                  os.path.join(directorio_móds, mód))
@@ -30,6 +33,7 @@ except ImportError:
 try:
     import scipy.stats as estad
     prueba = estad.norm()
+    print('¡Todo bien!')
 except ImportError:
     raise ImportError('¡Error! Por experencia personal, probablemente es porque no instalaste la versión del'
                       '"Microsoft C++ 2015 redistributable" x86.')
