@@ -379,6 +379,8 @@ class Red(Simulable):
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
                 raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tipo_ec)
 
+            depred[np.isnan(depred)] = 0
+            print('depred', depred)
             depred[:, :, :, n, :] = depred_etp
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
@@ -406,6 +408,7 @@ class Red(Simulable):
 
         # AJustar la depredación por el factor de ajuste por interferencia entre depredadores
         depred *= ajuste
+        depred[np.isnan(depred)] = 0
 
         # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
         símismo.redondear(depred)
@@ -765,30 +768,37 @@ class Red(Simulable):
     def _incrementar(símismo, paso, i, mov=False, extrn=None):
 
         # Empezar con las poblaciones del paso anterior
-        pobs = símismo.predics['Pobs'][..., i - 1]
+        print(símismo.predics)
+        input()
+        pobs = símismo.predics['Pobs'][..., i - 1].copy()
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
-
+        print(1, pobs)
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso)
+        print(2, pobs)
 
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
+        print(3, pobs)
 
         # Una etapa que crear más individuos de otra etapa
         # para hacer: símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
 
         # Muertes por el ambiente
-        símismo._calc_muertes(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
+        símismo._calc_muertes(pobs=pobs, extrn=extrn, paso=paso)
+        print(4, pobs)
 
         # Una etapa que cambia a otra, o que se muere por su edad.
-        símismo._calc_trans(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
+        símismo._calc_trans(pobs=pobs, extrn=extrn, paso=paso)
+        print(5, pobs)
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
-            símismo._calc_mov(pobs=símismo.predics['Pobs'][..., i], extrn=extrn, paso=paso)
+            símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Añadir las predicciones de poblaciones para el paso de tiempo i en la matriz de predicciones.
+        print('i', i)
         símismo.predics['Pobs'][..., i] = pobs
 
         # Limpiar los cohortes de los organismos de la Red.
@@ -1017,9 +1027,8 @@ class Red(Simulable):
                         elif d_parám['inter'] == 'presa':
                             # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición paramétrica,
                             # eje 1 = presa.
-                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
+                            matr = coefs_act[n_etp][parám] = np.zeros(shape=(n_rep_parám, len(símismo.etapas)),
                                                                       dtype=object)
-                            matr[:] = np.nan
 
                             # Para cada presa del organismo...
                             for org_prs, l_etps_prs in símismo.etapas[n_etp]['conf']['presa'].items():
@@ -1102,10 +1111,10 @@ class Red(Simulable):
         :type matriz: np.ndarray
 
         """
+        print('matriz', matriz)
         residuos = matriz - np.round(matriz, out=matriz)
 
         prob = np.random.rand(*matriz.shape)
-
         matriz += (prob > residuos) * 1
 
     @staticmethod

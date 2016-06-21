@@ -18,3 +18,18 @@ for mód in lista_móds:
                                  os.path.join(directorio_móds, mód))
 
     run(comanda)
+
+# Verificar que todo este bien:
+try:
+    import numpy as np
+    import scipy as sp
+    import pymc
+except ImportError:
+    raise ImportError('Error: No se instalaron todos los módulos necesarios.')
+
+try:
+    import scipy.stats as estad
+    prueba = estad.norm()
+except ImportError:
+    raise ImportError('¡Error! Por experencia personal, probablemente es porque no instalaste la versión del'
+                      '"Microsoft C++ 2015 redistributable" x86.')
