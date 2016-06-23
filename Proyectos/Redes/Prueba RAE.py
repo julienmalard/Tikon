@@ -1,10 +1,10 @@
 from RAE.REDES import Red
-from RAE.INSECTOS import Simple
+from RAE.INSECTOS import Sencillo
 
 # Inicializar los insectos en la red
-குளவி = Simple("குளவி")
-அசிலிடெ = Simple("அசிலிடெ")
-இலைசுருட்டுப்புழு= Simple("இலைசுருட்டுப்புழு")
+குளவி = Sencillo("குளவி")
+அசிலிடெ = Sencillo("அசிலிடெ")
+இலைசுருட்டுப்புழு= Sencillo("இலைசுருட்டுப்புழு")
 
 
 # Establecer las interacciones entre insectos

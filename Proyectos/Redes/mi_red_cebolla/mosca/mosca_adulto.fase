@@ -1,0 +1,16 @@
+{
+  "Depredadores": [
+    "araña_Adulto",
+    "avispa_Adulto"
+  ],
+  "Presas": [
+    "cebolla"
+  ],
+  "coefs": {
+    "araña_adulto": 5.0,
+    "avispa_adulto": 5.0,
+    "cebolla": 10.0,
+    "comida_crít": 0.01,
+    "r": 0.2
+  }
+}

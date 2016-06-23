@@ -1,0 +1,11 @@
+{
+  "Depredadores": [],
+  "Presas": [
+    "mosca_Adulto"
+  ],
+  "coefs": {
+    "comida_crít": 3.0,
+    "mosca_adulto": 0.05,
+    "r": 0.05
+  }
+}

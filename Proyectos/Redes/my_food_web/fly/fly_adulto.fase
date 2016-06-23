@@ -1,0 +1,16 @@
+{
+  "Depredadores": [
+    "spider_Adulto",
+    "wasp_Adulto"
+  ],
+  "Presas": [
+    "onion"
+  ],
+  "coefs": {
+    "comida_cr\u00edt": 0.01,
+    "onion": 10.0,
+    "r": 0.2,
+    "spider_adulto": 5.0,
+    "wasp_adulto": 5.0
+  }
+}

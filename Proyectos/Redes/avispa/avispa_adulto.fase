@@ -1,0 +1,14 @@
+{
+  "Depredadores": [],
+  "Presas": [
+    "araÃ±a_Adulto",
+    "mosca_Adulto",
+    "araña_Adulto"
+  ],
+  "coefs": {
+    "araÃ±a_adulto": 1.0,
+    "comida_crít": 10,
+    "mosca_adulto": 0.8,
+    "r": 0.07
+  }
+}

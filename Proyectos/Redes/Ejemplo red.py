@@ -1,11 +1,11 @@
-from RAE.INSECTOS import Simple
+from RAE.INSECTOS import Sencillo
 from RAE.REDES import Red
 
 # Unos ejemplos del uso del módulo de insectos y del módulo de redes agroecológicas
 
 # Crear nuestros insectos
-mosca = Simple('mosca')
-araña = Simple('araña')
+mosca = Sencillo('mosca')
+araña = Sencillo('araña')
 
 # Decidir quién come quién
 araña.secome(mosca)

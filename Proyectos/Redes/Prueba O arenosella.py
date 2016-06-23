@@ -1,15 +1,15 @@
 print("Importando dependencias...")
 from RAE.REDES import Red
-from RAE.INSECTOS import Simple, MetamCompleta
+from RAE.INSECTOS import Sencillo, MetamCompleta
 # from pymc import *
 # import numpy as np
 # from Proyectos.Prueba_incert import *
 print("Importación de dependencias terminada.")
 
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
-ParasLarv = Simple('Parasitoide larva', tipo_ecuaciones='capacidad_de_carga')
-ParasPupa = Simple('Parasitoide pupa', tipo_ecuaciones='capacidad_de_carga')
-Araña = Simple('Araña', tipo_ecuaciones='capacidad_de_carga')
+ParasLarv = Sencillo('Parasitoide larva', tipo_ecuaciones='capacidad_de_carga')
+ParasPupa = Sencillo('Parasitoide pupa', tipo_ecuaciones='capacidad_de_carga')
+Araña = Sencillo('Araña', tipo_ecuaciones='capacidad_de_carga')
 
 ParasLarv.secome(Oarenosella, fases_presa='Juvenil')
 ParasPupa.secome(Oarenosella, fases_presa='Pupa')

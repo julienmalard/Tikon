@@ -1,0 +1,14 @@
+{
+  "Depredadores": [
+    "avispa_Adulto"
+  ],
+  "Presas": [
+    "mosca_Adulto"
+  ],
+  "coefs": {
+    "avispa_adulto": 2.0,
+    "comida_crít": 3.0,
+    "mosca_adulto": 0.05,
+    "r": 0.05
+  }
+}

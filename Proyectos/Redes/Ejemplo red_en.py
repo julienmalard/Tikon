@@ -1,4 +1,4 @@
-from RAE.INSECTOS import Simple
+from RAE.INSECTOS import Sencillo
 from RAE.REDES import Red
 
 # Stuff above this line just loads the other modules needed to make a food web. Ignore it.
@@ -8,8 +8,8 @@ from RAE.REDES import Red
 
 # First, we're going to create our insects. Let's make them simple insects so we won't have to worry about larvae,
 # pupae, etc.
-fly = Simple('fly')
-spider = Simple('spider')
+fly = Sencillo('fly')
+spider = Sencillo('spider')
 
 # Decide who eats who
 spider.secome(fly)
@@ -43,7 +43,7 @@ There are 5 important steps (sorry this is still beta technology):
 
 
 # 1. Here is hhow you can make a new insect (a wasp) that eats spiders and flies:
-wasp = Simple('wasp')
+wasp = Sencillo('wasp')
 wasp.secome(spider)
 wasp.secome(fly)
 

@@ -1,0 +1,10 @@
+{
+  "Depredadores": [
+    "araña_Adulto",
+    "avispa_Adulto"
+  ],
+  "Presas": [
+    "cebolla"
+  ],
+  "coefs": {}
+}
