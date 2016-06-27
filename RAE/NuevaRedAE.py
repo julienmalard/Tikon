@@ -380,7 +380,7 @@ class Red(Simulable):
                 raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tipo_ec)
 
             depred[np.isnan(depred)] = 0
-            print('depred', depred)
+            print('depred 1', depred)
             depred[:, :, :, n, :] = depred_etp
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
@@ -776,8 +776,9 @@ class Red(Simulable):
         print(1, pobs)
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso)
+        print('depred', símismo.predics['Depredación'])
         print(2, pobs)
-
+        quit()
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
         print(3, pobs)

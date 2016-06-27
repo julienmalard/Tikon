@@ -203,7 +203,7 @@ class Insecto(Coso):
 
 
 # Unas clases prehechas para simplificar la creación de insectos
-class Simple(Insecto):
+class Sencillo(Insecto):
     def __init__(self, nombre, huevo=False, tipo_ecuaciones='capacidad_de_carga'):
         super().__init__(nombre=nombre, huevo=huevo, njuvenil=0, adulto=True, tipo_ecuaciones=tipo_ecuaciones)
 
