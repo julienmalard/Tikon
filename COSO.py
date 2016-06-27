@@ -85,8 +85,8 @@ class Coso(object):
         convertir_fechas(dic_temp)
 
         try:
-            with open(documento, mode="w") as d:
-                json.dump(dic_temp, d, indent=2, sort_keys=True)
+            with open(documento, mode="w", encoding='utf8') as d:
+                json.dump(dic_temp, d, ensure_ascii=False, indent=2, sort_keys=True)
         except IOError:
             print("Documento " + documento + " no se pudo abrir para guadar datos.")
 
@@ -95,8 +95,8 @@ class Coso(object):
                 dic_incert_temp = símismo.dic_incert.copy()
                 convertir_fechas(dic_incert_temp)
                 try:
-                    with open(documento_incert, mode="w") as d:
-                        json.dump(dic_incert_temp, d, sort_keys=True, indent=2)
+                    with open(documento_incert, encoding='utf8', mode="w") as d:
+                        json.dump(dic_incert_temp, d, ensure_ascii=False, sort_keys=True, indent=2)
                 except IOError:
                     print("Documento " + documento + " no se pudo abrir para guadar datos de incertidumbre.")
             except AttributeError:
@@ -109,7 +109,7 @@ class Coso(object):
         documento_incert = documento + "i"
 
         try:
-            with open(documento, mode="r") as d:
+            with open(documento, mode="r", encoding='utf8') as d:
                 try:
                     símismo.dic = json.load(d)
                 except ValueError:
@@ -119,7 +119,7 @@ class Coso(object):
             print("Documento " + documento + " no se pudo abrir para leer datos.")
 
         try:
-            with open(documento_incert, mode="r") as d:
+            with open(documento_incert, mode="r", encoding='utf8') as d:
                 try:
                     símismo.dic_incert = json.load(d)
                 except ValueError:
