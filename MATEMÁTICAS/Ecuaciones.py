@@ -91,7 +91,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                                                            'inter': 'presa'}
                                                                      },
 
-                                         'Kovai': {'a': {'límites': (0, np.inf),
+                                         'Kovai': {'a': {'límites': (0, 1),
                                                          'inter': 'presa'},
                                                    'b': {'límites': (0, np.inf),
                                                          'inter': 'presa'},

@@ -289,7 +289,6 @@ class Red(Simulable):
                   k = (b * P^2) / (P^2 + c)
                   m = (1/a - 1) * (b / P)
 
-
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
 
@@ -370,23 +369,29 @@ class Red(Simulable):
             elif tipo_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
                 pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                k = (cf['b'] * np.square(pobs)) / (np.square(pobs) + cf['c'])
-                m = (1 / cf['a'] * - 1) * (cf['b'] / pobs)
+                k = np.divide(np.multiply(cf['b'],
+                                          np.square(pobs)),
+                              np.add(np.square(pobs),
+                                     cf['c'])
+                              )
+                m = (1 / cf['a'] - 1) * np.divide(cf['b'], pobs)
 
                 depred_etp = k / (1 + m * pob_etp)
+
+                # Ajusta para presas múltiples
 
             else:
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
                 raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tipo_ec)
 
-            depred[np.isnan(depred)] = 0
-            print('depred 1', depred)
+            print('depred 1', depred_etp)
+            input()
             depred[:, :, :, n, :] = depred_etp
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora esta en unidades
         # del número total de presas comidas por cada tipo de depredador por unidad de tiempo.
-        depred *= pobs * paso
+        np.multiply(depred, pobs*paso, out=depred)
 
         # Abajo, vamos a ajustar por la presencia de varios depredadores
 
@@ -408,7 +413,6 @@ class Red(Simulable):
 
         # AJustar la depredación por el factor de ajuste por interferencia entre depredadores
         depred *= ajuste
-        depred[np.isnan(depred)] = 0
 
         # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
         símismo.redondear(depred)
@@ -421,7 +425,7 @@ class Red(Simulable):
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], depred_por_presa[..., n])
 
         # Actualizar la matriz de poblaciones
-        pobs -= depred_por_presa
+        pobs = np.nansum(pobs, -depred_por_presa)
 
     def _calc_crec(símismo, pobs, extrn, paso):
         """
