@@ -89,7 +89,7 @@ class Experimento(object):
                 else:
                     raise NotImplementedError
                     # para hacer
-                símismo.datos['Organismos']['obs'][col] = matr
+                símismo.datos['Organismos']['obs'][col] = matr.astype(int)  # Evitar fracciones de insectos
 
     def estab_bd_cultivo(símismo, archivo):
         pass  # Para hacer

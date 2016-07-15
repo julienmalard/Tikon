@@ -276,7 +276,9 @@ class Red(Simulable):
                     Anim. Ecol., 44 (1975), pp. 331–340
                 D.L. DeAngelis, et al. A model for trophic interaction Ecology, 56 (1975), pp. 881–892
 
-                y = a*P / (1 + b*P + c*D)
+                Usamos una forma matemáticamente equivalente a la en el artículo, y que facilita el establecimiento de
+                  distribuciones a prioris para los parámetros:
+                y = a*P / (b + P + c*D)
 
             Hassell-Varley:
                 M.P. Hassell, G.C. Varley. New inductive population model for insect parasites and its bearing on
@@ -284,10 +286,10 @@ class Red(Simulable):
 
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
-            Asíntota doble (Kovai):
-                y = k / (1 + m * D), donde
-                  k = (b * P^2) / (P^2 + c)
-                  m = (1/a - 1) * (b / P)
+            Kovai (Asíntota doble):
+                y = (a * P/D) / (P/D + c) * (P^2 / (P^2 +b), simplificado a
+                  k = a * P^3 / (P^3 + D(b + cP^2) + b*D),
+                  donde b y c son coeficientes distintos en las dos versiones.
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
@@ -305,6 +307,10 @@ class Red(Simulable):
 
         # La lista de los coeficientes de cada etapa para la depredación
         coefs = numerizar(símismo.coefs_act['Depredación']['Ecuación'])
+
+        # Una función útil para ajustar por la presencia de varias presas
+        def ajust_presa(dep):
+            pass
 
         for n in range(len(símismo.etapas)):  # Para cada etapa...
 
@@ -333,74 +339,75 @@ class Red(Simulable):
 
             elif tipo_ec == 'Tipo I_Dependiente ratio':
                 # Depredación de respuesta funcional tipo I con dependencia en el ratio de presa a depredador.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs / pob_etp * cf['a']
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs / pob_depred * cf['a']
 
             elif tipo_ec == 'Tipo II_Dependiente ratio':
                 # Depredación de respuesta funcional tipo II con dependencia en el ratio de presa a depredador.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs / pob_etp * cf['a'] / (pobs / pobs[n] + cf['b'])
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs / pob_depred * cf['a'] / (pobs / pobs[n] + cf['b'])
 
             elif tipo_ec == 'Tipo III_Dependiente ratio':
                 # Depredación de respuesta funcional tipo III con dependencia en el ratio de presa a depredador.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = np.square(pobs / pob_etp) * cf['a'] / (np.square(pobs / pob_etp) + cf['b'])
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = np.square(pobs / pob_depred) * cf['a'] / (np.square(pobs / pob_depred) + cf['b'])
 
             elif tipo_ec == 'Beddington-DeAngelis':
                 # Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs * cf['a'] / (1 + cf['b'] * pobs + cf['c'] * pob_etp)
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs * cf['a'] / (cf['b'] + pobs + cf['c'] * pob_depred)
 
             elif tipo_ec == 'Tipo I_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs / pob_etp ** cf['m'] * cf['a']
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs / pob_depred ** cf['m'] * cf['a']
 
             elif tipo_ec == 'Tipo II_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs / pob_etp ** cf['m'] * cf['a'] / (pobs / pob_etp ** cf['m'] + cf['b'])
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs / pob_depred ** cf['m'] * cf['a'] / (pobs / pob_depred ** cf['m'] + cf['b'])
 
             elif tipo_ec == 'Tipo III_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                depred_etp = pobs / pob_etp ** cf['m'] * cf['a'] / (pobs / pob_etp ** cf['m'] + cf['b'])
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
+                depred_etp = pobs / pob_depred ** cf['m'] * cf['a'] / (pobs / pob_depred ** cf['m'] + cf['b'])
 
             elif tipo_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-                k = np.divide(np.multiply(cf['b'],
-                                          np.square(pobs)),
-                              np.add(np.square(pobs),
-                                     cf['c'])
-                              )
-                m = (1 / cf['a'] - 1) * np.divide(cf['b'], pobs)
+                pob_depred = pobs[:, :, :, n]  # La población de esta etapa
 
-                depred_etp = k / (1 + m * pob_etp)
+                pobs_norm = np.divide(pobs, cf['a'])
+                suma_pobs_norm = np.sum(pobs_norm, axis=3)
 
-                # Ajusta para presas múltiples
+                depred_total = (np.power(suma_pobs_norm, 3) /
+                                (np.power(suma_pobs_norm, 3) + pob_depred*(cf['b']) + cf['c']*np.power(suma_pobs_norm, 2)
+                                 + pob_depred*cf['b']))
+                depred_etp = pobs_norm/suma_pobs_norm * depred_total * cf['a']
+
+                np.multiply(cf['b'], depred_etp, out=depred_etp)
 
             else:
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
                 raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tipo_ec)
 
-            print('depred 1', depred_etp)
-            input()
             depred[:, :, :, n, :] = depred_etp
+
+        # Reemplazar valores NaN con 0.
+        depred[np.isnan(depred)] = 0
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora esta en unidades
         # del número total de presas comidas por cada tipo de depredador por unidad de tiempo.
-        np.multiply(depred, pobs*paso, out=depred)
+        np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)
 
-        # Abajo, vamos a ajustar por la presencia de varios depredadores
+        # Abajo, vamos a ajustar para la presencia de varios depredadores
 
         # Primero, calculemos la fracción de la población de cada presa potencialmente consumida por cada depredador
         # (sin interferencia entre depredadores).
-        frac_depred = np.divide(depred.swapaxes(4, 3), pobs)  # De pronto no sea necesario el '.swapaxes()'
+        frac_depred = np.divide(depred, pobs)
 
         # Utilizar la ecuación de probabilidades conjuntas de estadísticas para calcular la fracción total de la
-        # población de la presa que se comerá por los depredadores.
+        # población de la presa que se comerá por todos los depredadores juntos.
         frac_total_depred = np.add(1, -np.product(np.add(1, -frac_depred), axis=3))
 
         # La fracción total de cada presa potencialmente consumida por todos sus depredadores. Eso podría ser más que
@@ -413,6 +420,7 @@ class Red(Simulable):
 
         # AJustar la depredación por el factor de ajuste por interferencia entre depredadores
         depred *= ajuste
+        depred[np.isnan(depred)] = 0
 
         # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
         símismo.redondear(depred)
@@ -425,7 +433,7 @@ class Red(Simulable):
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], depred_por_presa[..., n])
 
         # Actualizar la matriz de poblaciones
-        pobs = np.nansum(pobs, -depred_por_presa)
+        np.add(pobs, -depred_por_presa, out=pobs)
 
     def _calc_crec(símismo, pobs, extrn, paso):
         """
@@ -490,14 +498,23 @@ class Red(Simulable):
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
-                k = np.sum(np.multiply(pobs, cf['K']))  # Calcular la capacidad de carga
+                k = np.nansum(np.multiply(pobs, cf['K']))  # Calcular la capacidad de carga
                 crec_etp = pob_etp * (1 - pob_etp / k)  # Ecuación logística sencilla
+
+                # Evitar péridadas de poblaciones superiores a la población.
+                np.maximum(crec_etp, -pob_etp, out=crec_etp)
+
+            elif tipos_ec[n] == 'Depredación':
+                # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
+                # para hacer: implementar
+                raise NotImplementedError
 
             else:
                 raise ValueError
 
             crec[:, :, :, n] = crec_etp
 
+        crec[np.isnan(crec)] = 0
         crec *= paso
 
         símismo.redondear(crec)
@@ -772,38 +789,30 @@ class Red(Simulable):
     def _incrementar(símismo, paso, i, mov=False, extrn=None):
 
         # Empezar con las poblaciones del paso anterior
-        print(símismo.predics)
-        input()
         pobs = símismo.predics['Pobs'][..., i - 1].copy()
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
-        print(1, pobs)
+
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso)
-        print('depred', símismo.predics['Depredación'])
-        print(2, pobs)
-        quit()
+
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
-        print(3, pobs)
 
         # Una etapa que crear más individuos de otra etapa
         # para hacer: símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
 
         # Muertes por el ambiente
         símismo._calc_muertes(pobs=pobs, extrn=extrn, paso=paso)
-        print(4, pobs)
 
         # Una etapa que cambia a otra, o que se muere por su edad.
         símismo._calc_trans(pobs=pobs, extrn=extrn, paso=paso)
-        print(5, pobs)
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Añadir las predicciones de poblaciones para el paso de tiempo i en la matriz de predicciones.
-        print('i', i)
         símismo.predics['Pobs'][..., i] = pobs
 
         # Limpiar los cohortes de los organismos de la Red.
@@ -858,7 +867,9 @@ class Red(Simulable):
         lista_nombres_cols = símismo.formatos_exps['nombres_cols'][nombre]
 
         # Para guardar las etapas que corresponden a la misma columna en la base de datos, si aplica.
-        lista_comunes = [[]] * len(símismo.etapas)
+        lista_comunes = []
+        for _ in range(len(símismo.etapas)):
+            lista_comunes.append([])
 
         # Para cada organismo en el diccionario de correspondencias
         for org, d_org in corresp.items():
@@ -866,7 +877,6 @@ class Red(Simulable):
             # Para cada etapa del organismo en el diccionario de correspondencias
             for etp, d_etp in d_org.items():
 
-                # Si hay más que una columna de la base de datos
                 lista_cols = corresp[org][etp]
 
                 # Asegurar el formato correcto
@@ -888,7 +898,7 @@ class Red(Simulable):
                     # Si solo hay una columna para la etapa, utilizar esta.
                     nombre_col = lista_cols[0]
 
-                # Guardar el número de la etapa en la Red
+                # Guardar el número de la etapa de la Red
                 núm_etp = símismo.núms_etapas[org][etp]
 
                 lista_comunes[núm_etp].append(núm_etp)
@@ -963,7 +973,7 @@ class Red(Simulable):
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
                 # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
-                # en cuestión a tiempo 0.
+                # en cuestión (eje 3) a tiempo 0 (eje 4).
                 datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
 
             # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
@@ -1005,7 +1015,9 @@ class Red(Simulable):
             for subcateg in dic_categ:
 
                 # Crear una lista en coefs_act para guardar los diccionarios de los parámetros de cada etapa
-                coefs_act = símismo.coefs_act[categ][subcateg] = [{}] * n_etapas
+                coefs_act = símismo.coefs_act[categ][subcateg] = []
+                for _ in range(n_etapas):
+                    coefs_act.append({})
 
                 # La lista de los tipos de ecuaciones para esta subcategoría para todas las etapas
                 lista_tipos_ecs = símismo.ecs[categ][subcateg]
@@ -1032,14 +1044,14 @@ class Red(Simulable):
                         elif d_parám['inter'] == 'presa':
                             # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición paramétrica,
                             # eje 1 = presa.
-                            matr = coefs_act[n_etp][parám] = np.zeros(shape=(n_rep_parám, len(símismo.etapas)),
+                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
                                                                       dtype=object)
+                            matr[:] = np.nan
 
                             # Para cada presa del organismo...
                             for org_prs, l_etps_prs in símismo.etapas[n_etp]['conf']['presa'].items():
 
                                 for etp_prs in l_etps_prs:
-
                                     n_etp_prs = símismo.núms_etapas[org_prs][etp_prs]
 
                                     matr[:, n_etp_prs] = gen_vector_coefs(dic_parám=d_parám_etp[org_prs][etp_prs],
@@ -1069,8 +1081,9 @@ class Red(Simulable):
 
         símismo.predics['Pobs'] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etapas, n_pasos),
                                            dtype=int)
+
         símismo.predics['Depredación'] = np.zeros(shape=(n_parcelas, n_rep_estoc, n_rep_parám, n_etapas, n_etapas),
-                                                  dtype=int)
+                                                  dtype=int)  # eje
 
         # Crear las matrices para guardar resultados:
         for categ in símismo.predics:
@@ -1116,11 +1129,18 @@ class Red(Simulable):
         :type matriz: np.ndarray
 
         """
-        print('matriz', matriz)
-        residuos = matriz - np.round(matriz, out=matriz)
+        # Quitar los decimales de la matriz
+        redondeada = np.floor(matriz)
 
+        # Guardar los residuos
+        residuos = matriz - redondeada
+
+        # Generar una matriz de valores aleatorias entre 0 y 1
         prob = np.random.rand(*matriz.shape)
-        matriz += (prob > residuos) * 1
+
+        # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
+        # estocasticidad al modelo.
+        np.add(redondeada, np.greater(residuos, prob), out=matriz)
 
     @staticmethod
     def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):

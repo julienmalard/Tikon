@@ -2,11 +2,13 @@ import os
 
 import RAE.NuevoINSECTO as Ins
 from RAE.NuevaRedAE import Red
+import RAE.PLANTA as Plt
 from MATEMÁTICAS.Experimentos import Experimento
 
 
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc')
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc')
+Coco = Plt.Planta()
 
 Parasitoide_senc.secome(O_arenosella_senc)
 
