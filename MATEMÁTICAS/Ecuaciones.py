@@ -23,45 +23,47 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                          'Logístico': {'K': {'límites': (0, np.inf),
                                                              'inter': None}},
                                          'Logístico Presa': {'K': {'límites': (0, np.inf),
+                                                                   'inter': 'presa'}},
+                                         'Logístico Depredación': {'K': {'límites': (0, np.inf),
                                                                    'inter': 'presa'}}
                                          }
                             },
 
             'Depredación': {'Ecuación': {None: {},
 
-                                         'Tipo I_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                         'Tipo I_Dependiente presa': {'a': {'límites': (0, 1),
                                                                             'inter': 'presa'}
                                                                       },
 
-                                         'Tipo II_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                         'Tipo II_Dependiente presa': {'a': {'límites': (0, 1),
                                                                              'inter': 'presa'},
                                                                        'b': {'límites': (0, np.inf),
                                                                              'inter': 'presa'}
                                                                        },
 
-                                         'Tipo III_Dependiente presa': {'a': {'límites': (0, np.inf),
+                                         'Tipo III_Dependiente presa': {'a': {'límites': (0, 1),
                                                                               'inter': 'presa'},
                                                                         'b': {'límites': (0, np.inf),
                                                                               'inter': 'presa'}
                                                                         },
 
-                                         'Tipo I_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                         'Tipo I_Dependiente ratio': {'a': {'límites': (0, 1),
                                                                             'inter': 'presa'}
                                                                       },
 
-                                         'Tipo II_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                         'Tipo II_Dependiente ratio': {'a': {'límites': (0, 1),
                                                                              'inter': 'presa'},
                                                                        'b': {'límites': (0, np.inf),
                                                                              'inter': 'presa'}
                                                                        },
 
-                                         'Tipo III_Dependiente ratio': {'a': {'límites': (0, np.inf),
+                                         'Tipo III_Dependiente ratio': {'a': {'límites': (0, 1),
                                                                               'inter': 'presa'},
                                                                         'b': {'límites': (0, np.inf),
                                                                               'inter': 'presa'}
                                                                         },
 
-                                         'Beddington-DeAngelis': {'a': {'límites': (0, np.inf),
+                                         'Beddington-DeAngelis': {'a': {'límites': (0, 1),
                                                                         'inter': 'presa'},
                                                                   'b': {'límites': (0, np.inf),
                                                                         'inter': 'presa'},
@@ -91,12 +93,12 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                                                            'inter': 'presa'}
                                                                      },
 
-                                         'Kovai': {'a': {'límites': (0, 1),
+                                         'Kovai': {'a': {'límites': (0, np.inf),
                                                          'inter': 'presa'},
-                                                   'b': {'límites': (0, np.inf),
-                                                         'inter': 'presa'},
+                                                   'b': {'límites': (0, 1),
+                                                         'inter': None},
                                                    'c': {'límites': (1, np.inf),
-                                                         'inter': 'presa'}
+                                                         'inter': None}
                                                    }
                                          },
                             },
