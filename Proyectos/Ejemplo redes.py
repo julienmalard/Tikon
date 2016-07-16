@@ -8,11 +8,12 @@ from MATEMÁTICAS.Experimentos import Experimento
 
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc')
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc')
-Coco = Plt.Planta()
+Coco = Plt.Constante(nombre='Palma de coco', densidad=5000)
 
+O_arenosella_senc.secome(Coco)
 Parasitoide_senc.secome(O_arenosella_senc)
 
-Red_coco_senc = Red('Campos coco sencillo', organismos=[O_arenosella_senc, Parasitoide_senc])
+Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc, Parasitoide_senc])
 
 Experimento_A = Experimento(nombre='Sitio A')
 directorio = os.path.dirname(__file__)
@@ -22,11 +23,16 @@ Experimento_A.cargar_orgs(archivo=os.path.join(directorio, 'Oarenosella.csv'),
 
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
-                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs']}
+                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs']},
+                                  'Palma de coco': {'planta': ['Coco']}
                                   }
                          )
 
+# Red_coco_senc.validar(exper=Experimento_A)
+
 Red_coco_senc.calibrar()
+
+# Red_coco_senc.validar(exper=Experimento_A)
 
 """
 O_arenosella = Ins.MetamCompleta('O. arenosella', njuvenil=5)

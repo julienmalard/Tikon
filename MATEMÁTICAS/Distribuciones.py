@@ -1,9 +1,9 @@
 import math as mat
 import numpy as np
 import scipy.stats as estad
-from pymc import Beta, Cauchy, Chi2, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, Laplace, \
-    Logistic, Lognormal, NoncentralT, Normal, Pareto, T, TruncatedNormal, Uniform, VonMises, Bernoulli, Binomial, \
-    Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
+from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
+    Laplace, Logistic, Lognormal, NoncentralT, Normal, Pareto, T, TruncatedNormal, Uniform, VonMises, Bernoulli, \
+    Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
 
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.
 dists = {'Alpha': {'scipy': estad.alpha,
@@ -61,6 +61,10 @@ dists = {'Alpha': {'scipy': estad.alpha,
                     'límites': (-mat.pi, mat.pi),
                     'tipo': 'cont'
                     },
+         'Degenerado': {'scipy': None,
+                        'pymc': Degenerate,
+                        'límites': None,
+                        'tipo': 'cont'},
          'DobleGamma': {'scipy': estad.dgamma,
                         'pymc': None,
                         'límites': (0, np.inf),

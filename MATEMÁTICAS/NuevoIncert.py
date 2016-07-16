@@ -233,6 +233,8 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
     # Si queremos generar una distribución PyMC, guardar únicamente las distribuciones con objeto de PyMC disponible
     if usar_pymc is True:
         dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['pymc'] is not None]
+    else:
+        dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['scipy'] is not None]
 
     # Para cada distribución potencial para representar a nuestros datos...
     for nombre_dist in dists_potenciales:
@@ -368,11 +370,14 @@ def límites_a_texto_apriori(límites, cont=True):
                 dist = 'Geométrica~(1e-8, {})'.format(loc)
 
         else:  # El caso (R, R)
-            if cont:
-                loc = máx-mín
-                dist = 'Uniforme~({}, {})'.format(mín, loc)
+            if máx == mín:
+                dist = 'Degenerado~({})'.format(máx)
             else:
-                dist = 'UnifDiscr~({}, {})'.format(mín, mín+1)
+                if cont:
+                    loc = máx-mín
+                    dist = 'Uniforme~({}, {})'.format(mín, loc)
+                else:
+                    dist = 'UnifDiscr~({}, {})'.format(mín, mín+1)
 
     return dist
 
@@ -411,9 +416,9 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     if certidumbre == 1:
         # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
         if cont:
-            dist = 'Uniforme~({}, {})'.format(mín, (máx-mín))
+            dist = 'Uniforme~({}, {})'.format(rango[0], (rango[1]-rango[0]))
         else:
-            dist = 'UnifDiscr~({}, {})'.format(mín, máx)
+            dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1])
 
     else:
         # Si hay incertidumbre, asignar una distribución según cada caso posible
