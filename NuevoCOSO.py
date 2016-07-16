@@ -56,7 +56,7 @@ class Coso(object):
         if fuente is not None:
             símismo.cargar(fuente)
 
-    def especificar_apriori(símismo, ubic_parám, rango, certidumbre):
+    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre):
         """
         Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
 
@@ -82,23 +82,23 @@ class Coso(object):
         if not 0 < certidumbre <= 1:
             raise ValueError('El parámetro "certidumbre" debe ser un número en el rango (0, 1].')
 
-        dic_parám = símismo.receta['coefs']
+        dic_parám = símismo.receta['coefs'][etapa]
         dic_ecs = símismo.dic_ecs
-        líms = None
+
         for llave in ubic_parám:
             try:
                 dic_parám = dic_parám[llave]
+                dic_ecs = dic_ecs[llave]
             except KeyError:
-                raise KeyError('Ubicación de parámetro errónea.')
+                raise KeyError('Ubicación de parámetro erróneo.')
 
-            dic_ecs = dic_ecs[llave]
-            if 'límites' in dic_ecs:
-                líms = dic_ecs['límites']
+        try:
+            líms = dic_ecs['límites']
+        except KeyError:
+            raise KeyError('Ubicación de parámetro erróneo.')
 
-            assert líms is not None
-
-            dic_parám['especificado'] = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
-                                                                  cont=True)  # para hacer: parámetros discretos
+        dic_parám['especificado'] = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
+                                                              cont=True)  # para hacer: parámetros discretos
 
     def guardar(símismo, archivo=''):
         """

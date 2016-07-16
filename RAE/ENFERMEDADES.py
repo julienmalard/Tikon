@@ -1,4 +1,4 @@
-from RAE.ORGANISMO import Organismo
+from RAE.Organismo import Organismo
 
 
 class Enfermedad(Organismo):

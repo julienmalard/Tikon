@@ -25,6 +25,9 @@ class Organismo(Coso):
     # La extensión de base para organismos
     ext = '.org'
 
+    # La ubicación del diccionario de especificaciones de ecuaciones y parámetros
+    dic_ecs = Ec.ecs_orgs
+
     def __init__(símismo, nombre=None, fuente=None):
         """
 

@@ -1,4 +1,4 @@
-from RAE.ORGANISMO import Organismo
+from RAE.Organismo import Organismo
 
 
 class Insecto(Organismo):
@@ -9,7 +9,7 @@ class Insecto(Organismo):
 
     ext = '.ins'
 
-    def __init__(símismo, nombre, huevo, njuvenil, pupa, adulto, tipo_ecuaciones, fuente=None):
+    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecuaciones=None, fuente=None):
         """
         La funciôn de inicializaciôn crea un objeto Organismo y después crea las etapas apropiadas.
 
@@ -139,21 +139,21 @@ class MetamCompleta(Insecto):
         if huevo:
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                     Depredación={'Ecuación': None},
-                                    Muertes={'Edad': None, 'Prob': None},
+                                    Muertes={'Ecuación': None},
                                     Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                     Movimiento={}
                                     )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                   Depredación={'Ecuación': 'Kovai'},
-                                  Muertes={'Edad': None, 'Prob': None},
+                                  Muertes={'Ecuación': None},
                                   Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                   Movimiento={}
                                   )
 
         tipo_ec['pupa'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                Depredación={'Ecuación': None},
-                               Muertes={'Edad': None, 'Prob': None},
+                               Muertes={'Ecuación': None},
                                Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                Movimiento={}
                                )
@@ -161,7 +161,7 @@ class MetamCompleta(Insecto):
         if adulto:
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                      Depredación={'Ecuación': 'Kovai'},
-                                     Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                     Muertes={'Ecuación': None},
                                      Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
@@ -196,14 +196,14 @@ class MetamIncompleta(Insecto):
         if huevo:
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                     Depredación={'Ecuación': None},
-                                    Muertes={'Edad': None, 'Prob': None},
+                                    Muertes={'Ecuación': 'Constante'},
                                     Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                     Movimiento={}
                                     )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                   Depredación={'Ecuación': 'Kovai'},
-                                  Muertes={'Edad': None, 'Prob': None},
+                                  Muertes={'Ecuación': 'Constante'},
                                   Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                   Movimiento={}
                                   )
@@ -211,7 +211,7 @@ class MetamIncompleta(Insecto):
         if adulto:
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                      Depredación={'Ecuación': 'Kovai'},
-                                     Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                     Muertes={'Ecuación': None},
                                      Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
@@ -231,14 +231,14 @@ class Parasitoide(Insecto):
         if pupa:
             tipo_ec['pupa'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                    Depredación={'Ecuación': None},
-                                   Muertes={'Edad': None, 'Prob': None},
+                                   Muertes={'Ecuación': 'Constante'},
                                    Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                    Movimiento={}
                                    )
 
         tipo_ec['adulto'] = dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                  Depredación={'Ecuación': 'Kovai'},
-                                 Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                 Muertes={'Ecuación': None},
                                  Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                  Movimiento={}
                                  )
@@ -283,7 +283,7 @@ class Esfécido(Insecto):
 
         tipo_ec = {'adulto': dict(Crecimiento={'Modif': None, 'Ecuación': None},
                                   Depredación={'Ecuación': 'Kovai'},
-                                  Muertes={'Edad': 'Días', 'Prob': 'Proporcional'},
+                                  Muertes={'Ecuación': None},
                                   Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
                                   Movimiento={}
                                   )}

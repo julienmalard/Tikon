@@ -5,7 +5,7 @@ import MATEMÁTICAS.Distribuciones as Ds
 import MATEMÁTICAS.Ecuaciones as Ec
 from MATEMÁTICAS.NuevoIncert import numerizar, gen_vector_coefs
 from NuevoCoso import Simulable, valid_vals_inic
-from RAE.ORGANISMO import Organismo
+from RAE.Organismo import Organismo
 
 
 class Red(Simulable):
@@ -229,10 +229,7 @@ class Red(Simulable):
                 # Para cada etapa de esta red...
                 for d_etp in símismo.etapas:
                     # Leer el tipo de ecuación activo para esta simulación
-                    try:
-                        tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
-                    except KeyError:
-                        raise KeyError
+                    tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
 
                     # Guardar el tipo de ecuación en su lugar en símismo.ecs
                     símismo.ecs[categ][sub_categ].append(tipo_ec)
@@ -508,6 +505,12 @@ class Red(Simulable):
                 # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
                 # para hacer: implementar
                 raise NotImplementedError
+
+            elif tipos_ec[n] == 'Población Constante':
+                # Esta ecuación guarda la población del organismo a un nivel constante, no importe qué esté pasando
+                # en el resto de la red. Puede ser util para representar plantas donde los herbívoros están bien
+                # abajo de sus capacidades de carga.
+                crec_etp = cf['p'] - pob_etp
 
             else:
                 raise ValueError
@@ -908,6 +911,10 @@ class Red(Simulable):
                     símismo.formatos_exps['etps_interés'][nombre].append(núm_etp)
                     lista_nombres_cols.append(nombre_col)
 
+        # Convertir a matriz numpy
+        símismo.formatos_exps['etps_interés'][nombre] = np.array(símismo.formatos_exps['etps_interés'][nombre])
+
+        # Hacer la lista de etapas para combinar en el análisis de datos.
         símismo.formatos_exps['combin_etps'][nombre] = [(n, x) for n, x in enumerate(lista_comunes) if len(x) > 1]
 
     def _procesar_predics_calib(símismo):
@@ -927,7 +934,7 @@ class Red(Simulable):
                 predic['Pobs'][..., i[0], :] += np.sum(predic['Pobs'][..., i[1], :], axis=3)
 
             vector_predics = np.concatenate((vector_predics,
-                                             predic['Pobs'][..., etps_interés, días_interés].flatten()))
+                                             predic['Pobs'][..., etps_interés[:, np.newaxis], días_interés].flatten()))
 
         return vector_predics
 
