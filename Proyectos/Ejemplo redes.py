@@ -2,7 +2,7 @@ import os
 
 import RAE.NuevoINSECTO as Ins
 from RAE.NuevaRedAE import Red
-import RAE.PLANTA as Plt
+import RAE.Planta as Plt
 from MATEMÁTICAS.Experimentos import Experimento
 
 
@@ -23,14 +23,14 @@ Experimento_A.cargar_orgs(archivo=os.path.join(directorio, 'Oarenosella.csv'),
 
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
-                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs']},
-                                  'Palma de coco': {'planta': ['Coco']}
+                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs']}
                                   }
                          )
 
-# Red_coco_senc.validar(exper=Experimento_A)
+ajuste_inic = Red_coco_senc.validar(exper=Experimento_A, usar_especificados=True)
+print('Ajuste inicial: ', ajuste_inic)
 
-Red_coco_senc.calibrar()
+# Red_coco_senc.calibrar(n_iter=100, quema=10)
 
 # Red_coco_senc.validar(exper=Experimento_A)
 
