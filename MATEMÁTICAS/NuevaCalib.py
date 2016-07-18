@@ -96,24 +96,23 @@ class ModBayes(object):
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados
         función_llenar_coefs(n_rep_parám=1, calibs=id_calib, comunes=False)
 
+        # Para la varianza de la distribución normal, se emplea un tau no informativo.
+        tau = Exponential('tau', beta=1e-10)
+
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
         # pasamos los argumentos necesarios, si aplican.
-
-        @deterministic
-        def simular():
-            return función(**dic_argums)
+        @deterministic(plot=False)
+        def simular(d=dic_argums, t=tau):
+            return función(**d)
 
         # Una distribución normal alrededor de las predicciones del modelo, conectado con las observaciones
-        # correspondientes. Para la varianza de la distribución normal, se emplea un tau no informativo.
-
-        tau = Exponential('tau', beta=1e10)
-
+        # correspondientes.
         dist_obs = Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = MCMC([dist_obs, tau, simular, *lista_paráms])
+        símismo.MCMC = MCMC({dist_obs, tau, simular, *lista_paráms})
 
-    def calib(símismo, rep=10000, quema=100, extraer=10):
+    def calib(símismo, rep=1000, quema=10, extraer=10):
         """
         Esta función sirve para llamar a las funcionalidades de calibración de PyMC.
 
@@ -134,7 +133,9 @@ class ModBayes(object):
         """
 
         # Llamar la función "sample" del objeto MCMC de PyMC
-        símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer)
+        símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+        prueba = símismo.MCMC.trace('simular')[:]
+        print(prueba)
 
     def guardar(símismo):
         """

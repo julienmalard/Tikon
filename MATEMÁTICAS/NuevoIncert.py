@@ -13,7 +13,7 @@ Este código contiene funciones para manejar datos de incertidumbre.
 """
 
 
-def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
+def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificados):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
       que queremos usar y el número de repeticiones que queremos.
@@ -27,8 +27,11 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
     :param n_rep_parám: El número de repeticiones paramétricas que queremos en nuestra simulación.
     :type n_rep_parám: int
 
-    :param comunes: Di queremos que haya correspondencia entre los datos elegidos de cada parámetro.
+    :param comunes: Si queremos que haya correspondencia entre los datos elegidos de cada parámetro.
     :type comunes: bool
+
+    :param usar_especificados: Si queremos usar las distribuciones especificadas manualmente por el usuario.
+    :type usar_especificados:
 
     :return: Una matriz unidimensional con los valores del parámetro.
     :rtype: np.ndarray
@@ -37,7 +40,10 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
 
     # Hacer una lista con únicamente las calibraciones que estén presentes y en la lista de calibraciones acceptables,
     # y en el diccionario del parámetro
-    calibs_usables = [x for x in dic_parám if x in calibs]
+    if usar_especificados and 'especificado' in dic_parám:
+        calibs_usables = ['especificado']
+    else:
+        calibs_usables = [x for x in dic_parám if x in calibs]
 
     # La lista para guardar las partes de las trazas de cada calibración que queremos incluir en la traza final
     lista_trazas = []
@@ -52,7 +58,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes=False):
     # Calcular el número que repeticiones que no se dividieron igualmente entre las calibraciones...
     resto = n_rep_parám % n_calibs
     # ...y añadirlas la principio de la lista de calibraciones.
-    rep_per_calib[:resto + 1] += 1
+    rep_per_calib[:resto] += 1
 
     if comunes:
         tamaño_mín = np.min([len(x) for x in dic_parám])
@@ -459,7 +465,8 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     return dist
 
 
-def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=None, mostrar=True, archivo=''):
+def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
+            etiq_y=None, etiq_x='Día', color=None, mostrar=True, archivo=''):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
@@ -470,8 +477,11 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
     :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
     :type vector_obs: np.ndarray
 
-    :param nombre: El título del gráfico
-    :type nombre: str
+    :param tiempos_obs: El vector de los tiempos de las observaciones.
+    :type tiempos_obs: np.ndarray
+
+    :param título: El título del gráfico
+    :type título: str
 
     :param etiq_y: La etiqueta para el eje y del gráfico.
     :type etiq_y: str
@@ -490,25 +500,25 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
 
     """
 
-    assert len(vector_obs) == matr_predic.shape[2]
-
     if color is None:
         color = '#99CC00'
 
     if etiq_y is None:
-        etiq_y = nombre
+        etiq_y = título
 
     if mostrar is False:
         if len(archivo) == 0:
-            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % nombre)
+            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
 
     prom_predic = matr_predic.mean(axis=(0, 1))
 
-    x = np.arange(len(vector_obs))
+    # El número de días
+    x = np.arange(matr_predic.shape[2])
 
     dib.plot(x, prom_predic, lw=2, color=color)
 
-    dib.plot(x, vector_obs, 'o', color=color)
+    if vector_obs is not None:
+        dib.plot(tiempos_obs, vector_obs, 'o', color=color)
 
     # Una matriz sin la incertidumbre estocástica
     matr_prom_estoc = matr_predic.mean(axis=0)
@@ -526,13 +536,13 @@ def gráfico(matr_predic, vector_obs, nombre, etiq_y=None, etiq_x='Día', color=
 
     dib.xlabel(etiq_x)
     dib.ylabel(etiq_y)
-    dib.title(nombre)
+    dib.title(título)
 
     if mostrar is True:
         dib.show()
     else:
         if '.png' not in archivo:
-            archivo = os.path.join(archivo, nombre + '.png')
+            archivo = os.path.join(archivo, título + '.png')
         dib.savefig(archivo)
 
 
