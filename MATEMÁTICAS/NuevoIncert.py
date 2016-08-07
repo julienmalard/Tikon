@@ -448,15 +448,50 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
             if máx == np.inf:  # El caso (R, np.inf)
                 if cont:
                     inic = np.array([1, 1])
-                    # Estimar los parámetros
-                    paráms = minimize(lambda x: abs((estad.gamma.cdf(rango[1], a=x[0], loc=mín, scale=x[1]) -
-                                                     estad.gamma.cdf(rango[0], a=x[0], loc=mín, scale=x[1])) -
-                                                    certidumbre).x,
-                                      x0=inic)
-                    dist = 'Gamma~({}, {}, {})'.format(paráms[0], mín, paráms[1])
+
+                    # Primero hacemos una serie de transformaciones al rango, si necesario, para que se pueda
+                    # aproximar con una distribución gamma.
+                    escala = 1
+                    trasld = 0
+
+                    if rango[0] < 1:
+                        escala = 1 / rango[0]
+
+                    dif = (rango[1] - rango[0]) * escala
+                    if dif < 3:
+                        escala *= 3 / dif
+
+                    rango_ajust = (rango[0] * escala, rango[1] * escala)
+
+                    if rango_ajust[0] > 1.5:
+                        trasld = rango_ajust[0] - 1.5
+                        rango_ajust = (rango_ajust[0] - trasld, rango_ajust[1] - trasld)
+
+                    # Ahora, estimar los parámetros.
+                    opt = minimize(lambda x: abs((estad.gamma.cdf(rango_ajust[1], a=x[0], loc=mín, scale=x[1]) -
+                                                  estad.gamma.cdf(rango_ajust[0], a=x[0], loc=mín, scale=x[1])) -
+                                                 certidumbre), bounds=[(0, None), (0, None)],
+                                   x0=inic)
+
+                    # Ajustar los parámetros estimados
+                    paráms = np.array([opt.x[0], mín, opt.x[1]])
+                    paráms[1] += trasld / escala
+                    paráms[2] /= escala
+
+                    # Validar que todo esté bien y que el error en la densidad de la distribución sea menos de
+                    # 0.0001.
+                    validar = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
+                                   estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
+
+                    if validar-certidumbre > 0.0001:
+                        raise ValueError('Error en la optimización de la distribución especificada. Esto es un error de'
+                                         'programación, así que mejor se queja al programador.')
+
+                    dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
+
                 else:
                     raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
-                                     '(R, inf). Si lo quieres añadir, ¡dale!')
+                                     '(R, inf). Si lo quieres añadir, ¡dale pués!')
 
             else:  # El caso (R, R)
                 raise ValueError('No se puede especificar una certidumbre de inferior a 100 % con una distribución'
@@ -518,6 +553,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     dib.plot(x, prom_predic, lw=2, color=color)
 
     if vector_obs is not None:
+        print(vector_obs)
         dib.plot(tiempos_obs, vector_obs, 'o', color=color)
 
     # Una matriz sin la incertidumbre estocástica

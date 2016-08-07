@@ -26,8 +26,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                                                    'inter': 'presa'}},
                                          'Logístico Depredación': {'K': {'límites': (0, np.inf),
                                                                    'inter': 'presa'}},
-                                         'Población Constante': {'p': {'límites': (0, np.inf),
-                                                                       'inter': None}}
+                                         'Externa cultivo': {}
                                          }
                             },
 

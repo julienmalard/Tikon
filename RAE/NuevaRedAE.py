@@ -1,13 +1,15 @@
-import os
 import math as mat
+import os
+import time
+
 import numpy as np
 
 import MATEMÁTICAS.Distribuciones as Ds
 import MATEMÁTICAS.Ecuaciones as Ec
-from MATEMÁTICAS.NuevoIncert import numerizar, gen_vector_coefs, gráfico
+import RAE.Planta as Plt
+from MATEMÁTICAS.NuevoIncert import numerizar, gen_vector_coefs, texto_a_dist, gráfico
 from NuevoCoso import Simulable, valid_vals_inic
 from RAE.Organismo import Organismo
-import RAE.Planta as Plt
 
 
 class Red(Simulable):
@@ -24,7 +26,7 @@ class Red(Simulable):
     # La extensión para guardar documentos de recetas de redes agroecológicas.
     ext = '.red'
 
-    def __init__(símismo, nombre, organismos=None, fuente=None):
+    def __init__(símismo, nombre, organismos=None, proyecto=None, fuente=None):
 
         """
         :param nombre: El nombre de la red.
@@ -34,11 +36,11 @@ class Red(Simulable):
           de un tal objeto o nombre.
         :type organismos: list
 
-        :param fuente: De dónde cargar la red, si estamos cargando una red ya definida.
+        :param fuente: De dónde cargar la Red, si estamos cargando una Red ya definida.
         :type fuente: str
         """
 
-        super().__init__(nombre=nombre, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
 
         # La información necesaria para recrear la red
         símismo.receta['estr'] = dict(Organismos={})
@@ -72,6 +74,9 @@ class Red(Simulable):
         # las predicciones de la red en función a cada experimento.
         símismo.formatos_exps = {'etps_interés': {}, 'combin_etps': {}, 'nombres_cols': {},
                                  'ubic_obs': {}}
+        
+        # Para guardar una conexión con los organismos de plantas en la red
+        símismo.plantas = {'dic': {}, 'n_etp': {}}
 
         # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
         if type(organismos) is not list:
@@ -190,6 +195,8 @@ class Red(Simulable):
 
         # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
+        símismo.plantas['dic'].clear()  # Borrar los diccionarios para plantas
+        símismo.plantas['n_etp'].clear()
 
         n = 0
         for nombre_org, org in sorted(símismo.organismos.items()):
@@ -211,6 +218,11 @@ class Red(Simulable):
 
                 # Y guardamos una referencia al número de la etapa
                 símismo.núms_etapas[nombre_org][nombre_etp] = n
+
+                # Para la gestión de cultivos/plantas
+                if isinstance(org, Plt.Planta):
+                    símismo.plantas['dic'][n] = org.densidad
+                    símismo.plantas['n_etp'][n] = nombre_etp
 
                 n += 1
 
@@ -262,6 +274,7 @@ class Red(Simulable):
 
         # Para cada experimento...
         for exp in exper:
+            dic_título['exp'] = exp
 
             # El diccionario con las observaciones
             dic_obs = símismo.exps[exp].datos['Organismos']['obs']
@@ -275,7 +288,7 @@ class Red(Simulable):
                 for etp, n_etp in d_org.items():
                     dic_título['etp'] = etp
 
-                    matr_predic = símismo.predics_exps[exp]['Pobs'][..., n_etp]
+                    matr_predic = símismo.predics_exps[exp]['Pobs'][..., n_etp, :]
 
                     # Para cada parcela en las predicciones...
                     for prc in range(matr_predic.shape[0]):
@@ -289,7 +302,7 @@ class Red(Simulable):
 
                         # El vector de observaciones
                         try:
-                            vector_obs = dic_obs[etp]
+                            vector_obs = dic_obs[etp]  # Para hacer: arreglar esto.
                         except KeyError:
                             vector_obs = None
 
@@ -456,7 +469,7 @@ class Red(Simulable):
 
         # Primero, calculemos la fracción de la población de cada presa potencialmente consumida por cada depredador
         # (sin interferencia entre depredadores).
-        frac_depred = np.divide(depred, pobs[..., np.newaxis])
+        frac_depred =  np.divide(depred, pobs[..., np.newaxis])
 
         # Utilizar la ecuación de probabilidades conjuntas de estadísticas para calcular la fracción total de la
         # población de la presa que se comerá por todos los depredadores juntos.
@@ -468,10 +481,10 @@ class Red(Simulable):
 
         # El factor de ajuste para que la suma de la depredación de cada depredador en la presa sume al total de
         # depredación ya calculado.
-        ajuste = frac_total_depred / frac_depred_total_pot
+        ajuste = np.divide(frac_total_depred, frac_depred_total_pot)
 
         # AJustar la depredación por el factor de ajuste por interferencia entre depredadores
-        depred *= ajuste[..., np.newaxis]
+        np.multiply(depred, ajuste[..., np.newaxis], out=depred)
         depred[np.isnan(depred)] = 0
 
         # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
@@ -521,7 +534,7 @@ class Red(Simulable):
 
             elif modifs[n] == 'Ninguna':
                 # Sin modificación a r.
-                r = cf['r'] * paso
+                r = np.multiply(cf['r'], paso)
 
             elif modifs[n] == 'Log Normal Temperatura':
                 # r responde a la temperatura con una ecuación log normal.
@@ -561,11 +574,12 @@ class Red(Simulable):
                 # para hacer: implementar
                 raise NotImplementedError
 
-            elif tipos_ec[n] == 'Población Constante':
+            elif tipos_ec[n] == 'Externa cultivo':
                 # Esta ecuación guarda la población del organismo a un nivel constante, no importe qué esté pasando
                 # en el resto de la red. Puede ser util para representar plantas donde los herbívoros están bien
                 # abajo de sus capacidades de carga.
-                crec_etp = (cf['p'] - pob_etp)
+                nueva_pob = símismo.plantas['dic'][n][símismo.plantas['n_etp'][n]]
+                crec_etp = (nueva_pob - pob_etp)
 
             else:
                 raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tipos_ec[n])
@@ -576,7 +590,7 @@ class Red(Simulable):
 
         símismo.redondear(crec)
 
-        # Si la etapa usa cohortes¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ para cualquier otro cálculo, acutlizar los cohortes ahora.
+        # Si la etapa usa cohortes para cualquier otro cálculo, actulizar los cohortes ahora.
         for n in símismo.ecs['Cohortes']:
             símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], crec[..., n])
 
@@ -845,9 +859,11 @@ class Red(Simulable):
         raise NotImplementedError
 
     def _incrementar(símismo, paso, i, mov=False, extrn=None):
-        print(i)
+        inicial = time.time()
+
         # Empezar con las poblaciones del paso anterior
-        pobs = símismo.predics['Pobs'][..., i - 1].copy()
+        símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
+        pobs = símismo.predics['Pobs'][..., i]
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
 
@@ -870,14 +886,40 @@ class Red(Simulable):
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
-        # Añadir las predicciones de poblaciones para el paso de tiempo i en la matriz de predicciones.
-        símismo.predics['Pobs'][..., i] = pobs
+        # Ruido aleatorio; para hacer: formalizar el proceso de agregación de ruido aleatorio
+        símismo._agregar_ruido(pobs=pobs, ruido=1)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
 
+        print('Total un paso:', time.time()-inicial)
+
+    @staticmethod
+    def _agregar_ruido(pobs, ruido):
+        """
+
+        :param pobs:
+        :type pobs:
+        :param ruido:
+        :type ruido:
+        :return:
+        :rtype:
+        """
+
+        np.add(np.round(np.random.normal(pobs, ruido)), pobs, out=pobs)
+
+        np.maximum(0, pobs, out=pobs)
+
     def _procesar_validación(símismo, vector_obs, vector_preds):
-        pass
+        """
+
+        :param vector_obs:
+        :type vector_obs:
+        :param vector_preds:
+        :type vector_preds:
+        :return:
+        :rtype:
+        """
 
     def _sacar_líms_coefs_interno(símismo):
         """
@@ -1065,7 +1107,7 @@ class Red(Simulable):
             for org in símismo.organismos.values():
                 if type(org) is Plt.Constante:
                     n_etp = símismo.núms_etapas[org.nombre]['planta']
-                    datos_inic['Pobs'][..., n_etp, 0] = org.densidad
+                    datos_inic['Pobs'][..., n_etp, 0] = org.densidad['planta']
 
             # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
             dic_args['datos_inic'][exp] = datos_inic
