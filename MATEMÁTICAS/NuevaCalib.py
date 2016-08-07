@@ -94,7 +94,7 @@ class ModBayes(object):
                                          aprioris=aprioris)
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados
-        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, comunes=False)
+        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificados=True, comunes=False)
 
         # Para la varianza de la distribución normal, se emplea un tau no informativo.
         tau = Exponential('tau', beta=1e-10)

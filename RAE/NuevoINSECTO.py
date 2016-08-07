@@ -9,7 +9,8 @@ class Insecto(Organismo):
 
     ext = '.ins'
 
-    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecuaciones=None, fuente=None):
+    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecuaciones=None,
+                 proyecto=None, fuente=None):
         """
         La funciôn de inicializaciôn crea un objeto Organismo y después crea las etapas apropiadas.
 
@@ -34,9 +35,12 @@ class Insecto(Organismo):
            Etapa_2: {Categoría_1: {subcategoría...}, ...}, ...}
         :type tipo_ecuaciones: dict
 
+        :type proyecto: str
+        :type fuente: str
+
         """
 
-        super().__init__(nombre=nombre, fuente=fuente)
+        super().__init__(nombre=nombre, fuente=fuente, proyecto=proyecto)
 
         # Únicamente añadir las etapas si estamos creando un nuevo Insecto (sin cargarlo de un archivo existente)
         if fuente is None:
@@ -93,13 +97,15 @@ class Insecto(Organismo):
 
 # Unas clases prehechas para simplificar la creación de insectos
 class Sencillo(Insecto):
-    def __init__(símismo, nombre):
+    def __init__(símismo, nombre, proyecto=None):
         """
         Esta clase representa insectos con ciclos de vida sencillos (para cuales sólo se incluye la etapa adulta en el
           modelo).
 
         :param nombre: El nombre del insecto
         :type nombre: str
+
+        :type proyecto: str
         """
 
         tipo_ec = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
@@ -110,7 +116,8 @@ class Sencillo(Insecto):
                        )
 
         super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
-                         tipo_ecuaciones=dict(adulto=tipo_ec))
+                         tipo_ecuaciones=dict(adulto=tipo_ec),
+                         proyecto=proyecto)
 
 
 class MetamCompleta(Insecto):
