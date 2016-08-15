@@ -1,9 +1,7 @@
-import os
-
 import RAE.NuevoINSECTO as Ins
-from RAE.NuevaRedAE import Red
 import RAE.Planta as Plt
 from MATEMÁTICAS.Experimentos import Experimento
+from RAE.NuevaRedAE import Red
 
 proyecto = 'Opisina arenosella'
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
@@ -18,13 +16,14 @@ Parasitoide_senc.secome(O_arenosella_senc)
 
 Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc, Parasitoide_senc],
                     proyecto=proyecto)
+Red_coco_senc.guardar()
 
-Experimento_A = Experimento(nombre='Sitio A')
-directorio = os.path.dirname(__file__)
-Experimento_A.cargar_orgs(archivo=os.path.join(directorio, 'Oarenosella.csv'), col_tiempo='Día')
+Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
 
-Experimento_B = Experimento(nombre='Sitio B')
-Experimento_B.cargar_orgs(archivo=os.path.join(directorio, 'Oarenosella_B.csv'), col_tiempo='Día')
+Experimento_A.cargar_orgs(archivo='Oarenosella.csv', col_tiempo='Día')
+
+Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
+Experimento_B.cargar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día')
 
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
