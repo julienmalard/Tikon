@@ -3,9 +3,18 @@ import csv
 import datetime as ft
 import numpy as np
 
+from Controles import directorio_base
+
 
 class Experimento(object):
-    def __init__(símismo, nombre):
+    def __init__(símismo, nombre, proyecto=None):
+        """
+
+        :param nombre:
+        :type nombre:
+        :param proyecto:
+        :type proyecto: str
+        """
 
         # El nombre de referencia para el experimento
         símismo.nombre = nombre
@@ -20,6 +29,8 @@ class Experimento(object):
                          'Cultivos': {'tiempo': None},  # Para hacer: Llenar este.
                          'Aplicaciones': {'tiempo': None}  # Para hacer también
                          }
+
+        símismo.proyecto = proyecto
 
     def cargar_orgs(símismo, archivo, col_tiempo, col_parcela=None, fecha_ref=None):
         """
@@ -39,6 +50,8 @@ class Experimento(object):
         :type fecha_ref: ft.date
 
         """
+
+        archivo = símismo.prep_archivo(archivo)
 
         # Leer el archivo
         dic_datos = símismo.leer_datos(archivo)
@@ -101,6 +114,14 @@ class Experimento(object):
         for bd in símismo.datos:
             if bd != no_cambiar:
                 símismo.datos[bd]['tiempo'] += dif
+
+    def prep_archivo(símismo, archivo):
+
+        if os.path.splitdrive(archivo)[0] == '':
+            # Si no se especifica directorio, se usará el directorio de Proyectos de Tiko'n.
+            archivo = os.path.join(directorio_base, 'Proyectos', símismo.proyecto, archivo)
+
+        return archivo
 
     @staticmethod
     def leer_datos(archivo):

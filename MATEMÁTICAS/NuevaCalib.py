@@ -1,5 +1,5 @@
 import numpy as np
-from pymc import deterministic, Exponential, Normal, MCMC
+from pymc import deterministic, stochastic, Exponential, Normal, MCMC
 
 import MATEMÁTICAS.NuevoIncert as Incert
 
@@ -112,7 +112,7 @@ class ModBayes(object):
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
         símismo.MCMC = MCMC({dist_obs, tau, simular, *lista_paráms})
 
-    def calib(símismo, rep=1000, quema=10, extraer=10):
+    def calib(símismo, rep, quema, extraer):
         """
         Esta función sirve para llamar a las funcionalidades de calibración de PyMC.
 
@@ -135,7 +135,6 @@ class ModBayes(object):
         # Llamar la función "sample" del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
         prueba = símismo.MCMC.trace('simular')[:]
-        print(prueba)
 
     def guardar(símismo):
         """

@@ -83,8 +83,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
             if rep_per_calib[n_id] > len(dic_parám[id_calib]):
 
                 # Si es el caso que la traza tiene menos datos que las repeticiones que queremos...
-                avisar.warn('Número de replicaciones superior al tamaño de la traza de '
-                            'parámetro disponible.')
+                avisar.warn('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
 
                 # Vamos a tener que repetir datos
                 devolver = True
@@ -175,9 +174,9 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 
                 # Y aplicaar las transformaciones
                 if transform['sum'] != 0:
-                    dist = dist + transform['sum']
+                    dist = pymc.Lambda('%s_s' % nombre, lambda x=dist, s=transform['sum']: x + s)
                 if transform['mult'] != 1:
-                    dist = dist * transform['mult']
+                    dist = pymc.Lambda('%s_m' % dist, lambda x=dist, m=transform['mult']: x * m)
 
             else:
                 # Sino, hay error.
@@ -501,7 +500,8 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
-            etiq_y=None, etiq_x='Día', color=None, mostrar=True, archivo=''):
+            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='confianza', todas_líneas=False,
+            mostrar=True, archivo=''):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
@@ -527,6 +527,15 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     :param color: El color para el gráfico
     :type color: str
 
+    :param promedio: Si hay que mostrar el promedio de las repeticiones o no.
+    :type promedio: bool
+
+    :param incert: El tipo de incertidumbre para mostrar (o no). Puede ser None, 'confianza', o 'descomponer'.
+    :type incert: str
+
+    :param todas_líneas: Si hay que mostrar todas las líneas de las repeticiones o no.
+    :type todas_líneas: bool
+
     :param mostrar: Si hay que mostrar el gráfico de inmediato, o solo guardarlo.
     :type mostrar: bool
 
@@ -545,30 +554,76 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         if len(archivo) == 0:
             raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
 
-    prom_predic = matr_predic.mean(axis=(0, 1))
-
-    # El número de días
+    # El vector de días
     x = np.arange(matr_predic.shape[2])
 
-    dib.plot(x, prom_predic, lw=2, color=color)
+    # Si necesario, incluir el promedio de todas las repeticiones (estocásticas y paramétricas)
+    prom_predic = matr_predic.mean(axis=(0, 1))
+    if promedio:
+        dib.plot(x, prom_predic, lw=2, color=color)
 
+    # Si hay observaciones, mostrarlas también
     if vector_obs is not None:
-        print(vector_obs)
         dib.plot(tiempos_obs, vector_obs, 'o', color=color)
+        dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
 
-    # Una matriz sin la incertidumbre estocástica
-    matr_prom_estoc = matr_predic.mean(axis=0)
+    # Incluir la incertidumbre
+    if incert is None:
+        # Si no quiso el usuario, no poner la incertidumbre
+        pass
 
-    # Ahora, el eje 0 es el eje de incertidumbre paramétrica
-    máx_parám = matr_prom_estoc.max(axis=0)
-    mín_parám = matr_prom_estoc.min(axis=0)
+    elif incert == 'confianza':
+        # Mostrar el nivel de confianza en la incertidumbre
 
-    dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5)
+        # Los niveles de confianza a mostrar
+        percentiles = [50, 75, 95, 99, 100]
+        percentiles.sort()
 
-    máx_total = matr_predic.max(axis=(0, 1))
-    mín_total = matr_predic.min(axis=(0, 1))
+        # Mínimo y máximo del percentil anterior
+        máx_perc_ant = mín_perc_ant = prom_predic
 
-    dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
+        # Para cada percentil...
+        for n, p in enumerate(percentiles):
+
+            # Percentiles máximos y mínimos
+            máx_perc = np.percentile(matr_predic, 50+p/2, axis=(0, 1))
+            mín_perc = np.percentile(matr_predic, (100-p)/2, axis=(0, 1))
+
+            # Calcular el % de opacidad y dibujar
+            op_máx = 0.5
+            op_mín = 0.01
+            opacidad = (1-n/(len(percentiles)-1)) * (op_máx - op_mín) + op_mín
+
+            dib.fill_between(x, máx_perc_ant, máx_perc,
+                             facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
+            dib.fill_between(x, mín_perc, mín_perc_ant,
+                             facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
+
+            # Guardar los máximos y mínimos
+            mín_perc_ant = mín_perc
+            máx_perc_ant = máx_perc
+
+    elif incert == 'descomponer':
+        # Mostrar la incertidumbre descompuesta por sus fuentes
+
+        # Una matriz sin la incertidumbre estocástica
+        matr_prom_estoc = matr_predic.mean(axis=0)
+
+        # Ahora, el eje 0 es el eje de incertidumbre paramétrica
+        máx_parám = matr_prom_estoc.max(axis=0)
+        mín_parám = matr_prom_estoc.min(axis=0)
+
+        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5)
+
+        máx_total = matr_predic.max(axis=(0, 1))
+        mín_total = matr_predic.min(axis=(0, 1))
+
+        dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
+
+    # Si lo especificó el usuario, mostrar todas las líneas de todas las repeticiones.
+    if todas_líneas:
+        for l in matr_predic:
+            dib.plot(x, l, lw=1, color=color)
 
     dib.xlabel(etiq_x)
     dib.ylabel(etiq_y)
@@ -580,6 +635,52 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         if '.png' not in archivo:
             archivo = os.path.join(archivo, título + '.png')
         dib.savefig(archivo)
+
+
+def validar(matr_predic, vector_obs):
+    """
+    Esta función valida una matriz de predicciones de un variable según los valores observados correspondientes.
+
+    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástica, eje 1 = incertidumbre
+      paramétrica, eje 2 = día.
+    :type matr_predic: np.ndarray
+
+    :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
+    :type vector_obs: np.ndarray
+
+    :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
+      exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
+    :rtype: (float, float, float)
+    """
+
+    # El número de días de predicciones y observaciones
+    n_días = matr_predic.shape[2]
+
+    # Combinar los dos ejes de incertidumbre (repeticiones estocásticas y paramétricas)
+    matr_predic = matr_predic.reshape((matr_predic.shape[0] * matr_predic.shape[1], n_días))
+
+    # Calcular el promedio de todas las repeticiones de predicciones
+    vector_predic = matr_predic.mean(axis=0)
+
+    # Calcular R cuadrado
+    r2 = estad.linregress(vector_predic, vector_obs)[2] ** 2
+
+    # Raíz cuadrada normalizada del error promedio
+    rcnep = np.divide(np.sqrt(np.square(vector_predic - vector_obs).mean()), np.mean(vector_obs))
+
+    # Validar el intervalo de incertidumbre
+    confianza = np.empty_like(vector_obs, dtype=float)
+    for n in range(n_días):
+        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n])/100
+        confianza[n] = abs(0.5-perc) * 2
+
+    confianza.sort()
+
+    percentiles = np.divide(np.arange(1, n_días+1), n_días)
+
+    r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
+
+    return r2, rcnep, r2_percentiles
 
 
 def paráms_scipy_a_pymc(tipo_dist, paráms):

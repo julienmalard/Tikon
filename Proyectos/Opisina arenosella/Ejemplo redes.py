@@ -41,13 +41,14 @@ ajuste_inic = Red_coco_senc.validar(exper=Experimento_A)
 print('Ajuste inicial: ', ajuste_inic)
 
 # Intentar calibrar
-Red_coco_senc.calibrar(nombre='Sin a priori', exper=Experimento_A, n_iter=100, quema=10)
+Red_coco_senc.calibrar(nombre='Sin a priori', exper=Experimento_A, n_iter=500, quema=10)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'sin usar a prioris. Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
+Red_coco_senc.guardar()
 
 # Especificar distribuciones a priori
 """
@@ -78,7 +79,7 @@ ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, usar_especifica
 print('Ajuste con a prioris', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
-Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=100, quema=10)
+Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=500, quema=10)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '

@@ -10,7 +10,7 @@ import MATEMÁTICAS.NuevoIncert as Incert
 # se tiene que repetir por cada presa presente.
 
 
-ecs_orgs = {'Crecimiento': {'Modif': {None: {},
+ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
 
                                       'Ninguna': {'r': {'límites': (0, np.inf),
                                                         'inter': None}},
@@ -30,7 +30,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                          }
                             },
 
-            'Depredación': {'Ecuación': {None: {},
+            'Depredación': {'Ecuación': {'Nada': {},
 
                                          'Tipo I_Dependiente presa': {'a': {'límites': (0, 1),
                                                                             'inter': 'presa'}
@@ -104,7 +104,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                          },
                             },
 
-            'Muertes': {'Ecuación': {None: {},
+            'Muertes': {'Ecuación': {'Nada': {},
 
                                      'Constante': {'q': {'límites': (0, 1),
                                                          'inter': None}
@@ -129,7 +129,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                      }
                         },
 
-            'Transiciones': {'Edad': {None: {},
+            'Transiciones': {'Edad': {'Nada': {},
 
                                       'Días': {},  # No se necesitan coeficientes en este caso
 
@@ -159,7 +159,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {None: {},
                                                                        },
                                       },
 
-                             'Prob': {None: {},
+                             'Prob': {'Nada': {},
 
                                       'Constante': {'a': {'límites': (0, np.inf),
                                                           'inter': None}

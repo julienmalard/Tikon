@@ -2,12 +2,15 @@ import copy as copiar
 import io
 import json
 import os
+import time
 import warnings as avisar
 from datetime import datetime as ft
 
 import numpy as np
 import pymc
+import scipy.stats as estad
 
+from Controles import directorio_base
 import MATEMÁTICAS.NuevoIncert as Incert
 from MATEMÁTICAS.Experimentos import Experimento
 from MATEMÁTICAS.NuevaCalib import ModBayes
@@ -28,14 +31,20 @@ class Coso(object):
     # Una referancia al diccionario con la información de los parámetros del objeto.
     dic_ecs = NotImplemented
 
-    def __init__(símismo, nombre, fuente=None):
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
         """
         Creamos un Coso con un numbre y, posiblemente, una fuente de cual cargarlo.
 
         :param nombre: El nombre del Coso
         :type nombre: str
 
-        :param fuente: El archivo de cual cargar el Coso
+        :param proyecto: Si este Coso hace parte de un proyecto (se creará, si necesario, el archivo apropiado
+          para guardarlo).
+        :type proyecto: str
+
+        :param fuente: El archivo de cual cargar el Coso. Si se especifica y un proyecto, y una fuente, se cargará
+          el Coso de la fuente pero en el futuro se guardará bajo el proyecto. Esto puede ser útil para usar Cosos
+          de proyectos existentes en nuevos proyectos.
         :type fuente: str
         """
 
@@ -52,13 +61,25 @@ class Coso(object):
         # También el nombre, para referencia fácil
         símismo.nombre = nombre
 
+        # Para guardar los objetos relacionados con este Coso. Sirve para encontrar todos los objetos que hay que
+        #  mirar para una simulación o calibración.
+        símismo.objetos = []
+
         # Si se especificó un archivo para cargar, cargarlo.
         if fuente is not None:
             símismo.cargar(fuente)
 
-    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre):
+        # Si se especifició un proyecto, guardarlo como la fuente.
+        if proyecto:
+            símismo.fuente = os.path.join(proyecto, símismo.nombre + símismo.ext)
+
+    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre, org_inter=None, etp_inter=None):
+        # Para hacer: ¿implementar "etapa" en Organismo?
         """
         Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
+
+        :param etapa: La etapa de este Coso a la cual hay que aplicar este a priori.
+        :type etapa: str
 
         :param ubic_parám: Una lista de las llaves que traerán uno a través del diccionario de coeficientes del Coso
           hasta el parámetro de interés.
@@ -69,6 +90,12 @@ class Coso(object):
 
         :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
         :type certidumbre: float
+
+        :param org_inter: Otro organismo con el cual interactúa este Coso para este variable.
+        :type org_inter: Coso
+
+        :param etp_inter: La etapa del organismo con el cual interactua este.
+        :type etp_inter: str
 
         """
 
@@ -97,15 +124,34 @@ class Coso(object):
         except KeyError:
             raise KeyError('Ubicación de parámetro erróneo.')
 
+        if org_inter is not None:
+            if etp_inter is None:
+                raise ValueError('Hay que especificar la etapa del organismo de interacción.')
+
+            if org_inter.nombre not in dic_parám:
+                dic_parám[org_inter.nombre] = {}
+
+            if etp_inter not in dic_parám[org_inter.nombre]:
+                dic_parám[org_inter.nombre][etp_inter] = {}
+
+            dic_parám = dic_parám[org_inter.nombre][etp_inter]
+
         dic_parám['especificado'] = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
                                                               cont=True)  # para hacer: parámetros discretos
 
-    def guardar(símismo, archivo=''):
+        return dic_parám['especificado']
+
+    def guardar(símismo, archivo='', iterativo=True):
         """
         Esta función guarda el Coso para uso futuro.
 
         :param archivo: Donde hay que guardar el Coso
         :type archivo: str
+
+        :param iterativo: Si también vamos a guardar todos los objetos vinculado con este (por ejemplo, todos los
+          insectos vinculados con una Red).
+        :type iterativo: bool
+
         """
 
         # Si no se especificó archivo...
@@ -116,11 +162,21 @@ class Coso(object):
                 # Si no hay archivo existente, tenemos un problema.
                 raise FileNotFoundError('Hay que especificar un archivo para guardar el objeto.')
 
-        # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
-        prep_json(símismo.receta['Coefs'])  # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
+        # Si necesario, agregar la ubicación del directorio Proyectos de Tiko'n
+        if not os.path.splitdrive(archivo)[0]:
+            archivo = os.path.join(directorio_base, 'Proyectos', archivo)
 
+        # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
+        receta_prep = prep_json(símismo.receta)
+
+        # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
         with io.open(archivo, 'w', encoding='utf8') as d:
-            json.dump(símismo.receta, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+            json.dump(receta_prep, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+
+        # Si se especificó así, guardar todos los objetos vinculados con este objeto también.
+        if iterativo:
+            for coso in símismo.objetos:
+                coso.guardar(iterativo=True)
 
     def cargar(símismo, fuente):
         """
@@ -134,8 +190,9 @@ class Coso(object):
         # Si necesario, agregar la extensión y el directorio
         if os.path.splitext(fuente)[1] != símismo.ext:
             fuente += símismo.ext
-        if os.path.split(fuente)[0] == '':
-            fuente = os.path.join(os.path.split(__file__)[0], 'Proyectos', fuente)
+        if os.path.splitdrive(fuente)[0] == '':
+            # Si no se especifica directorio, se usará el directorio de Proyectos de Tiko'n.
+            fuente = os.path.join(directorio_base, 'Proyectos', fuente)
 
         # Intentar cargar el archivo (con formato UTF-8)
         try:
@@ -199,7 +256,7 @@ class Simulable(Coso):
       Parcela, pero NO un Insecto.
     """
 
-    def __init__(símismo, nombre, fuente=None):
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
         """
         Un simulable se inicia como Coso.
 
@@ -211,16 +268,12 @@ class Simulable(Coso):
         """
 
         # Primero, llamamos la función de inicio de la clase pariente 'Coso'
-        super().__init__(nombre=nombre, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
 
         # Añadir Calibraciones a la receta del Simulable. Este únicamente guarda la información sobre cada calibración.
         #   (Los resultados de las calibraciones se guardan en "coefs".
         if 'Calibraciones' not in símismo.receta:
             símismo.receta['Calibraciones'] = {'0': 'A prioris no informativos generados automáticamente por TIKON.'}
-
-        # Para guardar los objetos relacionados con este Simulable. Sirve para encontrar todos los objetos que hay que
-        #  mirar para una simulación o calibración.
-        símismo.objetos = []
 
         # Indica si el Simulable está listo para una simulación.
         símismo.listo = False
@@ -249,6 +302,7 @@ class Simulable(Coso):
 
     def simular(símismo, vals_inic, paso=1, tiempo_final=120, rep_parám=100, rep_estoc=1, extrn=None,
                 calibs='Todos'):
+        # para hacer: esta función, al momento, no parece tener uso mayor en el programa Tiko'n.
         """
         Esta función corre una simulación del Simulable.
 
@@ -364,7 +418,6 @@ class Simulable(Coso):
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
-
         exper = símismo._prep_lista_exper(exper=exper)
 
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1)
@@ -439,7 +492,7 @@ class Simulable(Coso):
                                                    Fecha=ahora,
                                                    Utilizador=utilizador,
                                                    Contacto=contacto,
-                                                   Config=símismo.receta['estr'].deepcopy())
+                                                   Config=copiar.deepcopy(símismo.receta['estr']))
 
         # Guardar los resultados de la calibración
         símismo.ModBayes.guardar()
@@ -464,7 +517,8 @@ class Simulable(Coso):
 
         símismo._acción_añadir_exp(experimento=experimento, corresp=corresp)
 
-    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True):
+    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True,
+                usar_especificados=False):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -472,7 +526,8 @@ class Simulable(Coso):
           todos los experimentos disponibles.
         :type exper: list | str | Experimento | None
 
-        :param calibs: Las calibraciones que hay que usar para la validación.
+        :param calibs: Las calibraciones que hay que usar para la validación. Si calibs == None, se usará la
+          calibración activa, si hay; si no hay, se usará todas las calibraciones existentes.
         :type calibs: list | str | None
 
         :param paso: El paso para la validación
@@ -486,6 +541,9 @@ class Simulable(Coso):
 
         :param dibujar: Si hay que generar gráficos de los resultados.
         :type dibujar: bool
+
+        :param usar_especificados:
+        :type usar_especificados: bool
 
         :return: Un diccionario con los resultados de la validación.
         :rtype: dict
@@ -505,7 +563,8 @@ class Simulable(Coso):
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
         # Llenar coeficientes
-        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'))
+        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
+                              usar_especificados=usar_especificados)
 
         exper = símismo._prep_lista_exper(exper=exper)
 
@@ -518,19 +577,30 @@ class Simulable(Coso):
 
         # Si hay que dibujar, dibujar
         if dibujar:
-            símismo.dibujar()
+            símismo.dibujar(exper=exper)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación(vector_obs=obs, vector_preds=preds)
 
-    def dibujar(símismo, mostrar=True, archivo=''):
+    def dibujar(símismo, mostrar=True, archivo=None, exper=None):
         """
         Una función para generar gráficos de los resultados del objeto.
+
+        :param mostrar: Si vamos a mostrar el gráfico al usuario de manera interactiva.
+        :type mostrar: bool
+
+        :param archivo: Donde vamos a guardar el gráfico. archivo = None indica que no se guardará el archivo.
+        :type archivo: str
+
+        :param exper: Una lista de los experimentos para dibujar. Con exper=None, tomamos los experimentos de la
+          última calibración o validación.
+        :type exper: list
+
         """
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificados):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
           Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
@@ -546,6 +616,9 @@ class Simulable(Coso):
         :param comunes: Si queremos guardar las correspondencias de la distribución multidimensional entre
           parámetros calibrados en la misma calibración.
         :type comunes: bool
+
+        :param usar_especificados: Si vamos a utilizar las distribuciones especificadas manualmente por el usuario o no.
+        :type usar_especificados: bool
 
         """
 
@@ -776,10 +849,14 @@ class Simulable(Coso):
             símismo.predics = símismo.predics_exps[exp]
 
             # Simular el modelo
+            antes = time.time()
             símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
+            print('Calculado simul %s: ' % exp, time.time()-antes)
 
         # Convertir los diccionarios de predicciones en un vector numpy.
+        antes = time.time()
         vector_predics = símismo._procesar_predics_calib()
+        print('Procesando predics: ', time.time()-antes)
 
         # Devolver el vector de predicciones.
         return vector_predics
@@ -795,16 +872,9 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _procesar_validación(símismo, vector_obs, vector_preds):
+    def _procesar_validación(símismo):
         """
-        Esta función procesa los resultados de la validación del modelo. Se tiene que implementar para cada subclase
-          de Simulable.
-
-        :param vector_obs: El vector de observaciones.
-        :type vector_obs: np.ndarray
-
-        :param vector_preds: El vector de predicciones.
-        :type vector_preds: np.ndarray
+        Esta función procesa los resultados de la validación del modelo.
 
         :return: Un diccionario del análisis de la validación.
         :rtype: dict
@@ -859,11 +929,12 @@ class Simulable(Coso):
 
         :type calibs: str | float | list
 
-        :param lista_paráms:
+        :param lista_paráms: Una lista de los diccionarios de los parámetros a considerar.
         :type lista_paráms: list
 
         :return: Una lista de las calibraciones que hay que utilizar.
         :rtype: list
+
         """
 
         # Preparar el parámetro "calibs"
@@ -901,7 +972,7 @@ class Simulable(Coso):
                     # Para cada calibración de este parámetro...
                     for id_calib in parám:
 
-                        if id_calib not in lista_calibs:
+                        if id_calib not in lista_calibs and id_calib != 'especificado':
 
                             # Si no existe ya la calibración en nuestra lista, añadirla
                             lista_calibs.append(id_calib)
@@ -931,23 +1002,17 @@ class Simulable(Coso):
 
             else:
 
-                # Si se especificó otro valor (lo que no debería de ser posible dado la preparación que damos a
+                # Si se especificó otro valor (lo que no debería ser posible dado la preparación que damos a
                 # "calibs" arriba), hay un error.
                 raise ValueError("Parámetro 'calibs' inválido.")
 
-            # Quitar la distribución a priori no informativa.
-            if '0' in lista_calibs:
+            # Quitar la distribución a priori no informativa, si hay otras alternativas.
+            if '0' in lista_calibs and len(lista_calibs) > 1:
                 lista_calibs.remove('0')
 
         elif type(calibs) is list:
-            # Si se especificó una lista de calibraciones en particular, utilizarlas, si están en al menos un objeto
-            # involucrado en la simulación
-
-            # Una lista de todas las calibraciones en lista_paráms.
-            todos_calibs = [c for p in lista_paráms for c in p]
-
-            # Guardar únicamente las calibraciones de "calibs" si están en todos_calibs.
-            lista_calibs = [c for c in calibs if c in todos_calibs]
+            # Si se especificó una lista de calibraciones en particular, todo está bien.
+            lista_calibs = calibs
 
         else:
 
@@ -957,13 +1022,9 @@ class Simulable(Coso):
         # Verificar la lista de calibraciones generada
         if len(lista_calibs) == 0:
 
-            # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa
+            # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa. Igual sería
+            # mejor avisarle al usuario.
             lista_calibs = ['0']
-
-        elif len(lista_calibs) == 1:
-
-            # Si únicamente nos quedamos con la distribución a priori no informativa, sería mejor avisarle al
-            # usuario.
             avisar.warn('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
 
         # Devolver la lista de calibraciones.
@@ -1001,10 +1062,10 @@ def dic_lista_a_np(d):
                 pass
 
 
-def prep_json(d):
+def prep_json(d, d_egr=None):
     """
-    Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las listas
-      numéricas contenidas en un diccionario de estructura arbitraria y las convierte en matrices de numpy. También
+    Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
+      de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
       quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
       no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
       pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
@@ -1012,26 +1073,44 @@ def prep_json(d):
     :param d: El diccionario para convertir
     :type d: dict
 
+    :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
+      se llama esta función)
+    :type: dict
+
     """
+
+    if d_egr is None:
+        d_egr = {}
 
     # Para cada itema (llave, valor) del diccionario
     for ll, v in d.items():
+        if type(v) is dict:
+            d_egr[ll] = v.copy()
+        else:
+            d_egr[ll] = v
 
         if type(v) is dict:
 
             # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-            prep_json(v)
+            prep_json(v, d_egr=d_egr[ll])
 
         elif type(v) is str:
 
             # Quitar distribuciones a priori especificadas por el usuario.
             if ll == 'especificado':
-                d.pop(ll)
+                d_egr.pop(ll)
 
-        elif isinstance(v, pymc.Stochastic):
+        elif type(v) is np.ndarray:
+
+            # Transformar matrices numpy a texto
+            d_egr[ll] = v.tolist()
+
+        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
 
             # Si el itema es un variable de PyMC, borrarlo
-            d.pop(ll)
+            d_egr.pop(ll)
+
+    return d_egr
 
 
 def valid_vals_inic(d, n=None):
