@@ -1,13 +1,12 @@
 import math as mat
 import os
-import time
 
 import numpy as np
 
 import MATEMÁTICAS.Distribuciones as Ds
 import MATEMÁTICAS.Ecuaciones as Ec
 import RAE.Planta as Plt
-from MATEMÁTICAS.NuevoIncert import numerizar, gen_vector_coefs, texto_a_dist, gráfico
+from MATEMÁTICAS.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
 from NuevoCoso import Simulable, valid_vals_inic
 from RAE.Organismo import Organismo
 
@@ -301,10 +300,12 @@ class Red(Simulable):
                         matr_predic_proces = matr_predic[prc, :, :]
 
                         # El vector de observaciones
-                        try:
-                            vector_obs = dic_obs[etp]  # Para hacer: arreglar esto.
-                        except KeyError:
-                            vector_obs = None
+                        vector_obs = None
+                        etps_interés = símismo.formatos_exps['etps_interés'][exp]
+                        if n_etp in etps_interés:
+                            nombres_cols = símismo.formatos_exps['nombres_cols'][exp]
+                            nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0]]
+                            vector_obs = dic_obs[nombre_col][0]  # Para hacer: arreglar para parcelas múltiples
 
                         # Generar el gráfico
                         gráfico(matr_predic=matr_predic_proces, vector_obs=vector_obs, tiempos_obs=tiempos_obs,
@@ -385,7 +386,7 @@ class Red(Simulable):
             tipo_ec = tipos_ec[n]
 
             # Calcular la depredación según la ecuación de esta etapa.
-            if tipo_ec is None:
+            if tipo_ec == 'Nada':
                 # Si no hay ecuación para la depredación del organismo (si ni tiene presas), seguir a la próxima etapa
                 # de una vez.
                 continue
@@ -469,7 +470,7 @@ class Red(Simulable):
 
         # Primero, calculemos la fracción de la población de cada presa potencialmente consumida por cada depredador
         # (sin interferencia entre depredadores).
-        frac_depred =  np.divide(depred, pobs[..., np.newaxis])
+        frac_depred = np.divide(depred, pobs[..., np.newaxis])
 
         # Utilizar la ecuación de probabilidades conjuntas de estadísticas para calcular la fracción total de la
         # población de la presa que se comerá por todos los depredadores juntos.
@@ -526,11 +527,11 @@ class Red(Simulable):
             cf = coefs_mod[n]
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
-            if modifs[n] is None:
-                # Si no hay crecimiento para este insecto, seguir a la próxima etapa. Notar que si no quieres
+            if modifs[n] == 'Nada':
+                # Si no hay crecimiento para este insecto, no hacer nada. Notar que si no quieres
                 # modificación ambiental a r, pero sí quieres crecimiento, hay que escoger la modificación ambiental
                 # 'Ninguna' y NO 'None'. Esto permetirá crear la variable 'r' que se necesitará después.
-                continue
+                pass
 
             elif modifs[n] == 'Ninguna':
                 # Sin modificación a r.
@@ -552,7 +553,7 @@ class Red(Simulable):
             if tipos_ec[n] == 'Exponencial':
                 # Crecimiento exponencial
 
-                crec_etp = pob_etp * (r)
+                crec_etp = pob_etp * r
 
             elif tipos_ec[n] == 'Logístico':
                 # Crecimiento logístico.
@@ -629,7 +630,7 @@ class Red(Simulable):
 
             cf = coefs[n]
 
-            if ec is None:
+            if ec == 'Nada':
                 continue
 
             elif ec == 'Constante':
@@ -705,13 +706,13 @@ class Red(Simulable):
             # Si no hay cálculos de transiciones para esta etapa, sigamos a la próxima etapa de una vez. Esto se
             # detecta por etapas que tienen 'None' como ecuación de probabilidad de transición.
 
-            if probs[n] is None:
+            if probs[n] == 'Nada':
                 continue
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
             cf = coefs_ed[n]
 
-            if ec_ed is None:
+            if ec_ed == 'Nada':
                 edad_extra = None
 
             elif ec_ed == 'Días':
@@ -859,7 +860,6 @@ class Red(Simulable):
         raise NotImplementedError
 
     def _incrementar(símismo, paso, i, mov=False, extrn=None):
-        inicial = time.time()
 
         # Empezar con las poblaciones del paso anterior
         símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
@@ -886,13 +886,11 @@ class Red(Simulable):
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
-        # Ruido aleatorio; para hacer: formalizar el proceso de agregación de ruido aleatorio
-        símismo._agregar_ruido(pobs=pobs, ruido=1)
+        # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
+        símismo._agregar_ruido(pobs=pobs, ruido=0.01)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
-
-        print('Total un paso:', time.time()-inicial)
 
     @staticmethod
     def _agregar_ruido(pobs, ruido):
@@ -906,20 +904,43 @@ class Red(Simulable):
         :rtype:
         """
 
-        np.add(np.round(np.random.normal(pobs, ruido)), pobs, out=pobs)
+        np.add(np.round(np.random.normal(0, np.maximum(1, pobs*ruido))), pobs, out=pobs)
 
         np.maximum(0, pobs, out=pobs)
 
-    def _procesar_validación(símismo, vector_obs, vector_preds):
+    def _procesar_validación(símismo):
         """
 
-        :param vector_obs:
-        :type vector_obs:
-        :param vector_preds:
-        :type vector_preds:
         :return:
-        :rtype:
+        :rtype: dict
+
         """
+
+        # Para cada experimento simulado, en orden...
+        for nombre, predic in sorted(símismo.predics_exps.items()):
+
+            predics =
+
+            # La combinaciones de etapas necesarias para procesar los resultados.
+            # Tiene el formato general: {exp: [(1, [3,4]), etc...], ...}
+            combin_etps = símismo.formatos_exps['combin_etps'][nombre]
+            # print(combin_etps)  # para hacer: quitar duplicaciones recíprocas
+
+            # La ubicación de los datos observados
+            ubic_obs = símismo.formatos_exps['ubic_obs'][nombre]
+
+            # Combinar las etapas que lo necesitan
+            for i in combin_etps:
+                predic['Pobs'][..., i[0], :] += np.sum(predic['Pobs'][..., i[1], :], axis=3)
+
+            # Sacar únicamente las predicciones que corresponden con los datos observados disponibles
+            vector_predics = np.concatenate((vector_predics,
+                                             predic['Pobs'][..., ubic_obs[0], ubic_obs[1]].flatten()))
+
+        return vector_predics
+
+        validar
+
 
     def _sacar_líms_coefs_interno(símismo):
         """

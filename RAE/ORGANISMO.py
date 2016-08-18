@@ -28,21 +28,22 @@ class Organismo(Coso):
     # La ubicación del diccionario de especificaciones de ecuaciones y parámetros
     dic_ecs = Ec.ecs_orgs
 
-    def __init__(símismo, nombre=None, fuente=None):
+    def __init__(símismo, nombre=None, proyecto=None, fuente=None):
         """
 
 
         :param nombre: El nombre del organismo
         :type nombre: str
 
+        :type proyecto: str
+
         :param fuente: Un archivo de organismo guardada (opcional) para cargar.
         :type fuente: str
 
-        :return:
         """
 
         # Iniciar el Organismo como Coso
-        super().__init__(nombre=nombre, fuente=fuente)
+        super().__init__(nombre=nombre, fuente=fuente, proyecto=proyecto)
 
         # Una lista ordenada de las etapas del organismo (para facilitar su acceso)
         símismo.etapas = []
