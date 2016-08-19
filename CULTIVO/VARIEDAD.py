@@ -1,4 +1,4 @@
-from COSO import Coso
+from NuevoCoso import Coso
 
 
 # Esta clase representa una variedad de cultivo.
