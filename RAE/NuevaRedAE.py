@@ -525,6 +525,7 @@ class Red(Simulable):
 
         for n in range(len(símismo.etapas)):
             cf = coefs_mod[n]
+            crec_etp = crec[:, :, :, n]  # Vinculo con la parte de la matriz "crec" de esta etapa.
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
             if modifs[n] == 'Nada':
@@ -584,8 +585,6 @@ class Red(Simulable):
 
             else:
                 raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tipos_ec[n])
-
-            crec[:, :, :, n] = crec_etp
 
         crec[np.isnan(crec)] = 0
 
@@ -815,7 +814,7 @@ class Red(Simulable):
 
     def _calc_mov(símismo, pobs, paso, extrn):
         """
-        Calcula la imigración i emigración de organismos entre parcelas
+        Calcula la imigración y emigración de organismos entre parcelas
 
         :param pobs:
         :type pobs: np.narray
@@ -939,12 +938,53 @@ class Red(Simulable):
 
         return vector_predics
 
-        validar
+        validar()
 
+    def _sacar_vecs_preds_obs(símismo, exp):
+
+        # El diccionario para guardar los vectores de predicciones y de observaciones
+        dic_vecs = {}
+
+        # Primero, sacar vectores para cada etapa de la red
+        for org, d_org in símismo.orgs.items():
+            if org not in dic_vecs.keys():
+                dic_vecs[org] = {}
+            for etp in d_org:
+                dic_vecs[org][etp] = {'obs': None, 'preds': None}
+
+
+                n_etp = símismo.núms_etps[org][etp]
+                # Para hacer: distintas parcelas
+                dic_vecs[org][etp] = símismo.predics_exper[exp]['Pobs'][..., n_etp]
+
+                if n_etp in símismo.formatos_exps
+
+        # La combinaciones de etapas necesarias para procesar los resultados.
+        # Tiene el formato general: {exp1: [(1, [3,4]), etc...], ...}
+        combin_etps = símismo.formatos_exps['combin_etps'][exp]
+
+        if n_etp in combin_etps:
+            nombre_serie =
+
+            serie_obs = 
+            serie_preds = np.sum([predic['Pobs'][..., x, :]], axis=3)
+            for col_obs in combin_etps:
+
+
+
+
+
+        # Combinar las etapas que lo necesitan
+        for i in combin_etps:
+            predic['Pobs'][..., i[0], :] += np.sum(, axis=3)
+
+
+        return dic_vecs
 
     def _sacar_líms_coefs_interno(símismo):
         """
-        No hay nada nada que hacer, visto que una red no tiene coeficientes propios.
+        No hay nada nada que hacer aquí, visto que una red no tiene coeficientes propios. Devolvemos
+          una lista vacía.
         """
 
         return []

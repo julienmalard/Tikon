@@ -7,11 +7,10 @@ import MATEMÁTICAS.NuevoIncert as Incert
 # pedazos de inforamción: 1) sus límites y 2) si interactua con la estructura del modelo. Por ejemplo, si un
 # parámetro de un ecuación de depredación se debe repetir por cada presa del organismo (digamos el número de presa
 # comida por el depredador), tendrá que tener el valor 'presa' para su interacción para que TIKON sepa que este variable
-# se tiene que repetir por cada presa presente.
+# se tiene que repetir para cada presa presente.
 
 
 ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
-
                                       'Ninguna': {'r': {'límites': (0, np.inf),
                                                         'inter': None}},
                                       'Log Normal Temperatura': {'t': {'límites': (0, np.inf),

@@ -8,7 +8,6 @@ from datetime import datetime as ft
 
 import numpy as np
 import pymc
-import scipy.stats as estad
 
 from Controles import directorio_base
 import MATEMÁTICAS.NuevoIncert as Incert
@@ -1153,3 +1152,33 @@ def valid_vals_inic(d, n=None):
 
     # Devolver el número de parcelas en los datos iniciales.
     return n
+
+
+def generar_aprioris(clase):
+    """
+
+    :param clase:
+    :type clase: type
+
+    :return:
+    """
+
+    # Sacar la lista de los objetos de este tipo en Proyectos
+    lista_objs =
+
+    # Generar un diccionario para guardar los a prioris
+    dic_aprioris =
+
+    for obj in lista_objs:
+
+        # Agregar el apriori a la lista para cada parámetro
+        dic_aprioris[][] =  # Evitar a prioris "0"
+
+    # Ahora, pasar a través del diccionario y generar una distribución a priori
+    for in dic_aprioris:
+
+        dic_aprioris[][] = Incert.ajustar_dist()
+
+    archivo = os.path.join(directorio_base, clase.__name__, '.apr')
+    with open(archivo, 'w', encoding='utf8') as d:
+        json.dump(dic_aprioris, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
