@@ -972,8 +972,6 @@ class Red(Simulable):
 
 
 
-
-
         # Combinar las etapas que lo necesitan
         for i in combin_etps:
             predic['Pobs'][..., i[0], :] += np.sum(, axis=3)
