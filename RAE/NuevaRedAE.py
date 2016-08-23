@@ -915,6 +915,9 @@ class Red(Simulable):
 
         """
 
+        pass
+
+        """
         # Para cada experimento simulado, en orden...
         for nombre, predic in sorted(símismo.predics_exps.items()):
 
@@ -939,9 +942,11 @@ class Red(Simulable):
         return vector_predics
 
         validar()
+        """
 
     def _sacar_vecs_preds_obs(símismo, exp):
-
+        pass
+        """
         # El diccionario para guardar los vectores de predicciones y de observaciones
         dic_vecs = {}
 
@@ -979,6 +984,7 @@ class Red(Simulable):
 
         return dic_vecs
 
+        """
     def _sacar_líms_coefs_interno(símismo):
         """
         No hay nada nada que hacer aquí, visto que una red no tiene coeficientes propios. Devolvemos
