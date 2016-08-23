@@ -19,15 +19,14 @@ Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc,
 Red_coco_senc.guardar()
 
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
-
-Experimento_A.cargar_orgs(archivo='Oarenosella.csv', col_tiempo='Día')
+Experimento_A.cargar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día')
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
 Experimento_B.cargar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día')
 
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
-                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs']}
+                                  'Parasitoide_senc': {'adulto': ['Para_larva_abs', 'Para_pupa_abs']}
                                   }
                          )
 
@@ -113,7 +112,26 @@ Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas')
 
 Parasitoides_larvas.parasita(O_arenosella, etps_infec=[1, 2, 3], etp_sale=[])
 
-Red_coco = Red(nombre='Coco compleja', organismos=[O_arenosella, Parasitoides_larvas, Parasitoides_pupa])
+Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoides_larvas, Parasitoides_pupa])
+
+Red_coco.añadir_exp(Experimento_A,
+                    corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
+                                               'juvenil_2': ['Estado 2'],
+                                               'juvenil_3': ['Estado 3'],
+                                               'juvenil_4': ['Estado 4'],
+                                               'juvenil_5': ['Estado 5'],
+                                               'pupa': ['Pupa']},
+                             'Parasitoide larvas': {'juvenil': ['Para_larv_abs']},
+                             'Parasitoide pupas': {'juvenil': ['Para_pupa_abs']}}
+                    )
+Red_coco.añadir_exp(Experimento_B,
+                    corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
+                                               'juvenil_2': ['Estado 2'],
+                                               'juvenil_3': ['Estado 3'],
+                                               'juvenil_4': ['Estado 4'],
+                                               'juvenil_5': ['Estado 5'],
+                                               'pupa': ['Pupa']}}
+                    )
 
 O_arenosella.especificar_apriori()
 Parasitoides_larvas.especificar_apriori()
@@ -124,3 +142,14 @@ Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_B)
 
 Red_coco.guardar_calib()
+Red_coco.guadar()
+
+# Ahora, con una red más compleja y con estructura completa para los insectos
+Red_coco.añadir_org(Araña)
+
+Red_coco.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
+Red_coco.validar(exper=Experimento_A)
+Red_coco.validar(exper=Experimento_B)
+
+Red_coco.guardar_calib()
+Red_coco.guardar()

@@ -806,6 +806,24 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
 
 
 def numerizar(d, c=None):
+    """
+    Esta función toma un diccionaro o una lista de estructura arbitraria y convierte todos
+      los objetos adentro en forma numérica. Es particularmente útil para sacar los valores
+      de variables de PyMC durante una corrida del modelo.
+      Notar que puede tomar diccionarios, listas, listas de diccionarios, diccionarios de listas,
+      etc. No mmodifica el objeto original, sino genera una copia.
+
+    :param d: El diccionario o lista para numerizar.
+    :type d: dict | list
+
+    :param c: Para recursiones. No especificar al llamar la función.
+    :type c: dict | list
+
+    :return: El diccionario o la lista numerizada.
+    :rtype: dict | list
+
+    """
+
     if c is None:
         c = {}
 
