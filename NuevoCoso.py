@@ -10,9 +10,9 @@ import numpy as np
 import pymc
 
 from Controles import directorio_base
-import MATEMÁTICAS.NuevoIncert as Incert
-from MATEMÁTICAS.Experimentos import Experimento
-from MATEMÁTICAS.NuevaCalib import ModBayes
+import Matemáticas.NuevoIncert as Incert
+from Matemáticas.Experimentos import Experimento
+from Matemáticas.NuevaCalib import ModBayes
 
 
 class Coso(object):
@@ -1158,27 +1158,131 @@ def generar_aprioris(clase):
     """
 
     :param clase:
-    :type clase: type
+    :type clase: Coso | type
 
     :return:
     """
 
+    assert clase.rmo[-2] is Coso
+
     # Sacar la lista de los objetos de este tipo en Proyectos
+    for raíz, dirs, archivos in os.walk(os.path, topdown=False):
+        for nombre in archivos:
+            ext = os.path.splitext(nombre)[1]
+            if ext == clase.ext:
+                # para hacer: generar objeto de nombre
+
     lista_objs =
 
-    # Generar un diccionario para guardar los a prioris
-    dic_aprioris =
-
-    for obj in lista_objs:
-
-        # Agregar el apriori a la lista para cada parámetro
-        dic_aprioris[][] =  # Evitar a prioris "0"
-
-    # Ahora, pasar a través del diccionario y generar una distribución a priori
-    for in dic_aprioris:
-
-        dic_aprioris[][] = Incert.ajustar_dist()
+    dic_aprioris = apriori_de_existente(lista_objs=lista_objs, clase_objs=clase)
 
     archivo = os.path.join(directorio_base, clase.__name__, '.apr')
     with open(archivo, 'w', encoding='utf8') as d:
         json.dump(dic_aprioris, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+
+
+def apriori_de_existente(lista_objs, clase_objs):
+    """
+
+    :param lista_objs:
+    :type lista_objs: list[Coso]
+
+    :param clase_objs:
+    :type clase_objs: type | Coso
+
+    :return:
+    :rtype:
+
+    """
+
+    dic_ecs = clase_objs.dic_ecs
+
+    # Unas funciones útiles:
+    # 1) Una función para generar un diccionario vacío con la misma estructura que el diccionario de ecuaciones
+    def gen_dic_vacío(d, d_copia=None):
+        if d_copia is None:
+            d_copia = []
+
+        for ll, v in d.items():
+            if 'límites' not in d:
+                d_copia[ll] = {}
+                gen_dic_vacío(v, d_copia=d_copia[ll])
+            else:
+                d_copia[ll] = []
+
+        return d_copia
+
+    # 2) Una función para copiar las trazas de un diccionario de coeficientes de un objeto
+    def sacar_trazas(d_fuente, d_final):
+        """
+
+        :param d_fuente:
+        :type d_fuente: dict
+
+        :param d_final:
+        :type d_final: dict
+
+        :return:
+        :rtype:
+        """
+
+        def iter_sacar_trazas(d, l=None):
+            if l is None:
+                l = []
+
+            for ll, v in d.items():
+                if type(v) is dict:
+                    iter_sacar_trazas(v, l=l)
+                elif type(v) is np.ndarray():
+                    np.append(l, v)
+                else:
+                    pass
+            return l
+
+        for ll, v in d_final.items():
+
+            if type(v) is dict:
+                sacar_trazas(d_fuente=d_fuente[ll], d_final=v)
+            elif type(v) is list:
+                nuevas_trazas = iter_sacar_trazas(d_fuente[ll])
+                d_final[ll].append(nuevas_trazas)
+
+    # 3) Una función para generar aprioris desde trazas
+    def gen_aprioris(d, d_ecs):
+        """
+
+        :param d:
+        :type d: dict
+
+        """
+
+        for ll, v in d.items():
+            if type(v) is dict:
+                gen_aprioris(v, d_ecs=d_ecs[ll])
+
+            elif type (v) is list:
+                datos = np.concatenate(v)
+                try:
+                    cont = d_ecs['cont']
+                except KeyError:
+                    cont = True
+
+                líms = d_ecs['límites']
+
+                dist = Incert.ajustar_dist(datos=datos, cont=cont, límites=líms, usar_pymc=False)[0]
+                d[ll] = Incert.dist_a_texto(dist)
+
+    # Generar un diccionario para guardar los a prioris
+    dic_aprioris = gen_dic_vacío(dic_ecs)
+
+    # Asegurarse que todos los objetos sean de la clase especificada.
+    if not all([x.ext == clase_objs for x in lista_objs]):
+        raise ValueError
+
+    # Agregar el a priori de cada objeto a la lista para cada parámetro
+    for obj in lista_objs:
+        d_coefs = obj.receta['coefs']
+        sacar_trazas(d_fuente=d_coefs, d_final=dic_aprioris)
+
+    # Convertir trazas a distribuciones en formato texto
+    gen_aprioris(d=dic_aprioris, d_ecs=dic_ecs)
