@@ -1,6 +1,6 @@
 from NuevoCoso import Coso
-import MATEMÁTICAS.Ecuaciones as Ec
-from MATEMÁTICAS.NuevoIncert import límites_a_texto_apriori
+import Matemáticas.Ecuaciones as Ec
+from Matemáticas.NuevoIncert import límites_a_texto_apriori
 
 
 class Organismo(Coso):

@@ -3,10 +3,10 @@ import os
 
 import numpy as np
 
-import MATEMÁTICAS.Distribuciones as Ds
-import MATEMÁTICAS.Ecuaciones as Ec
+import Matemáticas.Distribuciones as Ds
+import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
-from MATEMÁTICAS.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
+from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
 from NuevoCoso import Simulable, valid_vals_inic
 from RAE.Organismo import Organismo
 
@@ -945,24 +945,24 @@ class Red(Simulable):
         """
 
     def _sacar_vecs_preds_obs(símismo, exp):
-        pass
-        """
+
+
         # El diccionario para guardar los vectores de predicciones y de observaciones
         dic_vecs = {}
 
         # Primero, sacar vectores para cada etapa de la red
-        for org, d_org in símismo.orgs.items():
+        for org, d_org in símismo.organismos.items():
             if org not in dic_vecs.keys():
                 dic_vecs[org] = {}
             for etp in d_org:
                 dic_vecs[org][etp] = {'obs': None, 'preds': None}
 
 
-                n_etp = símismo.núms_etps[org][etp]
+                n_etp = símismo.núms_etapas[org][etp]
                 # Para hacer: distintas parcelas
-                dic_vecs[org][etp] = símismo.predics_exper[exp]['Pobs'][..., n_etp]
+                dic_vecs[org][etp] = símismo.predics_exps[exp]['Pobs'][..., n_etp]
 
-                if n_etp in símismo.formatos_exps
+                if n_etp in símismo.formatos_exps:
 
         # La combinaciones de etapas necesarias para procesar los resultados.
         # Tiene el formato general: {exp1: [(1, [3,4]), etc...], ...}
@@ -984,7 +984,7 @@ class Red(Simulable):
 
         return dic_vecs
 
-        """
+
     def _sacar_líms_coefs_interno(símismo):
         """
         No hay nada nada que hacer aquí, visto que una red no tiene coeficientes propios. Devolvemos

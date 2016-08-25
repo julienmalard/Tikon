@@ -6,7 +6,7 @@ import scipy.stats as estad
 import matplotlib.pyplot as dib
 import pymc
 
-import MATEMÁTICAS.Distribuciones as Ds
+import Matemáticas.Distribuciones as Ds
 
 """
 Este código contiene funciones para manejar datos de incertidumbre.
@@ -130,7 +130,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
 
 def texto_a_dist(texto, usar_pymc=False, nombre=None):
     """
-    Esta función convierte texto a su distribución SciPy of PyMC correspondiente.
+    Esta función convierte texto a su distribución SciPy o PyMC correspondiente.
 
     :param texto: La distribución a convertir. Sus parámetros deben ser en el orden de especificación de parámetros
       de la distribución SciPy correspondiente.
@@ -143,7 +143,7 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
     :type nombre: str
 
     :return: Una distribución o SciPy, o PyMC.
-    :rtype: estad.Stochasic | pymc.Stocastic
+    :rtype: estad.Stochasic | pymc.Stochastic
     """
 
     # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
@@ -180,7 +180,7 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 
             else:
                 # Sino, hay error.
-                raise ValueError('No existe distribución pyMc correspondiente.')
+                raise ValueError('No existe distribución PyMC correspondiendo a %s.' % tipo_dist)
         else:
             # Sino, usar una distribución de SciPy
             dist = Ds.dists[tipo_dist]['scipy'](*paráms)
@@ -190,6 +190,29 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 
     # Si no encontramos el nombre de la distribución, hay un error.
     raise ValueError('No se pudo decodar la distribución "%s".' % texto)
+
+
+def dist_a_texto(dist):
+    """
+    Esta función toma una distribución de SciPy y devuelva una representación de texto en formato de Tiko'n para
+      la distribución.
+
+    :param dist: La distribución.
+    :type dist: estad.rv_frozen
+
+    :return: La versión texto de la distribución.
+    :rtype: str
+
+    """
+
+    args = dist.args
+
+    nombre_scipy = dist.dist.name
+    nombre_dist = [x for x in Ds.dists if Ds.dists[x]['scipy'] == nombre_scipy][0]
+
+    texto_dist = '%s~(%s)' % (nombre_dist, str(args))
+
+    return texto_dist
 
 
 def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
@@ -212,8 +235,8 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
     :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
     :type límites: tuple
 
-    :return: Distribución PyMC y su ajuste (p)
-    :rtype: (pymc.Stochastic, float)
+    :return: Distribución PyMC o de Scipyy su ajuste (p)
+    :rtype: (pymc.Stochastic | estad.rv_frozen, float)
 
     """
 
@@ -479,10 +502,10 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                     # Validar que todo esté bien y que el error en la densidad de la distribución sea menos de
                     # 0.0001.
-                    validar = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
-                                   estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
+                    valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
+                                 estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
 
-                    if validar-certidumbre > 0.0001:
+                    if valid-certidumbre > 0.0001:
                         raise ValueError('Error en la optimización de la distribución especificada. Esto es un error de'
                                          'programación, así que mejor se queja al programador.')
 

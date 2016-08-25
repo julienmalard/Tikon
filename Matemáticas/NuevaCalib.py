@@ -1,7 +1,7 @@
 import numpy as np
 from pymc import deterministic, stochastic, Exponential, Normal, MCMC
 
-import MATEMÁTICAS.NuevoIncert as Incert
+import Matemáticas.NuevoIncert as Incert
 
 
 class ModBayes(object):

@@ -567,19 +567,16 @@ class Simulable(Coso):
 
         exper = símismo._prep_lista_exper(exper=exper)
 
-        # Generar el vector numpy de observaciones para los experimentos
-        obs = símismo._prep_obs_exper(exper=exper)
-
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám)
-        preds = símismo._simul_exps(**dic_argums, paso=paso)
+        símismo._simul_exps(**dic_argums, paso=paso)
 
         # Si hay que dibujar, dibujar
         if dibujar:
             símismo.dibujar(exper=exper)
 
         # Procesar los datos de la validación
-        return símismo._procesar_validación(vector_obs=obs, vector_preds=preds)
+        return símismo._procesar_validación()
 
     def dibujar(símismo, mostrar=True, archivo=None, exper=None):
         """
@@ -1156,27 +1153,27 @@ def valid_vals_inic(d, n=None):
 
 def generar_aprioris(clase):
     """
+    Esta función generar a prioris para una clase dada de Coso basado en las calibraciones existentes de todas las
+      otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
+      clase lo puedan acceder.
 
     :param clase:
-    :type clase: Coso | type
+    :type clase: type
 
-    :return:
     """
 
-    assert clase.rmo[-2] is Coso
+    lista_objs = []
 
     # Sacar la lista de los objetos de este tipo en Proyectos
     for raíz, dirs, archivos in os.walk(os.path, topdown=False):
         for nombre in archivos:
             ext = os.path.splitext(nombre)[1]
             if ext == clase.ext:
-                # para hacer: generar objeto de nombre
-
-    lista_objs =
+                lista_objs.append(clase(fuente=nombre))
 
     dic_aprioris = apriori_de_existente(lista_objs=lista_objs, clase_objs=clase)
 
-    archivo = os.path.join(directorio_base, clase.__name__, '.apr')
+    archivo = os.path.join(directorio_base, 'A prioris', clase.__name__, '.apr')
     with open(archivo, 'w', encoding='utf8') as d:
         json.dump(dic_aprioris, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
@@ -1222,19 +1219,30 @@ def apriori_de_existente(lista_objs, clase_objs):
         :param d_final:
         :type d_final: dict
 
-        :return:
-        :rtype:
         """
 
         def iter_sacar_trazas(d, l=None):
+            """
+
+            :param d:
+            :type d: dict
+
+            :param l:
+            :type l: list
+
+            :return:
+            :rtype: list
+
+            """
+
             if l is None:
                 l = []
 
-            for ll, v in d.items():
-                if type(v) is dict:
-                    iter_sacar_trazas(v, l=l)
-                elif type(v) is np.ndarray():
-                    np.append(l, v)
+            for val in d.values():
+                if type(val) is dict:
+                    iter_sacar_trazas(val, l=l)
+                elif type(val) is np.ndarray:
+                    np.append(l, val)
                 else:
                     pass
             return l
@@ -1253,6 +1261,9 @@ def apriori_de_existente(lista_objs, clase_objs):
 
         :param d:
         :type d: dict
+
+        :param d_ecs:
+        :type d_ecs: dict
 
         """
 

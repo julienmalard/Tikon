@@ -1,6 +1,6 @@
 import numpy as np
 
-import MATEMÁTICAS.NuevoIncert as Incert
+import Matemáticas.NuevoIncert as Incert
 
 
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
