@@ -1,6 +1,6 @@
-import RAE.NuevoINSECTO as Ins
+import RAE.NuevoInsecto as Ins
 import RAE.Planta as Plt
-from MATEMÁTICAS.Experimentos import Experimento
+from Matemáticas.Experimentos import Experimento
 from RAE.NuevaRedAE import Red
 
 proyecto = 'Opisina arenosella'
