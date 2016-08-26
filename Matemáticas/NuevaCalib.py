@@ -1,5 +1,5 @@
 import numpy as np
-from pymc import deterministic, stochastic, Exponential, Normal, MCMC
+from pymc import deterministic, Exponential, Normal, MCMC
 
 import Matemáticas.NuevoIncert as Incert
 

@@ -1,7 +1,8 @@
 import random
+
 import numpy as np
-from scipy import stats as estad
 from PyKrige.uk import UniversalKriging as krigUniversal
+from scipy import stats as estad
 
 __author__ = 'Julien Malard'
 

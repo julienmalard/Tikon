@@ -1,9 +1,10 @@
 # Este documento contiene las funciones de manejo de datos de clima
-from geopy.distance import vincenty as dist
 import datetime as ft
 import json
-import numpy as np
 import os
+
+import numpy as np
+from geopy.distance import vincenty as dist
 
 
 # Una función para leer los datos de clima de un documento especificado

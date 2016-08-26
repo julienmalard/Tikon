@@ -909,81 +909,123 @@ class Red(Simulable):
 
     def _procesar_validación(símismo):
         """
+        Ver documentación de Simulable.
+        Esta función valida las predicciones de una corrida de validación.
 
-        :return:
+        :return: Un diccionario, organizado por experimento, organismo y etapa, del ajuste del modelo.
         :rtype: dict
 
         """
 
-        pass
+        dic_valids = {}
 
-        """
         # Para cada experimento simulado, en orden...
-        for nombre, predic in sorted(símismo.predics_exps.items()):
+        for exp, predic in sorted(símismo.predics_exps.items()):
+            dic_valids[exp] = {}
 
-            predics =
+            dic_pred_obs = símismo._sacar_vecs_preds_obs(exp=exp)
 
-            # La combinaciones de etapas necesarias para procesar los resultados.
-            # Tiene el formato general: {exp: [(1, [3,4]), etc...], ...}
-            combin_etps = símismo.formatos_exps['combin_etps'][nombre]
-            # print(combin_etps)  # para hacer: quitar duplicaciones recíprocas
+            for org, d_org in dic_pred_obs.items():
 
-            # La ubicación de los datos observados
-            ubic_obs = símismo.formatos_exps['ubic_obs'][nombre]
+                dic_valids[exp][org] = {}
 
-            # Combinar las etapas que lo necesitan
-            for i in combin_etps:
-                predic['Pobs'][..., i[0], :] += np.sum(predic['Pobs'][..., i[1], :], axis=3)
+                for etp, d_etp in d_org:
+                    d = dic_pred_obs[org][etp]
+                    dic_valids[exp][org][etp] = validar(matr_predic=d['preds'], vector_obs=d['obs'])
 
-            # Sacar únicamente las predicciones que corresponden con los datos observados disponibles
-            vector_predics = np.concatenate((vector_predics,
-                                             predic['Pobs'][..., ubic_obs[0], ubic_obs[1]].flatten()))
-
-        return vector_predics
-
-        validar()
-        """
+        return dic_valids
 
     def _sacar_vecs_preds_obs(símismo, exp):
+        """
+        Esta función crea un diccionario con vectores/matrices de predicciones y de observaciones. Es muy útil para
+          generar gráficos de una validación y para generar índices de ajustes de modelos desagregados por componente.
 
+        :param exp: El nombre del experimento para cual hay que sacar los vectores.
+        :type exp: str
+
+        :return: Un diccionario de la forma:
+          {organismo 1: {etapa 1:{'preds': [matriz], 'obs': [vector]}, etapa 2: {...}, ...}, organismo 2: {...}, ...}
+          Notar que la matriz de predicciones tendrá 3 ejes: eje 0: repetición estocástica, eje 1: repeticiones
+           paramétricas, eje 2: día. Habrá que cambiar esto para incluir distintas parcelas.
+          En casos donde hay observaciones que faltan para unos días para cuales hay predicciones, el vector de
+           observaciones tendrá valores de np.nan para los días que faltan. Si una etapa no tienen observaciones,
+           el vector de observaciones se reeplazará por None.
+        :rtype: dict
+
+        """
 
         # El diccionario para guardar los vectores de predicciones y de observaciones
         dic_vecs = {}
 
-        # Primero, sacar vectores para cada etapa de la red
+        # Para simplificar el código
+        matr_predics = símismo.predics_exps[exp]['Pobs']
+        etps_interés = símismo.formatos_exps['etps_interés'][exp]
+
+        # Primero, vamos a sacar vectores para cada etapa de la red
         for org, d_org in símismo.organismos.items():
+
+            # Si el organismo no existe en el diccionario de resultados, agregarlo ahora
             if org not in dic_vecs.keys():
                 dic_vecs[org] = {}
-            for etp in d_org:
+
+            for etp in d_org:  # Para cada etapa...
+
+                # Crear los lugares para guardar sus predicciones y observaciones.
                 dic_vecs[org][etp] = {'obs': None, 'preds': None}
 
+                n_etp = símismo.núms_etapas[org][etp]  # El número de la etapa
 
-                n_etp = símismo.núms_etapas[org][etp]
+                # Guardar la matriz de predicciones
                 # Para hacer: distintas parcelas
-                dic_vecs[org][etp] = símismo.predics_exps[exp]['Pobs'][..., n_etp]
+                matr_preds_etp = matr_predics[..., n_etp]
+                dic_vecs[org][etp]['preds'] = matr_preds_etp
 
-                if n_etp in símismo.formatos_exps:
+                # El diccionario de observaciones y de tiempos del Experimento
+                dic_obs = símismo.exps[exp].datos['Organismos']['obs']
+                tiempos_obs = símismo.exps[exp].datos['Organismos']['tiempo']
 
-        # La combinaciones de etapas necesarias para procesar los resultados.
-        # Tiene el formato general: {exp1: [(1, [3,4]), etc...], ...}
-        combin_etps = símismo.formatos_exps['combin_etps'][exp]
+                # Ahora, el vector de observaciones. (Es un poco más complicado.)
+                if n_etp in etps_interés:
+                    # Si hay observaciones para esta etapa...
 
-        if n_etp in combin_etps:
-            nombre_serie =
+                    # El vector para guardar las observaciones, llenado de valores np.nan
+                    vector_obs = np.empty(matr_preds_etp.shape[-1])
+                    vector_obs.fill(np.nan)
 
-            serie_obs = 
-            serie_preds = np.sum([predic['Pobs'][..., x, :]], axis=3)
-            for col_obs in combin_etps:
+                    # Los nombre de las columnas y el nombre de la columna de datos que nos interesa
+                    nombres_cols = símismo.formatos_exps['nombres_cols'][exp]
+                    nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0]]
 
+                    # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
+                    vector_obs[tiempos_obs] = dic_obs[nombre_col][0]  # Para hacer: arreglar para parcelas múltiples
 
+                    # Guardar el vector
+                    dic_vecs[org][etp]['obs'] = vector_obs
 
-        # Combinar las etapas que lo necesitan
-        for i in combin_etps:
-            predic['Pobs'][..., i[0], :] += np.sum(, axis=3)
+                # La combinaciones de etapas necesarias para procesar los resultados.
+                combin_etps = símismo.formatos_exps['combin_etps'][exp]
+                if n_etp in combin_etps:
 
+                    # El nombre de esta "etapa" combinada, para guardar los resultados en el diccionario
+                    nombre_serie = '% combinada' % etp
+
+                    # La matriz de predicciones
+                    matr_preds_etp = np.sum([matr_predics[..., x, :] for x in combin_etps[n_etp]], axis=3)
+
+                    # El vector para guardar las observaciones, llenado de valores np.nan
+                    vector_obs = np.empty(matr_preds_etp.shape[-1])
+                    vector_obs.fill(np.nan)
+
+                    # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
+                    vector_obs[tiempos_obs] = dic_obs[nombre_serie][0]  # Para hacer: arreglar para parcelas múltiples
+
+                    # Guardar la matriz de predicciones
+                    dic_vecs[org][nombre_serie]['preds'] = matr_preds_etp
+
+                    # Guardar el vector de observaciones
+                    dic_vecs[org][nombre_serie]['obs'] = vector_obs
 
         return dic_vecs
-
 
     def _sacar_líms_coefs_interno(símismo):
         """
@@ -1004,6 +1046,15 @@ class Red(Simulable):
         """
         Ver la documentación de Simulable.
 
+        Esta función llenará el diccionario símismo.formatos_exps, lo cuál contiene la información necesaria para
+          conectar las predicciones de una Red con los datos observados en un Experimento. Este diccionario tiene
+          cuatro partes:
+            1. 'nombres_cols': Una lista de los nombres de las columnas de datos del Experimento, en orden.
+            2. 'etps_interés': Una lista de los números de las etapas en la Red que corresponden as nombres_cols
+            3. 'combin_etps':
+            4. 'ubic_obs': Un formato tuple con matrices con la información de dónde hay que sacar los datos de
+                observaciones para cada día y cada etapa. Para hacer: cada parcela.
+
         :type experimento: Experimento
         :type corresp: dict
 
@@ -1021,22 +1072,17 @@ class Red(Simulable):
         # El nombre del experimento
         nombre = experimento.nombre
 
-        # Crear las llaves para este experimento en el diccionario de formatos de la red.
-        for ll in símismo.formatos_exps:
-            símismo.formatos_exps[ll][nombre] = []
+        # Crear las llaves para este experimento en el diccionario de formatos de la Red, y simplificar el código.
+        símismo.formatos_exps['etps_interés'][nombre] = None
+        símismo.formatos_exps['ubic_obs'][nombre] = ()
+        l_nombres_cols = símismo.formatos_exps['nombres_cols'][nombre] = []
+        d_comunes = símismo.formatos_exps['combin_etps'][nombre] = {}
 
-        # Para simplificar el código
-        lista_nombres_cols = símismo.formatos_exps['nombres_cols'][nombre]
-        lista_etps_interés = []
+        l_etps_interés = []
 
         # Para guardar las ubicaciones de las observaciones:
         ubic_obs_días = []
         ubic_obs_etps = []
-
-        # Para guardar las etapas que corresponden a la misma columna en la base de datos, si aplica.
-        lista_comunes = []
-        for _ in range(len(símismo.etapas)):
-            lista_comunes.append([])
 
         # Para cada organismo en el diccionario de correspondencias, en orden...
         for org, d_org in sorted(corresp.items()):
@@ -1044,54 +1090,61 @@ class Red(Simulable):
             # Para cada etapa del organismo en el diccionario de correspondencias, en orden...
             for etp, d_etp in sorted(d_org.items()):
 
-                lista_cols = corresp[org][etp]
+                l_cols = corresp[org][etp]  # La lista de columna(s) de datos correspondiendo a esta etapa
 
                 # Asegurar el formato correcto
-                if type(lista_cols) is not list:
-                    lista_cols = [lista_cols]
+                if type(l_cols) is not list:
+                    l_cols = [l_cols]
 
-                # Si hay más que una columna de la base de datos correspondiendo a la etapa, sumarlos
-                if len(lista_cols) > 1:
-                    # El nombre de la nueva columna sumada
-                    nombre_col = '&'.join(str(x) for x in sorted(lista_cols))
+                # Si hay más que una columna de la base de datos correspondiendo a la etapa, hay que sumarlos. Este
+                # código no hará ninguna transformación a los datos o el nombre de la columna en el caso que solamente
+                # haya una columna de datos correspondiento a la etapa.
 
-                    # Hacer la suma
-                    suma = np.sum([experimento.datos['Organismos']['obs'][x] for x in lista_cols], axis=0)
+                # El nombre de la nueva columna sumada (en el caso donde l_cols tiene una sola columna, no cambia nada)
+                nombre_col = '&'.join(str(x) for x in sorted(l_cols))
 
-                    # Guardar la nueva columna en el Experimento
-                    experimento.datos['Organismos']['obs'][nombre_col] = suma
+                # Hacer la suma (otra vez, no hace nada si l_cols solamente tiene una columna).
+                suma = np.sum([experimento.datos['Organismos']['obs'][x] for x in l_cols], axis=0)
+
+                # Guardar la nueva columna en el Experimento
+                experimento.datos['Organismos']['obs'][nombre_col] = suma
+
+                # El número de la etapa en la Red
+                n_etp = símismo.núms_etapas[org][etp]
+
+                # Verificar ahora para etapas cuyas predicciones hay que combinar
+                if nombre_col in l_nombres_cols:
+                    # Si ya había otra etapa con estos mismo datos...
+
+                    # Buscar el número de la otra etapa
+                    n_otra_etp = l_etps_interés[l_nombres_cols.index(nombre_col)]
+
+                    # Si es la primera vez que la otra etapa se desdoble, agregar su número como llave al diccionario.
+                    if n_otra_etp not in d_comunes:
+                        d_comunes[n_otra_etp] = []
+
+                    # Agregar el número de esta etapa a la lista.
+                    d_comunes[n_otra_etp].append(n_etp)
 
                 else:
-                    # Si solo hay una columna para la etapa, utilizar esta.
-                    nombre_col = lista_cols[0]
-
-                # Guardar el número de la etapa de la Red
-                núm_etp = símismo.núms_etapas[org][etp]
-
-                lista_comunes[núm_etp].append(núm_etp)
-
-                # Si la columna ya no se utilizó para otra etapa...
-                if len(lista_comunes[núm_etp]) == 1:
+                    # Si la columna ya no se utilizó para otra etapa...
 
                     # Guardar el nombre de la columna de interés, tanto como el número de la etapa
-                    lista_nombres_cols.append(nombre_col)
-                    lista_etps_interés.append(núm_etp)
+                    l_nombres_cols.append(nombre_col)
+                    l_etps_interés.append(n_etp)
 
-                    # Guardar las ubicaciones, en la matriz de predicciónes, correspondiendo a las observaciones
+                    # Guardar las ubicaciones, en la matriz de predicciones, correspondiendo a las observaciones
                     obs_etp = experimento.datos['Organismos']['obs'][nombre_col]
                     días_con_obs = experimento.datos['Organismos']['tiempo'][~np.isnan(obs_etp.flatten())]
                     ubic_obs_días.append(días_con_obs)
 
                     # Guardar una matriz de forma correspondiente con el número de la etapa:
-                    ubic_obs_etps.append(np.full(shape=len(días_con_obs), fill_value=núm_etp))
+                    ubic_obs_etps.append(np.full(shape=len(días_con_obs), fill_value=n_etp))
 
-        # Convertir a matriz numpy
-        símismo.formatos_exps['etps_interés'][nombre] = np.array(lista_etps_interés)
+        # Convertir a matrices numpy
+        símismo.formatos_exps['etps_interés'][nombre] = np.array(l_etps_interés)
         símismo.formatos_exps['ubic_obs'][nombre] = (np.array(ubic_obs_etps, dtype=int).flatten(),
                                                      np.array(ubic_obs_días, dtype=int).flatten())
-
-        # Hacer la lista de etapas para combinar en el análisis de datos.
-        símismo.formatos_exps['combin_etps'][nombre] = [(n, x) for n, x in enumerate(lista_comunes) if len(x) > 1]
 
     def _procesar_predics_calib(símismo):
         """

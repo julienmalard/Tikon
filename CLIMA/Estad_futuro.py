@@ -1,8 +1,9 @@
-import random as aleatorio
-import math as mat
-import numpy as np
-import datetime as ft
 import calendar as calendario
+import datetime as ft
+import math as mat
+import random as aleatorio
+
+import numpy as np
 
 '''
 Este módulo contiene las funciones necesarias para convertir datos de clima mensuales (incluso predicciones

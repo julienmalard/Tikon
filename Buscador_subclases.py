@@ -1,7 +1,4 @@
 from NuevoCoso import Coso
-import RAE
-import CULTIVO
-import CLIMA
 
 
 def encontrar_subclase_coso(ext):

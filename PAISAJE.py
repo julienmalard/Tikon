@@ -1,13 +1,12 @@
 import os
-import numpy as np
-import datetime as ft
+
+from Parcela import Parcela
 from geopy.distance import vincenty as dist
 
+from CLIMA.CLIMA import Diario
 from COSO import Coso
-from Parcela import Parcela
 from CULTIVO.SUELO import Suelo
 from CULTIVO.VARIEDAD import Variedad
-from CLIMA.CLIMA import Diario
 from RAE.REDES import Red
 
 

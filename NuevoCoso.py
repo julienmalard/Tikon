@@ -9,8 +9,8 @@ from datetime import datetime as ft
 import numpy as np
 import pymc
 
-from Controles import directorio_base
 import Matemáticas.NuevoIncert as Incert
+from Controles import directorio_base
 from Matemáticas.Experimentos import Experimento
 from Matemáticas.NuevaCalib import ModBayes
 
@@ -761,14 +761,18 @@ class Simulable(Coso):
 
     def _acción_añadir_exp(símismo, experimento, corresp):
         """
+        Esta función agrega un Experimento a un Simulable y conecta las predicciones futuras del Simulable con
+          los datos contenidos en el Experimento.
 
-        :param experimento:
-        :type experimento:
-        :param corresp:
-        :type corresp:
-        :return:
-        :rtype:
+        :param experimento: El objeto de experimento para agregar.
+        :type experimento: Experimento
+
+        :param corresp: Un diccionario con la información necesaria para conectar el Experimento con el Simulable y
+          sus predicciones.
+        :type corresp: dict
+
         """
+
         raise NotImplementedError
 
     def _prep_obs_exper(símismo, exper):

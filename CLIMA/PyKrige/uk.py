@@ -17,13 +17,13 @@ References:
 Copyright (c) 2015 Benjamin S. Murphy
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.linalg
 from scipy.spatial.distance import cdist
-import matplotlib.pyplot as plt
 
-import CLIMA.PyKrige.variogram_models as variogram_models
 import CLIMA.PyKrige.core as core
+import CLIMA.PyKrige.variogram_models as variogram_models
 
 
 class UniversalKriging:

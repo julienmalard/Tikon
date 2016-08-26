@@ -1,5 +1,6 @@
-import numpy as np
 import random as aleatorio
+
+import numpy as np
 
 from COSO import Simulable
 from Matemáticas.CALIB import extraer_objetos, leerdatos
