@@ -1,4 +1,5 @@
 import math as mat
+
 import numpy as np
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \

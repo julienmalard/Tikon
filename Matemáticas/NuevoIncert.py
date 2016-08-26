@@ -1,10 +1,11 @@
 import os
 import warnings as avisar
-import numpy as np
-from scipy.optimize import minimize
-import scipy.stats as estad
+
 import matplotlib.pyplot as dib
+import numpy as np
 import pymc
+import scipy.stats as estad
+from scipy.optimize import minimize
 
 import Matemáticas.Distribuciones as Ds
 
@@ -843,7 +844,7 @@ def numerizar(d, c=None):
     :type c: dict | list
 
     :return: El diccionario o la lista numerizada.
-    :rtype: dict | list
+    :rtype: dict
 
     """
 

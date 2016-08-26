@@ -1,6 +1,7 @@
-import os
 import csv
 import datetime as ft
+import os
+
 import numpy as np
 
 from Controles import directorio_base
@@ -11,7 +12,7 @@ class Experimento(object):
         """
 
         :param nombre:
-        :type nombre:
+        :type nombre: str
         :param proyecto:
         :type proyecto: str
         """

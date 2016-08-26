@@ -1,8 +1,8 @@
-from COSO import Coso
 from CLIMA.Estad_diario import eval_estaciones as eval_estaciones
 from CLIMA.Estad_diario import krigear as krigear
 from CLIMA.Estad_futuro import generarmeteo as generarmeteo
 from CLIMA.Manejo import *
+from COSO import Coso
 
 
 # Esta clase representa la meteo diaria en un lugar específico.

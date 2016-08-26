@@ -1,12 +1,15 @@
 import os
-import numpy as np
-import matplotlib.pylab as dib
 
-from Controles import directorio_base
+import matplotlib.pylab as dib
+import numpy as np
+
 from COSO import Simulable
-from RAE.INSECTOS import Insecto
+from Controles import directorio_base
 from Matemáticas.CALIB import genmodbayes, calib, guardar
 from Matemáticas.INCERT import anal_incert
+from RAE.INSECTOS import Insecto
+
+
 # dib.switch_backend('cairo')
 
 

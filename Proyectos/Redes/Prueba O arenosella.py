@@ -1,6 +1,7 @@
 print("Importando dependencias...")
-from RAE.REDES import Red
 from RAE.INSECTOS import Sencillo, MetamCompleta
+from RAE.REDES import Red
+
 # from pymc import *
 # import numpy as np
 # from Proyectos.Prueba_incert import *

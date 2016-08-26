@@ -1,9 +1,9 @@
+import datetime as ft
+import json
 import os
 import shutil
+
 import numpy as np
-import json
-import random as aleatorio
-import datetime as ft
 
 from Controles import directorio_base
 

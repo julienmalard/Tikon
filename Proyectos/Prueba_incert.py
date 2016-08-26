@@ -1,7 +1,8 @@
+import numpy as np
+from pymc import *
+
 from COSO import Coso
 from RAE.REDES import Red
-from pymc import *
-import numpy as np
 
 
 # Función para representar el modelo estadístico

@@ -1,6 +1,5 @@
-from pymc import DiscreteUniform, Exponential, deterministic, Poisson, Uniform, MCMC
 import numpy as np
-
+from pymc import DiscreteUniform, Exponential, deterministic, Poisson, MCMC
 
 disasters_array = \
     np.array([4, 5, 4, 0, 1, 4, 3, 4, 0, 6, 3, 3, 4, 0, 2, 6,
