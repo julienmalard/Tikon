@@ -134,7 +134,6 @@ class ModBayes(object):
 
         # Llamar la función "sample" del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
-        prueba = símismo.MCMC.trace('simular')[:]
 
     def guardar(símismo):
         """

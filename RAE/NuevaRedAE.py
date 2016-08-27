@@ -7,6 +7,7 @@ import Matemáticas.Distribuciones as Ds
 import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
 from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
+from Matemáticas.Experimentos import Experimento
 from NuevoCoso import Simulable, valid_vals_inic
 from RAE.Organismo import Organismo
 
@@ -258,6 +259,10 @@ class Red(Simulable):
         """
         Ver la documentación de Simulable.
 
+        :type mostrar: bool
+        :type archivo: str
+        :type exper: list
+
         """
 
         # El diccionario de información a poner en el título del gráfico
@@ -275,40 +280,33 @@ class Red(Simulable):
         for exp in exper:
             dic_título['exp'] = exp
 
-            # El diccionario con las observaciones
-            dic_obs = símismo.exps[exp].datos['Organismos']['obs']
-            tiempos_obs = símismo.exps[exp].datos['Organismos']['tiempo']
+            dic_preds_obs = símismo._sacar_vecs_preds_obs(exp=exp)
 
             # Para cada organismo en la red...
-            for org, d_org in símismo.núms_etapas.items():
+            for org, d_org in dic_preds_obs.items():
                 dic_título['org'] = org
 
                 # Para cada etapa de este organismo...
                 for etp, n_etp in d_org.items():
                     dic_título['etp'] = etp
 
-                    matr_predic = símismo.predics_exps[exp]['Pobs'][..., n_etp, :]
+                    # El vector de observaciones y la matriz de predicciones
+                    matr_predic = dic_preds_obs['preds']
+                    vector_obs = dic_preds_obs['obs']
 
                     # Para cada parcela en las predicciones...
                     for prc in range(matr_predic.shape[0]):
                         dic_título['prc'] = prc
 
+                        # Las matrices de predicciones y observaciones de poblaciones, con una única parcela
+                        matr_predic_prc = matr_predic[prc, :, :]
+                        vector_obs_prc = vector_obs[prc, :]
+
                         # El archivo para guardar la imagen
                         archivo_img = os.path.join(archivo, '{exp}_{prc}_{org}_{etp}'.format(**dic_título))
 
-                        # La matriz de predicciones de poblaciones, transformada para la función 'gráfico'
-                        matr_predic_proces = matr_predic[prc, :, :]
-
-                        # El vector de observaciones
-                        vector_obs = None
-                        etps_interés = símismo.formatos_exps['etps_interés'][exp]
-                        if n_etp in etps_interés:
-                            nombres_cols = símismo.formatos_exps['nombres_cols'][exp]
-                            nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0]]
-                            vector_obs = dic_obs[nombre_col][0]  # Para hacer: arreglar para parcelas múltiples
-
                         # Generar el gráfico
-                        gráfico(matr_predic=matr_predic_proces, vector_obs=vector_obs, tiempos_obs=tiempos_obs,
+                        gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
                                 título='{exp}, Parcela {prc}: {org}, etapa {etp}'.format(**dic_título),
                                 etiq_y='Población', mostrar=mostrar, archivo=archivo_img)
 
@@ -891,22 +889,6 @@ class Red(Simulable):
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
 
-    @staticmethod
-    def _agregar_ruido(pobs, ruido):
-        """
-
-        :param pobs:
-        :type pobs:
-        :param ruido:
-        :type ruido:
-        :return:
-        :rtype:
-        """
-
-        np.add(np.round(np.random.normal(0, np.maximum(1, pobs*ruido))), pobs, out=pobs)
-
-        np.maximum(0, pobs, out=pobs)
-
     def _procesar_validación(símismo):
         """
         Ver documentación de Simulable.
@@ -1395,6 +1377,22 @@ class Red(Simulable):
         # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
         # estocasticidad al modelo.
         np.add(redondeada, np.greater(residuos, prob), out=matriz)
+
+    @staticmethod
+    def _agregar_ruido(pobs, ruido):
+        """
+
+        :param pobs:
+        :type pobs:
+        :param ruido:
+        :type ruido:
+        :return:
+        :rtype:
+        """
+
+        np.add(np.round(np.random.normal(0, np.maximum(1, pobs * ruido))), pobs, out=pobs)
+
+        np.maximum(0, pobs, out=pobs)
 
     @staticmethod
     def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):

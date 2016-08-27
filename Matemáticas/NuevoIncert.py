@@ -588,8 +588,12 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
 
     # Si hay observaciones, mostrarlas también
     if vector_obs is not None:
-        dib.plot(tiempos_obs, vector_obs, 'o', color=color)
-        dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
+        if tiempos_obs is not None:
+            dib.plot(tiempos_obs, vector_obs, 'o', color=color)
+            dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
+        else:
+            dib.plot(vector_obs, 'o', color=color)
+            dib.plot(vector_obs, lw=1, color='#000000')
 
     # Incluir la incertidumbre
     if incert is None:
@@ -669,7 +673,7 @@ def validar(matr_predic, vector_obs):
       paramétrica, eje 2 = día.
     :type matr_predic: np.ndarray
 
-    :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
+    :param vector_obs: El vector de las observaciones. Eje 0 = día.
     :type vector_obs: np.ndarray
 
     :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
