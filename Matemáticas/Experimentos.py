@@ -25,15 +25,17 @@ class Experimento(object):
 
         # El diccionario de los datos. Tiene una sub-categoría para cada clase de datos
         símismo.datos = {'Organismos': {'tiempo': None,
-                                        'obs': {}
+                                        'obs': {},
+                                        'parcelas': []
                                         },
                          'Cultivos': {'tiempo': None},  # Para hacer: Llenar este.
-                         'Aplicaciones': {'tiempo': None}  # Para hacer también
+                         'Aplicaciones': {'tiempo': None},  # Para hacer también
+                         'Parcelas': {}  # Para hacer también
                          }
 
         símismo.proyecto = proyecto
 
-    def cargar_orgs(símismo, archivo, col_tiempo, col_parcela=None, fecha_ref=None):
+    def agregar_orgs(símismo, archivo, col_tiempo, col_parcela=None, fecha_ref=None):
         """
         Esta función establece la base de datos para las observaciones de organismos en el campo.
 
@@ -47,7 +49,7 @@ class Experimento(object):
         :type col_parcela: str
 
         :param fecha_ref: Un parámetro opcional para especificar la fecha de referencia (la fecha para cual tiempo = 0
-          en la columna 'col_tiempo'.
+          en la columna 'col_tiempo').
         :type fecha_ref: ft.date
 
         """
@@ -97,19 +99,28 @@ class Experimento(object):
 
         # Ahora, para cada columna de datos (excluyendo fechas) en la base de datos...
         for col in dic_datos:
-            if col != col_tiempo:  # Si no es la columna de fecha...
+            if col != col_tiempo and col != col_parcela:  # Si no es la columna de fecha o de parcelas...
+
+
                 if col_parcela is None:
+                    # Si no hay columna de parcelas...
                     matr = símismo.texto_a_datos(dic_datos[col])[np.newaxis, :]
+
                 else:
+                    # Si hay más que una parcela...
                     raise NotImplementedError
                     # para hacer
+
                 símismo.datos['Organismos']['obs'][col] = matr.astype(int)  # Evitar fracciones de insectos
 
-    def estab_bd_cultivo(símismo, archivo):
+    def agregar_cultivos(símismo, archivo):
         pass  # Para hacer
 
-    def estab_bd_aplic(símismo, archivo):
+    def agregar_aplicaciones(símismo, archivo):
         pass  # Para hacer
+
+    def agregar_parcelas(símismo, archivo):
+        pass # Para hacer
 
     def mover_fechas(símismo, dif, no_cambiar):
         for bd in símismo.datos:
@@ -155,7 +166,6 @@ class Experimento(object):
 
                 l = csv.reader(d)  # El lector de csv
 
-                cols = []  # Para guardar los nombres de las columnas
                 valores = []  # Para guardar la lista de datos de cada línea
 
                 # Guardar la primera fila como nombres de columnas
@@ -179,9 +189,10 @@ class Experimento(object):
     @staticmethod
     def texto_a_datos(datos):
         """
-        Esta función toma una lista de datos en formato de texto y la convierte en matriz numpy.
+        Esta función toma una lista de datos en formato de texto y la convierte en matriz numpy. Valores vacíos ("") se
+          convertirán a np.nan.
 
-        :param datos:
+        :param datos: La lista de datos en formato de texto.
         :type datos: list
 
         :return: La matriz numpy de los datos. Datos que faltan se representan con np.nan
@@ -195,13 +206,13 @@ class Experimento(object):
         return matr.astype(np.float)
 
     @staticmethod
-    def leer_fechas(lista):
+    def leer_fechas(lista_fechas):
         """
         Esta función toma una lista de datos de fecha en formato de texto y detecta 1) la primera fecha de la lista,
           y 2) la posición relativa de cada fecha a esta.
 
-        :param lista: Una lista con las fechas en formato de texto
-        :type lista: list
+        :param lista_fechas: Una lista con las fechas en formato de texto
+        :type lista_fechas: list
 
         :return: Un tuple de la primera fecha y del vector numpy de la posición de cada fecha relativa a la primera.
         :rtype: (ft.date, np.ndarray())
@@ -222,16 +233,18 @@ class Experimento(object):
         formatos_posibles = [x.format(s) for s in separadores for x in f]
 
         # Primero, si los datos de fechas están en formato simplemente numérico...
-        if all([x.isdigit() for x in lista]):
+        if all([x.isdigit() for x in lista_fechas]):
 
             # Entonces, no conocemos la fecha inicial
             fecha_inic_datos = None
 
+            # Quitar duplicaciones
+            list(set(lista_fechas)).sort()
+
             # Pero podemos regresar un vector numpy con los números de cada fecha
-            lista_datos = np.array(lista, dtype=int)
+            vector_fechas = np.array(lista_fechas, dtype=int)
 
         else:
-
             # Sino, intentar de leer el formato de fecha
             fechas = None
 
@@ -240,7 +253,7 @@ class Experimento(object):
 
                 try:
                     # Intentar de convertir todas las fechas a objetos ft.datetime
-                    fechas = [ft.datetime.strptime(x, formato).date() for x in lista]
+                    fechas = [ft.datetime.strptime(x, formato).date() for x in lista_fechas]
 
                     # Si funcionó, parar aquí
                     break
@@ -259,12 +272,18 @@ class Experimento(object):
 
                 # La primera fecha de la base de datos. Este paso se queda un poco lento, así que para largas bases de
                 # datos podría ser útil suponer que la primera fila también contiene la primera fecha.
-                # fecha_inic_datos = min(fechas)
+                fecha_inic_datos = min(fechas)
 
-                # Mejor lo hagamos así:
-                fecha_inic_datos = min(fechas[0], fechas[-1])
+                # Si tenemos prisa, mejor lo hagamos así:
+                # fecha_inic_datos = min(fechas[0], fechas[-1])
 
                 # La posición relativa de todas las fechas a esta
-                lista_datos = np.array([(x - fecha_inic_datos).days for x in fechas], dtype=int)
+                lista_fechas = [(x - fecha_inic_datos).days for x in fechas]
 
-        return fecha_inic_datos, lista_datos
+                # Quitar duplicaciones
+                list(set(lista_fechas)).sort()
+
+                # Convertir a vector Numpy
+                vector_fechas = np.array(lista_fechas, dtype=int)
+
+        return fecha_inic_datos, vector_fechas
