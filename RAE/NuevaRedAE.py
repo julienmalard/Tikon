@@ -72,8 +72,8 @@ class Red(Simulable):
 
         # Un diccionario para guardar información específica a cada experimento asociado para poder procesar
         # las predicciones de la red en función a cada experimento.
-        símismo.formatos_exps = {'etps_interés': {}, 'combin_etps': {}, 'nombres_cols': {},
-                                 'ubic_obs': {}}
+        símismo.info_exps = {'etps_interés': {}, 'combin_etps': {}, 'nombres_cols': {},
+                             'ubic_obs': {}, 'parcelas': {}}
         
         # Para guardar una conexión con los organismos de plantas en la red
         símismo.plantas = {'dic': {}, 'n_etp': {}}
@@ -290,9 +290,9 @@ class Red(Simulable):
                 for etp, n_etp in d_org.items():
                     dic_título['etp'] = etp
 
-                    # El vector de observaciones y la matriz de predicciones
-                    matr_predic = dic_preds_obs['preds']
-                    vector_obs = dic_preds_obs['obs']
+                    # El vector de observaciones y la matriz de predicciones.
+                    matr_predic = dic_preds_obs['preds']  # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: día
+                    vector_obs = dic_preds_obs['obs']  # Eje 0: parcela, eje 2: día
 
                     # Para cada parcela en las predicciones...
                     for prc in range(matr_predic.shape[0]):
@@ -856,7 +856,7 @@ class Red(Simulable):
         # para hacer
         raise NotImplementedError
 
-    def _incrementar(símismo, paso, i, mov=False, extrn=None):
+    def incrementar(símismo, paso, i, mov=False, extrn=None):
 
         # Empezar con las poblaciones del paso anterior
         símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
@@ -927,8 +927,8 @@ class Red(Simulable):
 
         :return: Un diccionario de la forma:
           {organismo 1: {etapa 1:{'preds': [matriz], 'obs': [vector]}, etapa 2: {...}, ...}, organismo 2: {...}, ...}
-          Notar que la matriz de predicciones tendrá 3 ejes: eje 0: repetición estocástica, eje 1: repeticiones
-           paramétricas, eje 2: día. Habrá que cambiar esto para incluir distintas parcelas.
+          Notar que la matriz de predicciones tendrá 3 ejes: eje 0: parcela, eje 1: repetición estocástica,
+           eje 2: repeticiones paramétricas, eje 3: día.
           En casos donde hay observaciones que faltan para unos días para cuales hay predicciones, el vector de
            observaciones tendrá valores de np.nan para los días que faltan. Si una etapa no tienen observaciones,
            el vector de observaciones se reeplazará por None.
@@ -941,7 +941,8 @@ class Red(Simulable):
 
         # Para simplificar el código
         matr_predics = símismo.predics_exps[exp]['Pobs']
-        etps_interés = símismo.formatos_exps['etps_interés'][exp]
+        etps_interés = símismo.info_exps['etps_interés'][exp]
+        combin_etps = símismo.info_exps['combin_etps'][exp]
 
         # Primero, vamos a sacar vectores para cada etapa de la red
         for org, d_org in símismo.organismos.items():
@@ -957,9 +958,8 @@ class Red(Simulable):
 
                 n_etp = símismo.núms_etapas[org][etp]  # El número de la etapa
 
-                # Guardar la matriz de predicciones
-                # Para hacer: distintas parcelas
-                matr_preds_etp = matr_predics[..., n_etp]
+                # Guardar la matriz de predicciones. Eje 0: parcela, 1: rep estoc, 2. rep param, 3: día
+                matr_preds_etp = matr_predics[..., n_etp, :]
                 dic_vecs[org][etp]['preds'] = matr_preds_etp
 
                 # El diccionario de observaciones y de tiempos del Experimento
@@ -970,42 +970,45 @@ class Red(Simulable):
                 if n_etp in etps_interés:
                     # Si hay observaciones para esta etapa...
 
-                    # El vector para guardar las observaciones, llenado de valores np.nan
-                    vector_obs = np.empty(matr_preds_etp.shape[-1])
-                    vector_obs.fill(np.nan)
-
                     # Los nombre de las columnas y el nombre de la columna de datos que nos interesa
-                    nombres_cols = símismo.formatos_exps['nombres_cols'][exp]
+                    nombres_cols = símismo.info_exps['nombres_cols'][exp]
                     nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0]]
 
-                    # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
-                    vector_obs[tiempos_obs] = dic_obs[nombre_col][0]  # Para hacer: arreglar para parcelas múltiples
+                    if n_etp not in combin_etps:
+                        # Si la etapa no tiene otras etapas con las cuales combinarse...
+                        # El vector para guardar las observaciones, llenado de valores np.nan. Eje 0: parcela, 1: día
+                        vector_obs = np.empty((matr_preds_etp.shape[0], matr_preds_etp.shape[3]))
+                        vector_obs.fill(np.nan)
 
-                    # Guardar el vector
-                    dic_vecs[org][etp]['obs'] = vector_obs
+                        # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
+                        for n_p, p in enumerate(símismo.info_exps['parcelas'][exp]):
+                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p]
 
-                # La combinaciones de etapas necesarias para procesar los resultados.
-                combin_etps = símismo.formatos_exps['combin_etps'][exp]
-                if n_etp in combin_etps:
+                        # Guardar el vector
+                        dic_vecs[org][etp]['obs'] = vector_obs
 
-                    # El nombre de esta "etapa" combinada, para guardar los resultados en el diccionario
-                    nombre_serie = '% combinada' % etp
+                    else:
+                        # Si la etapa se combina con otras etapas en las observaciones...
 
-                    # La matriz de predicciones
-                    matr_preds_etp = np.sum([matr_predics[..., x, :] for x in combin_etps[n_etp]], axis=3)
+                        # El nombre de esta "etapa" combinada, para guardar los resultados en el diccionario
+                        nombre_serie = '% combinada' % etp
 
-                    # El vector para guardar las observaciones, llenado de valores np.nan
-                    vector_obs = np.empty(matr_preds_etp.shape[-1])
-                    vector_obs.fill(np.nan)
+                        # La matriz de predicciones
+                        matr_preds_etp = np.sum([matr_predics[..., x, :] for x in combin_etps[n_etp]], axis=3)
 
-                    # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
-                    vector_obs[tiempos_obs] = dic_obs[nombre_serie][0]  # Para hacer: arreglar para parcelas múltiples
+                        # El vector para guardar las observaciones, llenado de valores np.nan. Eje 0: parcela, 1: día
+                        vector_obs = np.empty((matr_preds_etp.shape[0], matr_preds_etp.shape[3]))
+                        vector_obs.fill(np.nan)
 
-                    # Guardar la matriz de predicciones
-                    dic_vecs[org][nombre_serie]['preds'] = matr_preds_etp
+                        # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
+                        for n_p, p in enumerate(símismo.info_exps['nombres_cols'][exp]):
+                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p]
 
-                    # Guardar el vector de observaciones
-                    dic_vecs[org][nombre_serie]['obs'] = vector_obs
+                        # Guardar la matriz de predicciones
+                        dic_vecs[org][nombre_serie]['preds'] = matr_preds_etp
+
+                        # Guardar el vector de observaciones
+                        dic_vecs[org][nombre_serie]['obs'] = vector_obs
 
         return dic_vecs
 
@@ -1055,10 +1058,10 @@ class Red(Simulable):
         nombre = experimento.nombre
 
         # Crear las llaves para este experimento en el diccionario de formatos de la Red, y simplificar el código.
-        símismo.formatos_exps['etps_interés'][nombre] = None
-        símismo.formatos_exps['ubic_obs'][nombre] = ()
-        l_nombres_cols = símismo.formatos_exps['nombres_cols'][nombre] = []
-        d_comunes = símismo.formatos_exps['combin_etps'][nombre] = {}
+        símismo.info_exps['etps_interés'][nombre] = None
+        símismo.info_exps['ubic_obs'][nombre] = ()
+        l_nombres_cols = símismo.info_exps['nombres_cols'][nombre] = []
+        d_comunes = símismo.info_exps['combin_etps'][nombre] = {}
 
         l_etps_interés = []
 
@@ -1124,9 +1127,12 @@ class Red(Simulable):
                     ubic_obs_etps.append(np.full(shape=len(días_con_obs), fill_value=n_etp))
 
         # Convertir a matrices numpy
-        símismo.formatos_exps['etps_interés'][nombre] = np.array(l_etps_interés)
-        símismo.formatos_exps['ubic_obs'][nombre] = (np.array(ubic_obs_etps, dtype=int).flatten(),
-                                                     np.array(ubic_obs_días, dtype=int).flatten())
+        símismo.info_exps['etps_interés'][nombre] = np.array(l_etps_interés)
+        símismo.info_exps['ubic_obs'][nombre] = (np.array(ubic_obs_etps, dtype=int).flatten(),
+                                                 np.array(ubic_obs_días, dtype=int).flatten())
+
+        # Agregar la lista de nombres de parcelas, en el orden que aparecen en las matrices de observaciones:
+        símismo.info_exps['parcelas'][nombre] = experimento.datos['Organismos']['parcelas']
 
     def _procesar_predics_calib(símismo):
         """
@@ -1143,11 +1149,11 @@ class Red(Simulable):
 
             # La combinaciones de etapas necesarias para procesar los resultados.
             # Tiene el formato general: {exp: [(1, [3,4]), etc...], ...}
-            combin_etps = símismo.formatos_exps['combin_etps'][nombre]
+            combin_etps = símismo.info_exps['combin_etps'][nombre]
             # print(combin_etps)  # para hacer: quitar duplicaciones recíprocas
 
             # La ubicación de los datos observados
-            ubic_obs = símismo.formatos_exps['ubic_obs'][nombre]
+            ubic_obs = símismo.info_exps['ubic_obs'][nombre]
 
             # Combinar las etapas que lo necesitan
             for i in combin_etps:
@@ -1193,10 +1199,10 @@ class Red(Simulable):
                                                      n_etps=n_etapas, n_pasos=n_pasos)
 
             # Llenamos la poblaciones iniciales
-            for i, n_etp in enumerate(símismo.formatos_exps['etps_interés'][exp]):
+            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):
 
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
-                nombre_col = símismo.formatos_exps['nombres_cols'][exp][i]
+                nombre_col = símismo.info_exps['nombres_cols'][exp][i]
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
                 # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
@@ -1342,7 +1348,7 @@ class Red(Simulable):
         for exp in sorted(exper):
 
             # Para cada observación de organismos de este experimento para cual tenemos datos, en orden...
-            for nombre_col in símismo.formatos_exps['nombres_cols'][exp]:
+            for nombre_col in símismo.info_exps['nombres_cols'][exp]:
 
                 # Sacar los datos del Experimento
                 datos_etp = símismo.exps[exp].datos['Organismos']['obs'][nombre_col]

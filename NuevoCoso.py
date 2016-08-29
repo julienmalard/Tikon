@@ -660,9 +660,9 @@ class Simulable(Coso):
 
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(1, n_pasos):
-            símismo._incrementar(paso, i=i, extrn=extrn)
+            símismo.incrementar(paso, i=i, extrn=extrn)
 
-    def _incrementar(símismo, paso, i, extrn):
+    def incrementar(símismo, paso, i, extrn):
         """
         Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
         

@@ -13,6 +13,7 @@ class Experimento(object):
 
         :param nombre:
         :type nombre: str
+
         :param proyecto:
         :type proyecto: str
         """
@@ -23,7 +24,7 @@ class Experimento(object):
         # La fecha de referencia (donde tiempo = 0):
         símismo.fecha_ref = None
 
-        # El diccionario de los datos. Tiene una sub-categoría para cada clase de datos
+        # El diccionario de los datos. Tiene una sub-categoría para cada clase de datos.
         símismo.datos = {'Organismos': {'tiempo': None,
                                         'obs': {},
                                         'parcelas': []
@@ -54,6 +55,11 @@ class Experimento(object):
 
         """
 
+        # Borrar datos anteriores, si habían
+        símismo.datos['Organismos']['tiempo'] = None
+        símismo.datos['Organismos']['obs'].clear()
+        símismo.datos['Organismos']['parcelas'].clear()
+
         archivo = símismo.prep_archivo(archivo)
 
         # Leer el archivo
@@ -63,10 +69,10 @@ class Experimento(object):
         if col_tiempo not in dic_datos:
             raise ValueError('No se encontró la columna de tiempo en la base de datos.')
 
-        # Calcular la fecha inicial y la lista numérica de las fechas
-        fecha_inic_datos, lista_tiempos = símismo.leer_fechas(dic_datos[col_tiempo])
+        # Calcular la fecha inicial (objeto de fecha) y el vector numérico de las fechas
+        fecha_inic_datos, vec_tiempos, vec_tiempos_únic= símismo.leer_fechas(dic_datos[col_tiempo])
 
-        símismo.datos['Organismos']['tiempo'] = lista_tiempos  # Guardar la lista de fechas numéricas
+        símismo.datos['Organismos']['tiempo'] = vec_tiempos_únic  # Guardar la lista de fechas numéricas
 
         # Si el usuario especificó una fecha inicial, usarla
         if fecha_ref is not None:
@@ -94,13 +100,12 @@ class Experimento(object):
                     símismo.mover_fechas(dif=dif, no_cambiar='Organismos')
 
                 else:
-                    # Si era anterior a la nueva fecha, guardar la fecha existente y ajusta los datos de organismos:
+                    # Si era anterior a la nueva fecha, guardar la fecha existente y ajustar los datos de organismos:
                     símismo.datos['Organismos']['tiempo'] += dif
 
         # Ahora, para cada columna de datos (excluyendo fechas) en la base de datos...
         for col in dic_datos:
             if col != col_tiempo and col != col_parcela:  # Si no es la columna de fecha o de parcelas...
-
 
                 if col_parcela is None:
                     # Si no hay columna de parcelas...
@@ -108,8 +113,21 @@ class Experimento(object):
 
                 else:
                     # Si hay más que una parcela...
-                    raise NotImplementedError
-                    # para hacer
+
+                    parcelas = list(set(dic_datos[col_parcela]))
+                    parcelas.sort()
+                    símismo.datos['Organismos']['parcelas'] = parcelas
+                    vec_parc = dic_datos[col_parcela]
+
+                    matr = np.empty((len(parcelas), len(vec_tiempos_únic)))
+                    matr.fill(np.nan)
+
+                    for n, p in enumerate(parcelas):
+                        vec_datos = dic_datos[col][np.where(vec_parc == p)]
+
+                        tiempos_parc = dic_datos[col][np.where(vec_parc == p)]
+
+                        matr[n, tiempos_parc] = vec_datos
 
                 símismo.datos['Organismos']['obs'][col] = matr.astype(int)  # Evitar fracciones de insectos
 
@@ -214,8 +232,9 @@ class Experimento(object):
         :param lista_fechas: Una lista con las fechas en formato de texto
         :type lista_fechas: list
 
-        :return: Un tuple de la primera fecha y del vector numpy de la posición de cada fecha relativa a la primera.
-        :rtype: (ft.date, np.ndarray())
+        :return: Un tuple de la primera fecha, del vector numpy de la posición de cada fecha relativa a la primera,
+          y del vector numpy de las fechas (numéricas) únicas.
+        :rtype: (ft.date, np.ndarray, np.ndarray)
 
         """
 
@@ -238,11 +257,14 @@ class Experimento(object):
             # Entonces, no conocemos la fecha inicial
             fecha_inic_datos = None
 
+            # Convertir a vector Numpy
+            vector_fechas = np.array(lista_fechas, dtype=int)
+
             # Quitar duplicaciones
             list(set(lista_fechas)).sort()
 
             # Pero podemos regresar un vector numpy con los números de cada fecha
-            vector_fechas = np.array(lista_fechas, dtype=int)
+            vector_únicas = np.array(lista_fechas, dtype=int)
 
         else:
             # Sino, intentar de leer el formato de fecha
@@ -280,10 +302,13 @@ class Experimento(object):
                 # La posición relativa de todas las fechas a esta
                 lista_fechas = [(x - fecha_inic_datos).days for x in fechas]
 
+                # Convertir a vector Numpy
+                vector_fechas = np.array(lista_fechas, dtype=int)
+
                 # Quitar duplicaciones
                 list(set(lista_fechas)).sort()
 
                 # Convertir a vector Numpy
-                vector_fechas = np.array(lista_fechas, dtype=int)
+                vector_únicas = np.array(lista_fechas, dtype=int)
 
-        return fecha_inic_datos, vector_fechas
+        return fecha_inic_datos, vector_fechas, vector_únicas
