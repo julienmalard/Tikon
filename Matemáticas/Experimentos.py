@@ -36,7 +36,7 @@ class Experimento(object):
 
         símismo.proyecto = proyecto
 
-    def agregar_orgs(símismo, archivo, col_tiempo, col_parcela=None, fecha_ref=None):
+    def agregar_orgs(símismo, archivo, col_tiempo, factor=1, col_parcela=None, fecha_ref=None):
         """
         Esta función establece la base de datos para las observaciones de organismos en el campo.
 
@@ -45,6 +45,10 @@ class Experimento(object):
 
         :param col_tiempo: El nombre de la columna que especifica el tiempo de las observaciones.
         :type col_tiempo: str
+
+        :param factor: El factor con el cual multiplicar las observaciones de poblaciones (útil para compatibilidad
+          de unidades).
+        :type factor: float
 
         :param col_parcela: Una columna, si existe, que referencia la parcela.
         :type col_parcela: str
@@ -129,7 +133,11 @@ class Experimento(object):
 
                         matr[n, tiempos_parc] = vec_datos
 
-                símismo.datos['Organismos']['obs'][col] = matr.round()  # Evitar fracciones de insectos
+                # Multiplicar por el factor
+                np.multiply(matr, factor, out=matr)
+
+                # Guardar, evitando fracciones de insectos
+                símismo.datos['Organismos']['obs'][col] = matr.round()
 
     def agregar_cultivos(símismo, archivo):
         pass  # Para hacer
