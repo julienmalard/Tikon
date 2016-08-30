@@ -70,7 +70,7 @@ class Experimento(object):
             raise ValueError('No se encontró la columna de tiempo en la base de datos.')
 
         # Calcular la fecha inicial (objeto de fecha) y el vector numérico de las fechas
-        fecha_inic_datos, vec_tiempos, vec_tiempos_únic= símismo.leer_fechas(dic_datos[col_tiempo])
+        fecha_inic_datos, vec_tiempos, vec_tiempos_únic = símismo.leer_fechas(dic_datos[col_tiempo])
 
         símismo.datos['Organismos']['tiempo'] = vec_tiempos_únic  # Guardar la lista de fechas numéricas
 
@@ -110,10 +110,10 @@ class Experimento(object):
                 if col_parcela is None:
                     # Si no hay columna de parcelas...
                     matr = símismo.texto_a_datos(dic_datos[col])[np.newaxis, :]
+                    símismo.datos['Organismos']['parcelas'] = ['1']  # Nombre genérico para parcela única
 
                 else:
                     # Si hay más que una parcela...
-
                     parcelas = list(set(dic_datos[col_parcela]))
                     parcelas.sort()
                     símismo.datos['Organismos']['parcelas'] = parcelas
@@ -129,7 +129,7 @@ class Experimento(object):
 
                         matr[n, tiempos_parc] = vec_datos
 
-                símismo.datos['Organismos']['obs'][col] = matr.astype(int)  # Evitar fracciones de insectos
+                símismo.datos['Organismos']['obs'][col] = matr.round()  # Evitar fracciones de insectos
 
     def agregar_cultivos(símismo, archivo):
         pass  # Para hacer
@@ -138,7 +138,7 @@ class Experimento(object):
         pass  # Para hacer
 
     def agregar_parcelas(símismo, archivo):
-        pass # Para hacer
+        pass  # Para hacer
 
     def mover_fechas(símismo, dif, no_cambiar):
         for bd in símismo.datos:

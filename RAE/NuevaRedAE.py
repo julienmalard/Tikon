@@ -291,23 +291,32 @@ class Red(Simulable):
                     dic_título['etp'] = etp
 
                     # El vector de observaciones y la matriz de predicciones.
-                    matr_predic = dic_preds_obs['preds']  # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: día
-                    vector_obs = dic_preds_obs['obs']  # Eje 0: parcela, eje 2: día
+                    matr_predic = dic_preds_obs[org][etp]['preds']  # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: día
+                    vector_obs = dic_preds_obs[org][etp]['obs']  # Eje 0: parcela, eje 2: día
 
                     # Para cada parcela en las predicciones...
-                    for prc in range(matr_predic.shape[0]):
-                        dic_título['prc'] = prc
-
+                    for n_p in range(matr_predic.shape[0]):
+                        
                         # Las matrices de predicciones y observaciones de poblaciones, con una única parcela
-                        matr_predic_prc = matr_predic[prc, :, :]
-                        vector_obs_prc = vector_obs[prc, :]
+                        matr_predic_prc = matr_predic[n_p, :, :]
+                        if vector_obs is None:
+                            vector_obs_prc = None
+                        else:
+                            vector_obs_prc = vector_obs[n_p, :]
 
                         # El archivo para guardar la imagen
                         archivo_img = os.path.join(archivo, '{exp}_{prc}_{org}_{etp}'.format(**dic_título))
+                        
+                        # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
+                        if len(símismo.info_exps['parcelas'][exp]) > 1:
+                            dic_título['prc'] = símismo.info_exps['parcelas'][exp][n_p]
+                            título = '{exp}, Parcela {prc}: {org}, etapa {etp}'.format(**dic_título)
+                        else:
+                            título = '{exp}: {org}, etapa {etp}'.format(**dic_título)
 
-                        # Generar el gráfico
+                            # Generar el gráfico
                         gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
-                                título='{exp}, Parcela {prc}: {org}, etapa {etp}'.format(**dic_título),
+                                título=título,
                                 etiq_y='Población', mostrar=mostrar, archivo=archivo_img)
 
     def _calc_depred(símismo, pobs, paso):
@@ -552,19 +561,19 @@ class Red(Simulable):
             if tipos_ec[n] == 'Exponencial':
                 # Crecimiento exponencial
 
-                crec_etp = pob_etp * r
+                np.multiply(pob_etp, r, out=crec_etp)
 
             elif tipos_ec[n] == 'Logístico':
                 # Crecimiento logístico.
 
-                crec_etp = r * pob_etp * (1 - pob_etp / cf['K'])  # Ecuación logística sencilla
+                np.multiply(r, pob_etp * (1 - pob_etp / cf['K']), out=crec_etp)  # Ecuación logística sencilla
 
             elif tipos_ec[n] == 'Logístico Presa':
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
                 k = np.nansum(np.multiply(pobs, cf['K']))  # Calcular la capacidad de carga
-                crec_etp = r * pob_etp * (1 - pob_etp / k)  # Ecuación logística sencilla
+                np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pob_etp, out=crec_etp)
@@ -579,7 +588,7 @@ class Red(Simulable):
                 # en el resto de la red. Puede ser util para representar plantas donde los herbívoros están bien
                 # abajo de sus capacidades de carga.
                 nueva_pob = símismo.plantas['dic'][n][símismo.plantas['n_etp'][n]]
-                crec_etp = (nueva_pob - pob_etp)
+                np.subtract(nueva_pob, pob_etp, out=crec_etp)
 
             else:
                 raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tipos_ec[n])
@@ -911,9 +920,16 @@ class Red(Simulable):
 
                 dic_valids[exp][org] = {}
 
-                for etp, d_etp in d_org:
+                for etp, d_etp in d_org.items():
+                    dic_valids[exp][org][etp] = {}
                     d = dic_pred_obs[org][etp]
-                    dic_valids[exp][org][etp] = validar(matr_predic=d['preds'], vector_obs=d['obs'])
+
+                    if d['obs'] is not None:
+
+                        for n_p, parc in enumerate(símismo.info_exps['parcelas'][exp]):
+                            matr_predic = d['preds'][n_p, ...]
+                            vector_obs = d['obs'][n_p, ...]
+                            dic_valids[exp][org][etp][parc] = validar(matr_predic=matr_predic, vector_obs=vector_obs)
 
         return dic_valids
 
@@ -945,7 +961,7 @@ class Red(Simulable):
         combin_etps = símismo.info_exps['combin_etps'][exp]
 
         # Primero, vamos a sacar vectores para cada etapa de la red
-        for org, d_org in símismo.organismos.items():
+        for org, d_org in símismo.núms_etapas.items():
 
             # Si el organismo no existe en el diccionario de resultados, agregarlo ahora
             if org not in dic_vecs.keys():
@@ -982,7 +998,7 @@ class Red(Simulable):
 
                         # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
                         for n_p, p in enumerate(símismo.info_exps['parcelas'][exp]):
-                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p]
+                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p, :]
 
                         # Guardar el vector
                         dic_vecs[org][etp]['obs'] = vector_obs
@@ -1002,7 +1018,7 @@ class Red(Simulable):
 
                         # Llenar las posiciones en vector_obs que corresponden con los tiempos de las observaciones
                         for n_p, p in enumerate(símismo.info_exps['nombres_cols'][exp]):
-                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p]
+                            vector_obs[n_p, tiempos_obs] = dic_obs[nombre_col][n_p, :]
 
                         # Guardar la matriz de predicciones
                         dic_vecs[org][nombre_serie]['preds'] = matr_preds_etp
@@ -1066,8 +1082,9 @@ class Red(Simulable):
         l_etps_interés = []
 
         # Para guardar las ubicaciones de las observaciones:
-        ubic_obs_días = []
-        ubic_obs_etps = []
+        ubic_obs_días = np.array([], dtype=int)
+        ubic_obs_etps = np.array([], dtype=int)
+        ubic_obs_parc = np.array([], dtype=int)
 
         # Para cada organismo en el diccionario de correspondencias, en orden...
         for org, d_org in sorted(corresp.items()):
@@ -1120,16 +1137,25 @@ class Red(Simulable):
 
                     # Guardar las ubicaciones, en la matriz de predicciones, correspondiendo a las observaciones
                     obs_etp = experimento.datos['Organismos']['obs'][nombre_col]
-                    días_con_obs = experimento.datos['Organismos']['tiempo'][~np.isnan(obs_etp.flatten())]
-                    ubic_obs_días.append(días_con_obs)
 
-                    # Guardar una matriz de forma correspondiente con el número de la etapa:
-                    ubic_obs_etps.append(np.full(shape=len(días_con_obs), fill_value=n_etp))
+                    for n_p in range(obs_etp.shape[0]):
+                        obs_etp_parc = obs_etp[n_p, :]
+
+                        # Días con observaciones
+                        días_con_obs = experimento.datos['Organismos']['tiempo'][~np.isnan(obs_etp_parc.flatten())]
+                        np.concatenate((ubic_obs_días, días_con_obs))
+
+                        # Guardar una matriz de forma correspondiente con el número de la etapa:
+                        etps_con_obs = np.full(shape=len(días_con_obs), fill_value=n_etp, dtype=int)
+                        np.concatenate((ubic_obs_etps, etps_con_obs))
+
+                        # Y una matriz con los las parcelas con observaciones
+                        parc_con_obs = np.full(shape=len(días_con_obs), fill_value=n_p, dtype=int)
+                        np.concatenate((ubic_obs_etps, etps_con_obs))
 
         # Convertir a matrices numpy
         símismo.info_exps['etps_interés'][nombre] = np.array(l_etps_interés)
-        símismo.info_exps['ubic_obs'][nombre] = (np.array(ubic_obs_etps, dtype=int).flatten(),
-                                                 np.array(ubic_obs_días, dtype=int).flatten())
+        símismo.info_exps['ubic_obs'][nombre] = (ubic_obs_parc, ubic_obs_etps, ubic_obs_días)
 
         # Agregar la lista de nombres de parcelas, en el orden que aparecen en las matrices de observaciones:
         símismo.info_exps['parcelas'][nombre] = experimento.datos['Organismos']['parcelas']
@@ -1150,7 +1176,6 @@ class Red(Simulable):
             # La combinaciones de etapas necesarias para procesar los resultados.
             # Tiene el formato general: {exp: [(1, [3,4]), etc...], ...}
             combin_etps = símismo.info_exps['combin_etps'][nombre]
-            # print(combin_etps)  # para hacer: quitar duplicaciones recíprocas
 
             # La ubicación de los datos observados
             ubic_obs = símismo.info_exps['ubic_obs'][nombre]
@@ -1161,7 +1186,7 @@ class Red(Simulable):
 
             # Sacar únicamente las predicciones que corresponden con los datos observados disponibles
             vector_predics = np.concatenate((vector_predics,
-                                             predic['Pobs'][..., ubic_obs[0], ubic_obs[1]].flatten()))
+                                             predic['Pobs'][ubic_obs[0], :, :, ubic_obs[1], ubic_obs[2]].flatten()))
 
         return vector_predics
 
@@ -1189,7 +1214,7 @@ class Red(Simulable):
             obj_exp = símismo.exps[exp]
 
             # Calculamos el número de parcelas en el experimento
-            n_parc = valid_vals_inic(obj_exp.datos['Organismos']['obs'])
+            n_parc = len(símismo.info_exps['parcelas'][exp])
 
             # El número de pasos necesarios es la última observación en la base de datos de organismos.
             n_pasos = int(obj_exp.datos['Organismos']['tiempo'][-1] + 1)
@@ -1220,7 +1245,7 @@ class Red(Simulable):
 
             # También guardamos el número de pasos y diccionarios de ingresos externos.
             dic_args['n_pasos'][exp] = n_pasos
-            dic_args['extrn'][exp] = None  # Para hacer para implementar clima, apliaciones y cultivos
+            dic_args['extrn'][exp] = None  # Para hacer para implementar clima y aplicaciones
 
         return dic_args
 
