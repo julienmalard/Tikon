@@ -588,12 +588,15 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
 
     # Si hay observaciones, mostrarlas también
     if vector_obs is not None:
-        if tiempos_obs is not None:
-            dib.plot(tiempos_obs, vector_obs, 'o', color=color)
-            dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
-        else:
-            dib.plot(vector_obs, 'o', color=color)
-            dib.plot(vector_obs, lw=1, color='#000000')
+        if tiempos_obs is None:
+            tiempos_obs = np.arange(len(vector_obs))
+
+        vacíos = np.where(~np.isnan(vector_obs))
+        tiempos_obs = tiempos_obs[vacíos]
+        vector_obs = vector_obs[vacíos]
+
+        dib.plot(tiempos_obs, vector_obs, 'o', color=color)
+        dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
 
     # Incluir la incertidumbre
     if incert is None:
@@ -681,11 +684,15 @@ def validar(matr_predic, vector_obs):
     :rtype: (float, float, float)
     """
 
+    # Quitar observaciones que faltan
+    matr_predic = matr_predic[:, :, ~np.isnan(vector_obs)]
+    vector_obs = vector_obs[~np.isnan(vector_obs)]
+
     # El número de días de predicciones y observaciones
-    n_días = matr_predic.shape[2]
+    n_rep_estoc, n_rep_parám, n_días = matr_predic.shape
 
     # Combinar los dos ejes de incertidumbre (repeticiones estocásticas y paramétricas)
-    matr_predic = matr_predic.reshape((matr_predic.shape[0] * matr_predic.shape[1], n_días))
+    matr_predic = matr_predic.reshape((n_rep_estoc * n_rep_parám, n_días))
 
     # Calcular el promedio de todas las repeticiones de predicciones
     vector_predic = matr_predic.mean(axis=0)
