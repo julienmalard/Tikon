@@ -569,7 +569,7 @@ class Simulable(Coso):
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám)
-        símismo._simul_exps(**dic_argums, paso=paso)
+        símismo._simul_exps(**dic_argums, paso=paso, vectorizar_preds=False)
 
         # Si hay que dibujar, dibujar
         if dibujar:
@@ -815,7 +815,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn):
+    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn, vectorizar_preds=True):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
           correspondiendo a los valores observados, y eso en el mismo orden.
@@ -834,6 +834,10 @@ class Simulable(Coso):
         :param extrn: Un diccionario de valores externas a pasar a la simulación, si aplica.
         :type extrn: dict
 
+        :param vectorizar_preds: Si es necesario generar un vector de las predicciones (solamente se genera para
+          calibraciones, no para validaciones).
+        :type vectorizar_preds: bool
+
         :return: Matriz unidimensional Numpy de las predicciones del modelo correspondiendo a los valores observados.
         :rtype: np.ndarray
 
@@ -851,15 +855,19 @@ class Simulable(Coso):
             # Simular el modelo
             antes = time.time()
             símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
-            print('Calculado simul %s: ' % exp, time.time()-antes)
+            print('Simulación (%s) calculada en: ' % exp, time.time()-antes)
 
-        # Convertir los diccionarios de predicciones en un vector numpy.
-        antes = time.time()
-        vector_predics = símismo._procesar_predics_calib()
-        print('Procesando predics: ', time.time()-antes)
+        if not vectorizar_preds:
+            return
 
-        # Devolver el vector de predicciones.
-        return vector_predics
+        else:
+            # Convertir los diccionarios de predicciones en un vector numpy.
+            antes = time.time()
+            vector_predics = símismo._procesar_predics_calib()
+            print('Procesando predicciones: ', time.time()-antes)
+
+            # Devolver el vector de predicciones.
+            return vector_predics
 
     def _procesar_predics_calib(símismo):
         """
@@ -1111,48 +1119,6 @@ def prep_json(d, d_egr=None):
             d_egr.pop(ll)
 
     return d_egr
-
-
-def valid_vals_inic(d, n=None):
-    """
-    Esta función valida que los datos iniciales de una simulación tengan dimensiones compatibles y que no haya errores.
-        Es una función recursiva que pasa a través de cada diccionario en d.
-
-    :param d: El diccionario de datos iniciales.
-    :type d: dict
-
-    :param n: El número de parcelas. No hay que definirla, por que sirve únicamente por la recursión de la función.
-    :type n: int
-
-    :return: El número de parcelas en los datos iniciales.
-    :rtype: int
-
-    """
-
-    # Para cada elemento en el diccionario...
-    for ll, v in d.items():
-
-        if type(v) is dict:
-            # Si es otro diccionario, llamar la misma función con este nuevo diccionario.
-            valid_vals_inic(v, n)
-
-        elif type(v) is np.ndarray:
-            # Si es matriz numpy...
-
-            # Sacar el número de parcelas por el tamaño de la dimensión 0 de la matriz.
-            n_parcelas = v.shape[0]
-
-            if n is None:
-                # Si este es la primera iteración, guardar el número de parcelas en "n".
-                n = n_parcelas
-
-            elif n_parcelas != n:
-                # Si no es la primera iteración de la función, y el número de parcelas no corresponde con el número
-                # de parcelas anteriormente, hay un problema con los datos iniciales.
-                raise ValueError('Error en el formato de los datos iniciales')
-
-    # Devolver el número de parcelas en los datos iniciales.
-    return n
 
 
 def generar_aprioris(clase):
