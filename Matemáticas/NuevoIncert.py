@@ -216,16 +216,13 @@ def dist_a_texto(dist):
     return texto_dist
 
 
-def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
+def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist=None):
     """
     Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
       distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros.
 
     :param datos: Un vector de valores del parámetro
     :type datos: np.ndarray
-
-    :param nombre: El nombre del variable, si vamos a generar un variable de PyMC
-    :type nombre: str
 
     :param cont: Determina si la distribución es contínua (en vez de discreta)
     :type cont: bool
@@ -235,6 +232,12 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
 
     :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
     :type límites: tuple
+
+    :param nombre: El nombre del variable, si vamos a generar un variable de PyMC
+    :type nombre: str
+
+    :param lista_dist: Una lista de los nombres de distribuciones a considerar. dist=None las considera todas.
+    :type lista_dist: list
 
     :return: Distribución PyMC o de Scipyy su ajuste (p)
     :rtype: (pymc.Stochastic | estad.rv_frozen, float)
@@ -258,6 +261,12 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
         categ_dist = 'discr'
 
     dists_potenciales = [x for x in Ds.dists if Ds.dists[x]['tipo'] == categ_dist]
+
+    if lista_dist is not None:
+        dists_potenciales = [x for x in dists_potenciales if x in lista_dist]
+
+        if len(dists_potenciales) == 0:
+            raise ValueError('Ninguna de las distribuciones especificadas es apropiada para el tipo de distribución.')
 
     # Si queremos generar una distribución PyMC, guardar únicamente las distribuciones con objeto de PyMC disponible
     if usar_pymc is True:
@@ -311,13 +320,17 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
                     restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
 
             # Ajustar los parámetros de la distribución SciPy para caber con los datos.
-            args = dic_dist['scipy'].fit(datos, **restric)
+            if nombre_dist != 'Uniforme':
+                args = dic_dist['scipy'].fit(datos, **restric)
+            else:
+                # Para distribuciones uniformes, no hay nada que calibrar.
+                args = tuple(restric.values())
 
             # Medir el ajuste de la distribución
             p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
 
             # Si el ajuste es mejor que el mejor ajuste anterior...
-            if p > mejor_ajuste['p']:
+            if p >= mejor_ajuste['p']:
 
                 # Guardarlo
                 mejor_ajuste['p'] = p
@@ -325,15 +338,15 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None):
                 # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
                 if usar_pymc:
                     # Convertir los argumentos a formato PyMC
-                    args, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+                    args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
 
                     # Y crear la distribución.
-                    dist = dic_dist['pymc'](nombre, *args)
+                    dist = dic_dist['pymc'](nombre, *args_pymc)
 
                     if transform['sum'] != 0:
                         dist = dist + transform['sum']
                     if transform['mult'] != 1:
-                        dist = dist + transform['mult']
+                        dist = dist * transform['mult']
                     mejor_ajuste['dist'] = dist
 
                 else:
@@ -438,6 +451,10 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     mín = líms[0]
     máx = líms[1]
 
+    # Si el rango está al revés, arreglarlo.
+    if rango[0] > rango[1]:
+        rango = (rango[1], rango[0])
+
     # Asegurarse de que el rango cabe en los límites
     if rango[0] < mín or rango[1] > máx:
         raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
@@ -450,7 +467,14 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
             dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1])
 
     else:
-        # Si hay incertidumbre, asignar una distribución según cada caso posible
+        # Si hay incertidumbre...
+
+        # Primero, hay que asegurarse que el máximo y mínimo del rango no sean iguales
+        if rango[0] == rango[1]:
+            raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores'
+                             'mínimos y máximos iguales')
+
+        # Ahora, asignar una distribución según cada caso posible
         if mín == -np.inf:
             if máx == np.inf:  # El caso (-np.inf, np.inf)
                 if cont:
@@ -761,15 +785,15 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'MitadCauchy':
-        paráms_pymc = (paráms[0], 1 / paráms[1])
+        paráms_pymc = (paráms[0], paráms[1])
 
     elif tipo_dist == 'MitadNormal':
-        paráms_pymc = (1 / paráms[1], )
+        paráms_pymc = (1 / paráms[1]**2, )
         transform_pymc['sum'] = paráms[0]
 
     elif tipo_dist == 'GammaInversa':
-        paráms_pymc = (paráms[0], paráms[1])
-        transform_pymc['sum'] = paráms[2]
+        paráms_pymc = (paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'Laplace':
         paráms_pymc = (paráms[0], 1 / paráms[1])
@@ -778,7 +802,8 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], 1 / paráms[1])
 
     elif tipo_dist == 'LogNormal':
-        paráms_pymc = (0, 1 / (paráms[0]**2))
+        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0]**2))
+        transform_pymc['mult'] = paráms[2]
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'TNoCentral':
@@ -794,10 +819,12 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
     elif tipo_dist == 'T':
         paráms_pymc = (paráms[0], )
         transform_pymc['sum'] = paráms[1]
-        transform_pymc['mult'] = paráms[2]
+        transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
 
     elif tipo_dist == 'NormalTrunc':
-        paráms_pymc = (paráms[2], 1 / paráms[3]**2, paráms[0], paráms[1])
+        mu, sigma = paráms[2], paráms[3]
+        mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
+        paráms_pymc = (mu, 1 / sigma**2, mín * sigma + mu, máx * sigma + mu)
 
     elif tipo_dist == 'Uniforme':
         paráms_pymc = (paráms[0], paráms[1] + paráms[0])

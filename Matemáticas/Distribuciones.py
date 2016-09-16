@@ -106,6 +106,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                'límites': (0, np.inf),
                'tipo': 'cont'
                },
+
          'BirnbaumSaunders': {'scipy': estad.fatiguelife,
                               'pymc': None,
                               'límites': (0, np.inf),
@@ -329,11 +330,15 @@ dists = {'Alpha': {'scipy': estad.alpha,
                         'límites': (0, np.inf),
                         'tipo': 'cont'
                         },
-         'TNoCentral': {'scipy': estad.nct,
-                        'pymc': NoncentralT,
-                        'límites': (-np.inf, np.inf),
-                        'tipo': 'cont'
-                        },
+
+         # Desactivada por complicación de conversión PyMC-SciPy
+         #
+         # 'TNoCentral': {'scipy': estad.nct,
+         #                'pymc': NoncentralT,
+         #                'límites': (-np.inf, np.inf),
+         #                'tipo': 'cont'
+         #                },
+
          'Normal': {'scipy': estad.norm,
                     'pymc': Normal,
                     'límites': (-np.inf, np.inf),
@@ -395,11 +400,14 @@ dists = {'Alpha': {'scipy': estad.alpha,
                           'límites': (-1, 1),
                           'tipo': 'cont'
                           },
-         'T': {'scipy': estad.t,
-               'pymc': T,
-               'límites': (-np.inf, np.inf),
-               'tipo': 'cont'
-               },
+
+         # Desactivada por complicación de conversión PyMC-SciPy
+         # 'T': {'scipy': estad.t,
+         #       'pymc': T,
+         #       'límites': (-np.inf, np.inf),
+         #       'tipo': 'cont'
+         #       },
+
          'Triang': {'scipy': estad.triang,
                     'pymc': None,
                     'límites': (0, 1),  # El límite es (a, b)
@@ -411,11 +419,15 @@ dists = {'Alpha': {'scipy': estad.alpha,
                               'límites': (0, 1),  # El límite es (0, b)
                               'tipo': 'cont'
                               },
-         'NormalTrunc': {'scipy': estad.truncnorm,
-                         'pymc': TruncatedNormal,
-                         'límites': (0, 1),  # El límite es (a, b)
-                         'tipo': 'cont'
-                         },
+
+         # Desactivada por falta de posibilidad de fijar sus límites para la optimización.
+         #
+         # 'NormalTrunc': {'scipy': estad.truncnorm,
+         #                 'pymc': TruncatedNormal,
+         #                 'límites': (0, 1),
+         #                 'tipo': 'cont'
+         #                 },
+
          'TukeyLambda': {'scipy': estad.tukeylambda,
                          'pymc': None,
                          'límites': (-np.inf, np.inf),
@@ -426,11 +438,14 @@ dists = {'Alpha': {'scipy': estad.alpha,
                       'límites': (0, 1),  # El límite es (a, b)
                       'tipo': 'cont'
                       },
-         'VonMises': {'scipy': estad.vonmises,
-                      'pymc': VonMises,
-                      'límites': (-mat.pi, mat.pi),
-                      'tipo': 'cont'
-                      },
+
+         # Desactivada por complicación de conversión PyMC-SciPy
+         # 'VonMises': {'scipy': estad.vonmises,
+         #              'pymc': VonMises,
+         #              'límites': (-mat.pi, mat.pi),
+         #              'tipo': 'cont'
+         #              },
+
          'VonMisesLín': {'scipy': estad.vonmises_line,
                          'pymc': None,
                          'límites': (-mat.pi, mat.pi),

@@ -25,7 +25,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                                                                    'inter': 'presa'}},
                                          'Logístico Depredación': {'K': {'límites': (0, np.inf),
                                                                    'inter': 'presa'}},
-                                         'Externa cultivo': {}
+                                         'Externo Cultivo': {}
                                          }
                             },
 
@@ -96,9 +96,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                                          'Kovai': {'a': {'límites': (0, np.inf),
                                                          'inter': 'presa'},
                                                    'b': {'límites': (0, 1),
-                                                         'inter': None},
-                                                   'c': {'límites': (1, np.inf),
-                                                         'inter': None}
+                                                         'inter': 'presa'},
                                                    }
                                          },
                             },
