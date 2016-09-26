@@ -55,6 +55,7 @@ class Sencilla(Planta):
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
                    Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                    Movimiento={}
                    )
 
@@ -84,10 +85,11 @@ class Constante(Planta):
 
         super().__init__(nombre=nombre, fuente=fuente, proyecto=proyecto, etps=etps)
 
-        ecs = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externa cultivo'},
+        ecs = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externo Cultivo'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
                    Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                    Movimiento={}
                    )
 
@@ -124,10 +126,11 @@ class Completa(Planta):
 
         # Una lista de ecuaciones vaciás (ya que no vamos a utilizar las ecuaciones habituales para modelizar las
         # plantas).
-        vacías = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externa cultivo'},
+        vacías = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externo Cultivo'},
                       Depredación={'Ecuación': 'Nada'},
                       Muertes={'Ecuación': 'Nada'},
                       Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                      Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                       Movimiento={}
                       )
 

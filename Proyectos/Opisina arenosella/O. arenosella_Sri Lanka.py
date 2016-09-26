@@ -36,6 +36,8 @@ Red_coco_senc.añadir_exp(Experimento_B,
                                   }
                          )
 
+
+"""
 ajuste_inic = Red_coco_senc.validar(exper=Experimento_A)
 print('Ajuste inicial: ', ajuste_inic)
 
@@ -48,6 +50,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
+"""
 
 # Especificar distribuciones a priori
 """
@@ -62,17 +65,32 @@ O_arenosella_senc.especificar_apriori(etapa='adulto',
 O_arenosella_senc.especificar_apriori(etapa='adulto',
                                       ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
                                       org_inter=Coco, etp_inter='planta',
-                                      rango=(1723e-6*1.96, 1923e-6*1.96),
+                                      rango=(1/1923e-6*1.96, 1/1723e-6*1.96),
                                       certidumbre=.95)
+
+O_arenosella_senc.especificar_apriori(etapa='adulto',
+                                      ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
+                                      rango=(1/1923e-6*1.96, 1/1723e-6*1.96),
+                                      certidumbre=.95)
+
+O_arenosella_senc.especificar_apriori(etapa='adulto',
+                                      ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
+                                      rango=(1923*1.96, 1723*1.96),
+                                      certidumbre=.95)
+
 Parasitoide_senc.especificar_apriori(etapa='adulto',
                                      ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
                                      rango=(6/15, 164/9),
                                      certidumbre=0.95)
+
 Parasitoide_senc.especificar_apriori(etapa='adulto',
                                      ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
                                      org_inter=O_arenosella_senc, etp_inter='adulto',
                                      rango=(6, 164),
                                      certidumbre=0.95)
+"""
+Parasitoide_senc.especificar_apriori()
+"""
 
 ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, usar_especificados=True)
 print('Ajuste con a prioris', ajuste_con_aprioris)
@@ -92,8 +110,8 @@ Red_coco_senc.guardar()
 Araña = Ins.Sencillo('Araña')
 Araña.secome(O_arenosella_senc)
 Araña.secome(Parasitoide_senc)
-Araña.especificar_apriori()
-Araña.especificar_apriori()
+# Araña.especificar_apriori()
+# Araña.especificar_apriori()
 
 Red_coco_senc.añadir_org(Araña)
 
@@ -142,7 +160,7 @@ Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_B)
 
 Red_coco.guardar_calib()
-Red_coco.guadar()
+Red_coco.guardar()
 
 # Ahora, con una red más compleja y con estructura completa para los insectos
 Red_coco.añadir_org(Araña)

@@ -32,71 +32,71 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
             'Depredación': {'Ecuación': {'Nada': {},
 
                                          'Tipo I_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                            'inter': 'presa'}
+                                                                            'inter': ['presa', 'huésped']}
                                                                       },
 
                                          'Tipo II_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                             'inter': 'presa'},
+                                                                             'inter': ['presa', 'huésped']},
                                                                        'b': {'límites': (0, np.inf),
-                                                                             'inter': 'presa'}
+                                                                             'inter': ['presa', 'huésped']}
                                                                        },
 
                                          'Tipo III_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                              'inter': 'presa'},
+                                                                              'inter': ['presa', 'huésped']},
                                                                         'b': {'límites': (0, np.inf),
-                                                                              'inter': 'presa'}
+                                                                              'inter': ['presa', 'huésped']}
                                                                         },
 
                                          'Tipo I_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                            'inter': 'presa'}
+                                                                            'inter': ['presa', 'huésped']}
                                                                       },
 
                                          'Tipo II_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                             'inter': 'presa'},
+                                                                             'inter': ['presa', 'huésped']},
                                                                        'b': {'límites': (0, np.inf),
-                                                                             'inter': 'presa'}
+                                                                             'inter': ['presa', 'huésped']}
                                                                        },
 
                                          'Tipo III_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                              'inter': 'presa'},
+                                                                              'inter': ['presa', 'huésped']},
                                                                         'b': {'límites': (0, np.inf),
-                                                                              'inter': 'presa'}
+                                                                              'inter': ['presa', 'huésped']}
                                                                         },
 
                                          'Beddington-DeAngelis': {'a': {'límites': (0, 1),
-                                                                        'inter': 'presa'},
+                                                                        'inter': ['presa', 'huésped']},
                                                                   'b': {'límites': (0, np.inf),
-                                                                        'inter': 'presa'},
+                                                                        'inter': ['presa', 'huésped']},
                                                                   'c': {'límites': (0, np.inf),
-                                                                        'inter': 'presa'}
+                                                                        'inter': ['presa', 'huésped']}
                                                                   },
 
                                          'Tipo I_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                         'inter': 'presa'},
+                                                                         'inter': ['presa', 'huésped']},
                                                                    'm': {'límites': (0, np.inf),
-                                                                         'inter': 'presa'}
+                                                                         'inter': ['presa', 'huésped']}
                                                                    },
 
                                          'Tipo II_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                          'inter': 'presa'},
+                                                                          'inter': ['presa', 'huésped']},
                                                                     'b': {'límites': (0, np.inf),
-                                                                          'inter': 'presa'},
+                                                                          'inter': ['presa', 'huésped']},
                                                                     'm': {'límites': (0, np.inf),
-                                                                          'inter': 'presa'}
+                                                                          'inter': ['presa', 'huésped']}
                                                                     },
 
                                          'Tipo III_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                           'inter': 'presa'},
+                                                                           'inter': ['presa', 'huésped']},
                                                                      'b': {'límites': (0, np.inf),
-                                                                           'inter': 'presa'},
+                                                                           'inter': ['presa', 'huésped']},
                                                                      'm': {'límites': (0, np.inf),
-                                                                           'inter': 'presa'}
+                                                                           'inter': ['presa', 'huésped']}
                                                                      },
 
                                          'Kovai': {'a': {'límites': (0, np.inf),
-                                                         'inter': 'presa'},
-                                                   'b': {'límites': (0, 1),
-                                                         'inter': 'presa'},
+                                                         'inter': ['presa', 'huésped']},
+                                                   'b': {'límites': (0, np.inf),
+                                                         'inter': ['presa', 'huésped']},
                                                    }
                                          },
                             },
@@ -198,7 +198,82 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                                             'sigma': {'límites': (0, np.inf),
                                                       'inter': None}
                                             }
+                                      }
+                             },
+
+            'Reproducción': {'Edad': {'Nada': {},
+
+                                      'Días': {},  # No se necesitan coeficientes en este caso
+
+                                      'Días grados': {'mín': {'límites': (-np.inf, np.inf),
+                                                              'inter': None},
+                                                      'máx': {'límites': (-np.inf, np.inf),
+                                                              'inter': None}
+                                                      },
+                                      'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                           'inter': None},
+                                                             't_letal': {'límites': (-np.inf, np.inf),
+                                                                         'inter': None}
+                                                             },
+                                      'Logan Temperatura': {'rho': {'límites': (0, 1),
+                                                                    'inter': None},
+                                                            'delta': {'límites': (0, 1),
+                                                                      'inter': None},
+                                                            't_letal': {'límites': (-np.inf, np.inf),
+                                                                        'inter': None}
+                                                            },
+                                      'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                                     'inter': None},
+                                                                       't_letal': {'límites': (-np.inf, np.inf),
+                                                                                   'inter': None},
+                                                                       'm': {'límites': (0, np.inf),
+                                                                             'inter': None}
+                                                                       },
                                       },
+
+                             'Prob': {'Nada': {},
+
+                                      'Constante': {'a': {'límites': (0, np.inf),
+                                                          'inter': None}
+                                                    },
+
+                                      'Normal': {'mu': {'límites': (0, np.inf),
+                                                        'inter': None},
+                                                 'sigma': {'límites': (0, np.inf),
+                                                           'inter': None}
+                                                 },
+                                      'Triang': {'a': {'límites': (0, np.inf),
+                                                       'inter': None},
+                                                 'b': {'límites': (0, np.inf),
+                                                       'inter': None},
+                                                 'c': {'límites': (0, np.inf),
+                                                       'inter': None}
+                                                 },
+                                      'Cauchy': {'u': {'límites': (0, np.inf),
+                                                       'inter': None},
+                                                 'f': {'límites': (0, np.inf),
+                                                       'inter': None}
+                                                 },
+                                      'Gamma': {'u': {'límites': (0, np.inf),
+                                                      'inter': None},
+                                                'f': {'límites': (0, np.inf),
+                                                      'inter': None},
+                                                'a': {'límites': (0, np.inf),
+                                                      'inter': None}
+                                                },
+                                      'Logística': {'u': {'límites': (0, np.inf),
+                                                          'inter': None},
+                                                    'f': {'límites': (0, np.inf),
+                                                          'inter': None},
+                                                    },
+                                      'T': {'k': {'límites': (0, np.inf),
+                                                  'inter': None},
+                                            'mu': {'límites': (0, np.inf),
+                                                   'inter': None},
+                                            'sigma': {'límites': (0, np.inf),
+                                                      'inter': None}
+                                            }
+                                      }
                              },
 
             'Movimiento': {
