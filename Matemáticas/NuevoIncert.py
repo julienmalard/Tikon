@@ -548,7 +548,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
-            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='confianza', todas_líneas=False,
+            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', todas_líneas=False,
             mostrar=True, archivo=''):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
@@ -658,7 +658,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
             mín_perc_ant = mín_perc
             máx_perc_ant = máx_perc
 
-    elif incert == 'descomponer':
+    elif incert == 'componentes':
         # Mostrar la incertidumbre descompuesta por sus fuentes
 
         # Una matriz sin la incertidumbre estocástica
@@ -674,6 +674,9 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         mín_total = matr_predic.min(axis=(0, 1))
 
         dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
+
+    else:
+        raise ValueError('No entiendo el tipo de incertidumbre "%s" que especificaste para el gráfico.' % incert)
 
     # Si lo especificó el usuario, mostrar todas las líneas de todas las repeticiones.
     if todas_líneas:

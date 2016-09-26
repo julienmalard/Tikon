@@ -112,6 +112,7 @@ class Sencillo(Insecto):
                        Depredación={'Ecuación': 'Kovai'},
                        Muertes={'Ecuación': 'Nada'},
                        Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                       Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                        Movimiento={}
                        )
 
@@ -147,21 +148,24 @@ class MetamCompleta(Insecto):
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                     Depredación={'Ecuación': 'Nada'},
                                     Muertes={'Ecuación': 'Nada'},
-                                    Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                    Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                     Movimiento={}
                                     )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                   Depredación={'Ecuación': 'Kovai'},
                                   Muertes={'Ecuación': 'Nada'},
-                                  Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                  Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                   Movimiento={}
                                   )
 
         tipo_ec['pupa'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                Depredación={'Ecuación': 'Nada'},
                                Muertes={'Ecuación': 'Nada'},
-                               Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                               Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                               Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                Movimiento={}
                                )
 
@@ -169,9 +173,12 @@ class MetamCompleta(Insecto):
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                      Depredación={'Ecuación': 'Kovai'},
                                      Muertes={'Ecuación': 'Nada'},
-                                     Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                     Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                                     Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
+        else:
+            tipo_ec['pupa']['Reproducción']['Prob'] = 'Constante'
 
         super().__init__(nombre=nombre, huevo=huevo, njuvenil=njuvenil, pupa=True, adulto=adulto,
                          tipo_ecuaciones=tipo_ec)
@@ -204,14 +211,16 @@ class MetamIncompleta(Insecto):
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                     Depredación={'Ecuación': 'Nada'},
                                     Muertes={'Ecuación': 'Constante'},
-                                    Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                    Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                     Movimiento={}
                                     )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                   Depredación={'Ecuación': 'Kovai'},
                                   Muertes={'Ecuación': 'Constante'},
-                                  Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                  Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                   Movimiento={}
                                   )
 
@@ -219,7 +228,8 @@ class MetamIncompleta(Insecto):
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                      Depredación={'Ecuación': 'Kovai'},
                                      Muertes={'Ecuación': 'Nada'},
-                                     Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                     Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                                     Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
 
@@ -239,18 +249,28 @@ class Parasitoide(Insecto):
             tipo_ec['pupa'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                    Depredación={'Ecuación': 'Nada'},
                                    Muertes={'Ecuación': 'Constante'},
-                                   Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                   Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                    Movimiento={}
                                    )
+
+        tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
+                                  Depredación={'Ecuación': 'Kovai'},
+                                  Muertes={'Ecuación': 'Nada'},
+                                  Transiciones={'Edad': 'Días', 'Prob': 'Normal'},
+                                  Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                                  Movimiento={}
+                                  )
 
         tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                  Depredación={'Ecuación': 'Kovai'},
                                  Muertes={'Ecuación': 'Nada'},
-                                 Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                 Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                                 Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
                                  Movimiento={}
                                  )
 
-        super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=pupa, adulto=True,
+        super().__init__(nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True,
                          tipo_ecuaciones=tipo_ec, fuente=fuente)
 
     def parasita(símismo, víctima, etps_infec, etp_sale):
@@ -262,6 +282,9 @@ class Parasitoide(Insecto):
 
         :param etps_infec:
         :type etps_infec: list | str
+
+        :param etp_sale:
+        :type etp_sale:
 
         """
 
@@ -303,6 +326,9 @@ class Esfécido(Insecto):
 
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
         :type víctima: Insecto
+
+        :param etps_víc:
+        :type etps_víc:
 
         """
 
