@@ -885,12 +885,15 @@ def numerizar(d, c=None):
     :type c: dict | list
 
     :return: El diccionario o la lista numerizada.
-    :rtype: dict
+    :rtype: dict | list
 
     """
 
     if c is None:
-        c = {}
+        if type(d) is list:
+            c = []
+        elif type(d) is dict:
+            c = {}
 
     if type(d) is list:
         for n, v in enumerate(d):
@@ -904,7 +907,6 @@ def numerizar(d, c=None):
                 c[n] = v.astype(float)
 
     elif type(d) is dict:
-
         for ll, v in d.items():
 
             if type(v) is dict:
