@@ -186,7 +186,6 @@ class Red(Simulable):
 
             # Si el organismo en la receta de la Red no existía en el diccionario de organismos activos...
             if nombre not in símismo.organismos:
-
                 # ...crear el organismo
                 símismo.organismos[nombre] = Organismo(nombre)
 
@@ -228,7 +227,8 @@ class Red(Simulable):
 
                 # Para la gestión de cultivos/plantas
                 if isinstance(org, Plt.Planta):
-                    símismo.plantas['dic'][n] = org.densidad  # arreglar: ¿agrega el número para todas etapas de la planta?
+                    símismo.plantas['dic'][
+                        n] = org.densidad  # arreglar: ¿agrega el número para todas etapas de la planta?
                     símismo.plantas['n_etp'][n] = nombre_etp
 
                 n += 1
@@ -259,12 +259,12 @@ class Red(Simulable):
                     n_sale = símismo.núms_etapas[org_hués][d_org_hués['sale']]
 
                     # Una lista con todas las etapas del huésped que pueden tener la infección.
-                    l_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_prim : n_sale+1]]
+                    l_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_prim: n_sale + 1]]
 
                     # La segunda etapa existentes del organismo que infecta (los individuos infectados terminarán por
                     # transicionar a la esta etapa).
                     nombre_etp_recip = obj_org_inf.etapas[1]
-                    n_recip =  símismo.núms_etapas[org_hués][nombre_etp_recip] # Su posición absoluta en la Red
+                    n_recip = símismo.núms_etapas[org_hués][nombre_etp_recip]  # Su posición absoluta en la Red
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped
                     for n_etp_hués, etp_hués in enumerate(l_etps_hués):
@@ -327,10 +327,9 @@ class Red(Simulable):
                     # Guardar el tipo de ecuación en su lugar en símismo.ecs
                     símismo.ecs[categ][sub_categ].append(tipo_ec)
 
-        # Guardar el orden de transiciones y de reproducciones, y crear cohortes, si necesario
+        # Guardar el orden de transiciones y de reproducciones
         símismo.orden['trans'] = np.empty(len(símismo.etapas))
         símismo.orden['repr'] = np.empty(len(símismo.etapas))
-        cohortes = símismo.ecs['Cohortes'] = {'trans': {}, 'repr': {}}
 
         for nombre_org, org in símismo.núms_etapas.items():
             # Para cada organismo...
@@ -347,21 +346,6 @@ class Red(Simulable):
                 # Ajustar el número de la etapas a la cual esta etapa transiciona o se reproduce
                 símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín
                 símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín
-
-                # Crear cohortes, si necesario, e inicializarlos a 0.
-                if símismo.ecs['Reproducción']['Prob'] != 'Nada':
-                    dic_cohorte = cohortes[n_etp] = {}
-                    dic_cohorte['Pobs'] = np.zeros(10)
-                    dic_cohorte['repr'] = np.zeros(10)
-
-                if símismo.ecs['Transiciones']['Prob'] != 'Nada':
-                    try:
-                        dic_cohorte = cohortes[n_etp]
-                    except KeyError:
-                        dic_cohorte = cohortes[n_etp] = {}
-
-                    dic_cohorte['Pobs'] = np.zeros(10)
-                    dic_cohorte['trans'] = np.zeros(10)
 
         # Guardar el orden de transiciones y de reproducciones para etapas fantasmas
         for n_etp in range(n_etps_reg, len(símismo.etapas)):
@@ -502,7 +486,7 @@ class Red(Simulable):
 
         # La lista de los coeficientes de cada etapa para la depredación
         coefs = numerizar(símismo.coefs_act['Depredación']['Ecuación'])
-        
+
         # Densidades de poblaciones
         dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
 
@@ -971,8 +955,8 @@ class Red(Simulable):
             elif ec_ed == 'Días Grados':
                 # Edad calculada por días grados.
                 edad_extra = días_grados(extrn['temp_máx'], extrn['temp_mín'],
-                                                 umbrales=(cf_ed['mín'], cf_ed['máx'])
-                                                 ) * paso
+                                         umbrales=(cf_ed['mín'], cf_ed['máx'])
+                                         ) * paso
 
             elif ec_ed == 'Brière Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura Briere. En esta ecuación,
@@ -1055,7 +1039,7 @@ class Red(Simulable):
                 np.add(pobs[..., n_recip], trans[..., n_don], out=pobs[..., n_recip])
 
                 # Si la próxima fase también tiene cohortes, añadirlo aquí
-                if n_recip in símismo.ecs['Cohortes']:
+                if n_recip in símismo.predics['Cohortes']:
                     añadir_a_cohorte(cohortes[n_recip], trans[..., n_don])
 
     def _calc_mov(símismo, pobs, paso, extrn):
@@ -1088,14 +1072,14 @@ class Red(Simulable):
             mov = NotImplemented
 
         # Si la etapa usa cohortes para cualquier otro cálculo, acutlizar los cohortes ahora.
-        for n in símismo.ecs['Cohortes']:
-            añadir_a_cohorte(símismo.ecs['Cohortes'][n], mov[..., n])
+        for n in símismo.predics['Cohortes']:
+            añadir_a_cohorte(símismo.predics['Cohortes'][n], mov[..., n])
 
         # Actualizar la matriz de predicciones
         pobs += mov
 
     def _limpiar_cohortes(símismo):
-        for n, etp in enumerate(símismo.ecs['Cohortes']):
+        for n, etp in enumerate(símismo.predics['Cohortes']):
             vacíos = (etp['Pobs'] == 0)
             for ed in etp['Edades'].values():
                 ed[vacíos] = np.nan
@@ -1477,13 +1461,27 @@ class Red(Simulable):
             # El número de pasos necesarios es la última observación en la base de datos de organismos.
             n_pasos = int(obj_exp.datos['Organismos']['tiempo'][-1] + 1)
 
+            # Los índices de las etapas con cohortes para transiciones y para reproducciones
+            índ_coh_trans = []
+            índ_coh_repr = []
+            for nombre_org, org in símismo.núms_etapas.items():
+                # Para cada organismo...
+                for n_etp in org.values():
+                    # Para cara etapa...
+
+                    # Verificar si necesita cohortes
+                    if símismo.ecs['Reproducción']['Prob'] != 'Nada':
+                        índ_coh_repr.append(n_etp)
+                    if símismo.ecs['Transiciones']['Prob'] != 'Nada':
+                        índ_coh_trans.append(n_etp)
+
             # Generamos el diccionario (vacío) de datos iniciales
-            datos_inic = símismo.gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
-                                                     n_etps=n_etapas, n_pasos=n_pasos)
+            datos_inic = símismo._gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
+                                                      n_etps=n_etapas, n_pasos=n_pasos,
+                                                      índ_coh_trans=índ_coh_trans, índ_coh_repr=índ_coh_repr)
 
             # Llenamos la poblaciones iniciales
             for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):
-
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
                 nombre_col = símismo.info_exps['nombres_cols'][exp][i]
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
@@ -1656,7 +1654,6 @@ class Red(Simulable):
 
             # Para cada observación de organismos de este experimento para cual tenemos datos, en orden...
             for nombre_col in símismo.info_exps['nombres_cols'][exp]:
-
                 # Sacar los datos del Experimento
                 datos_etp = símismo.exps[exp].datos['Organismos']['obs'][nombre_col]
 
@@ -1667,7 +1664,7 @@ class Red(Simulable):
         return np.concatenate(lista_obs)
 
     @staticmethod
-    def gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos):
+    def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, índ_coh_trans, índ_coh_repr):
         """
         Esta función genera un diccionario con matrices del tamaño apropiado para guardar las predicciones del modelo.
           Por usar una función auxiliar, se facilita la generación de matrices para simulaciones de muchos experimentos.
@@ -1696,8 +1693,26 @@ class Red(Simulable):
                'Reproducción': np.zeros(shape=tamaño_normal),
                'Muertes': np.zeros(shape=tamaño_normal),
                'Transiciones': np.zeros(shape=tamaño_normal),
-               'Movimiento': np.zeros(shape=tamaño_normal)
+               'Movimiento': np.zeros(shape=tamaño_normal),
+               'Cohortes': {},
                }
+
+        # Agregar cohortes
+        cohortes = dic['Cohortes']
+
+        for n in índ_coh_repr:
+            dic_cohorte = cohortes[n] = {}
+            dic_cohorte['Pobs'] = np.zeros(10)
+            dic_cohorte['repr'] = np.zeros(10)
+
+        for n in índ_coh_trans:
+            try:
+                dic_cohorte = cohortes[n]
+            except KeyError:
+                dic_cohorte = cohortes[n] = {}
+                dic_cohorte['Pobs'] = np.zeros(10)
+
+            dic_cohorte['trans'] = np.zeros(10)
 
         return dic
 
@@ -1719,7 +1734,6 @@ def _agregar_ruido(pobs, ruido):
 
 
 def redondear(matriz):
-
     """
     Esta función redondea una matriz de manera estocástica, según el residuo. Por ejemplo, 8.5 se redondeará como
       8 50% del tiempo y como 9 50% del tiempo. 8.01 se redondaría como 8 99% del tiempo y como 9 sólo 1% del
@@ -1768,8 +1782,8 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
 
     if método == 'Triangular':
         # Método triangular único
-        sup_arriba = max(12 * (máx - umbrales[1])**2 / (máx - mín), 0) / 24
-        sup_centro = max(12 * (umbrales[1] - umbrales[0])**2 / (umbrales[1] - mín), 0) / 24
+        sup_arriba = max(12 * (máx - umbrales[1]) ** 2 / (máx - mín), 0) / 24
+        sup_centro = max(12 * (umbrales[1] - umbrales[0]) ** 2 / (umbrales[1] - mín), 0) / 24
         sup_lados = max(24 * (máx - umbrales[1]) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
 
     elif método == 'Sinusoidal':
@@ -1782,7 +1796,7 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
             sup_arriba = 0
         else:
             intersect_máx = 24 * mat.acos((umbrales[1] - prom) / amp)
-            sup_arriba = 2 * (intersect_máx * (prom - máx) + 2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx))
+            sup_arriba = 2 * (intersect_máx * (prom - máx) + 2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_máx))
 
         if umbrales[0] <= mín:
             intersect_mín = intersect_máx
@@ -1790,8 +1804,8 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
             intersect_mín = 24 * mat.acos((umbrales[0] - prom) / amp)
 
         sup_centro = 2 * intersect_máx * (máx - mín)
-        sup_lados = 2 * (2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_mín) -
-                         2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx) +
+        sup_lados = 2 * (2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_mín) -
+                         2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_máx) +
                          (intersect_mín - intersect_máx) * (umbrales[0] - prom)
                          )
 
