@@ -608,7 +608,7 @@ class Red(Simulable):
         depred[np.isnan(depred)] = 0
 
         # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
-        símismo.redondear(depred)
+        redondear(depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
         depred_por_presa = np.sum(depred, axis=3)
@@ -621,10 +621,11 @@ class Red(Simulable):
                 for n_fant in símismo.fantasmas[n]:
                     recip = símismo.predics['Cohortes'][n_fant]
                     nombre_org_depr = símismo.etapas[n_fant]['org']
-                    n_depr = símismo.organismos[nombre_org_depr].etapas[-1]
-                    símismo.quitar_de_cohorte(coh, depred[..., n, n_depr], recip=recip)
+                    nombre_etp_depr = símismo.organismos[nombre_org_depr].etapas[-1]['nombre']
+                    n_depr = símismo.núms_etapas[nombre_org_depr, nombre_etp_depr]
+                    quitar_de_cohorte(coh, depred[..., n, n_depr], recip=recip)
             else:
-                símismo.quitar_de_cohorte(coh, depred_por_presa[..., n])
+                quitar_de_cohorte(coh, depred_por_presa[..., n])
 
         # Actualizar la matriz de poblaciones
         np.add(pobs, -depred_por_presa, out=pobs)
@@ -716,16 +717,137 @@ class Red(Simulable):
 
         crec[np.isnan(crec)] = 0
 
-        símismo.redondear(crec)
+        redondear(crec)
 
         # Actualizar la matriz de poblaciones
         np.add(pobs, crec, out=pobs)
 
     def _calc_reprod(símismo, pobs, extrn, paso):
-        reprod = NotImplemented
+        """
 
-        # Actualizar la matriz de predicciones
-        pobs += reprod
+        :param pobs:
+        :type pobs: np.ndarray
+        :param extrn:
+        :type extrn:
+        :param paso:
+        :type paso:
+        :return:
+        :rtype:
+        """
+
+        # Simplificamos el código un poco.
+        reprs = símismo.predics['Reproducción']
+
+        ec_edad = símismo.ecs['Reproducción']['Edad']
+        probs = símismo.ecs['Reproducción']['Prob']
+
+        coefs_ed = símismo.coefs_act['Reproducción']['Edad']
+        coefs_pr = símismo.coefs_act['Reproducción']['Prob']
+
+        for n, ec_ed in enumerate(ec_edad):
+
+            # Si no hay cálculos de reproducción para esta etapa, sigamos a la próxima etapa de una vez. Esto se
+            # detecta por etapas que tienen 'Nada' como ecuación de densidad (probabilidad) de reproducción.
+            if probs[n] == 'Nada':
+                continue
+
+            # Una referencia a la parte apriopiada de la matriz de reproducciones
+            n_recip = símismo.orden['trans'][n]
+            repr_etp_recip = reprs[..., n_recip]
+
+            # Si hay que guardar cuenta de cohortes, hacerlo aquí
+            cf_ed = coefs_ed[n]
+
+            if ec_ed == 'Nada':
+                edad_extra = None
+
+            elif ec_ed == 'Días':
+                # Edad calculada en días.
+                edad_extra = paso
+
+            elif ec_ed == 'Días Grados':
+                # Edad calculada por días grados.
+                edad_extra = días_grados(extrn['temp_máx'], extrn['temp_mín'],
+                                         umbrales=(cf_ed['mín'], cf_ed['máx'])
+                                         ) * paso
+
+            elif ec_ed == 'Brière Temperatura':
+                # Edad calculada con la taza de desarrollo de la ecuación de temperatura Briere. En esta ecuación,
+                # tal como en las otras con taza de desarrollo, quitamos el parámetro típicamente multiplicado por
+                # toda la ecuación, porque eso duplicaría el propósito del parámetro de ubicación de las distribuciones
+                # de probabilidad empleadas después.
+                #
+                # Mokhtar, Abrul Monim y Salem Saif al Nabhani. 2010. Temperature-dependent development of dubas bug,
+                #   Ommatissus lybicus (Hemiptera: Tropiduchidae), an endemic pest of date palm, Phoenix dactylifera.
+                #   Eur. J. Entomol. 107: 681–685
+                edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
+                             mat.sqrt(cf_ed['t_letal'] - extrn['temp_prom'])
+
+            elif ec_ed == 'Brière No Linear Temperatura':
+                # Edad calculada con la taza de desarrollo de la ecuación de temperatura no linear de Briere.
+                #
+                # Youngsoo Son et al. 2012. Estimation of developmental parameters for adult emergence of Gonatocerus
+                #   morgani, a novel egg parasitoid of the glassy-winged sharpshooter, and development of a degree-day
+                #   model. Biological Control 60(3): 233-260.
+
+                edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
+                             mat.pow(cf_ed['t_letal'] - extrn['temp_prom'], 1 / cf_ed['m'])
+
+            elif ec_ed == 'Logan Temperatura':
+                # Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
+                #
+                # Youngsoo Son y Lewis, Edwin E. 2005. Modelling temperature-dependent development and survival of
+                #   Otiorhynchus sulcatus (Coleoptera: Curculionidae). Agricultural and Forest Entomology 7(3): 201–209.
+
+                edad_extra = mat.exp(cf_ed['rho'] * extrn['temp_prom']) - \
+                             mat.exp(cf_ed['rho'] * cf_ed['t_letal'] - (cf_ed['t_letal'] -
+                                                                        extrn['temp_prom'])
+                                     / cf_ed['delta'])
+
+            else:
+                raise ValueError('No reconozco el tipo de ecuación %s para la edad de transiciones.' % ec_ed)
+
+            # Y ya pasamos a calcular el número de individuos de esta etapa que se reproducen en este paso de tiempo
+            cf = coefs_pr[n]
+            if probs[n] == 'Constante':
+                # Reproducciones en proporción al tamaño de la población.
+
+                # Tomamos el paso en cuenta según las regals de probabilidad:
+                #   p(x sucede n veces) = (1 - (1- p(x))^n)
+
+                np.multiply(cf['n'] * pobs, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
+
+            elif probs[n] == 'Depredación':
+                # Reproducciones en función de la depredación (útil para avispas esfécidas)
+                depred = símismo.predics['Depredación'][..., n, :]
+
+                np.sum(np.multiply(cf['n'], depred), axis=-1, out=repr_etp_recip)
+
+            else:
+                # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
+                edad_extra *= paso
+
+                cohortes = símismo.predics['Cohortes'][n_recip]['Pobs']
+                edades = símismo.predics['Cohortes'][n_recip]['Edades']['repr']
+
+                if edad_extra is None:
+                    raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
+                                     'en el cálculo de reproducciones.')
+
+                try:
+                    np.multiply(cf['n'], trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
+                                                       tipo_dist=probs[n], paráms_dist=cf, quitar=False),
+                                out=repr_etp_recip)
+
+                except ValueError:
+                    raise ValueError('Error en el tipo de distribución de probabilidad para reproducciones.')
+
+        # Redondear las reproducciones calculadas
+        redondear(reprs)
+
+        # Si la fase que recibe las reproducciones también tiene cohortes, actualizarlos aquí
+        for n_recip, coh in símismo.predics['Cohortes'].items():
+            añadir_a_cohorte(coh, reprs[..., n_recip])
 
     def _calc_muertes(símismo, pobs, extrn, paso):
 
@@ -790,11 +912,11 @@ class Red(Simulable):
                 raise ValueError
 
         np.multiply(muertes, paso, out=muertes)
-        símismo.redondear(muertes)
+        redondear(muertes)
 
-        # Si la etapa usa cohortes para cualquier otro cálculo, acutlizar los cohortes ahora.
+        # Si la etapa usa cohortes para cualquier otro cálculo, actualizar los cohortes ahora.
         for n in símismo.predics['Cohortes']:
-            símismo.añadir_a_cohorte(símismo.predics['Cohortes'][n], -muertes[..., n])
+            quitar_de_cohorte(símismo.predics['Cohortes'][n], muertes[..., n])
 
         # Actualizar la matriz de predicciones
         np.subtract(pobs, muertes, out=pobs)
@@ -848,7 +970,7 @@ class Red(Simulable):
 
             elif ec_ed == 'Días Grados':
                 # Edad calculada por días grados.
-                edad_extra = símismo.días_grados(extrn['temp_máx'], extrn['temp_mín'],
+                edad_extra = días_grados(extrn['temp_máx'], extrn['temp_mín'],
                                                  umbrales=(cf_ed['mín'], cf_ed['máx'])
                                                  ) * paso
 
@@ -891,7 +1013,7 @@ class Red(Simulable):
             # Y ya pasamos a calcular el número de individuos de esta etapa que se transicionan en este paso de tiempo
             cf = coefs_pr[n]
             if probs[n] == 'Constante':
-                # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
+                # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
                 # Tomamos el paso en cuenta según las regals de probabilidad:
@@ -902,13 +1024,13 @@ class Red(Simulable):
                 # Si la etapa usa cohortes para cualquier otro cálculo (transiciones a parte), actualizar los
                 # cohortes ahora.
                 if n in cohortes:
-                    símismo.quitar_de_cohorte(cohortes[n], trans_etp)
+                    quitar_de_cohorte(cohortes[n], trans_etp)
 
             else:
                 # Aquí tenemos todas las probabilidades de muerte dependientes en distribuciones de cohortes:
                 edad_extra *= paso
 
-                cohortes = símismo.predics['Cohortes'][n]['Pobs']
+                pobs_coh = símismo.predics['Cohortes'][n]['Pobs']
                 edades = símismo.predics['Cohortes'][n]['Edades']['Trans']
 
                 if edad_extra is None:
@@ -916,29 +1038,25 @@ class Red(Simulable):
                                      'en el cálculo de transiciones de inviduos.')
 
                 try:
-                    np.copyto(trans_etp, símismo.trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
-                                                      tipo_dist=probs[n], paráms_dist=cf))
+                    np.copyto(trans_etp, trans_cohorte(pobs=pobs_coh, edades=edades, cambio=edad_extra,
+                                                       tipo_dist=probs[n], paráms_dist=cf))
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
 
-
         # Redondear las transiciones calculadas
-        símismo.redondear(trans)
+        redondear(trans)
 
         # Quitar los organismos que transicionaron
         np.subtract(pobs, trans, out=pobs)
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
-        n_recips = símismo.orden['trans']
-        donadores = np.where(n_recips >= 0)
-        recipientes = n_recips[donadores]
-        pobs[..., recipientes] = np.add(pobs[..., recipientes], trans[..., donadores])  # No utilizar "out=..." aquí
+        for n_don, n_recip in enumerate(símismo.orden['trans']):
+            if n_recip >= 0:
+                np.add(pobs[..., n_recip], trans[..., n_don], out=pobs[..., n_recip])
 
-        # Para hacer: sumar donadores múltiples
-        for n, recip in enumerate(recipientes):
-            if recip in símismo.ecs['Cohortes']:
                 # Si la próxima fase también tiene cohortes, añadirlo aquí
-                símismo.añadir_a_cohorte(cohortes[recip], trans[..., donadores])
+                if n_recip in símismo.ecs['Cohortes']:
+                    añadir_a_cohorte(cohortes[n_recip], trans[..., n_don])
 
     def _calc_mov(símismo, pobs, paso, extrn):
         """
@@ -971,7 +1089,7 @@ class Red(Simulable):
 
         # Si la etapa usa cohortes para cualquier otro cálculo, acutlizar los cohortes ahora.
         for n in símismo.ecs['Cohortes']:
-            símismo.añadir_a_cohorte(símismo.ecs['Cohortes'][n], mov[..., n])
+            añadir_a_cohorte(símismo.ecs['Cohortes'][n], mov[..., n])
 
         # Actualizar la matriz de predicciones
         pobs += mov
@@ -1010,7 +1128,7 @@ class Red(Simulable):
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
-        símismo._agregar_ruido(pobs=pobs, ruido=0.01)
+        _agregar_ruido(pobs=pobs, ruido=0.01)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
@@ -1548,292 +1666,360 @@ class Red(Simulable):
 
         return np.concatenate(lista_obs)
 
-    # Funciones auxiliares
     @staticmethod
-    def redondear(matriz):
-
+    def gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos):
         """
-        Esta función redondea una matriz de manera estocástica, según el residuo. Por ejemplo, 8.5 se redondeará como
-          8 50% del tiempo y como 9 50% del tiempo. 8.01 se redondaría como 8 99% del tiempo y como 9 sólo 1% del
-          tiempo. Esta función es indispensable para evitar el "problema del nanozorro." *
-
-          * Así se llama en ecología la situación donde un nanozorro en un modelo ecológico se reproduce y establece
-            una población funcional con el tiempo.
-
-        :param matriz: La matriz a redondear
-        :type matriz: np.ndarray
-
-        """
-        # Quitar los decimales de la matriz
-        redondeada = np.floor(matriz)
-
-        # Guardar los residuos
-        residuos = matriz - redondeada
-
-        # Generar una matriz de valores aleatorias entre 0 y 1
-        prob = np.random.rand(*matriz.shape)
-
-        # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
-        # estocasticidad al modelo.
-        np.add(redondeada, np.greater(residuos, prob), out=matriz)
-
-    @staticmethod
-    def _agregar_ruido(pobs, ruido):
+        Esta función genera un diccionario con matrices del tamaño apropiado para guardar las predicciones del modelo.
+          Por usar una función auxiliar, se facilita la generación de matrices para simulaciones de muchos experimentos.
+        :param n_parc: El número de parcelas
+        :type n_parc: int
+        :param n_rep_estoc: El número de repeticiones estocásticas
+        :type n_rep_estoc: int
+        :param n_rep_parám: El número de repeticiones paramétricas
+        :type n_rep_parám: int
+        :param n_etps: El número de etapas de organismos en la Red.
+        :type n_etps: int
+        :param n_pasos: El número de pasos para la simulación
+        :type n_pasos: int
+        :return: Un diccionario del formato de símismo.predics según las especificaciones en los argumentos de la
+          función.
+        :rtype: dict
         """
 
-        :param pobs:
-        :type pobs:
-        :param ruido:
-        :type ruido:
-        :return:
-        :rtype:
-        """
+        # El tamaño estándar para una matriz de resultados (algunos resultados tienen unas dimensiones adicionales).
+        tamaño_normal = (n_parc, n_rep_estoc, n_rep_parám, n_etps)
 
-        np.add(np.round(np.random.normal(0, np.maximum(1, pobs * ruido))), pobs, out=pobs)
+        # El diccionario en formato símismo.predics
+        dic = {'Pobs': np.zeros(shape=(*tamaño_normal, n_pasos)),
+               'Depredación': np.zeros(shape=(*tamaño_normal, n_etps)),
+               'Crecimiento': np.zeros(shape=tamaño_normal),
+               'Reproducción': np.zeros(shape=tamaño_normal),
+               'Muertes': np.zeros(shape=tamaño_normal),
+               'Transiciones': np.zeros(shape=tamaño_normal),
+               'Movimiento': np.zeros(shape=tamaño_normal)
+               }
 
-        np.maximum(0, pobs, out=pobs)
+        return dic
 
-    @staticmethod
-    def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
-        """
-        Esta función calcula los días grados basados en vectores de temperaturas mínimas y máximas diarias.
-        Información sobre los métodos utilizados aquí se puede encontrar en:
-        http://www.ipm.ucdavis.edu/WEATHER/ddconcepts.html
 
-        :param mín:
-        :type mín: float
-        :param máx:
-        :type máx: float
-        :param umbrales:
-        :type umbrales: tuple
-        :param método:
-        :type método: str
-        :param corte:
-        :type corte: str
-        :return: número de días grados (número entero)
-        :rtype: int
-        """
+# Funciones auxiliares
 
-        if método == 'Triangular':
-            # Método triangular único
-            sup_arriba = max(12 * (máx - umbrales[1])**2 / (máx - mín), 0) / 24
-            sup_centro = max(12 * (umbrales[1] - umbrales[0])**2 / (umbrales[1] - mín), 0) / 24
-            sup_lados = max(24 * (máx - umbrales[1]) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
+def _agregar_ruido(pobs, ruido):
+    """
 
-        elif método == 'Sinusoidal':
-            # Método sinusoidal único
-            # NOTA: Probablemente lleno de bogues
-            amp = (máx - mín) / 2
-            prom = (máx + mín) / 2
-            if umbrales[1] >= máx:
-                intersect_máx = 0
-                sup_arriba = 0
-            else:
-                intersect_máx = 24 * mat.acos((umbrales[1] - prom) / amp)
-                sup_arriba = 2 * (intersect_máx * (prom - máx) + 2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx))
+    :param pobs:
+    :type pobs: np.ndarray
+    :param ruido:
+    :type ruido: float
+    """
 
-            if umbrales[0] <= mín:
-                intersect_mín = intersect_máx
-            else:
-                intersect_mín = 24 * mat.acos((umbrales[0] - prom) / amp)
+    np.add(np.round(np.random.normal(0, np.maximum(1, pobs * ruido))), pobs, out=pobs)
 
-            sup_centro = 2 * intersect_máx * (máx - mín)
-            sup_lados = 2 * (2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_mín) -
-                             2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx) +
-                             (intersect_mín - intersect_máx) * (umbrales[0] - prom)
-                             )
+    np.maximum(0, pobs, out=pobs)
 
+
+def redondear(matriz):
+
+    """
+    Esta función redondea una matriz de manera estocástica, según el residuo. Por ejemplo, 8.5 se redondeará como
+      8 50% del tiempo y como 9 50% del tiempo. 8.01 se redondaría como 8 99% del tiempo y como 9 sólo 1% del
+      tiempo. Esta función es indispensable para evitar el "problema del nanozorro." *
+
+      * Así se llama en ecología la situación donde un nanozorro en un modelo ecológico se reproduce y establece
+        una población funcional con el tiempo.
+
+    :param matriz: La matriz a redondear
+    :type matriz: np.ndarray
+
+    """
+    # Quitar los decimales de la matriz
+    redondeada = np.floor(matriz)
+
+    # Guardar los residuos
+    residuos = matriz - redondeada
+
+    # Generar una matriz de valores aleatorias entre 0 y 1
+    prob = np.random.rand(*matriz.shape)
+
+    # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
+    # estocasticidad al modelo.
+    np.add(redondeada, np.greater(residuos, prob), out=matriz)
+
+
+def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
+    """
+    Esta función calcula los días grados basados en vectores de temperaturas mínimas y máximas diarias.
+    Información sobre los métodos utilizados aquí se puede encontrar en:
+    http://www.ipm.ucdavis.edu/WEATHER/ddconcepts.html
+
+    :param mín:
+    :type mín: float
+    :param máx:
+    :type máx: float
+    :param umbrales:
+    :type umbrales: tuple
+    :param método:
+    :type método: str
+    :param corte:
+    :type corte: str
+    :return: número de días grados (número entero)
+    :rtype: int
+    """
+
+    if método == 'Triangular':
+        # Método triangular único
+        sup_arriba = max(12 * (máx - umbrales[1])**2 / (máx - mín), 0) / 24
+        sup_centro = max(12 * (umbrales[1] - umbrales[0])**2 / (umbrales[1] - mín), 0) / 24
+        sup_lados = max(24 * (máx - umbrales[1]) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
+
+    elif método == 'Sinusoidal':
+        # Método sinusoidal único
+        # NOTA: Probablemente lleno de bogues
+        amp = (máx - mín) / 2
+        prom = (máx + mín) / 2
+        if umbrales[1] >= máx:
+            intersect_máx = 0
+            sup_arriba = 0
         else:
-            raise ValueError
+            intersect_máx = 24 * mat.acos((umbrales[1] - prom) / amp)
+            sup_arriba = 2 * (intersect_máx * (prom - máx) + 2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx))
 
-        if corte == 'Horizontal':
-            días_grados = sup_centro + sup_lados
-        elif corte == 'Intermediario':
-            días_grados = sup_centro + sup_lados - sup_arriba
-        elif corte == 'Vertical':
-            días_grados = sup_lados
-        elif corte == 'Ninguno':
-            días_grados = sup_lados + sup_centro + sup_arriba
+        if umbrales[0] <= mín:
+            intersect_mín = intersect_máx
         else:
-            raise ValueError
+            intersect_mín = 24 * mat.acos((umbrales[0] - prom) / amp)
 
-        return días_grados
+        sup_centro = 2 * intersect_máx * (máx - mín)
+        sup_lados = 2 * (2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_mín) -
+                         2*mat.pi/24 * mat.sin(2*mat.pi/24 * intersect_máx) +
+                         (intersect_mín - intersect_máx) * (umbrales[0] - prom)
+                         )
 
-    @staticmethod
-    def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist):
-        """
+    else:
+        raise ValueError
 
-        :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
-          el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
-            Eje 0: Cohorte
-            Eje 1: Parcela
-            Eje 2: Repetición estocástica
-            Eje 3: Repetición paramétrica
-        :type pobs: np.ndarray
+    if corte == 'Horizontal':
+        días_grados = sup_centro + sup_lados
+    elif corte == 'Intermediario':
+        días_grados = sup_centro + sup_lados - sup_arriba
+    elif corte == 'Vertical':
+        días_grados = sup_lados
+    elif corte == 'Ninguno':
+        días_grados = sup_lados + sup_centro + sup_arriba
+    else:
+        raise ValueError
 
-        :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
-          ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
-          (por ejemplo, exposición cumulativo a días grados).
-          Los ejes son iguales que en 'pobs'.
-        :type edades: np.ndarray
+    return días_grados
 
-        :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar.
-          Podría ser 1 día, o una cantidad de días grados.
-          Ejes iguales a 'edades'.
-        :type cambio: np.ndarray or float
 
-        :param tipo_dist: El tipo de distribución usado para calcular probabilidades de transiciones.
-        :type tipo_dist: str
+def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
+    """
 
-        :param paráms_dist: Los parámetros de la distribución de probabilidad.
-        :type paráms_dist: dict
+    :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
+      el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
+        Eje 0: Cohorte
+        Eje 1: Parcela
+        Eje 2: Repetición estocástica
+        Eje 3: Repetición paramétrica
+    :type pobs: np.ndarray
 
-        :return: El número total de individuos que transicionaron.
-        :rtype: np.ndarray()
-        """
+    :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
+      ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
+      (por ejemplo, exposición cumulativo a días grados).
+      Los ejes son iguales que en 'pobs'.
+    :type edades: np.ndarray
 
-        if tipo_dist == 'Normal':
-            paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
-        elif tipo_dist == 'Triang':
-            paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
-        elif tipo_dist == 'Cauchy':
-            paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
-        elif tipo_dist == 'Gamma':
-            paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
-        elif tipo_dist == 'T':
-            paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
-        else:
-            raise ValueError
+    :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar.
+      Podría ser 1 día, o una cantidad de días grados.
+      Ejes iguales a 'edades'.
+    :type cambio: np.ndarray or float
 
-        dist = Ds.dists[tipo_dist]['scipy'](**paráms)
+    :param tipo_dist: El tipo de distribución usado para calcular probabilidades de transiciones.
+    :type tipo_dist: str
 
-        probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
-        n_cambian = np.random.binomial(pobs, probs)
+    :param paráms_dist: Los parámetros de la distribución de probabilidad.
+    :type paráms_dist: dict
 
+    :return: El número total de individuos que transicionaron.
+    :rtype: np.ndarray()
+    """
+
+    if tipo_dist == 'Normal':
+        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
+    elif tipo_dist == 'Triang':
+        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
+    elif tipo_dist == 'Cauchy':
+        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
+    elif tipo_dist == 'Gamma':
+        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
+    elif tipo_dist == 'T':
+        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
+    else:
+        raise ValueError
+
+    dist = Ds.dists[tipo_dist]['scipy'](**paráms)
+
+    probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
+    n_cambian = np.random.binomial(pobs, probs)
+
+    if quitar:
         pobs -= n_cambian
 
-        return np.sum(n_cambian, axis=0)
+    return np.sum(n_cambian, axis=0)
 
-    def transferir_cohortes(símismo, matr_trans, ):
 
-        for
-        matr_trans[]
-        símismo.predics['Cohortes'][n_etp_fuente]['Pobs'] -=
+def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
+    """
+    Esta función agrega nuevos miembros a un cohorte existente.
 
-        if n_etp_recip >= 0:
-            símismo.predics['Cohortes'][n_etp_recip]['Pobs'] +=
+    :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
+      {'Pobs': [matriz de poblaciones]
+       'Edades': {'trans': [matriz de edades],
+                  'repr': [matriz de edades]
+                  }
 
-    @staticmethod
-    def añadir_a_cohorte(dic_cohorte, nuevos):
-        """
-        Esta función agrega nuevos miembros a un cohorte existente.
-
-        :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
-          {'Pobs': [matriz de poblaciones]
-           'Edades': {'Trans': [matriz de edades],
-                      'Repr': [matriz de edades]
-                      }
-
-          Todas las matrices tienen el mismo orden de eje:
-              Eje 0: Cohorte
-              Eje 1: Parcela
-              Eje 2: Repetición estocástica
-              Eje 3: Repetición paramétrica
-
-        :type dic_cohorte: dict
-
-        :param nuevos: La matriz de poblaciones para agregar.
-            Eje 0: Parcela
-            Eje 1: Repetición estocástica
-            Eje 2: Repetición paramétrica
-
-        :type nuevos: np.ndarray
-        """
-
-        # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
-        try:
-            primer_vacío = np.where(dic_cohorte['Pobs'] == 0)[0][0]  # El primero vacío
-        except IndexError:
-            # Si no había ligar, desdoblar el tañano de las matrices de cohortes
-
-            primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primero vacío (que vamos a crear)
-            np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
-
-            # Extender cada matriz de edades también
-            for ed in dic_cohorte['Edades'].values():
-                np.append(ed, np.zeros_like(ed), axis=0)
-
-        # Guardar el número de nuevos integrantes del grupo añadido
-        dic_cohorte['Pobs'][primer_vacío] = nuevos
-
-        # Inicializar las edades de este nuevo grupo
-        for ed in dic_cohorte['Edades'].values():
-            # Para cada matriz de edad...
-
-            # Poner su índice correspondiente a 0
-            ed[primer_vacío] = 0
-
-    @staticmethod
-    def quitar_de_cohorte(dic_cohorte, muertes):
-        """
-
-        :param dic_cohorte:
-        :type dic_cohorte:
-
-        :param muertes: La matriz de muertes aleatorias a quitar del cohorte.
+      Todas las matrices tienen el mismo orden de eje:
           Eje 0: Cohorte
           Eje 1: Parcela
           Eje 2: Repetición estocástica
           Eje 3: Repetición paramétrica
-        :type muertes: np.ndarray
+
+    :type dic_cohorte: dict
+
+    :param nuevos: La matriz de poblaciones para agregar.
+        Eje 0: Parcela
+        Eje 1: Repetición estocástica
+        Eje 2: Repetición paramétrica
+
+    :type nuevos: np.ndarray
+
+    :param edad: Las edades iniciales de los nuevos miembros al cohorte. El valor automático es, naturalmente, 0.
+      (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
+      diccionario, debe tener la forma general siguiente:
+      {'trans': matriz Numpy,
+       'repr': matriz Numpy},
+      donde cada matriz NumPy tiene los ejes siguientes:
+          Eje 1: Parcela
+          Eje 2: Repetición estocástica
+          Eje 3: Repetición paramétrica
+    :type edad: int | float | dict
+    """
+
+    # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
+    try:
+        primer_vacío = np.where(dic_cohorte['Pobs'] == 0)[0][0]  # El primero vacío
+    except IndexError:
+        # Si no había ligar, desdoblar el tañano de las matrices de cohortes
+
+        primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primero vacío (que vamos a crear)
+        np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
+
+        # Extender cada matriz de edades también
+        for ed in dic_cohorte['Edades'].values():
+            np.append(ed, np.zeros_like(ed), axis=0)
+
+    # Guardar el número de nuevos integrantes del grupo añadido
+    dic_cohorte['Pobs'][primer_vacío] = nuevos
+
+    # Inicializar las edades de este nuevo grupo
+    for tipo_ed, ed in dic_cohorte['Edades'].items():
+        # Para cada matriz de edad...
+
+        # Poner su índice correspondiente a la edad inicial
+        ed[primer_vacío] = edad[tipo_ed]
+
+
+def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
+    """
+
+    :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
+      {'Pobs': [matriz de poblaciones]
+       'Edades': {'Trans': [matriz de edades],
+                  'Repr': [matriz de edades]
+                  }
+
+      Todas las matrices tienen el mismo orden de eje:
+          Eje 0: Cohorte
+          Eje 1: Parcela
+          Eje 2: Repetición estocástica
+          Eje 3: Repetición paramétrica
+
+    :type dic_cohorte: dict
+
+    :param muertes: La matriz de muertes aleatorias a quitar del cohorte.
+      Eje 0: Cohorte
+      Eje 1: Parcela
+      Eje 2: Repetición estocástica
+      Eje 3: Repetición paramétrica
+
+    :type muertes: np.ndarray
+
+    :param recip: Un diccionario, opcional, de un otro cohorte al cual los organismos quitados del primero cohorte
+      se tienen que añadir. Tiene el mismo formato que dic_cohorte.
+    :type recip: dict
+
+    """
+
+    # Para simplificar el código
+    pobs = dic_cohorte['Pobs']
+
+    muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
+
+    # Dos maneras de hacer las cosas; no estoy seguro de cuál será la más rápida:
+    # Una suma cumulativa inversa de la distribución de cohortes
+    pobs_cums = np.cumsum(pobs[::-1], axis=0)[::-1]
+
+    for n_día, pobs_día in enumerate(pobs):
+
+        # Probabilidad condicional de morirse para este día, dado las muertes en días anteriores:
+        p = muertes / pobs_cums[n_día]
+
+        # Quitar los de esta edad que se murieron
+        quitar = np.random.binomial(pobs_día, p)
+        np.subtract(pobs_día, quitar, out=pobs_día)
+
+        # Actualizar las muertes que faltan implementar
+        np.subtract(muertes, quitar)
+
+        # Si transicion a otro cohorte (de otro organismo), implementarlo aquí
+        if recip is not None:
+            añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=dic_cohorte['Edades'])
+
+        # Si ya no hay nada que hacer, parar aquí
+        if sum(muertes) == 0:
+            return
 
         """
-
-        pobs = dic_cohorte['Pobs']
-
-        muertes = muertes.copy()
-
-        # Dos maneras de hacer las cosas; no estoy seguro de cuál será la más rápida:
-        for n_día, pobs_día in enumerate(pobs):
-            p = muertes / pobs.sum(axis=0)
-            quitar = np.round(p * pobs_día)
-            np.subtract(pobs_día, quitar, out=pobs_día)
-            np.subtract(muertes, quitar)
-
-            if sum(muertes) == 0:
-                return
-
-        """
-        # Alternativamente, podríamos hacer esto:
+        # Alternativamente, podríamos hacer esto (primero, quitar las bogues):
         while sum(muertes):
-            p = muertes / pobs.sum(axis=0)
-            quitar = np.round(p * pobs)
+        p = muertes / pobs.sum(axis=0)
+        quitar = np.round(p * pobs)
 
-            pobs -= quitar
+        pobs -= quitar
 
-            muertes -= np.sum(quitar, axis=0)
+        muertes -= np.sum(quitar, axis=0)
         """
 
-    @staticmethod
-    def probs_conj(matr, máx, eje):
-        """
-        Esta función utiliza las reglas de probabilidades conjuntas para ajustar depredación con presas o depredadores
-          múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
 
-        :param matr: Una matriz con los valores para ajustar.
-        :type matr: np.ndarray
+def probs_conj(matr, máx, eje):
+    """
+    Esta función utiliza las reglas de probabilidades conjuntas para ajustar depredación con presas o depredadores
+      múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
 
-        :param máx: Una matriz con los valores máximos para la matriz para ajustar. Debe ser de tamaño compatible con
-          matr.
-        :type máx: np.ndarray
+    :param matr: Una matriz con los valores para ajustar.
+    :type matr: np.ndarray
 
-        :param eje: El eje según cual hay que hacer los ajustes
-        :type eje: int
+    :param máx: Una matriz con los valores máximos para la matriz para ajustar. Debe ser de tamaño compatible con
+      matr.
+    :type máx: np.ndarray
 
-        """
+    :param eje: El eje según cual hay que hacer los ajustes
+    :type eje: int
 
-        np.multiply(np.expand_dims(np.product(1 - matr / máx, axis=eje) / np.sum(matr / máx, axis=eje), axis=eje),
-                    matr, out=matr)
+    """
+
+    np.multiply(np.expand_dims(np.product(1 - matr / máx, axis=eje) / np.sum(matr / máx, axis=eje), axis=eje),
+                matr, out=matr)
 
     @staticmethod
     def gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos):
