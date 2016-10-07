@@ -2,7 +2,6 @@ import numpy as np
 
 import Matemáticas.NuevoIncert as Incert
 
-
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
 # pedazos de inforamción: 1) sus límites y 2) si interactua con la estructura del modelo. Por ejemplo, si un
 # parámetro de un ecuación de depredación se debe repetir por cada presa del organismo (digamos el número de presa
@@ -22,9 +21,9 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                                          'Logístico': {'K': {'límites': (0, np.inf),
                                                              'inter': None}},
                                          'Logístico Presa': {'K': {'límites': (0, np.inf),
-                                                                   'inter': 'presa'}},
+                                                                   'inter': ['presa']}},
                                          'Logístico Depredación': {'K': {'límites': (0, np.inf),
-                                                                   'inter': 'presa'}},
+                                                                         'inter': ['presa']}},
                                          'Externo Cultivo': {}
                                          }
                             },
@@ -198,6 +197,13 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                                             'sigma': {'límites': (0, np.inf),
                                                       'inter': None}
                                             }
+                                      },
+
+                             'Mult': {'Nada': {},
+
+                                      'Linear': {'a': {'límites': (0, np.inf),
+                                                       'inter': None}
+                                                 }
                                       }
                              },
 
@@ -306,7 +312,7 @@ ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
                 #                       },
                 #       'Radiación': {}
                 #       },
-                           }
+            }
 
             }
 

@@ -242,7 +242,7 @@ class Organismo(Coso):
                     for parám, dic_parám in dic_ec.items():
                         # Para cada parámetro de cada ecuación posible...
 
-                        if método in dic_parám['inter']:
+                        if dic_parám['inter'] is not None and método in dic_parám['inter']:
                             # Si hay interacciones con este tipo de organismo...
                             límites = dic_parám['límites']
 
