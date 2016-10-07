@@ -13,6 +13,15 @@ def encontrar_subclase_coso(ext):
     """
 
     def sacar_subclases(cls):
+        """
+
+        :param cls: La clase cuyas subclases querremos
+        :type cls: type
+
+        :return: Una lista de las subclases del la clase
+        :rtype: list
+
+        """
         return cls.__subclasses__() + [g for s in cls.__subclasses__()
                                        for g in sacar_subclases(s)]
 

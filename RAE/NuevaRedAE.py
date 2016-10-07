@@ -240,7 +240,7 @@ class Red(Simulable):
             # Para cada etapa de la Red...
 
             # El diccionario de huéspedes de la etapa
-            dic_hués = etp['config']['huésped']
+            dic_hués = etp['conf']['huésped']
 
             if len(dic_hués):
                 # Si esta etapa tiene huéspedes
@@ -925,10 +925,12 @@ class Red(Simulable):
         trans = símismo.predics['Transiciones']
 
         ec_edad = símismo.ecs['Transiciones']['Edad']
-        probs = símismo.ecs['Transiciones']['Prob']
+        ec_probs = símismo.ecs['Transiciones']['Prob']
+        ec_mult = símismo.ecs['Transiciones']['Mult']
 
         coefs_ed = símismo.coefs_act['Transiciones']['Edad']
         coefs_pr = símismo.coefs_act['Transiciones']['Prob']
+        coefs_mt = símismo.coefs_act['Transiciones']['Mult']
 
         cohortes = símismo.predics['Cohortes']['trans']
 
@@ -936,7 +938,7 @@ class Red(Simulable):
 
             # Si no hay cálculos de transiciones para esta etapa, sigamos a la próxima etapa de una vez. Esto se
             # detecta por etapas que tienen 'Nada' como ecuación de probabilidad de transición.
-            if probs[n] == 'Nada':
+            if ec_probs[n] == 'Nada':
                 continue
 
             # Una referencia a la parte apriopiada de la matriz de transiciones
@@ -996,7 +998,7 @@ class Red(Simulable):
 
             # Y ya pasamos a calcular el número de individuos de esta etapa que se transicionan en este paso de tiempo
             cf = coefs_pr[n]
-            if probs[n] == 'Constante':
+            if ec_probs[n] == 'Constante':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
@@ -1023,7 +1025,7 @@ class Red(Simulable):
 
                 try:
                     np.copyto(trans_etp, trans_cohorte(pobs=pobs_coh, edades=edades, cambio=edad_extra,
-                                                       tipo_dist=probs[n], paráms_dist=cf))
+                                                       tipo_dist=ec_probs[n], paráms_dist=cf))
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
 
@@ -1032,6 +1034,11 @@ class Red(Simulable):
 
         # Quitar los organismos que transicionaron
         np.subtract(pobs, trans, out=pobs)
+
+        # Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides)
+        for n, ec_ed in enumerate(ec_mult):
+            if ec_mult != 'Nada':
+                trans[..., n] *= coefs_mt[n]['a']
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
         for n_don, n_recip in enumerate(símismo.orden['trans']):
@@ -1490,13 +1497,15 @@ class Red(Simulable):
                 # en cuestión (eje 3) a tiempo 0 (eje 4).
                 datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
 
+                cohortes = símismo.predics['Cohortes']
+                if n_etp in cohortes:
+                    añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=matr_obs_inic)
+
             # Una cosa un poco a la par: llenar poblaciones iniciales manualmente para plantas con densidades fijas.
             for org in símismo.organismos.values():
                 if type(org) is Plt.Constante:
                     n_etp = símismo.núms_etapas[org.nombre]['planta']
                     datos_inic['Pobs'][..., n_etp, 0] = org.densidad['planta']
-
-            # Para hacer: inicializar las poblaciones de cohortes
 
             # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
             dic_args['datos_inic'][exp] = datos_inic

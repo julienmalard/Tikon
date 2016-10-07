@@ -4,7 +4,8 @@ from RAE.Organismo import Organismo
 class Insecto(Organismo):
 
     """
-    Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses.
+    Esta clase representa insectos. En general no se llama directamente, sino a través de una de sus subclasses (ver
+      abajo).
     """
 
     ext = '.ins'
@@ -35,7 +36,10 @@ class Insecto(Organismo):
            Etapa_2: {Categoría_1: {subcategoría...}, ...}, ...}
         :type tipo_ecuaciones: dict
 
+        :param proyecto: El proyecto al cual pertenece este Insecto.
         :type proyecto: str
+
+        :param fuente:
         :type fuente: str
 
         """
@@ -49,7 +53,9 @@ class Insecto(Organismo):
                 símismo.añadir_etapa('huevo', posición=pos, ecuaciones=tipo_ecuaciones['huevo'])
                 pos += 1
 
-            assert(type(njuvenil) is int and njuvenil >= 0)
+            if njuvenil < 0:
+                raise ValueError('El número de juveniles no puede ser inferior a 0.')
+
             for i in range(0, njuvenil):
                 símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
                 pos += 1
@@ -105,13 +111,14 @@ class Sencillo(Insecto):
         :param nombre: El nombre del insecto
         :type nombre: str
 
+        :param proyecto: El proyecto al cual pertenece el Insecto Sencillo.
         :type proyecto: str
         """
 
         tipo_ec = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
                        Depredación={'Ecuación': 'Kovai'},
                        Muertes={'Ecuación': 'Nada'},
-                       Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                       Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
                        Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                        Movimiento={}
                        )
@@ -123,11 +130,13 @@ class Sencillo(Insecto):
 
 class MetamCompleta(Insecto):
     """
-    Esta clase representa insectos que tienen una metamórfosis completa.
+    Esta clase representa insectos que tienen una metamórfosis completa. No necesita extensión propia, visto que
+      no tiene métodos o atributos distintos a los de Insecto.
     """
 
-    def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
+    def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True, proyecto=None):
         """
+        Inicializamos el Insecto de metamórfosis completa con las ecuaciones apropiadas.
 
         :param nombre: El nombre del insecto
         :type nombre: str
@@ -147,24 +156,24 @@ class MetamCompleta(Insecto):
         if huevo:
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                     Depredación={'Ecuación': 'Nada'},
-                                    Muertes={'Ecuación': 'Nada'},
-                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                    Muertes={'Ecuación': 'Constante'},
+                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                     Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                     Movimiento={}
                                     )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                   Depredación={'Ecuación': 'Kovai'},
-                                  Muertes={'Ecuación': 'Nada'},
-                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                  Muertes={'Ecuación': 'Constante'},
+                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                   Movimiento={}
                                   )
 
         tipo_ec['pupa'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                Depredación={'Ecuación': 'Nada'},
-                               Muertes={'Ecuación': 'Nada'},
-                               Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                               Muertes={'Ecuación': 'Constante'},
+                               Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                Movimiento={}
                                )
@@ -173,7 +182,7 @@ class MetamCompleta(Insecto):
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                      Depredación={'Ecuación': 'Kovai'},
                                      Muertes={'Ecuación': 'Nada'},
-                                     Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                                     Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
                                      Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
@@ -181,16 +190,18 @@ class MetamCompleta(Insecto):
             tipo_ec['pupa']['Reproducción']['Prob'] = 'Constante'
 
         super().__init__(nombre=nombre, huevo=huevo, njuvenil=njuvenil, pupa=True, adulto=adulto,
-                         tipo_ecuaciones=tipo_ec)
+                         tipo_ecuaciones=tipo_ec, proyecto=proyecto)
 
 
 class MetamIncompleta(Insecto):
     """
-    Esta clase representa insectos que tienen una metamórfosis incompleta.
+    Esta clase representa insectos que tienen una metamórfosis incompleta. No necesita extensión propia, visto que
+      no tiene métodos o atributos distintos a los de Insecto.
     """
 
-    def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
+    def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True, proyecto=None):
         """
+        Inicializamos el Insecto de metamórfosis incompleta con las ecuaciones apropiadas.
 
         :param nombre: El nombre del insecto
         :type nombre: str
@@ -204,6 +215,9 @@ class MetamIncompleta(Insecto):
         :param adulto: Si incluimos la etapa del adulto en el modelo o no.
         :type adulto: bool
 
+        :param proyecto: El proyecto al cual pertenece este Insecto.
+        :type proyecto: str
+
         """
 
         tipo_ec = {}
@@ -211,7 +225,7 @@ class MetamIncompleta(Insecto):
             tipo_ec['huevo'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                     Depredación={'Ecuación': 'Nada'},
                                     Muertes={'Ecuación': 'Constante'},
-                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                    Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                     Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                     Movimiento={}
                                     )
@@ -219,7 +233,7 @@ class MetamIncompleta(Insecto):
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                   Depredación={'Ecuación': 'Kovai'},
                                   Muertes={'Ecuación': 'Constante'},
-                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                  Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                   Movimiento={}
                                   )
@@ -228,20 +242,38 @@ class MetamIncompleta(Insecto):
             tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                      Depredación={'Ecuación': 'Kovai'},
                                      Muertes={'Ecuación': 'Nada'},
-                                     Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                                     Transiciones={'Edad': 'Nada', 'Prob': 'Constante', 'Mult': 'Nada'},
                                      Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
                                      Movimiento={}
                                      )
 
         super().__init__(nombre=nombre,  huevo=huevo, njuvenil=njuvenil, pupa=False, adulto=adulto,
-                         tipo_ecuaciones=tipo_ec)
+                         tipo_ecuaciones=tipo_ec, proyecto=proyecto)
 
 
 class Parasitoide(Insecto):
+    """
+    Parasitoides son una clase muy especial de insecto, porque sus larvas crecen adentro de los cuerpos de otros
+      organismos. Después de mucho dolor de cabeza, decidimos (es decir, decidí) implementarlos así.
+    """
 
-    ext = '.ptd'
+    ext = '.prs'
 
-    def __init__(símismo, nombre, pupa=False, fuente=None):
+    def __init__(símismo, nombre, pupa=False, fuente=None, proyecto=None):
+        """
+
+        :param nombre: El nombre del Parasitoide
+        :type nombre: str
+
+        :param pupa: Si hay que modelizar la etapa de pupa del Parasitoide
+        :type pupa: bool
+
+        :param fuente: No sé qué hace este.
+        :type fuente:
+
+        :param proyecto: El proyecto al cual pertenece este Insecto.
+        :type proyecto: str
+        """
 
         tipo_ec = {}
 
@@ -249,15 +281,15 @@ class Parasitoide(Insecto):
             tipo_ec['pupa'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                    Depredación={'Ecuación': 'Nada'},
                                    Muertes={'Ecuación': 'Constante'},
-                                   Transiciones={'Edad': 'Nada', 'Prob': 'Constante'},
+                                   Transiciones={'Edad': 'Días', 'Prob': 'Normal', 'Mult': 'Nada'},
                                    Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                    Movimiento={}
                                    )
 
         tipo_ec['juvenil'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                                  Depredación={'Ecuación': 'Kovai'},
+                                  Depredación={'Ecuación': 'Nada'},
                                   Muertes={'Ecuación': 'Nada'},
-                                  Transiciones={'Edad': 'Días', 'Prob': 'Normal'},
+                                  Transiciones={'Edad': 'Días', 'Prob': 'Normal', 'Mult': 'Linear'},
                                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                   Movimiento={}
                                   )
@@ -265,13 +297,13 @@ class Parasitoide(Insecto):
         tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                  Depredación={'Ecuación': 'Kovai'},
                                  Muertes={'Ecuación': 'Nada'},
-                                 Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
-                                 Reproducción={'Edad': 'Nada', 'Prob': 'Constante'},
+                                 Transiciones={'Edad': 'Día', 'Prob': 'Normal', 'Mult': 'Nada'},
+                                 Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                  Movimiento={}
                                  )
 
         super().__init__(nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True,
-                         tipo_ecuaciones=tipo_ec, fuente=fuente)
+                         tipo_ecuaciones=tipo_ec, proyecto=proyecto, fuente=fuente)
 
     def parasita(símismo, víctima, etps_infec, etp_sale):
 
@@ -280,60 +312,91 @@ class Parasitoide(Insecto):
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
         :type víctima: Insecto
 
-        :param etps_infec:
+        :param etps_infec:  Las etapas del otro insecto que este parasitoide puede infectar.
         :type etps_infec: list | str
 
-        :param etp_sale:
-        :type etp_sale:
+        :param etp_sale:  La etapa de la víctima de la cual el parásito adulto (o pupa) saldrá.
+        :type etp_sale: str
 
         """
 
-        símismo.victimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec, método='huésped')
+        símismo.victimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec, etp_sale=etp_sale,
+                          método='huésped')
 
     def noparasita(símismo, víctima, etps_infec=None):
 
         """
+        Esta función borra la relación de parasitoide-huésped entre dos insectos.
 
-        :param víctima:
+        :param víctima: El objeto representando el otro insecto que ahora ya no hay que parasitar.
         :type víctima: Organismo
 
-        :param etps_infec:
+        :param etps_infec: La lista de etapas de la víctima que no se pueden infectar por este parasitoide. Un valor
+          de 'None' borrará la relación de parasitismo con todas las etapas víctimas del huésped.
         :type etps_infec: list | str
 
         """
 
-        símismo.novictimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec)
+        símismo.novictimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_infec, método='huésped')
 
 
 class Esfécido(Insecto):
+    """
+    Los esfécidos son una familia de avispas que ponen sus huevos en los cuerpos (vivos) de sus presas. Al contrario
+      de parasitoides típicos, estos paralizan y quitan su presa de la planta. Por lo mismo, se debe considerar
+      su papel ecológico de manera distinta. (Se considera como depredación con reproducción basada en el éxito
+      de la depredación).
+    """
 
     ext = '.esf'
 
-    def __init__(símismo, nombre, fuente=None):
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
+        """
+        Inicializamos el Esfécido con las ecuaciones apropiadas.
+
+        :param nombre: El nombre del Esfécido.
+        :type nombre:
+
+        :param proyecto: El proyecto al cual pertenece este Insecto.
+        :type proyecto: str
+
+        :param fuente: Saber.
+        :type fuente:
+        """
 
         tipo_ec = {'adulto': dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                   Depredación={'Ecuación': 'Kovai'},
                                   Muertes={'Ecuación': 'Nada'},
-                                  Transiciones={'Edad': 'Días', 'Prob': 'Constante'},
+                                  Transiciones={'Edad': 'Días', 'Prob': 'Normal', 'Mult': 'Nada'},
+                                  Reproducción={'Edad': 'None', 'Prob': 'Depredación'},
                                   Movimiento={}
-                                  )}
+                                  )
+                   }
 
         super().__init__(nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
-                         tipo_ecuaciones=tipo_ec, fuente=fuente)
+                         tipo_ecuaciones=tipo_ec, proyecto=proyecto, fuente=fuente)
 
-    def ataca(símismo, víctima, etps_víc):
+    def captura(símismo, víctima, etps_víc):
         """
 
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
         :type víctima: Insecto
 
-        :param etps_víc:
-        :type etps_víc:
+        :param etps_víc: Las etapas de la víctima en las cuales el esfécido oviposita.
+        :type etps_víc: list | str
 
         """
 
         símismo.victimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_víc, método='presa')
 
-    def noataca(símismo, víctima, etps_víc):
+    def nocaptura(símismo, víctima, etps_víc=None):
+        """
+
+        :param víctima: El objeto del otro insecto que este parasitoide ya no puede parasitar.
+        :type víctima: Insecto
+
+        :param etps_víc: Las etapas de la víctima en las cuales el esfécido ya no oviposita.
+        :type etps_víc: list | str
+        """
 
         símismo.novictimiza(víctima=víctima, etps_símismo='adulto', etps_víctima=etps_víc, método='presa')
