@@ -19,10 +19,10 @@ Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc,
 Red_coco_senc.guardar()
 
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
-Experimento_A.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día')
+Experimento_A.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=1)
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
-Experimento_B.agregar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día')
+Experimento_B.agregar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=1)
 
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
@@ -119,10 +119,14 @@ Araña.secome(Parasitoide_senc)
 
 Red_coco_senc.añadir_org(Araña)
 
-# Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
+Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
-# Red_coco_senc.guardar_calib()
+Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
+                                    'empleando a prioris.'
+                                    'Se aplicó el sitio A de Perera et al. para la calibración.',
+                            utilizador='Julien Malard',
+                            contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
 
 # Intentemos algo más interesante ahora.
