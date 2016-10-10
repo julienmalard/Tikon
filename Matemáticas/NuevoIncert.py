@@ -1,5 +1,5 @@
 import os
-import warnings as avisar
+from warnings import warn as avisar
 
 import matplotlib.pyplot as dib
 import numpy as np
@@ -45,6 +45,10 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
         calibs_usables = ['especificado']
     else:
         calibs_usables = [x for x in dic_parám if x in calibs]
+        if len(calibs_usables) == 0:
+            avisar('Algunos parámetros no tienen las calibraciones especificadas y usarán su distribuciones a prioris'
+                   'en vez.')
+            calibs_usables = ['0']
 
     # La lista para guardar las partes de las trazas de cada calibración que queremos incluir en la traza final
     lista_trazas = []
@@ -84,7 +88,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
             if rep_per_calib[n_id] > len(dic_parám[id_calib]):
 
                 # Si es el caso que la traza tiene menos datos que las repeticiones que queremos...
-                avisar.warn('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
+                avisar('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
 
                 # Vamos a tener que repetir datos
                 devolver = True
@@ -105,8 +109,8 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
             # Si la traza es en formato de texto...
 
             if comunes:
-                avisar.warn('No se pudo guardar la correspondencia entre todas las calibraciones por presencia'
-                            'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
+                avisar('No se pudo guardar la correspondencia entre todas las calibraciones por presencia'
+                       'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
 
             # Convertir el texto a distribución de SciPy
             dist_sp = texto_a_dist(traza)
@@ -355,7 +359,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 
     # Si no logramos un buen aujste, avisar al usuario.
     if mejor_ajuste['p'] <= 0.10:
-        avisar.warn('El ajuste de la mejor distribución quedó muy mala (p = %f).' % round(mejor_ajuste['p'], 4))
+        avisar('El ajuste de la mejor distribución quedó muy mala (p = %f).' % round(mejor_ajuste['p'], 4))
 
     # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
     return mejor_ajuste['dist'], mejor_ajuste['p']

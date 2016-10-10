@@ -80,7 +80,7 @@ class Red(Simulable):
         # Un diccionario para guardar información específica a cada experimento asociado para poder procesar
         # las predicciones de la red en función a cada experimento.
         símismo.info_exps = {'etps_interés': {}, 'combin_etps': {}, 'nombres_cols': {},
-                             'ubic_obs': {}, 'parcelas': {}}
+                             'ubic_obs': {}, 'parcelas': {}, 'superficies': {}}
 
         # Para guardar una conexión con los organismos de plantas en la red
         símismo.plantas = {'dic': {}, 'n_etp': {}}
@@ -1228,6 +1228,10 @@ class Red(Simulable):
         etps_interés = símismo.info_exps['etps_interés'][exp]
         combin_etps = símismo.info_exps['combin_etps'][exp]
 
+        # Convertir poblaciones a unidades de organismos por hectárea
+        tamaño_superficies = símismo.info_exps['superficies'][exp]
+        np.divide(matr_predics, tamaño_superficies.reshape((tamaño_superficies.shape[0], 1, 1, 1, 1)), out=matr_predics)
+
         # Primero, vamos a sacar vectores para cada etapa de la red
         for org, d_org in símismo.núms_etapas.items():
 
@@ -1343,6 +1347,15 @@ class Red(Simulable):
             # El objeto y diccionario de correspondencias del experimento
             obj_exp = d['Exp']
             corresp = d['Corresp'].copy()  # Hacer una copia, en caso que tengamos que quitarle unos organismos
+
+            # Guardar el tamaño de las parcelas
+            n_parc = len(obj_exp.datos['Parcelas'])
+            if n_parc > 0:
+                # Para hacer para poder incluir especificaciones de características de parcelas en Experimento
+                raise NotImplementedError()
+            else:
+                avisar('Tamaño de parcelas no especificado. Se supondrá un tamaño de 1 ha.')
+                símismo.info_exps['superficies'][nombre_exp] = np.ones(1)
 
             # Verificar que los nombres de organismos y etapas estén correctos
             for org, d_org in corresp.items():
@@ -1462,6 +1475,10 @@ class Red(Simulable):
         # Para cada experimento simulado, en orden...
         for nombre, predic in sorted(símismo.predics_exps.items()):
 
+            # Convertir poblaciones a unidades de organismos por hectárea
+            tamaño_superficies = símismo.info_exps['superficies'][nombre]
+            np.divide(predic['Pobs'], tamaño_superficies, out=predic['Pobs'])
+
             # La combinaciones de etapas necesarias para procesar los resultados.
             # Tiene el formato general: {exp: {{1: [3,4, etc.]}, etc...], ...}
             combin_etps = símismo.info_exps['combin_etps'][nombre]
@@ -1508,6 +1525,9 @@ class Red(Simulable):
             # Calculamos el número de parcelas en el experimento
             n_parc = len(símismo.info_exps['parcelas'][exp])
 
+            # La superficie de cada parcela (en ha)
+            tamaño_parcelas = símismo.info_exps['superficies'][exp]
+
             # El número de pasos necesarios es la última observación en la base de datos de organismos o el valor
             # especificado.
             if tiempo_final is None:
@@ -1542,6 +1562,9 @@ class Red(Simulable):
                 nombre_col = símismo.info_exps['nombres_cols'][exp][i]
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
+                # Convertir a unidades de organismos por parcela
+                np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
+
                 # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
                 # en cuestión (eje 3) a tiempo 0 (eje 4).
                 datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
@@ -1560,14 +1583,9 @@ class Red(Simulable):
             dic_args['datos_inic'][exp] = datos_inic
 
             # También guardamos el número de pasos y diccionarios de ingresos externos.
-            # Para hacer: implementar clima y aplicaciones
             dic_args['n_pasos'][exp] = n_pasos
-            if len(obj_exp.datos['Parcelas']):
-                # Para hacer para poder incluir especificaciones de características de parcelas en Experimento
-                pass
-            else:
-                avisar('Tamaño de parcelas no especificado. Se supondrá un tamaño de 1 ha.')
-                dic_args['extrn'][exp] = {'superficies': np.ones(n_parc)}
+            # Para hacer: implementar clima y aplicaciones
+            dic_args['extrn'][exp] = {'superficies': símismo.info_exps['superficies'][exp]}
 
         return dic_args
 

@@ -311,9 +311,6 @@ class Simulable(Coso):
         :param exper:
         :type exper: list | str | Experimento | None
 
-        :param vals_inic: Los valores iniciales para la simulación.
-        :type vals_inic: dict
-
         :param paso: El paso de tiempo para la simulación
         :type paso: int
 
@@ -1101,8 +1098,8 @@ def generar_aprioris(clase):
       otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
       clase lo puedan acceder.
 
-    :param clase:
-    :type clase: type
+    :param clase: La clase para cuál hay que establecer a prioris. Debe ser Coso o una subclase suya.
+    :type clase: type(Coso)
 
     """
 
@@ -1124,6 +1121,7 @@ def generar_aprioris(clase):
 
 def apriori_de_existente(lista_objs, clase_objs):
     """
+    Esta función generar valores a prioris de un objeto existente.
 
     :param lista_objs:
     :type lista_objs: list[Coso]
