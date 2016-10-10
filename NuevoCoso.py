@@ -123,7 +123,11 @@ class Coso(object):
         except KeyError:
             raise KeyError('Ubicación de parámetro erróneo.')
 
-        if org_inter is not None:
+        if org_inter is None:
+            if dic_ecs['inter'] is not None:
+                raise ValueError('Hay que especificar el organismo de interacción para parámetros con interacciones.')
+
+        else:
             if etp_inter is None:
                 raise ValueError('Hay que especificar la etapa del organismo de interacción.')
 
@@ -140,7 +144,7 @@ class Coso(object):
 
         return dic_parám['especificado']
 
-    def guardar(símismo, archivo='', iterativo=True):
+    def guardar(símismo, archivo=None, iterativo=True):
         """
         Esta función guarda el Coso para uso futuro.
 
@@ -154,8 +158,8 @@ class Coso(object):
         """
 
         # Si no se especificó archivo...
-        if archivo == '':
-            if símismo.fuente != '':
+        if archivo is None:
+            if símismo.fuente is not None:
                 archivo = símismo.fuente  # utilizar el archivo existente
             else:
                 # Si no hay archivo existente, tenemos un problema.
@@ -272,7 +276,7 @@ class Simulable(Coso):
         # Añadir Calibraciones a la receta del Simulable. Este únicamente guarda la información sobre cada calibración.
         #   (Los resultados de las calibraciones se guardan en "coefs".
         if 'Calibraciones' not in símismo.receta:
-            símismo.receta['Calibraciones'] = {'0': 'A prioris no informativos generados automáticamente por TIKON.'}
+            símismo.receta['Calibraciones'] = {'0': "A prioris no informativos generados automáticamente por TIKO'N."}
 
         # Indica si el Simulable está listo para una simulación.
         símismo.listo = False
@@ -299,11 +303,13 @@ class Simulable(Coso):
 
         símismo.listo = True
 
-    def simular(símismo, vals_inic, paso=1, tiempo_final=120, rep_parám=100, rep_estoc=1, extrn=None,
-                calibs='Todos'):
-        # para hacer: esta función, al momento, no parece tener uso mayor en el programa Tiko'n.
+    def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
+                calibs='Todos', usar_especificadas=False, dibujar=True):
         """
         Esta función corre una simulación del Simulable.
+
+        :param exper:
+        :type exper: list | str | Experimento | None
 
         :param vals_inic: Los valores iniciales para la simulación.
         :type vals_inic: dict
@@ -312,20 +318,23 @@ class Simulable(Coso):
         :type paso: int
 
         :param tiempo_final: El tiempo final para la simulación.
-        :type tiempo_final: int
+        :type tiempo_final: dict | int
 
-        :param rep_parám: El número de repeticiones paramétricas para incluir en la simulación.
-        :type rep_parám: int
+        :param n_rep_parám: El número de repeticiones paramétricas para incluir en la simulación.
+        :type n_rep_parám: int
 
-        :param rep_estoc: El número de repeticiones estocásticas para incluir en la simulación
-        :type rep_estoc: int
-
-        :param extrn: Un diccionario externo de valores para usar en la simulación, si necesario. (Por ejemplo,
-          aplicaciones de pesticidas para la simulación de una Red.)
-        :type extrn: dict
+        :param n_rep_estoc: El número de repeticiones estocásticas para incluir en la simulación
+        :type n_rep_estoc: int
 
         :param calibs: El nombre de la calibración que utilizar, o una lista de calibraciones para utilizar.
         :type calibs: list | str
+
+        :param dibujar: Si hay que generar gráficos de los resultados.
+        :type dibujar: bool
+
+        :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
+        :type usar_especificadas: bool
+
         """
 
         # Actualizar el objeto, si necesario. Si ya se ha actualizado el objeto una vez, no se actualizará
@@ -333,23 +342,32 @@ class Simulable(Coso):
         if not símismo.listo:
             símismo.actualizar()
 
-        # Unos números útiles
-        n_parcelas = valid_vals_inic(vals_inic)
-        n_pasos = tiempo_final // paso
+        # Poner los experimentos en la forma correcta:
+        exper = símismo._prep_lista_exper(exper=exper)
+
+        # Poner el tiempo final en la forma correcta
+        if type(tiempo_final) is int:
+            t_final = tiempo_final
+            tiempo_final = {}
+            for exp in exper:
+                tiempo_final[exp.nombre] = t_final
 
         # Preparar la lista de parámetros de interés
-        lista_paráms, _ = símismo._gen_lista_coefs_interés_todo()
-        calibs_filtr = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+        lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
+        lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
         # Llenar las matrices internas de coeficientes
-        comunes = (calibs == 'Comunes')
-        símismo._llenar_coefs(n_rep_parám=rep_parám, calibs=calibs_filtr, comunes=comunes)
+        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
+                              usar_especificados=usar_especificadas)
 
-        # Preparar las matrices internas para guardar las predicciones
-        símismo._prep_predics(n_pasos=n_pasos, n_rep_parám=rep_parám, n_rep_estoc=rep_estoc, n_parcelas=n_parcelas)
+        # Simular los experimentos
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
+                                                   tiempo_final=tiempo_final)
+        símismo._simul_exps(**dic_argums, paso=paso, vectorizar_preds=False)
 
-        # Simular el modelo
-        símismo._calc_simul(paso=paso, n_pasos=n_pasos, extrn=extrn)
+        # Si hay que dibujar, dibujar
+        if dibujar:
+            símismo.dibujar(exper=exper)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
                  n_iter=10000, quema=100, extraer=10):
@@ -419,7 +437,7 @@ class Simulable(Coso):
         # para la calibración.
         exper = símismo._prep_lista_exper(exper=exper)
 
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1)
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1, tiempo_final=None)
         dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
 
         # 5. Generar el vector numpy de observaciones para los experimentos
@@ -512,12 +530,12 @@ class Simulable(Coso):
 
         """
 
-        símismo.exps[experimento.nombre] = experimento
+        símismo.exps[experimento.nombre] = {'Exp': experimento, 'Corresp': corresp}
 
-        símismo._acción_añadir_exp(experimento=experimento, corresp=corresp)
+        símismo._actualizar_vínculos_exps()
 
     def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True,
-                usar_especificados=False):
+                usar_especificadas=False):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -541,39 +559,15 @@ class Simulable(Coso):
         :param dibujar: Si hay que generar gráficos de los resultados.
         :type dibujar: bool
 
-        :param usar_especificados:
-        :type usar_especificados: bool
+        :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
+        :type usar_especificadas: bool
 
         :return: Un diccionario con los resultados de la validación.
         :rtype: dict
         """
 
-        # Encontrar los parámetros de interés
-        lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
-
-        # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
-        # contrario tomamos el conjunto de todas las calibraciones anteriores.
-        if calibs is None:
-            if símismo.ModBayes is None:
-                calibs = 'Todos'
-            else:
-                calibs = símismo.ModBayes.id
-
-        lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
-
-        # Llenar coeficientes
-        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
-                              usar_especificados=usar_especificados)
-
-        exper = símismo._prep_lista_exper(exper=exper)
-
-        # Simular los experimentos
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám)
-        símismo._simul_exps(**dic_argums, paso=paso, vectorizar_preds=False)
-
-        # Si hay que dibujar, dibujar
-        if dibujar:
-            símismo.dibujar(exper=exper)
+        símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
+                        calibs=calibs, usar_especificadas=usar_especificadas, dibujar=dibujar)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación()
@@ -615,28 +609,6 @@ class Simulable(Coso):
 
         :param usar_especificados: Si vamos a utilizar las distribuciones especificadas manualmente por el usuario o no.
         :type usar_especificados: bool
-
-        """
-
-        raise NotImplementedError
-
-    def _prep_predics(símismo, n_pasos, n_rep_parám, n_rep_estoc, n_parcelas):
-        """
-        Esta función prepara el diccionario de predicciones para guardar los resultados de una simulación.
-          Se tiene que implementar para cada tipo de Simulable. Modifica símismo.predics, así que no devuelve
-          ningún valor.
-
-        :param n_pasos: El número de pasos de la simulación que vamos a hacer.
-        :type n_pasos: int
-
-        :param n_rep_parám: El número de repeticiones paramétricas.
-        :type n_rep_parám: int
-
-        :param n_rep_estoc: El número de repeticiones estocásticas.
-        :type n_rep_estoc: int
-
-        :param n_parcelas: El número de parcelas en la simulación.
-        :type n_parcelas: int
 
         """
 
@@ -759,17 +731,10 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _acción_añadir_exp(símismo, experimento, corresp):
+    def _actualizar_vínculos_exps(símismo):
         """
         Esta función agrega un Experimento a un Simulable y conecta las predicciones futuras del Simulable con
           los datos contenidos en el Experimento.
-
-        :param experimento: El objeto de experimento para agregar.
-        :type experimento: Experimento
-
-        :param corresp: Un diccionario con la información necesaria para conectar el Experimento con el Simulable y
-          sus predicciones.
-        :type corresp: dict
 
         """
 
@@ -788,7 +753,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, tiempo_final):
         """
         Prepara un diccionaro de los argumentos para simul_exps. El diccionario debe de tener la forma elaborada
           abajo. Se implementa para cada subclase de Simulable.
@@ -801,6 +766,10 @@ class Simulable(Coso):
 
         :param n_rep_paráms: El número de repeticiones paramétricas para las simulaciones.
         :type n_rep_paráms: int
+
+        :param tiempo_final: Un diccionario del tiempo final para cada experimento. Un valor de 'None' resulta en
+          tomar el último día de datos disponibles para cada experimento como su tiempo final.
+        :type tiempo_final: dict | None
 
         :return: Un diccionario del formato siguiente:
            {
@@ -855,7 +824,7 @@ class Simulable(Coso):
             # Simular el modelo
             antes = time.time()
             símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
-            print('Simulación (%s) calculada en: ' % exp, time.time()-antes)
+            print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
         if not vectorizar_preds:
             return
@@ -864,7 +833,7 @@ class Simulable(Coso):
             # Convertir los diccionarios de predicciones en un vector numpy.
             antes = time.time()
             vector_predics = símismo._procesar_predics_calib()
-            print('Procesando predicciones: ', time.time()-antes)
+            print('Procesando predicciones: ', time.time() - antes)
 
             # Devolver el vector de predicciones.
             return vector_predics
@@ -958,7 +927,6 @@ class Simulable(Coso):
 
             # Para cada elemento de la lista...
             for n, calib in enumerate(calibs):
-
                 # Asegurarse de que es en formato de texto.
                 calibs[n] = str(calib)
 
@@ -981,7 +949,6 @@ class Simulable(Coso):
                     for id_calib in parám:
 
                         if id_calib not in lista_calibs and id_calib != 'especificado':
-
                             # Si no existe ya la calibración en nuestra lista, añadirla
                             lista_calibs.append(id_calib)
 
@@ -999,7 +966,6 @@ class Simulable(Coso):
 
                         # Si la calibración no existe para este parámetro...
                         if id_calib not in parám:
-
                             # Borrarla de nuestra lista.
                             lista_calibs.remove(id_calib)
 
@@ -1029,7 +995,6 @@ class Simulable(Coso):
 
         # Verificar la lista de calibraciones generada
         if len(lista_calibs) == 0:
-
             # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa. Igual sería
             # mejor avisarle al usuario.
             lista_calibs = ['0']
@@ -1241,7 +1206,7 @@ def apriori_de_existente(lista_objs, clase_objs):
             if type(v) is dict:
                 gen_aprioris(v, d_ecs=d_ecs[ll])
 
-            elif type (v) is list:
+            elif type(v) is list:
                 datos = np.concatenate(v)
                 try:
                     cont = d_ecs['cont']

@@ -18,11 +18,16 @@ class Planta(Organismo):
           lógica. Aunque cada 'etapa' de una planta no se convierte directamente en otra etapa (al contrario de, por
           ejemplo, una oruga), cada 'etapa' sí se come por distintos organismos (cada uno tiene su propio depredador).
 
+        :param nombre: El nombre de la planta
         :type nombre: str
 
         :param etps: La lista de partes de la planta (tallo, raíz, etc.)
         :type etps: list
 
+        :param proyecto: El proyecto al cual esta Planta pertenece.
+        :type proyecto: str
+
+        :param fuente: ¿?
         :type fuente: str
         """
 
@@ -40,21 +45,22 @@ class Sencilla(Planta):
     Una planta muy sencilla, con crecimiento logístico. Puede ser util para plantas vivaces y pruebas de modelos.
     """
 
-    def __init__(símismo, nombre, fuente=None):
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
         """
         Una planta Sencilla tiene una única parte de la planta, llamada "planta".
 
         :type nombre: str
+        :type proyecto: str
         :type fuente: str
         """
 
         etps = ['planta']
-        super().__init__(nombre=nombre, fuente=fuente, etps=etps)
+        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente, etps=etps)
 
         ecs = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
                    Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                    Movimiento={}
                    )
@@ -88,7 +94,7 @@ class Constante(Planta):
         ecs = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externo Cultivo'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
                    Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                    Movimiento={}
                    )
@@ -114,22 +120,23 @@ class Completa(Planta):
       modelo de cultivo (o la especificación de un valor fijo).
     """
 
-    def __init__(símismo, nombre, fuente=None):
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
         """
 
         :type nombre: str
+        :type proyecto: str
         :type fuente: str
         """
 
         etps = ['Raíz', 'Palo', 'Sabia', 'Hoja', 'Flor', 'Fruta', 'Semilla']
-        super().__init__(nombre=nombre, fuente=fuente, etps=etps)
+        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente, etps=etps)
 
         # Una lista de ecuaciones vaciás (ya que no vamos a utilizar las ecuaciones habituales para modelizar las
         # plantas).
         vacías = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externo Cultivo'},
                       Depredación={'Ecuación': 'Nada'},
                       Muertes={'Ecuación': 'Nada'},
-                      Transiciones={'Edad': 'Nada', 'Prob': 'Nada'},
+                      Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
                       Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                       Movimiento={}
                       )

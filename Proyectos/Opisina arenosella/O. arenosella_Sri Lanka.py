@@ -37,7 +37,7 @@ Red_coco_senc.añadir_exp(Experimento_B,
                          )
 
 
-"""
+
 ajuste_inic = Red_coco_senc.validar(exper=Experimento_A)
 print('Ajuste inicial: ', ajuste_inic)
 
@@ -50,7 +50,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-"""
+
 
 # Especificar distribuciones a priori
 """
@@ -70,11 +70,13 @@ O_arenosella_senc.especificar_apriori(etapa='adulto',
 
 O_arenosella_senc.especificar_apriori(etapa='adulto',
                                       ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
+                                      org_inter=Coco, etp_inter='planta',
                                       rango=(1/1923e-6*1.96, 1/1723e-6*1.96),
                                       certidumbre=.95)
 
 O_arenosella_senc.especificar_apriori(etapa='adulto',
                                       ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
+                                      org_inter=Coco, etp_inter='planta',
                                       rango=(1923*1.96, 1723*1.96),
                                       certidumbre=.95)
 
@@ -92,7 +94,8 @@ Parasitoide_senc.especificar_apriori(etapa='adulto',
 Parasitoide_senc.especificar_apriori()
 """
 
-ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, usar_especificados=True)
+
+ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, usar_especificadas=True)
 print('Ajuste con a prioris', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
@@ -106,6 +109,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
 
+
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
 Araña = Ins.Sencillo('Araña')
 Araña.secome(O_arenosella_senc)
@@ -115,10 +119,10 @@ Araña.secome(Parasitoide_senc)
 
 Red_coco_senc.añadir_org(Araña)
 
-Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
+# Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
-Red_coco_senc.guardar_calib()
+# Red_coco_senc.guardar_calib()
 Red_coco_senc.guardar()
 
 # Intentemos algo más interesante ahora.
