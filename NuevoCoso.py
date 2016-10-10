@@ -566,6 +566,15 @@ class Simulable(Coso):
         :rtype: dict
         """
 
+        # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
+        # contrario tomamos el conjunto de todas las calibraciones anteriores.
+        if calibs is None:
+            if símismo.ModBayes is None:
+                calibs = 'Todos'
+            else:
+                calibs = símismo.ModBayes.id
+
+        # Simular los experimentos
         símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
                         calibs=calibs, usar_especificadas=usar_especificadas, dibujar=dibujar)
 
