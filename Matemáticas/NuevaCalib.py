@@ -186,24 +186,23 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
         # El nombre para el variable PyMC
         nombre = 'parám_%i' % n
 
-        # Si el usuario especificó una distribución a priori, usarla. Sino, usar la lista de aprioris general.
-        if 'especificado' in d_parám:
-            calibs = ['especificado']
-        else:
-            calibs = aprioris
+        # La lista de aprioris general.
+        calibs = aprioris
 
         # La distribución pymc del a priori
         dist_apriori = None
 
-        # Si solo hay una calibración para aplicar y es en formato de distribución, intentar y ver si no se puede
-        # convertir directamente en distribución pymc.
+        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
+        # convertir directamente en distribución PyMC.
         if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
             dist_apriori = Incert.texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
 
         # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
         if dist_apriori is None:
-            # Un vector numpy de la traza de datos para generar la distribución PyMC
-            traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200)
+            # Un vector numpy de la traza de datos para generar la distribución PyMC. Si el usuario especificó una
+            # distribución a priori, la tomamos en vez de las aprioris generales.
+            traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
+                                            comunes=False, usar_especificados=True)
 
             # Generar la distribución PyMC
             dist_apriori = Incert.ajustar_dist(datos=traza, límites=l_lms[n], cont=True,

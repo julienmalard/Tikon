@@ -267,7 +267,7 @@ class FileX(object):
                                 valores = valores[símismo.prop_vars[sección][var]+1:]
                         i += 1
         else:
-            return "No encontramos la sección " + sección + ". Si no eres un programador de Tikon, dígale " \
+            return "No encontramos la sección " + sección + ". Si no eres un programador de Tiko'n, dígale " \
                                                             "a uno que se ponga a trabajar."
 
     # Esta funcción encoda una sección del diccionario en un formato de documento FILEX

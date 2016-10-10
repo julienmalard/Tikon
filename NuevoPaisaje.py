@@ -26,16 +26,13 @@ class Paisaje(Simulable):
     def dibujar(símismo, mostrar=True, archivo=None, exper=None):
         raise NotImplementedError  # Para hacer
 
-    def _prep_predics(símismo, n_pasos, n_rep_parám, n_rep_estoc, n_parcelas):
-        raise NotImplementedError  # Para hacer
-
     def _procesar_validación(símismo):
         raise NotImplementedError  # Para hacer
 
     def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
         raise NotImplementedError  # Para hacer
 
-    def _acción_añadir_exp(símismo, experimento, corresp):
+    def _actualizar_vínculos_exps(símismo, experimento, corresp):
         raise NotImplementedError  # Para hacer
 
     def _sacar_coefs_interno(símismo):

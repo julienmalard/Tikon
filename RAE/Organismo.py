@@ -75,7 +75,7 @@ class Organismo(Coso):
         :param nombre: El nombre de la etapa. Por ejemplo, "huevo", "juvenil_1", "pupa", "adulto"
         :type nombre: str
 
-        :param posición: La posición cronológica de la etapa. Por ejemplo, "huevo" tendría posición 1, etc.
+        :param posición: La posición cronológica de la etapa. Por ejemplo, "huevo" tendría posición 0, etc.
         :type posición: int
 
         :param ecuaciones: Un diccionario con los tipos de ecuaciones para esta etapa. (Siempre se puede cambiar
@@ -91,7 +91,7 @@ class Organismo(Coso):
         dic_etapa = dict(nombre=nombre,
                          posición=posición,
                          ecs=ecuaciones.copy(),  # Copiar la selección de tipos de ecuaciones
-                         trans=posición + 1,  # Notar que estos números solamente tendrán impacto en el modelo si la ecuación de Transición y/o de Reproducción de esta etapa != 'Nada'.
+                         trans=posición,  # Notar que estos números solamente tendrán impacto en el modelo si la ecuación de Transición y/o de Reproducción de esta etapa != 'Nada'.
                          repr=0
                          )
 
@@ -364,18 +364,20 @@ class Organismo(Coso):
                         # Sacar el diccionario correspondiente en el diccionario de coeficientes del organismo.
                         dic = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec][parám]
 
-                        if dic_info_paráms[parám]['inter'] is None:
+                        inters = dic_info_paráms[parám]['inter']
+                        if inters is None:
                             # Si no hay interacciones, guardamos el diccionario como está.
                             dic_coefs = [dic]
 
-                        elif dic_info_paráms[parám]['inter'] == 'presa':
+                        elif type(inters) is list:
                             dic_coefs = []
-                            for org_presa, lista_etps_presa in símismo.config[etp['nombre']]['presa'].items():
-                                for etp_presa in lista_etps_presa:
-                                    dic_coefs.append(dic[org_presa][etp_presa])
+                            for tipo_inter in inters:
+                                for org_inter, lista_etps_inter in símismo.config[etp['nombre']][tipo_inter].items():
+                                    for etp_inter in lista_etps_inter:
+                                        dic_coefs.append(dic[org_inter][etp_inter])
 
                         else:
-                            raise NotImplementedError
+                            raise ValueError
 
                         lista_coefs += dic_coefs
 

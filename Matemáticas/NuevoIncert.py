@@ -898,10 +898,10 @@ def numerizar(d, c=None):
     if type(d) is list:
         for n, v in enumerate(d):
             if type(v) is dict:
-                c[n] = {}
+                c.append({})
                 numerizar(v, c=c[n])
             elif type(v) is list:
-                c[n] = []
+                c.append([])
                 numerizar(v, c=c[n])
             else:
                 c[n] = v.astype(float)
