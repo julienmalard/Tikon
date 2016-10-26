@@ -1,13 +1,13 @@
 import math as mat
 import os
 from warnings import warn as avisar
+
 import numpy as np
 
 import Matemáticas.Distribuciones as Ds
 import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
 from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
-from Matemáticas.Experimentos import Experimento
 from NuevoCoso import Simulable
 from RAE.Organismo import Organismo
 
@@ -486,10 +486,20 @@ class Red(Simulable):
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
             Kovai (Asíntota doble):
-                y = (a * P/D) / (P/D + c) * (P^2 / (P^2 +b), simplificado a
+                y = (a * P/D) / (P/D + c) * (P^2 / (P^2 + b), simplificado a
                   y = a * P^3 / (P^3 + D*c*(b + P^2) + b*P).
                 Con la suposición que c = a / 2, tenemos entonces
                   y = P^3 / ( (P^3 + b*P)/a + D/2*(b + P^2) ).
+
+                  a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
+                    depredadores no compiten entre sí mismos)
+
+                  b^0.5 es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
+                    competition entre ellos, los depredadores consumirán a/2 presas por depredador.
+
+                  c es el ratio de presas a depredadores donde el consumo de presa por depredador, suponiendo que
+                    las presas son suficientemente abundantes para no ocasionar mayores gastos de búsqueda para los
+                    depredadores, será la mitad de a. Lógicamente, debería ser cerca de a/2.
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
@@ -1400,10 +1410,11 @@ class Red(Simulable):
                         l_cols = [l_cols]
 
                     # Si hay más que una columna de la base de datos correspondiendo a la etapa, hay que sumarlos. Este
-                    # código no hará ninguna transformación a los datos o el nombre de la columna en el caso que solamente
-                    # haya una columna de datos correspondiento a la etapa.
+                    # código no hará ninguna transformación a los datos o el nombre de la columna en el caso que
+                    # solamente haya una columna de datos correspondiento a la etapa.
 
-                    # El nombre de la nueva columna sumada (en el caso donde l_cols tiene una sola columna, no cambia nada)
+                    # El nombre de la nueva columna sumada (en el caso donde l_cols tiene una sola columna, no cambia
+                    # nada)
                     nombre_col = '&'.join(str(x) for x in sorted(l_cols))
 
                     # Hacer la suma (otra vez, no hace nada si l_cols solamente tiene una columna).

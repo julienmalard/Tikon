@@ -72,7 +72,8 @@ class Coso(object):
         if proyecto:
             símismo.fuente = os.path.join(proyecto, símismo.nombre + símismo.ext)
 
-    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre, org_inter=None, etp_inter=None):
+    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre, org_inter=None, etp_inter=None,
+                            dibujar=False):
         # Para hacer: ¿implementar "etapa" en Organismo?
         """
         Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
@@ -96,6 +97,12 @@ class Coso(object):
         :param etp_inter: La etapa del organismo con el cual interactua este.
         :type etp_inter: str
 
+        :param dibujar: Si queremos dibujar el resultado o no.
+        :type dibujar: bool
+
+        :return: La distribución generada.
+        :rtype:str
+
         """
 
         # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
@@ -111,6 +118,8 @@ class Coso(object):
         dic_parám = símismo.receta['coefs'][etapa]
         dic_ecs = símismo.dic_ecs
 
+        # Encontrar la ubicación del parámetro en el diccionario de especificaciones de parámetros y en el diccionario
+        # de ecuaciones del Coso.
         for llave in ubic_parám:
             try:
                 dic_parám = dic_parám[llave]
@@ -118,6 +127,7 @@ class Coso(object):
             except KeyError:
                 raise KeyError('Ubicación de parámetro erróneo.')
 
+        # Sacar las límites teoréticas de la distribución.
         try:
             líms = dic_ecs['límites']
         except KeyError:
@@ -139,10 +149,14 @@ class Coso(object):
 
             dic_parám = dic_parám[org_inter.nombre][etp_inter]
 
-        dic_parám['especificado'] = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
-                                                              cont=True)  # para hacer: parámetros discretos
+        texto_dist = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
+                                               cont=True)  # para hacer: parámetros discretos
+        dic_parám['especificado'] = texto_dist
 
-        return dic_parám['especificado']
+        if dibujar:
+            Incert.graficar_dists([texto_dist], rango=rango)
+
+        return texto_dist
 
     def guardar(símismo, archivo=None, iterativo=True):
         """
@@ -367,7 +381,7 @@ class Simulable(Coso):
             símismo.dibujar(exper=exper)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
-                 n_iter=10000, quema=100, extraer=10):
+                 n_iter=10000, quema=100, extraer=10, dibujar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -404,6 +418,10 @@ class Simulable(Coso):
         :param extraer: Cada cuantas iteraciones guardar (para limitar el efecto de autocorrelación entre iteraciones).
           extraer = 1 lleva al uso de todas las iteraciones.
         :type extraer: int
+
+        :param dibujar: Si queremos dibujar los resultados de las calibraciones (cambios en distribuciones de
+          parámetros) o no.
+        :type dibujar: bool
 
         """
 
@@ -453,6 +471,10 @@ class Simulable(Coso):
 
         # 8. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
         símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
+
+        # Si querríamos dibujos, hacerlos ahora
+        if dibujar:
+            símismo.dibujar_calib()
 
     def avanzar_calib(símismo, rep=10000, quema=100, extraer=10):
         """
@@ -1008,6 +1030,89 @@ class Simulable(Coso):
 
         # Devolver la lista de calibraciones.
         return lista_calibs
+
+    def dibujar_calib(símismo):
+        """
+
+        :return:
+        :rtype:
+        """
+
+        def sacar_dists_de_dic(d, l=None, u=None):
+            """
+
+            :param d:
+            :type d: dict
+            :param l:
+            :type l: list
+            :param u:
+            :type u: list
+            :return:
+            :rtype: list
+            """
+
+            if l is None:
+                l = []
+            if u is None:
+                u = []
+
+            for ll, v in d.items():
+                if type(v) is dict:
+                    u.append(ll)
+                    sacar_dists_de_dic(d=v, l=l, u=u)
+
+                elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+                    u.append(ll)
+                    l.append((u.copy(), v))
+                else:
+                    # Si no, hacer nada
+                    pass
+            if len(u):
+                u.pop()
+            return l
+
+        def sacar_dists_calibs(obj, l=None):
+            """
+
+            :param obj:
+            :type obj: Coso
+
+            :param l:
+            :type l: list
+
+            :return:
+            :rtype: list
+
+            """
+
+            if l is None:
+                l = []
+
+            dic_coefs = obj.receta['coefs']
+
+            if len(dic_coefs):
+                l += sacar_dists_de_dic(dic_coefs, u=[obj.nombre])
+
+            for o in obj.objetos:
+                l += sacar_dists_calibs(obj=o)
+
+            return l
+
+        lista_dists = sacar_dists_calibs(símismo)
+
+        for ubic, dist in lista_dists:
+
+            directorio = os.path.join(directorio_base, 'Proyectos', os.path.splitext(símismo.fuente)[0],
+                                      'Gráficos calibración', símismo.ModBayes.id, ubic[0])
+            archivo = os.path.join(directorio, '_'.join(ubic[1:-1]) + '.png')
+
+            if not os.path.exists(directorio):
+                os.makedirs(directorio)
+
+            título = ':'.join(ubic[1:-1])
+
+            Incert.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
+                                  título=título, archivo=archivo)
 
 
 def dic_lista_a_np(d):
