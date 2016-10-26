@@ -925,3 +925,82 @@ def numerizar(d, c=None):
                 c[ll] = v.astype(float)
 
     return c
+
+
+def graficar_dists(dists, n=1000, valores=None, rango=None, título=None, archivo=None):
+    """
+    Esta función genera un gráfico de una o más distribuciones y valores.
+
+    :param dists: Una lista de las distribuciones para graficar.
+    :type dists: list
+
+    :param n: El número de puntos para el gráfico.
+    :type n: int
+
+    :param valores: Una matriz numpy de valores para hacer un histograma (opcional)
+    :type valores: np.ndarray
+
+    :param rango: Un rango de valores para resaltar en el gráfico (opcional).
+    :type rango: tuple
+
+    :param título: El título del gráfico, si hay.
+    :type título: str
+
+    :param archivo: Dónde hay que guardar el dibujo. Si no se especifica, se presentará el gráfico al usuario en una
+      nueva ventana (y el programa esperará que la usadora cierra la ventana antes de seguir con su ejecución).
+    :type archivo: str
+
+    """
+
+    if type(dists) is not list:
+        dists = [dists]
+
+    dib.close()
+
+    # Poner cada distribución en el gráfico
+    for dist in dists:
+
+        if type(dist) is str:
+            dist = texto_a_dist(texto=dist, usar_pymc=False)
+
+        if isinstance(dist, pymc.Stochastic):
+            puntos = np.array([dist.rand() for _ in range(n)])
+            y, delim = np.histogram(puntos, normed=True, bins=100)
+            x = 0.5 * (delim[1:] + delim[:-1])
+
+        elif isinstance(dist, pymc.Deterministic):
+            dist_stoc = min(dist.extended_parents)
+            puntos = np.array([(dist_stoc.rand(), dist.value)[1] for _ in range(n)])
+            y, delim = np.histogram(puntos, normed=True, bins=100)
+            x = 0.5 * (delim[1:] + delim[:-1])
+
+        elif isinstance(dist, estad._distn_infrastructure.rv_frozen):
+            x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
+            y = dist.pdf(x)
+
+        else:
+            raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
+
+        # Dibujar la distribución
+        dib.plot(x, y, 'b-', lw=2, alpha=0.6)
+
+        # Resaltar un rango, si necesario
+        if rango is not None:
+            if rango[1] < rango[0]:
+                rango = (rango[1], rango[0])
+            dib.fill_between(x[(rango[0] <= x) & (x <= rango[1])], 0, y[(rango[0] <= x) & (x <= rango[1])],
+                             color='blue', alpha=0.2)
+
+    # Si hay valores, hacer un histrograma
+    if valores is not None:
+        dib.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+
+    # Si se especificó un título, ponerlo
+    if título is not None:
+        dib.title(título)
+
+    # Mostrar o guardar el gráfico
+    if archivo is None:
+        dib.show()
+    else:
+        dib.savefig(archivo)

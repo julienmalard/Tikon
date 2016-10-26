@@ -48,7 +48,7 @@ for nombre, dist in sorted(Ds.dists.items()):
     dist_pymc = Inc.ajustar_dist(datos=núms, límites=dist['límites'], cont=True, usar_pymc=True,
                                  nombre=nombre, lista_dist=[nombre])[0]
     if isinstance(dist_pymc, pymc.Stochastic):
-        puntos_pymc = np.array([dist_pymc.rand() for x in range(n_rep)])
+        puntos_pymc = np.array([dist_pymc.rand() for _ in range(n_rep)])
     elif isinstance(dist_pymc, pymc.Deterministic):
         puntos_pymc = np.empty(n_rep)
         dist_pariente = min(dist_pymc.extended_parents)
