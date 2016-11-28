@@ -1,5 +1,5 @@
 import numpy as np
-from pymc import deterministic, Exponential, Normal, MCMC
+import pymc
 
 import Matemáticas.NuevoIncert as Incert
 
@@ -92,25 +92,32 @@ class ModBayes(object):
         lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
                                          l_pm=lista_paráms, l_lms=lista_líms,
                                          aprioris=aprioris)
+        # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
+        # transformaciones de las distribuciones básicas de PyMC)
+        for parám in lista_paráms:
+            if isinstance(parám, pymc.Deterministic):
+                lista_paráms.append(min(parám.extended_parents))
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados
         función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificados=True, comunes=False)
 
-        # Para la varianza de la distribución normal, se emplea un tau no informativo.
-        tau = Exponential('tau', beta=1e-10)
+        # Para la varianza de la distribución normal, se emplea un tau no informativo, si es que exista tal cosa.
+        símismo.precisión = pymc.Uniform('precision', lower=0.0001, upper=1.0)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
-        # pasamos los argumentos necesarios, si aplican.
-        @deterministic(plot=False)
-        def simular(d=dic_argums, t=tau):
+        # pasamos los argumentos necesarios, si aplican. Hay que incluir símismo.precisión en los argumentos
+        # para que PyMC se dé cuenta de que la función simular() depiende de los otros parámetros y se tiene que
+        # recalcular a cada ejecución del modelo.
+        @pymc.deterministic(plot=False)
+        def simular(d=dic_argums, _=símismo.precisión):
             return función(**d)
 
         # Una distribución normal alrededor de las predicciones del modelo, conectado con las observaciones
         # correspondientes.
-        dist_obs = Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
+        dist_obs = pymc.Normal('obs', mu=simular, tau=símismo.precisión, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = MCMC({dist_obs, tau, simular, *lista_paráms})
+        símismo.MCMC = pymc.MCMC({dist_obs, símismo.precisión, simular, *lista_paráms})
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -197,10 +204,14 @@ def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
         if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
             dist_apriori = Incert.texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
 
-        # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
-        if dist_apriori is None:
-            # Un vector numpy de la traza de datos para generar la distribución PyMC. Si el usuario especificó una
-            # distribución a priori, la tomamos en vez de las aprioris generales.
+        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
+        if 'especificado' in d_parám:
+            dist_apriori = Incert.texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
+
+        elif dist_apriori is None:
+            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+
+            # Un vector numpy de la traza de datos para generar la distribución PyMC.
             traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
                                             comunes=False, usar_especificados=True)
 
