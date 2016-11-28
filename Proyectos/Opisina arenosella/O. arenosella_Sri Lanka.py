@@ -117,7 +117,7 @@ Parasitoide_senc.especificar_apriori(etapa='adulto',
 # print('Ajuste con a prioris', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
-Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=10, quema=0, extraer=1,
+Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=1000, quema=100, extraer=10,
                        dibujar=True)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
@@ -130,7 +130,7 @@ Red_coco_senc.guardar()
 
 
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
-Araña = Ins.Sencillo('Araña')
+Araña = Ins.Sencillo('Araña', proyecto=proyecto)
 Araña.secome(O_arenosella_senc)
 Araña.secome(Parasitoide_senc)
 # Araña.especificar_apriori()
@@ -138,7 +138,8 @@ Araña.secome(Parasitoide_senc)
 
 Red_coco_senc.añadir_org(Araña)
 
-Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
+Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=1000, quema=100, extraer=10,
+                       dibujar=True)
 Red_coco_senc.validar(exper=Experimento_A)
 Red_coco_senc.validar(exper=Experimento_B)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
