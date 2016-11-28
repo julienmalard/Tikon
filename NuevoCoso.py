@@ -435,7 +435,7 @@ class Simulable(Coso):
         if nombre is None:
             nombre = int(np.random.uniform() * 1e10)
 
-            # Evitar el caso muy improbable de que el código aleatorio ya existe
+            # Evitar el caso muy improbable que el código aleatorio ya exista
             while nombre in símismo.receta['Calibraciones']:
                 nombre = int(np.random.uniform() * 1e10)
         nombre = str(nombre)
@@ -1033,15 +1033,18 @@ class Simulable(Coso):
 
     def dibujar_calib(símismo):
         """
+        Esta función dibuja los parámetros incluidos en una calibración, antes y después de calibrar. Tiene
+        funcionalidad para buscar a todos los parámetros incluidos en objetos vinculados a este Simulable también.
 
-        :return:
-        :rtype:
         """
 
         def sacar_dists_de_dic(d, l=None, u=None):
             """
+            Esta función recursiva saca las distribuciones PyMC de un diccionario de coeficientes.
+              Devuelva los resultados en forma de tuple:
 
-            :param d:
+
+            :param d: El diccionario
             :type d: dict
             :param l:
             :type l: list
@@ -1064,6 +1067,7 @@ class Simulable(Coso):
                 elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
                     u.append(ll)
                     l.append((u.copy(), v))
+                    u.pop()
                 else:
                     # Si no, hacer nada
                     pass
@@ -1073,14 +1077,17 @@ class Simulable(Coso):
 
         def sacar_dists_calibs(obj, l=None):
             """
+            Esta función auxiliar saca las distribuciones PyMC de un objeto y de todos los otros objetos vinculados
+            con este.
 
-            :param obj:
+            :param obj: El objeto cuyas distribuciones de parámetros hay que sacar.
             :type obj: Coso
 
-            :param l:
+            :param l: Una lista para la recursión. Nunca especificar este parámetro mientras que se llama la función.
             :type l: list
 
-            :return:
+            :return: Una lista de tuples de los parámetros con la forma general:
+              (lista de la ubicación del parámetro, distribución PyMC)
             :rtype: list
 
             """
@@ -1099,6 +1106,8 @@ class Simulable(Coso):
             return l
 
         lista_dists = sacar_dists_calibs(símismo)
+
+        lista_dists.append((['Modelo', 'Precisión', ''], símismo.ModBayes.precisión))
 
         for ubic, dist in lista_dists:
 

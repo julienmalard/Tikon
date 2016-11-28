@@ -1275,7 +1275,7 @@ class Red(Simulable):
 
                     # Los nombre de las columnas y el nombre de la columna de datos que nos interesa
                     nombres_cols = símismo.info_exps['nombres_cols'][exp]
-                    nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0]]
+                    nombre_col = nombres_cols[np.where(etps_interés == n_etp)[0][0]]
 
                     if n_etp not in combin_etps:
                         # Si la etapa no tiene otras etapas con las cuales combinarse...

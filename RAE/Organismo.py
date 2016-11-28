@@ -223,7 +223,7 @@ class Organismo(Coso):
                     # Si es una relación de huésped, hay que saber cuál(es) etapa caen víctimas en de cuál etapa
                     # sale el organismo.
                     dic_víc[víctima.nombre] = {'entra': [], 'sale': None}
-                    l_etps_víc = dic_víc[víctima.nombre['entra']]
+                    l_etps_víc = dic_víc[víctima.nombre]['entra']
 
             # Y también añadir el nombre de las etapas de la presa o del huésped que caen víctimas
             for e_víc in etps_víctima:
