@@ -9,6 +9,7 @@ from datetime import datetime as ft
 import numpy as np
 import pymc
 
+import Matemáticas.Arte
 import Matemáticas.NuevoIncert as Incert
 from Controles import directorio_base
 from Matemáticas.Experimentos import Experimento
@@ -154,7 +155,7 @@ class Coso(object):
         dic_parám['especificado'] = texto_dist
 
         if dibujar:
-            Incert.graficar_dists([texto_dist], rango=rango)
+            Matemáticas.Arte.graficar_dists([texto_dist], rango=rango)
 
         return texto_dist
 
@@ -318,7 +319,7 @@ class Simulable(Coso):
         símismo.listo = True
 
     def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
-                calibs='Todos', usar_especificadas=False, dibujar=True):
+                calibs='Todos', usar_especificadas=False, dibujar=True, opciones_dibujar=None):
         """
         Esta función corre una simulación del Simulable.
 
@@ -345,6 +346,9 @@ class Simulable(Coso):
 
         :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
         :type usar_especificadas: bool
+
+        :param opciones_dibujar: Un diccionario de opciones de dibujo a pasar a la función de generación de gráficos
+        :type opciones_dibujar: dict
 
         """
 
@@ -378,7 +382,7 @@ class Simulable(Coso):
 
         # Si hay que dibujar, dibujar
         if dibujar:
-            símismo.dibujar(exper=exper)
+            símismo.dibujar(exper=exper, **opciones_dibujar)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
                  n_iter=10000, quema=100, extraer=10, dibujar=False):
@@ -964,43 +968,46 @@ class Simulable(Coso):
         if type(calibs) is str:
             # Si "calibs" es un nombre especial...
 
-            if calibs == 'Todos':
+            if calibs == 'Todos' or calibs == 'Correspondientes':
                 # Tomamos todas las calibraciones existentes en cualquier de los parámetros.
 
-                # Una lista vacía para contener las calibraciones
-                lista_calibs = []
+                # Un conjunto vacío para contener las calibraciones
+                conj_calibs = set()
 
                 # Para cada parámetro...
                 for parám in lista_paráms:
 
-                    # Para cada calibración de este parámetro...
-                    for id_calib in parám:
+                    # Agregamos el código de sus calibraciones
+                    conj_calibs = conj_calibs.union(parám)
 
-                        if id_calib not in lista_calibs and id_calib != 'especificado':
-                            # Si no existe ya la calibración en nuestra lista, añadirla
-                            lista_calibs.append(id_calib)
+                    # Quitamos distribuciones especificadas manualmente
+                    if __name__ == '__main__':
+                        try:
+                            conj_calibs.remove('especificado')
+                        except KeyError:
+                            pass
+
+                if calibs == 'Correspondientes':
+                    # Si querremos únicamente los que corresponden con este objeto Simulable..
+                    # Usar todas las calibraciones calibradas
+                    conj_calibs = {x for x in conj_calibs if x in símismo.receta['Calibraciones']}
 
             elif calibs == 'Comunes':
                 # Tomamos todas las calibraciones en común entre los parámetros.
 
-                # Hacemos una lista de calibraciones con las calibraciones del primer parámetro.
-                lista_calibs = list(lista_paráms[0])
+                # Hacemos un conjunto de calibraciones con las calibraciones del primer parámetro.
+                conj_calibs = set(lista_paráms[0])
 
                 # Para cada otro parámetro en la lista...
                 for parám in lista_paráms[1:]:
 
-                    # Para cada calibración en nuestra lista...
-                    for id_calib in lista_calibs:
+                    # Para cada calibración en nuestro conjunto...
+                    for id_calib in conj_calibs:
 
                         # Si la calibración no existe para este parámetro...
                         if id_calib not in parám:
-                            # Borrarla de nuestra lista.
-                            lista_calibs.remove(id_calib)
-
-            elif calibs == 'Correspondientes':
-
-                # Usar todas las calibraciones calibradas con este objeto Simulable.
-                lista_calibs = [x for x in calibs if x in símismo.receta['Calibraciones']]
+                            # Borrarla de nuestro conjunto.
+                            conj_calibs.remove(id_calib)
 
             else:
 
@@ -1009,27 +1016,27 @@ class Simulable(Coso):
                 raise ValueError("Parámetro 'calibs' inválido.")
 
             # Quitar la distribución a priori no informativa, si hay otras alternativas.
-            if '0' in lista_calibs and len(lista_calibs) > 1:
-                lista_calibs.remove('0')
+            if '0' in conj_calibs and len(conj_calibs) > 1:
+                conj_calibs.remove('0')
 
         elif type(calibs) is list:
             # Si se especificó una lista de calibraciones en particular, todo está bien.
-            lista_calibs = calibs
+            conj_calibs = set(calibs)
 
         else:
 
             # Si "calibs" no era ni texto ni una lista, hay un error.
             raise ValueError("Parámetro 'calibs' inválido.")
 
-        # Verificar la lista de calibraciones generada
-        if len(lista_calibs) == 0:
+        # Verificar el conjunto de calibraciones generada
+        if len(conj_calibs) == 0:
             # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa. Igual sería
             # mejor avisarle al usuario.
-            lista_calibs = ['0']
+            conj_calibs = {'0'}
             avisar.warn('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
 
-        # Devolver la lista de calibraciones.
-        return lista_calibs
+        # Devolver el conjunto de calibraciones.
+        return conj_calibs
 
     def dibujar_calib(símismo):
         """
@@ -1120,8 +1127,8 @@ class Simulable(Coso):
 
             título = ':'.join(ubic[1:-1])
 
-            Incert.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
-                                  título=título, archivo=archivo)
+            Matemáticas.Arte.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
+                                            título=título, archivo=archivo)
 
 
 def dic_lista_a_np(d):
