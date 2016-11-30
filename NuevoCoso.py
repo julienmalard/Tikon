@@ -92,8 +92,8 @@ class Coso(object):
         :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
         :type certidumbre: float
 
-        :param org_inter: Otro organismo con el cual interactúa este Coso para este variable.
-        :type org_inter: Coso
+        :param org_inter: El nombre de otro organismo con el cual interactúa este Coso para este variable.
+        :type org_inter: str
 
         :param etp_inter: La etapa del organismo con el cual interactua este.
         :type etp_inter: str
@@ -142,13 +142,13 @@ class Coso(object):
             if etp_inter is None:
                 raise ValueError('Hay que especificar la etapa del organismo de interacción.')
 
-            if org_inter.nombre not in dic_parám:
-                dic_parám[org_inter.nombre] = {}
+            if org_inter not in dic_parám:
+                dic_parám[org_inter] = {}
 
-            if etp_inter not in dic_parám[org_inter.nombre]:
-                dic_parám[org_inter.nombre][etp_inter] = {}
+            if etp_inter not in dic_parám[org_inter]:
+                dic_parám[org_inter][etp_inter] = {}
 
-            dic_parám = dic_parám[org_inter.nombre][etp_inter]
+            dic_parám = dic_parám[org_inter][etp_inter]
 
         texto_dist = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
                                                cont=True)  # para hacer: parámetros discretos
@@ -319,11 +319,11 @@ class Simulable(Coso):
         símismo.listo = True
 
     def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
-                calibs='Todos', usar_especificadas=False, dibujar=True, opciones_dibujar=None):
+                calibs='Todos', usar_especificadas=False, dibujar=True, opciones_dib=None):
         """
         Esta función corre una simulación del Simulable.
 
-        :param exper:
+        :param exper: Los experimentos para incluir en la simulación.
         :type exper: list | str | Experimento | None
 
         :param paso: El paso de tiempo para la simulación
@@ -347,10 +347,14 @@ class Simulable(Coso):
         :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
         :type usar_especificadas: bool
 
-        :param opciones_dibujar: Un diccionario de opciones de dibujo a pasar a la función de generación de gráficos
-        :type opciones_dibujar: dict
+        :param opciones_dib: Un diccionario de opciones de dibujo a pasar a la función de generación de gráficos
+        :type opciones_dib: dict
 
         """
+
+        # Cambiar no opciones de dibujo a un diccionario vacío
+        if opciones_dib is None:
+            opciones_dib = {}
 
         # Actualizar el objeto, si necesario. Si ya se ha actualizado el objeto una vez, no se actualizará
         # automáticamente aquí (y no tendrá en cuenta cambios al objeto desde la última calibración).
@@ -382,7 +386,7 @@ class Simulable(Coso):
 
         # Si hay que dibujar, dibujar
         if dibujar:
-            símismo.dibujar(exper=exper, **opciones_dibujar)
+            símismo.dibujar(exper=exper, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
                  n_iter=10000, quema=100, extraer=10, dibujar=False):
@@ -557,8 +561,8 @@ class Simulable(Coso):
 
         símismo._actualizar_vínculos_exps()
 
-    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, dibujar=True,
-                usar_especificadas=False):
+    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, usar_especificadas=False,
+                dibujar=True, opciones_dib=None):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -585,6 +589,9 @@ class Simulable(Coso):
         :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
         :type usar_especificadas: bool
 
+        :param opciones_dib: Argumentos opcionales para pasar a la función de dibujo de resultados.
+        :type opciones_dib: dict
+
         :return: Un diccionario con los resultados de la validación.
         :rtype: dict
         """
@@ -599,12 +606,13 @@ class Simulable(Coso):
 
         # Simular los experimentos
         símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
-                        calibs=calibs, usar_especificadas=usar_especificadas, dibujar=dibujar)
+                        calibs=calibs, usar_especificadas=usar_especificadas, dibujar=dibujar,
+                        opciones_dib=opciones_dib)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación()
 
-    def dibujar(símismo, mostrar=True, archivo=None, exper=None):
+    def dibujar(símismo, mostrar=True, archivo=None, exper=None, **kwargs):
         """
         Una función para generar gráficos de los resultados del objeto.
 
@@ -1036,7 +1044,7 @@ class Simulable(Coso):
             avisar.warn('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
 
         # Devolver el conjunto de calibraciones.
-        return conj_calibs
+        return list(conj_calibs)
 
     def dibujar_calib(símismo):
         """

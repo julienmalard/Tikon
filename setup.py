@@ -8,5 +8,6 @@ setup(
     license='GNU 3',
     author='Julien Jean Malard',
     author_email='julien.malard@mail.mcgill.ca',
-    description='', requires=['pymc', 'numpy', 'matplotlib', 'scipy']
+    description='',
+    requires=['pymc', 'numpy', 'matplotlib', 'scipy']
 )
