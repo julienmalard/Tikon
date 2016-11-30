@@ -1,9 +1,17 @@
+import sys
+import os
 import RAE.NuevoInsecto as Ins
 import RAE.Planta as Plt
 from Matemáticas.Experimentos import Experimento
 from RAE.NuevaRedAE import Red
 
-proyecto = 'Opisina arenosella'
+from Proyectos.Opisina_arenosella.a_prioris import  a_prioris
+
+# Opciones artísticas
+dib_aprioris = False
+ops_dib = {'incert': None, 'todas_líneas': True}
+
+proyecto = 'Opisina_arenosella'
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
 
@@ -52,82 +60,26 @@ Red_coco_senc.guardar()
 """
 
 # Especificar distribuciones a priori
-"""
-Referencia excelente:
-http://www.nhm.ac.uk/our-science/data/chalcidoids/database/detail.dsml?VALDATE=1930&ValidAuthBracket=false&FamilyCode=CC&VALSPECIES=nephantidis&listPageURL=listChalcids.dsml%3FSpecies%3Daeca%26Superfamily%3DChalcidoidea%26Family%3DChalcididae%26Genus%3DBrachymeria&tab=biology&HOMCODE=0&VALGENUS=Brachymeria&VALAUTHOR=Gahan&keyword=Fc
-"""
-dib_aprioris = False
-O_arenosella_senc.especificar_apriori(etapa='adulto',
-                                      ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
-                                      # Huevos por adulto / días de vida
-                                      rango=((152-26*1.96)/(53.1+.2*1.96), (152+26*1.96)/(53.1-.2*1.96)),
-                                      certidumbre=.95,
-                                      dibujar=dib_aprioris)
+for a_priori in a_prioris[O_arenosella_senc.nombre]:
+    O_arenosella_senc.especificar_apriori(dibujar=dib_aprioris, **a_priori)
 
-O_arenosella_senc.especificar_apriori(etapa='adulto',
-                                      ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
-                                      org_inter=Coco, etp_inter='planta',
-                                      rango=(1/(1823e-6+(100e-6*1.96)), 1/(1823e-6-(100e-6*1.96))),
-                                      certidumbre=.95,
-                                      dibujar=dib_aprioris)
-
-O_arenosella_senc.especificar_apriori(etapa='adulto',
-                                      ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
-                                      org_inter=Coco, etp_inter='planta',
-                                      rango=(1823e-6+(100e-6*1.96), 1823e-6-(100e-6*1.96)),
-                                      certidumbre=.95,
-                                      dibujar=dib_aprioris)
-
-O_arenosella_senc.especificar_apriori(etapa='adulto',
-                                      ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
-                                      org_inter=Coco, etp_inter='planta',
-                                      rango=((1823e-6-(100e-6*1.96))**2, (1823e-6+(100e-6*1.96))**2),
-                                      certidumbre=.95,
-                                      dibujar=dib_aprioris)  # Para hacer
-
-Parasitoide_senc.especificar_apriori(etapa='adulto',
-                                     ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
-                                     rango=(6/15, 164/9),
-                                     certidumbre=0.95,
-                                     dibujar=dib_aprioris)
-
-Parasitoide_senc.especificar_apriori(etapa='adulto',
-                                     ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
-                                     org_inter=O_arenosella_senc, etp_inter='adulto',
-                                     rango=(1, 10),
-                                     certidumbre=0.95,
-                                     dibujar=dib_aprioris)
-
-Parasitoide_senc.especificar_apriori(etapa='adulto',
-                                     ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
-                                     org_inter=O_arenosella_senc, etp_inter='adulto',
-                                     rango=(20, 164),
-                                     certidumbre=.95,
-                                     dibujar=dib_aprioris)
-
-Parasitoide_senc.especificar_apriori(etapa='adulto',
-                                     ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
-                                     org_inter=O_arenosella_senc, etp_inter='adulto',
-                                     rango=(20 ** 2, 164 ** 2),
-                                     certidumbre=.95,
-                                     dibujar=dib_aprioris)  # Para hacer
-
+for a_priori in a_prioris[Parasitoide_senc.nombre]:
+    Parasitoide_senc.especificar_apriori(dibujar=dib_aprioris, **a_priori)
 
 # ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, usar_especificadas=True)
 # print('Ajuste con a prioris', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
-Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=1000, quema=100, extraer=10,
+Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=100, quema=10, extraer=1,
                        dibujar=True)
-Red_coco_senc.validar(exper=Experimento_A)
-Red_coco_senc.validar(exper=Experimento_B)
+Red_coco_senc.validar(exper=Experimento_A, n_rep_estoc=5, n_rep_parám=5, opciones_dib=ops_dib)
+Red_coco_senc.validar(exper=Experimento_B, n_rep_estoc=5, n_rep_parám=5, opciones_dib=ops_dib)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'empleando a prioris.'
                                     'Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-
 
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
 Araña = Ins.Sencillo('Araña', proyecto=proyecto)
@@ -152,13 +104,13 @@ Red_coco_senc.guardar()
 # Intentemos algo más interesante ahora.
 O_arenosella = Ins.MetamCompleta('O. arenosella', njuvenil=5)
 
-Parasitoides_larvas = Ins.Parasitoide('Parasitoide larvas')
+Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas')
 
 Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas')
 
-Parasitoides_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
+Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
 
-Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoides_larvas, Parasitoides_pupa])
+Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa])
 
 Red_coco.añadir_exp(Experimento_A,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
@@ -170,6 +122,7 @@ Red_coco.añadir_exp(Experimento_A,
                              'Parasitoide larvas': {'juvenil': ['Para_larv_abs']},
                              'Parasitoide pupas': {'juvenil': ['Para_pupa_abs']}}
                     )
+
 Red_coco.añadir_exp(Experimento_B,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
                                                'juvenil_2': ['Estado 2'],
@@ -179,9 +132,16 @@ Red_coco.añadir_exp(Experimento_B,
                                                'pupa': ['Pupa']}}
                     )
 
-O_arenosella.especificar_apriori()
-Parasitoides_larvas.especificar_apriori()
-Parasitoides_pupa.especificar_apriori()
+# A prioris para la nueva red
+for a_priori in a_prioris[O_arenosella.nombre]:
+    O_arenosella.especificar_apriori(**a_priori)
+
+for a_priori in a_prioris[Parasitoide_larvas.nombre]:
+    Parasitoide_larvas.especificar_apriori(**a_priori)
+
+for a_priori in a_prioris[Parasitoides_pupa.nombre]:
+    Parasitoides_pupa.especificar_apriori(**a_priori)
+
 
 Red_coco.calibrar(exper=Experimento_A)
 Red_coco.validar(Experimento_A)

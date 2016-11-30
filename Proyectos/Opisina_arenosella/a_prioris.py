@@ -1,5 +1,13 @@
 # Un documento con todas las distribuciones a prioris necesarias para el modelo de O. arenosella
 
+
+"""
+Referencia excelente:
+http://www.nhm.ac.uk/our-science/data/chalcidoids/database/detail.dsml?VALDATE=1930&ValidAuthBracket=false&FamilyCode
+=CC&VALSPECIES=nephantidis&listPageURL=listChalcids.dsml%3FSpecies%3Daeca%26Superfamily%3DChalcidoidea%26Family%3DCha
+lcididae%26Genus%3DBrachymeria&tab=biology&HOMCODE=0&VALGENUS=Brachymeria&VALAUTHOR=Gahan&keyword=Fc
+"""
+
 a_prioris = {
 
     'O. arenosella_senc': [dict(etapa='adulto',
@@ -9,17 +17,17 @@ a_prioris = {
                                 certidumbre=.95),
                            dict(etapa='adulto',
                                 ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
-                                org_inter=Coco, etp_inter='planta',
+                                org_inter='Palma de coco', etp_inter='planta',
                                 rango=(1/(1823e-6+(100e-6*1.96)), 1/(1823e-6-(100e-6*1.96))),
                                 certidumbre=.95),
                            dict(etapa='adulto',
                                 ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
-                                org_inter=Coco, etp_inter='planta',
+                                org_inter='Palma de coco', etp_inter='planta',
                                 rango=(1823e-6+(100e-6*1.96), 1823e-6-(100e-6*1.96)),
                                 certidumbre=.95,),
                            dict(etapa='adulto',
                                 ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
-                                org_inter=Coco, etp_inter='planta',
+                                org_inter='Palma de coco', etp_inter='planta',
                                 rango=((1823e-6-(100e-6*1.96))**2, (1823e-6+(100e-6*1.96))**2),
                                 certidumbre=.95)  # Para hacer
                            ],
@@ -30,17 +38,17 @@ a_prioris = {
                               certidumbre=0.95),
                          dict(etapa='adulto',
                               ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
-                              org_inter=O_arenosella_senc, etp_inter='adulto',
+                              org_inter='O. arenosella_senc', etp_inter='adulto',
                               rango=(1, 10),
                               certidumbre=0.95),
                          dict(etapa='adulto',
                               ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
-                              org_inter=O_arenosella_senc, etp_inter='adulto',
+                              org_inter='O. arenosella_senc', etp_inter='adulto',
                               rango=(20, 164),
                               certidumbre=.95),
                          dict(etapa='adulto',
                               ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
-                              org_inter=O_arenosella_senc, etp_inter='adulto',
+                              org_inter='O. arenosella_senc', etp_inter='adulto',
                               rango=(20 ** 2, 164 ** 2),
                               certidumbre=.95),  # para hacer
 

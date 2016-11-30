@@ -91,7 +91,9 @@ class Organismo(Coso):
         dic_etapa = dict(nombre=nombre,
                          posición=posición,
                          ecs=ecuaciones.copy(),  # Copiar la selección de tipos de ecuaciones
-                         trans=posición,  # Notar que estos números solamente tendrán impacto en el modelo si la ecuación de Transición y/o de Reproducción de esta etapa != 'Nada'.
+                         # Notar que los números que siguen solamente tendrán impacto en el modelo si la ecuación de
+                         # Transición y/o de Reproducción de esta etapa != 'Nada'.
+                         trans=posición,
                          repr=0
                          )
 

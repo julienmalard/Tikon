@@ -7,7 +7,8 @@ import numpy as np
 import Matemáticas.Distribuciones as Ds
 import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
-from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs, gráfico
+from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
+from Matemáticas.Arte import gráfico
 from NuevoCoso import Simulable
 from RAE.Organismo import Organismo
 
@@ -381,13 +382,19 @@ class Red(Simulable):
         # La red ya está lista para simular
         símismo.listo = True
 
-    def dibujar(símismo, mostrar=True, archivo='', exper=None):
+    def dibujar(símismo, mostrar=True, archivo='', exper=None, todas_líneas=False, incert='componentes'):
         """
         Ver la documentación de Simulable.
 
         :type mostrar: bool
         :type archivo: str
         :type exper: list
+
+        :param todas_líneas: Si queremos incluir las líneas de cada repetición individual en el gráfico.
+        :type todas_líneas: bool
+
+        :param incert: El tipo de incertidumbre que querremos incluir en el gráfico.
+        :type incert: str
 
         """
 
@@ -442,8 +449,9 @@ class Red(Simulable):
 
                             # Generar el gráfico
                         gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
-                                título=título,
-                                etiq_y='Población', mostrar=mostrar, archivo=archivo_img)
+                                título=título, etiq_y='Población',
+                                todas_líneas=todas_líneas, incert=incert,
+                                mostrar=mostrar, archivo=archivo_img)
 
     def _calc_depred(símismo, pobs, extrn, paso):
         """
