@@ -720,7 +720,7 @@ class Red(Simulable):
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
-                k = np.nansum(np.multiply(pobs, cf['K']))  # Calcular la capacidad de carga
+                k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga total
                 np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
