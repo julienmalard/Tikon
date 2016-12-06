@@ -511,7 +511,7 @@ class Red(Simulable):
         :type paso: int
 
         """
-
+        # arreglarme: ajustar depredación por superficies
         # Calcular cuántas presas cada especie de depredador podría comerse
 
         # A este punto, depred representa la depredación potencial per cápita de depredador
@@ -711,7 +711,7 @@ class Red(Simulable):
                 np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
-                np.maximum(crec_etp, -pob_etp, out=crec_etp)
+                np.maximum(crec_etp, pob_etp, out=crec_etp)
 
             elif tipos_ec[n] == 'Depredación':
                 # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.

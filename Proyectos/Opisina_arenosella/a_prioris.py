@@ -2,6 +2,9 @@
 
 
 """
+Estos datos de distribuciones a prioris vienen de la literatura (ver el documento Excel adjunto).
+¿Se me olvidó adjuntarlo? Escríbame: julien.malard@mail.mcgill.ca
+
 Referencia excelente:
 http://www.nhm.ac.uk/our-science/data/chalcidoids/database/detail.dsml?VALDATE=1930&ValidAuthBracket=false&FamilyCode
 =CC&VALSPECIES=nephantidis&listPageURL=listChalcids.dsml%3FSpecies%3Daeca%26Superfamily%3DChalcidoidea%26Family%3DCha
@@ -12,47 +15,85 @@ a_prioris = {
 
     'O. arenosella_senc': [dict(etapa='adulto',
                                 ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
-                                # Huevos por adulto / días de vida
-                                rango=((152-26*1.96)/(53.1+.2*1.96), (152+26*1.96)/(53.1-.2*1.96)),
+                                rango=((2.721-0.7539)/2*1.96, (2.721+0.7539)/2*1.96),
                                 certidumbre=.95),
                            dict(etapa='adulto',
                                 ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
                                 org_inter='Palma de coco', etp_inter='planta',
-                                rango=(1/(1823e-6+(100e-6*1.96)), 1/(1823e-6-(100e-6*1.96))),
+                                rango=(1/(1823+100*1.96), 1/(1823-100*1.96)),
                                 certidumbre=.95),
                            dict(etapa='adulto',
                                 ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
                                 org_inter='Palma de coco', etp_inter='planta',
-                                rango=(1823e-6+(100e-6*1.96), 1823e-6-(100e-6*1.96)),
-                                certidumbre=.95,),
+                                # Unidades: mm d -1
+                                rango=((1823-100*1.96)/(53.1+10.64*1.96), (1823-100*1.96)/(53.1-10.64*1.96)),
+                                certidumbre=.95),
                            dict(etapa='adulto',
                                 ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
                                 org_inter='Palma de coco', etp_inter='planta',
-                                rango=((1823e-6-(100e-6*1.96))**2, (1823e-6+(100e-6*1.96))**2),
+                                rango=(((1823-100*1.96)/(53.1+10.64*1.96))**2, ((1823-100*1.96)/(53.1-10.64*1.96))**2),
                                 certidumbre=.95)  # Para hacer
                            ],
 
     'Parasitoide_senc': [dict(etapa='adulto',
                               ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
-                              rango=(6/15, 164/9),
-                              certidumbre=0.95),
+                              # 1:5 = 0.2 = 1-0.8 = ratio de sexos (macho a hembra)
+                              rango=(0.402*.8, (4.35+2.214/2)*.8),
+                              certidumbre=0.80),
                          dict(etapa='adulto',
                               ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
                               org_inter='O. arenosella_senc', etp_inter='adulto',
-                              rango=(1, 10),
-                              certidumbre=0.95),
+                              # Visto que los datos son de orugas infectadas, tenemos que representar a
+                              # "un parasitoide" por "una oruga infectada" en el modelo sencillo.
+                              rango=(1, 1),
+                              certidumbre=1),
                          dict(etapa='adulto',
                               ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
                               org_inter='O. arenosella_senc', etp_inter='adulto',
-                              rango=(20, 164),
+                              rango=(20 / 30, (116+36.465/2)/30),
                               certidumbre=.95),
                          dict(etapa='adulto',
                               ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
                               org_inter='O. arenosella_senc', etp_inter='adulto',
-                              rango=(20 ** 2, 164 ** 2),
-                              certidumbre=.95),  # para hacer
+                              rango=((20/30)**2, ((116+36.465/2)/30)**2),
+                              certidumbre=.95)  # para hacer
 
                          ],
+    'Araña': [dict(etapa='adulto',
+                   ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
+                   rango=(100/60/2, 300/60/2),
+                   certidumbre=0.80),
+              dict(etapa='adulto',
+                   ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
+                   org_inter='O. arenosella_senc', etp_inter='adulto',
+                   rango=(1/1.54, 1/0.70),
+                   certidumbre=0.95),
+              dict(etapa='adulto',
+                   ubic_parám=['Crecimiento', 'Ecuación', 'Logístico Presa', 'K'],
+                   org_inter='Parasitoide_senc', etp_inter='adulto',
+                   rango=(1/50, 1/10),
+                   certidumbre=0.95),
+              dict(etapa='adulto',
+                   ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
+                   org_inter='O. arenosella_senc', etp_inter='adulto',
+                   rango=(0.70, 1.54),
+                   certidumbre=.95),
+              dict(etapa='adulto',
+                   ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
+                   org_inter='O. arenosella_senc', etp_inter='adulto',
+                   rango=(0.70**2, 1.54**2),
+                   certidumbre=.95),  # para hacer
+              dict(etapa='adulto',
+                   ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
+                   org_inter='Parasitoide_senc', etp_inter='adulto',
+                   rango=(10, 50),
+                   certidumbre=.95),
+              dict(etapa='adulto',
+                   ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
+                   org_inter='Parasitoide_senc', etp_inter='adulto',
+                   rango=(0, 100**2),
+                   certidumbre=.95),  # para hacer
+              ],
 
     'O. arenosella': [dict(etapa='huevo',
                            ubic_parám=['Transiciones', 'Prob', 'Normal', 'mu'],
