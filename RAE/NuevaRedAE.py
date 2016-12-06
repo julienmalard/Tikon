@@ -7,8 +7,8 @@ import numpy as np
 import Matemáticas.Distribuciones as Ds
 import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
-from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
 from Matemáticas.Arte import gráfico
+from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
 from NuevoCoso import Simulable
 from RAE.Organismo import Organismo
 
@@ -70,7 +70,7 @@ class Red(Simulable):
         # La matriz de datos de las simulaciones (incluso los datos de poblaciones)
         símismo.predics = {'Pobs': np.array([]),
                            'Depredación': np.array([]),
-                           'Crecimiento:': np.array([]),
+                           'Crecimiento': np.array([]),
                            'Reproducción': np.array([]),
                            'Muertes': np.array([]),
                            'Transiciones': np.array([]),
@@ -270,7 +270,6 @@ class Red(Simulable):
                     # El nombre de la fase larval del organismo que infecta
                     nombre_etp_larva_inf = obj_org_inf.etapas[0]
                     n_larva = símismo.núms_etapas[org_hués][nombre_etp_larva_inf]
-
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped
                     for n_etp_hués, etp_hués in enumerate(l_etps_hués):
@@ -494,20 +493,13 @@ class Red(Simulable):
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
             Kovai (Asíntota doble):
-                y = (a * P/D) / (P/D + c) * (P^2 / (P^2 + b), simplificado a
-                  y = a * P^3 / (P^3 + D*c*(b + P^2) + b*P).
-                Con la suposición que c = a / 2, tenemos entonces
-                  y = P^3 / ( (P^3 + b*P)/a + D/2*(b + P^2) ).
+                y = -a*(1 - e^(-P/(a*D))) * (P^2 / (P^2 + b)
 
                   a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
                     depredadores no compiten entre sí mismos)
 
                   b^0.5 es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
                     competition entre ellos, los depredadores consumirán a/2 presas por depredador.
-
-                  c es el ratio de presas a depredadores donde el consumo de presa por depredador, suponiendo que
-                    las presas son suficientemente abundantes para no ocasionar mayores gastos de búsqueda para los
-                    depredadores, será la mitad de a. Lógicamente, debería ser cerca de a/2.
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
@@ -601,20 +593,14 @@ class Red(Simulable):
             elif tipo_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
                 dens_depred = dens[:, :, :, n]  # La población de esta etapa (depredador)
+                ratio = dens/dens_depred[..., np.newaxis]
 
-                np.divide(np.power(dens, 3),
-                          np.add(np.divide(np.add(np.power(dens, 3),
-                                                  np.multiply(dens, cf['b'])
-                                                  ),
-                                           cf['a']),
-                                 np.multiply(np.add(np.square(dens), cf['b']),
-                                             np.divide(dens_depred, 2)[..., np.newaxis]
-                                             )
-                                 ),
-                          out=depred_etp)
+                np.multiply(cf['a']*np.subtract(1, np.exp(-1/cf['a']*np.where(ratio==np.inf, 0, ratio))),
+                            np.square(dens)/(np.square(dens)+cf['b']),
+                            out=depred_etp)
 
                 # Ajustar por la presencia de múltiples presas
-                probs_conj(depred_etp, cf['a'], eje=3)
+                probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=3)
 
             else:
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
@@ -629,12 +615,13 @@ class Red(Simulable):
         np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)
 
         # Ajustar por la presencia de varios depredadores
-        probs_conj(depred, máx=pobs[..., np.newaxis], eje=3)
+        probs_conj(depred, pesos=1, máx=pobs, eje=3)
 
         depred[np.isnan(depred)] = 0
 
-        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas)
-        redondear(depred)
+        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas). NO usamos la función "redondear()", porque
+        # esta podría darnos valores superiores a los límites establecidos por probs_conj() arriba.
+        np.floor(depred, out=depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
         depred_por_presa = np.sum(depred, axis=3)
@@ -720,7 +707,7 @@ class Red(Simulable):
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
-                k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga total
+                k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga
                 np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
@@ -747,6 +734,8 @@ class Red(Simulable):
 
         # Actualizar la matriz de poblaciones
         np.add(pobs, crec, out=pobs)
+
+        a = None
 
     def _calc_reprod(símismo, pobs, extrn, paso):
         """
@@ -1149,9 +1138,6 @@ class Red(Simulable):
 
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
-
-        # Una etapa que crear más individuos de otra etapa
-        # para hacer: símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
 
         # Muertes por el ambiente
         símismo._calc_muertes(pobs=pobs, extrn=extrn, paso=paso)
@@ -1667,14 +1653,15 @@ class Red(Simulable):
 
                         # Si, al contrario, hay interacciones...
                         else:
+                            # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición
+                            # paramétrica, eje 1 = etapa con la cuál hay la interacción.
+                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
+                                                                      dtype=object)
+                            matr[:] = np.nan
+
                             for tipo_inter in d_parám['inter']:
 
                                 if tipo_inter == 'presa' or tipo_inter == 'huésped':
-                                    # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición
-                                    # paramétrica, eje 1 = presa.
-                                    matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
-                                                                              dtype=object)
-                                    matr[:] = np.nan
 
                                     # Para cada víctima del organismo...
                                     for org_víc, v in símismo.etapas[n_etp]['conf'][tipo_inter].items():
@@ -2076,7 +2063,7 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
             añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=dic_cohorte['Edades'])
 
 
-def probs_conj(matr, máx, eje):
+def probs_conj(matr, eje, pesos=1, máx=1):
     """
     Esta función utiliza las reglas de probabilidades conjuntas para ajustar depredación con presas o depredadores
       múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
@@ -2084,17 +2071,35 @@ def probs_conj(matr, máx, eje):
     :param matr: Una matriz con los valores para ajustar.
     :type matr: np.ndarray
 
-    :param máx: Una matriz con los valores máximos para la matriz para ajustar. Debe ser de tamaño compatible con
-      matr.
-    :type máx: np.ndarray
-
     :param eje: El eje según cual hay que hacer los ajustes
     :type eje: int
 
+    :param pesos: Un peso inverso opcional para aplicar a la matriz ántes de hacer los cálculos.
+    :type pesos: float | int | np.ndarray
+
+    :param máx: Una matriz con los valores máximos para la matriz para ajustar. Si es matriz, debe ser de tamaño
+      compatible con matr.
+    :type máx: float | int | np.ndarray
+
+
+
     """
 
-    np.multiply(np.expand_dims(np.product(1 - matr / máx, axis=eje) / np.sum(matr / máx, axis=eje), axis=eje),
-                matr, out=matr)
+    ajustados = np.divide(matr, pesos)
+    try:
+        ratio = np.divide(ajustados, máx)
+    except ValueError:
+        ratio = np.divide(ajustados, máx[..., np.newaxis])
+
+    np.multiply(np.expand_dims(np.divide(np.subtract(1, np.product(
+        np.subtract(1, np.where(np.isnan(ratio), 0, ratio)), axis=eje)),
+                                         np.nansum(ratio, axis=eje)
+                                         ),
+                               axis=eje),
+                matr,
+                out=matr)
+
+    matr[np.isnan(matr)] = 0
 
 
 def copiar_dic_refs(d, c=None):
