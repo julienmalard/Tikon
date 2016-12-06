@@ -712,6 +712,7 @@ class Red(Simulable):
 
                 # Evitar péridadas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pob_etp, out=crec_etp)
+                pass
 
             elif tipos_ec[n] == 'Depredación':
                 # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
@@ -2087,7 +2088,7 @@ def probs_conj(matr, eje, pesos=1, máx=1):
     try:
         ratio = np.divide(ajustados, máx)
     except ValueError:
-        ratio = np.divide(ajustados, máx[..., np.newaxis])
+        ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
     np.multiply(np.expand_dims(np.divide(np.subtract(1, np.product(
         np.subtract(1, np.where(np.isnan(ratio), 0, ratio)), axis=eje)),
