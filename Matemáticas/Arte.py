@@ -158,7 +158,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         dib.savefig(archivo)
 
 
-def graficar_dists(dists, n=1000, valores=None, rango=None, título=None, archivo=None):
+def graficar_dists(dists, n=10000, valores=None, rango=None, título=None, archivo=None):
     """
     Esta función genera un gráfico de una o más distribuciones y valores.
 
