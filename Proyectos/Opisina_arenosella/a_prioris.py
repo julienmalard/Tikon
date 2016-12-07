@@ -81,7 +81,7 @@ a_prioris = {
               dict(etapa='adulto',
                    ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
                    org_inter='O. arenosella_senc', etp_inter='adulto',
-                   rango=(0.70**2, 1.54**2),
+                   rango=(100**2, 1000**2),
                    certidumbre=.95),  # para hacer
               dict(etapa='adulto',
                    ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'a'],
@@ -91,7 +91,7 @@ a_prioris = {
               dict(etapa='adulto',
                    ubic_parám=['Depredación', 'Ecuación', 'Kovai', 'b'],
                    org_inter='Parasitoide_senc', etp_inter='adulto',
-                   rango=(0, 100**2),
+                   rango=(10000**2, 100000**2),
                    certidumbre=.95),  # para hacer
               ],
 

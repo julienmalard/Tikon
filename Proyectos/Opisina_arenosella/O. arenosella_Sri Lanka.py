@@ -65,6 +65,7 @@ for a_priori in a_prioris[O_arenosella_senc.nombre]:
 for a_priori in a_prioris[Parasitoide_senc.nombre]:
     Parasitoide_senc.especificar_apriori(dibujar=dib_aprioris, **a_priori)
 
+
 # Verificar el modelo ahora
 ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
 print('Ajuste con a priosis: ', ajuste_con_aprioris)
@@ -90,6 +91,8 @@ for a_priori in a_prioris[Araña.nombre]:
     Araña.especificar_apriori(dibujar=dib_aprioris, **a_priori)
 
 Red_coco_senc.añadir_org(Araña)
+
+Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
 
 Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=1000, quema=100, extraer=10,
                        dibujar=True)
