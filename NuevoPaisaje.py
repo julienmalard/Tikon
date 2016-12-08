@@ -1,4 +1,4 @@
-from Coso1 import Simulable
+from Coso import Simulable
 
 
 class Paisaje(Simulable):
