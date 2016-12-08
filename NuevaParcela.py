@@ -1,5 +1,5 @@
-from NuevoCoso import Simulable
-from RAE.NuevaRedAE import Red
+from Coso1 import Simulable
+from RAE.RedAE import Red
 from CULTIVO.NuevoCultivo import Cultivo, ModeloCultivo
 from Matemáticas.Experimentos import Experimento
 

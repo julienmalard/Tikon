@@ -1,4 +1,4 @@
-﻿from NuevoCoso import Coso
+﻿from Coso1 import Coso
 
 
 # Esta clase representa los suelos de una parcela.
