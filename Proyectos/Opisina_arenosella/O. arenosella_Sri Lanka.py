@@ -1,8 +1,8 @@
-import RAE.NuevoInsecto as Ins
+import RAE.Insecto as Ins
 import RAE.Planta as Plt
 from Matemáticas.Experimentos import Experimento
 from Proyectos.Opisina_arenosella.a_prioris import a_prioris
-from RAE.NuevaRedAE import Red
+from RAE.RedAE import Red
 
 # Opciones artísticas
 dib_aprioris = False

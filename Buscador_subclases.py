@@ -1,4 +1,4 @@
-from NuevoCoso import Coso
+from Coso1 import Coso
 
 
 def encontrar_subclase_coso(ext):
