@@ -9,7 +9,7 @@ import Matemáticas.Ecuaciones as Ec
 import RAE.Planta as Plt
 from Matemáticas.Arte import gráfico
 from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
-from Coso1 import Simulable
+from Coso import Simulable
 from RAE.Organismo import Organismo
 
 

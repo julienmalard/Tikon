@@ -1,4 +1,4 @@
-from Coso1 import Coso, Simulable
+from Coso import Coso, Simulable
 
 
 class Cultivo(Coso):
