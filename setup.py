@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='Tinamit',
     version='1.0.0',
-    packages=['', 'RAE', 'CLIMA', 'CLIMA.PyKrige', 'CULTIVO', 'CULTIVO.MODELOS_EXTERNOS.DSSAT', 'Matemáticas'],
+    packages=['', 'RAE', 'Clima', 'Clima.PyKrige', 'Cultivo', 'Cultivo.MODELOS_EXTERNOS.DSSAT', 'Matemáticas'],
     url='https://github.com/julienmalard/Tikon',
     license='GNU 3',
     author='Julien Jean Malard',

@@ -264,11 +264,11 @@ class Red(Simulable):
 
                     # La segunda etapa existente del organismo que infecta (los individuos infectados terminarán por
                     # transicionar a la esta etapa).
-                    nombre_etp_recip = obj_org_inf.etapas[1]
+                    nombre_etp_recip = obj_org_inf.etapas[1]['nombre']
                     n_recip = símismo.núms_etapas[org_hués][nombre_etp_recip]  # Su posición absoluta en la Red
 
                     # El nombre de la fase larval del organismo que infecta
-                    nombre_etp_larva_inf = obj_org_inf.etapas[0]
+                    nombre_etp_larva_inf = obj_org_inf.etapas[0]['nombre']
                     n_larva = símismo.núms_etapas[org_hués][nombre_etp_larva_inf]
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped

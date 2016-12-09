@@ -1,10 +1,10 @@
-from CULTIVO.CULTIVO import Cultivo
+from Cultivo.NuevoCultivo import Cultivo
 from RAE.Organismo import Organismo
 
 
 class Planta(Organismo):
     """
-    Esta clase representa plantas o cultivos. Se puede contectar con un modelo de cultivo del módulo CULTIVO.
+    Esta clase representa plantas o cultivos. Se puede contectar con un modelo de cultivo del módulo Cultivo.
     """
 
     # La extensión para plantas

@@ -10,12 +10,14 @@ ops_dib = {'incert': None, 'todas_líneas': True}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
+"""
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
-
+"""
 # Datos de desnsidad de coco: Agricultural Ecology and Environment, pg 321 +
 # https://books.google.com.gt/books?id=0gjoQ0OTpAYC&pg=PA318&lpg=PA318&dq=coconut+field+leaf+area&source=bl&ots=I9GJ8L88y2&sig=t0LUc7kUPDyDlniDdoipiYx84uU&hl=en&sa=X&ved=0ahUKEwiKqcqs_Y7OAhXLlB4KHSOrBAAQ6AEIMDAC#v=onepage&q=coconut%20field%20leaf%20area&f=false
 Coco = Plt.Constante(nombre='Palma de coco', densidad=40020e6, proyecto=proyecto)  # Unidades: mm2
+"""
 
 O_arenosella_senc.secome(Coco)
 Parasitoide_senc.secome(O_arenosella_senc)
@@ -23,13 +25,13 @@ Parasitoide_senc.secome(O_arenosella_senc)
 Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc, Parasitoide_senc],
                     proyecto=proyecto)
 Red_coco_senc.guardar()
-
+"""
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
 Experimento_A.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429/500)
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
 Experimento_B.agregar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429/500)
-
+"""
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
                                   'Parasitoide_senc': {'adulto': ['Para_larva_abs', 'Para_pupa_abs']}
@@ -42,7 +44,7 @@ Red_coco_senc.añadir_exp(Experimento_B,
                                   }
                          )
 
-"""
+
 ajuste_inic = Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
 print('Ajuste inicial: ', ajuste_inic)
 
@@ -56,7 +58,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-"""
+
 
 # Especificar distribuciones a priori
 for a_priori in a_prioris[O_arenosella_senc.nombre]:
@@ -104,6 +106,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
+"""
 
 # Intentemos algo más interesante ahora.
 O_arenosella = Ins.MetamCompleta('O. arenosella', njuvenil=5)
