@@ -1,7 +1,7 @@
 import os
 
-from CULTIVO.Controles import dir_DSSAT
-from CULTIVO.Controles import sacar_modelos_disp
+from Cultivo.Controles import dir_DSSAT
+from Cultivo.Controles import sacar_modelos_disp
 
 
 # Objeto para representar documentos de typo FILEC de DSSAT (información de variedades de cultivos)

@@ -22,8 +22,8 @@ import numpy as np
 import scipy.linalg
 from scipy.spatial.distance import cdist
 
-import CLIMA.PyKrige.core as core
-import CLIMA.PyKrige.variogram_models as variogram_models
+import Clima.PyKrige.core as core
+import Clima.PyKrige.variogram_models as variogram_models
 
 
 class UniversalKriging:

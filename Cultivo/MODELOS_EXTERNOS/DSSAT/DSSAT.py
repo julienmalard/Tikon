@@ -1,10 +1,10 @@
 import datetime as ft
 import os
 
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileC import FileC
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileS import FileS
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileW import FileW
-from CULTIVO.MODELOS_EXTERNOS.DSSAT.fileX import FileX
+from Cultivo.MODELOS_EXTERNOS.DSSAT.fileC import FileC
+from Cultivo.MODELOS_EXTERNOS.DSSAT.fileS import FileS
+from Cultivo.MODELOS_EXTERNOS.DSSAT.fileW import FileW
+from Cultivo.MODELOS_EXTERNOS.DSSAT.fileX import FileX
 
 
 class Experimento(object):
@@ -21,7 +21,7 @@ class Experimento(object):
         # Una función para convertir objetos TIKON de suelos, clima y variedades a objetos de documentos DSSAT
         def convertir(obj, documento_conv):
             conversiones = {}
-            with open(os.path.join(os.getcwd(), "CULTIVO", 'MODELOS_EXTERNOS', documento_conv)) as d:
+            with open(os.path.join(os.getcwd(), "Cultivo", 'MODELOS_EXTERNOS', documento_conv)) as d:
                 doc = d.readlines()
 
             col = doc[0].replace("\n", "").split(',').index('DSSAT')

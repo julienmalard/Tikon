@@ -10,7 +10,7 @@ def sacar_modelos_disp(cultivo):
     modelos_disp = {}
 
     # Modelos_pl.csv contiene información sobre los modelos disponibles
-    with open(os.path.join('CULTIVO', 'MODELOS_EXTERNOS', 'Modelos_pl.csv')) as d:
+    with open(os.path.join('Cultivo', 'MODELOS_EXTERNOS', 'Modelos_pl.csv')) as d:
         doc = d.readlines()
     variables = doc[0].replace("\n", "").replace(';', ',').split(',')
     for núm_línea, línea in enumerate(doc[1:]):

@@ -3,10 +3,10 @@ import os
 from Parcela import Parcela
 from geopy.distance import vincenty as dist
 
-from CLIMA.CLIMA import Diario
+from Clima.CLIMA import Diario
 from COSO import Coso
-from CULTIVO.SUELO import Suelo
-from CULTIVO.VARIEDAD import Variedad
+from Cultivo.SUELO import Suelo
+from Cultivo.VARIEDAD import Variedad
 from RAE.REDES import Red
 
 

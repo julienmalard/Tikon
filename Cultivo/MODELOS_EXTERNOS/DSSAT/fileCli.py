@@ -1,6 +1,6 @@
 import os
 
-from CULTIVO.Controles import dir_DSSAT
+from Cultivo.Controles import dir_DSSAT
 
 
 # Objeto para representar documentos de datos de clima mensuales de DSSAT

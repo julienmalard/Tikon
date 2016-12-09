@@ -1,6 +1,6 @@
 import os
 
-from CULTIVO.CULTIVO import Cultivo
+from Cultivo.CULTIVO import Cultivo
 
 
 # Una parcela se refiere a una unidad de tierra homógena en sus suelo, cultivo(s)

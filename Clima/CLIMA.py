@@ -1,7 +1,7 @@
-from CLIMA.Estad_diario import eval_estaciones as eval_estaciones
-from CLIMA.Estad_diario import krigear as krigear
-from CLIMA.Estad_futuro import generarmeteo as generarmeteo
-from CLIMA.Manejo import *
+from Clima.Estad_diario import eval_estaciones as eval_estaciones
+from Clima.Estad_diario import krigear as krigear
+from Clima.Estad_futuro import generarmeteo as generarmeteo
+from Clima.Manejo import *
 from COSO import Coso
 
 
@@ -18,7 +18,7 @@ class Diario(Coso):
             nombre = '%sN_%sW' % (coord[0], coord[1])
 
         # Esta variable se initializa como Coso
-        super().__init__(nombre=nombre, ext='día', dic=dic, directorio=os.path.join('CLIMA', 'DATOS'))
+        super().__init__(nombre=nombre, ext='día', dic=dic, directorio=os.path.join('Clima', 'Datos'))
 
     # Una función para buscar y, si necesario, estimar datos diarios
     def buscar(símismo, fecha_inic, fecha_fin):
@@ -34,7 +34,7 @@ class Diario(Coso):
         estaciones = {}
         dic = dict(Coord=(), Elev='', Datos=dict(Fecha=[], Precip=[], Rad_sol=[], Temp_máx=[], Temp_mín=[]))
         # Buscar en los datos de clima de Python
-        with open(os.path.join('CLIMA', 'Estaciones.csv')) as d:
+        with open(os.path.join('Clima', 'Estaciones.csv')) as d:
             doc = d.readlines()
         datos = doc[0].split(',')
         col_estación = datos.index('Estación')
@@ -70,7 +70,7 @@ class Diario(Coso):
         if encontrado:
             símismo.nombre = estación['Estación']
             símismo.dic['Lugar'] = símismo.nombre
-            directorio = os.path.join('CLIMA', 'DATOS', símismo.nombre, '.csv')
+            directorio = os.path.join('Clima', 'Datos', símismo.nombre, '.csv')
             dic, faltan, faltan_pt, faltan_por = cargar_estación(directorio, (estación['Lat'], estación['Long']),
                                                                  estación['Elev'], fecha_inic, fecha_fin)
             if not faltan:
@@ -79,7 +79,7 @@ class Diario(Coso):
         # Si no encontramos la estación, o si faltan datos
         if not encontrado or faltan:
             # Buscar a ver si ya tenemos datos generados para la estación
-            for doc_meteogen in os.listdir(os.path.join('CLIMA', 'DATOS', 'Generados')):
+            for doc_meteogen in os.listdir(os.path.join('Clima', 'Datos', 'Generados')):
                 if doc_meteogen.lower() == lugar.lower() + ".día":
                     símismo.nombre = estación['Estación']
                     símismo.dic['Lugar'] = símismo.nombre
