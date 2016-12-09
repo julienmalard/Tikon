@@ -272,30 +272,34 @@ class Red(Simulable):
                     n_larva = símismo.núms_etapas[org_hués][nombre_etp_larva_inf]
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped
-                    for n_etp_hués, etp_hués in enumerate(l_etps_hués):
+                    for n_etp_hués, d_etp_hués in enumerate(l_etps_hués):
 
                         # El índice de la etapa fantasma
                         n_etp_fant = len(símismo.etapas) - 1
 
+                        # El nombre de la etapa hospedera original
+                        nombre_etp_hués = d_etp_hués['nombre']
+
                         # Crear un diccionario para la etapa fantasma. Queremos la misma estructura de diccionario que
                         # la etapa original del huésped; tiene que ser un diccionario distinto pero con referencias
                         # a los mismos objetos de matrices o variables PyMC (para coefs).
-                        dic = copiar_dic_refs(obj_org_hués.receta['estr']['etapas'][etp_hués])
-                        dic['nombre'] = '%s infectando a %s_%s' % (etp['org'], org_hués, etp_hués)
+                        dic = copiar_dic_refs(obj_org_hués.receta['estr'][nombre_etp_hués])
+                        dic['nombre'] = '%s infectando a %s_%s' % (etp['org'], org_hués, nombre_etp_hués)
                         dic['pos'] = 0  # No hay posición relativa para etapas fantasmas
 
                         # La configuración de la etapa fantasma es la misma que la de su etapa pariente
-                        conf = obj_org_hués.config[etp_hués]
+                        conf = obj_org_hués.config[nombre_etp_hués]
 
                         # Copiamos el diccionario de coeficientes, pero con referencias a los objetos de distrubuciones
                         # (Comparten los mismos variables).
+                        coefs = copiar_dic_refs(obj_org_hués.receta['coefs'][nombre_etp_hués])
 
-                        coefs = copiar_dic_refs(obj_org_hués.receta['coefs'][etp_hués])
-
-                        #
+                        # Verificar si la etapa hospedera es la última de este organismo que puede estar infectada
                         if n_etp_hués <= len(l_etps_hués):
+                            # Si no lo es, transiciona a la próxima etapa fantasma de este organismo.
                             n_trans = n_etp_fant + 1
                         else:
+                            # Si lo es, transiciona a la etapa recipiente del organismo infectuoso.
                             n_trans = n_recip
 
                             # Usar las ecuaciones de transiciones de la larva del agente infectuoso para las
@@ -320,6 +324,9 @@ class Red(Simulable):
 
                         símismo.etapas.append(dic_etp)
 
+                        # Guardar el vínculo entre la etapa víctima y la(s) etapa(s) fanstasma(s) correspondiente(s)
+                        if n_etp_hués not in símismo.fantasmas.keys():
+                            símismo.fantasmas[n_etp_hués] = []
                         símismo.fantasmas[n_etp_hués].append(n_etp_fant)
 
         # Crear el diccionario de los tipos de las ecuaciones activas para cada etapa.
@@ -1361,7 +1368,8 @@ class Red(Simulable):
                 símismo.info_exps['superficies'][nombre_exp] = np.ones(1)
 
             # Verificar que los nombres de organismos y etapas estén correctos
-            for org, d_org in corresp.items():
+            for org in list(corresp):
+                d_org = corresp[org]
                 if org not in símismo.receta['estr']['Organismos']:
                     # Si el organismo no existe en la Red, avisar el usuario y borrarlo del diccionario de
                     # correspondencias
@@ -1369,7 +1377,7 @@ class Red(Simulable):
                            'Se excluirá del experimento %s.' % (org, nombre_exp))
                     corresp.pop(org)
 
-                for etp, d_etp in d_org.items():
+                for etp in list(d_org):
                     if etp not in símismo.núms_etapas[org]:
                         # Si la etapa no existe para el organismo, avisar el usuario y borrarla del diccionario de
                         # correspondencias
