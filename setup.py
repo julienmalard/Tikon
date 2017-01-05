@@ -1,9 +1,9 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='Tinamit',
     version='1.0.0',
-    packages=['', 'RAE', 'Clima', 'Clima.PyKrige', 'Cultivo', 'Cultivo.MODELOS_EXTERNOS.DSSAT', 'Matemáticas'],
+    packages=find_packages(),
     url='https://github.com/julienmalard/Tikon',
     license='GNU 3',
     author='Julien Jean Malard',

@@ -1,9 +1,0 @@
-* {[ID_SOIL]:>10}  {[SLSOURCE]:<11} {[SLTX]:>5}     {[SLDP]:>5}  {[SLDESCRIP]:<50}
-@ SITE        COUNTRY          LAT     LONG SCS FAMILY
- {[SITE]:<12} {[COUNTRY]:<11} {[LAT]:>8} {[LONG]:>8} {[SCS]:<50}
-@ SCOM  SALB  SLU1  SLDR  SLRO  SLNF  SLPF  SMHB  SMPX  SMKE
- {[SCOM]:>5} {[SALB]:>5} {[SLU1]:>5} {[SLDR]:>5} {[SLRO]:>5} {[SLNF]:>5} {[SLPF]:>5} {[SMHB]:>5} {[SMPX]:>5} {[SMKE]:>5}
-@  SLB  SLMH  SLLL  SDUL  SSAT  SRGF  SSKS  SBDM  SLOC  SLCL  SLSI  SLCF  SLNI  SLHW  SLHB  SCEC  SADC
- {[SLB]:>5} {[SLMH]:>5} {[SLLL]:>5} {[SDUL]:>5} {[SSAT]:>5} {[SRGF]:>5} {[SSKS]:>5} {[SBDM]:>5} {[SLOC]:>5} {[SLCL]:>5} {[SLSI]:>5} {[SLCF]:>5} {[SLNI]:>5} {[SLHW]:>5} {[SLHB]:>5} {[SCEC]:>5} {[SADC]:>5}
-@  SLB  SLPX  SLPT  SLPO CACO3  SLAL  SLFE  SLMN  SLBS  SLPA  SLPB  SLKE  SLMG  SLNA  SLSU  SLEC  SLCA
- {[SLB]:>5} {[SLPX]:>5} {[SLPT]:>5} {[SLPO]:>5} {[CACO3]:>5} {[SLAL]:>5} {[SLFE]:>5} {[SLMN]:>5} {[SLBS]:>5} {[SLPA]:>5} {[SLPB]:>5} {[SLKE]:>5} {[SLMG]:>5} {[SLNA]:>5} {[SLSU]:>5} {[SLEC]:>5} {[SLCA]:>5}

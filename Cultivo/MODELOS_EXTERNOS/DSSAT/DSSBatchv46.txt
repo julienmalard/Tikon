@@ -1,6 +1,0 @@
-$BATCH({[Cultivo]})
-!
-! Autogenerado por TIKON, escrito por Julien Malard y Marcela Rojas. Contacto: julien.malard@mail.mcgill.ca
-!
-@FILEX                                                                                        TRTNO     RP     SQ     OP     CO
-{[FILEX]:<93}     1      1      0      0      0
