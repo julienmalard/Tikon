@@ -3,7 +3,7 @@ import math as mat
 import numpy as np
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
-    Laplace, Logistic, Lognormal, NoncentralT, Normal, Pareto, T, TruncatedNormal, Uniform, VonMises, Bernoulli, \
+    Laplace, Logistic, Lognormal, Normal, Pareto, Uniform, Bernoulli, \
     Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
 
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.

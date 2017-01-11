@@ -1,7 +1,7 @@
 Instancias de Organismos
 ========================
 
-.. toctree:: Contenido
+.. toctree::
    :maxdepth: 3
 
    Insecto

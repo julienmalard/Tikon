@@ -1,7 +1,6 @@
 import numpy as np
-from pymc import Normal, Exponential, deterministic, MCMC
-
 from COSO import Coso
+from pymc import Normal, Exponential, deterministic, MCMC
 
 
 def genmodbayes(objeto, opciones_simul):

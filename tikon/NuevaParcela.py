@@ -1,4 +1,4 @@
-from Cultivo.NuevoCultivo import ModeloCultivo
+from tikon.Cultivo.NuevoCultivo import ModeloCultivo
 
 from tikon.Coso import Simulable
 
