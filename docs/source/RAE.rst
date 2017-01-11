@@ -1,7 +1,7 @@
 Redes Agroecológicas (RAE)
 ==========================
 
-.. toctree:: Contenido
+.. toctree::
    :maxdepth: 3
 
    RedAE

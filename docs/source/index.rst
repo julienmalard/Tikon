@@ -6,7 +6,7 @@
 Tiko'n
 ======
 
-.. toctree:: Contenido
+.. toctree::
    :maxdepth: 2
 
    intro

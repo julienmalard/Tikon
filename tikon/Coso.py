@@ -6,10 +6,10 @@ import time
 import warnings as avisar
 from datetime import datetime as ft
 
-import Matemáticas.NuevoIncert as Incert
+from tikon.Matemáticas import NuevoIncert as Incert
 import numpy as np
 import pymc
-from Matemáticas.Experimentos import Experimento
+from tikon.Matemáticas.Experimentos import Experimento
 
 from tikon.Controles import directorio_base
 from tikon.Matemáticas.NuevaCalib import ModBayes

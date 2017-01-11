@@ -1,7 +1,7 @@
 Cómo se emplea Tiko'n
 =====================
 
-.. toctree:: Opciones
+.. toctree::
    :maxdepth: 3
 
    uso_igu

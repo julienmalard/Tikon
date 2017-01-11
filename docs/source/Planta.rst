@@ -1,5 +1,5 @@
 Planta
 ======
 
-.. automodule:: tikon.RAE.planta
+.. automodule:: tikon.RAE.Planta
    :members:

@@ -1,6 +1,5 @@
-import Matemáticas.Ecuaciones as Ec
-
 from tikon.Coso import Coso
+from tikon.Matemáticas import Ecuaciones as Ec
 from tikon.Matemáticas.NuevoIncert import límites_a_texto_apriori
 
 

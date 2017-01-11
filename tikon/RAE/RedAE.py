@@ -2,14 +2,14 @@ import math as mat
 import os
 from warnings import warn as avisar
 
-import Matemáticas.Distribuciones as Ds
-import Matemáticas.Ecuaciones as Ec
-import RAE.Planta as Plt
 import numpy as np
-from Matemáticas.Arte import gráfico
-from Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
 
 from tikon.Coso import Simulable
+from tikon.Matemáticas import Distribuciones as Ds
+from tikon.Matemáticas import Ecuaciones as Ec
+from tikon.Matemáticas.Arte import gráfico
+from tikon.Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
+from tikon.RAE import Planta as Plt
 from tikon.RAE.Organismo import Organismo
 
 

@@ -12,6 +12,6 @@ setup(
     requires=['pymc', 'numpy', 'matplotlib', 'scipy'],
     package_data={
         # Incluir estos documentos de los paquetes:
-        '': ['*.txt', '*.vpm', '*.json', '*.png', '*.jpg'],
+        '': ['*.csv', 'Interfaz/*.json', 'Interfaz/*.png', 'Interfaz/*.jpg', 'Interfaz/*.png'],
     },
 )
