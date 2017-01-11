@@ -9,5 +9,9 @@ setup(
     author='Julien Jean Malard',
     author_email='julien.malard@mail.mcgill.ca',
     description='',
-    requires=['pymc', 'numpy', 'matplotlib', 'scipy']
+    requires=['pymc', 'numpy', 'matplotlib', 'scipy'],
+    package_data={
+        # Incluir estos documentos de los paquetes:
+        '': ['*.txt', '*.vpm', '*.json', '*.png', '*.jpg'],
+    },
 )
