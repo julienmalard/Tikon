@@ -1,4 +1,4 @@
-Orgamismos
+Organismos
 ==========
 
 .. automodule:: tikon.RAE.Organismo
