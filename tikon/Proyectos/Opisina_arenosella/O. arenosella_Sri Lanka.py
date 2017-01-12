@@ -1,7 +1,7 @@
-import RAE.Planta as Plt
-from Matemáticas.Experimentos import Experimento
-from Proyectos.Opisina_arenosella.a_prioris import a_prioris
-from RAE.RedAE import Red
+from tikon.RAE import Planta as Plt
+from tikon.Matemáticas.Experimentos import Experimento
+from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
+from tikon.RAE.RedAE import Red
 
 import tikon.RAE.Insecto as Ins
 

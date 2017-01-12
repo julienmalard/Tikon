@@ -1894,22 +1894,20 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
     """
 
     :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
-      el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
-        Eje 0: Cohorte
-        Eje 1: Parcela
-        Eje 2: Repetición estocástica
-        Eje 3: Repetición paramétrica
+       | el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
+       | Eje 0: Cohorte
+       | Eje 1: Parcela
+       | Eje 2: Repetición estocástica
+       | Eje 3: Repetición paramétrica
     :type pobs: np.ndarray
 
     :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
-      ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
-      (por ejemplo, exposición cumulativo a días grados).
-      Los ejes son iguales que en 'pobs'.
+    ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
+    (por ejemplo, exposición cumulativo a días grados). Los ejes son iguales que en 'pobs'.
     :type edades: np.ndarray
 
-    :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar.
-      Podría ser 1 día, o una cantidad de días grados.
-      Ejes iguales a 'edades'.
+    :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar. Podría ser 1 día, o una
+    cantidad de días grados. Ejes iguales a 'edades'.
     :type cambio: np.ndarray or float
 
     :param tipo_dist: El tipo de distribución usado para calcular probabilidades de transiciones.
@@ -1954,35 +1952,35 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
     Esta función agrega nuevos miembros a un cohorte existente.
 
     :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
-      {'Pobs': [matriz de poblaciones]
+       {'Pobs': [matriz de poblaciones]
        'Edades': {'trans': [matriz de edades],
-                  'repr': [matriz de edades]
-                  }
+       'repr': [matriz de edades]
+       }
 
       Todas las matrices tienen el mismo orden de eje:
-          Eje 0: Cohorte
-          Eje 1: Parcela
-          Eje 2: Repetición estocástica
-          Eje 3: Repetición paramétrica
+         | Eje 0: Cohorte
+         | Eje 1: Parcela
+         | Eje 2: Repetición estocástica
+         | Eje 3: Repetición paramétrica
 
     :type dic_cohorte: dict
 
     :param nuevos: La matriz de poblaciones para agregar.
-        Eje 0: Parcela
-        Eje 1: Repetición estocástica
-        Eje 2: Repetición paramétrica
+       | Eje 0: Parcela
+       | Eje 1: Repetición estocástica
+       | Eje 2: Repetición paramétrica
 
     :type nuevos: np.ndarray
 
     :param edad: Las edades iniciales de los nuevos miembros al cohorte. El valor automático es, naturalmente, 0.
-      (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
-      diccionario, debe tener la forma general siguiente:
-      {'trans': matriz Numpy,
-       'repr': matriz Numpy},
-      donde cada matriz NumPy tiene los ejes siguientes:
-          Eje 1: Parcela
-          Eje 2: Repetición estocástica
-          Eje 3: Repetición paramétrica
+       (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
+       diccionario, debe tener la forma general siguiente:
+       | {'trans': matriz Numpy,
+       | 'repr': matriz Numpy},
+       | donde cada matriz NumPy tiene los ejes siguientes:
+       | Eje 1: Parcela
+       | Eje 2: Repetición estocástica
+       | Eje 3: Repetición paramétrica
     :type edad: int | float | dict
     """
 
@@ -2014,29 +2012,29 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
     """
 
     :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
-      {'Pobs': [matriz de poblaciones]
-       'Edades': {'Trans': [matriz de edades],
-                  'Repr': [matriz de edades]
-                  }
+       | {'Pobs': [matriz de poblaciones]
+       | 'Edades': {'Trans': [matriz de edades],
+       | 'Repr': [matriz de edades]
+       | }
 
       Todas las matrices tienen el mismo orden de eje:
-          Eje 0: Cohorte
-          Eje 1: Parcela
-          Eje 2: Repetición estocástica
-          Eje 3: Repetición paramétrica
+         | Eje 0: Cohorte
+         | Eje 1: Parcela
+         | Eje 2: Repetición estocástica
+         | Eje 3: Repetición paramétrica
 
     :type dic_cohorte: dict
 
     :param muertes: La matriz de muertes aleatorias a quitar del cohorte.
-      Eje 0: Cohorte
-      Eje 1: Parcela
-      Eje 2: Repetición estocástica
-      Eje 3: Repetición paramétrica
+       | Eje 0: Cohorte
+       | Eje 1: Parcela
+       | Eje 2: Repetición estocástica
+       | Eje 3: Repetición paramétrica
 
     :type muertes: np.ndarray
 
     :param recip: Un diccionario, opcional, de un otro cohorte al cual los organismos quitados del primero cohorte
-      se tienen que añadir. Tiene el mismo formato que dic_cohorte.
+    se tienen que añadir. Tiene el mismo formato que dic_cohorte.
     :type recip: dict
 
     """
@@ -2073,7 +2071,7 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
 def probs_conj(matr, eje, pesos=1, máx=1):
     """
     Esta función utiliza las reglas de probabilidades conjuntas para ajustar depredación con presas o depredadores
-      múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
+    múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
 
     :param matr: Una matriz con los valores para ajustar.
     :type matr: np.ndarray
@@ -2085,7 +2083,7 @@ def probs_conj(matr, eje, pesos=1, máx=1):
     :type pesos: float | int | np.ndarray
 
     :param máx: Una matriz con los valores máximos para la matriz para ajustar. Si es matriz, debe ser de tamaño
-      compatible con matr.
+    compatible con matr.
     :type máx: float | int | np.ndarray
 
 
