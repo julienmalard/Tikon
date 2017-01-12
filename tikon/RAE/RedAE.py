@@ -1113,8 +1113,8 @@ class Red(Simulable):
         for ec in tipos_ec:
             mobil = NotImplemented
             modif_peso = NotImplemented
-            área = NotImplemented
-            peso = área * modif_peso
+            superficie = NotImplemented
+            peso = superficie * modif_peso
 
             mov = NotImplemented
 
