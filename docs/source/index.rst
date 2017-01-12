@@ -14,3 +14,4 @@ Tiko'n
    uso
    ejemplos
    documentación
+   contribuidores
