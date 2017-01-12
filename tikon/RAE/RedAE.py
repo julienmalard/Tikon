@@ -1548,8 +1548,8 @@ class Red(Simulable):
                 n_pasos = tiempo_final[exp]
 
             # Los índices de las etapas con cohortes para transiciones y para reproducciones
-            índ_coh_trans = []
-            índ_coh_repr = []
+            i_coh_trans = []
+            i_coh_repr = []
             for nombre_org, org in símismo.núms_etapas.items():
                 # Para cada organismo...
                 for n_etp in org.values():
@@ -1559,14 +1559,14 @@ class Red(Simulable):
                     ecs_prob_repr = símismo.ecs['Reproducción']['Prob'][n_etp]
                     ecs_prob_trans = símismo.ecs['Transiciones']['Prob'][n_etp]
                     if ecs_prob_repr != 'Nada' and ecs_prob_repr != 'Constante':
-                        índ_coh_repr.append(n_etp)
+                        i_coh_repr.append(n_etp)
                     if ecs_prob_trans != 'Nada' and ecs_prob_trans != 'Constante':
-                        índ_coh_trans.append(n_etp)
+                        i_coh_trans.append(n_etp)
 
             # Generamos el diccionario (vacío) de datos iniciales
             datos_inic = símismo._gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
                                                       n_etps=n_etapas, n_pasos=n_pasos,
-                                                      índ_coh_trans=índ_coh_trans, índ_coh_repr=índ_coh_repr)
+                                                      i_coh_trans=i_coh_trans, i_coh_repr=i_coh_repr)
 
             # Llenamos la poblaciones iniciales
             for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):
@@ -1728,7 +1728,7 @@ class Red(Simulable):
         return np.concatenate(lista_obs)
 
     @staticmethod
-    def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, índ_coh_trans, índ_coh_repr):
+    def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, i_coh_trans, i_coh_repr):
         """
         Esta función genera un diccionario con matrices del tamaño apropiado para guardar las predicciones del modelo.
           Por usar una función auxiliar, se facilita la generación de matrices para simulaciones de muchos experimentos.
@@ -1764,12 +1764,12 @@ class Red(Simulable):
         # Agregar cohortes
         cohortes = dic['Cohortes']
 
-        for n in índ_coh_repr:
+        for n in i_coh_repr:
             dic_cohorte = cohortes[n] = {}
             dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
             dic_cohorte['repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
-        for n in índ_coh_trans:
+        for n in i_coh_trans:
             try:
                 dic_cohorte = cohortes[n]
             except KeyError:
