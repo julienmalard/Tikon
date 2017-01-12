@@ -10,7 +10,7 @@ Autores del código
 
 Traductores
 -----------
-Cuando se habrán traducido Tinamit y su documentación, los agradecimientos irán aquí.
+Cuando se habrán traducido Tiko'n y su documentación, los agradecimientos irán aquí.
 
 Instituciones afiliadas
 -----------------------
