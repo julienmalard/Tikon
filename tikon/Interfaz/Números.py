@@ -97,26 +97,56 @@ def tx_a_núm(texto):
     for lengua, d_l in trads_núm.items():
 
         sep_dec = d_l['sep_dec']
-        núms = d_l['núms']
+        l_núms = d_l['núms']
+        try:
+            bases = d_l['bases']
+        except KeyError:
+            bases = None
 
         try:
-            núm = trad_texto(texto=texto, núms=núms, sep_dec=sep_dec)
+            núm = trad_texto(texto=texto, núms=l_núms, sep_dec=sep_dec)
             return núm
 
         except ValueError:
+            if bases is not None:
+                try:
+                    try:
+                        entero, dec = texto.split(sep_dec)
+                    except ValueError:
+                        entero = texto
 
-            try:
-                entero, dec = texto.split(sep_dec)
+                    regex_núm = r'[{}]'.format(''.join([n for n in l_núms]))
+                    regex_unid = r'[{}]'.format(''.join([b[1] for b in bases]))
 
-                val_entero = leer_bases(texto=entero, núms=núms, sep_dec=sep_dec, bases=d_l['bases'])
-                tx_dec = trad_texto(texto=dec, núms=núms, sep_dec=sep_dec, txt=True)
+                    regex = r'((?P<núm>{})?(?P<unid>{}|$))'.format(regex_núm, regex_unid)
 
-                núm = str(val_entero) + sep_dec + tx_dec
+                    m = re.finditer(regex, entero)
+                    if m is None:
+                        continue
+                    else:
+                        grupos = list(m)[:-1]
 
-                return núm
+                        núms = [trad_texto(g.group('núm'), núms=l_núms, sep_dec=sep_dec) for g in grupos]
+                        unids = [trad_texto(g.group('unid'), núms=[b[1] for b in bases], sep_dec=sep_dec)
+                                 for g in grupos]
 
-            except (KeyError, ValueError):
-                pass
+                        vals = [núms[i] * u for i, u in enumerate(unids)]
+
+                        val_entero = vals[0]
+                        for i, v in enumerate(vals[1:]):
+                            if unids[i+1] > unids[i]:
+                                val_entero *= v
+                            else:
+                                val_entero += v
+
+                        tx_dec = trad_texto(texto=dec, núms=l_núms, sep_dec=sep_dec, txt=True)
+
+                        núm = str(val_entero) + sep_dec + tx_dec
+
+                    return núm
+
+                except (KeyError, ValueError):
+                    pass
 
     raise ValueError('No se pudo decifrar el número %s' % texto)
 
@@ -135,6 +165,7 @@ def trad_texto(texto, núms, sep_dec, txt=False):
 
     else:
         raise ValueError
+
 
 def gen_bases(núm, bases, t=''):
     """
@@ -168,6 +199,7 @@ def gen_bases(núm, bases, t=''):
 
     return t
 
+
 def leer_bases(texto, núms, sep_dec, bases, n=0):
 
     '௨௲௩௱௰'
@@ -200,6 +232,8 @@ def leer_bases(texto, núms, sep_dec, bases, n=0):
 
 # Prueba
 if __name__ == '__main__':
+
+    tx_a_núm('௨௲௩௰')
     for leng in trads_núm:
         número = 123456.7809
         tx = núm_a_tx(número, leng)

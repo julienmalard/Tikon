@@ -10,8 +10,8 @@ Tiko'n
    :maxdepth: 2
 
    intro
-   instalación
+   instal
    uso
    ejemplos
-   documentación
+   docu
    contribuidores
