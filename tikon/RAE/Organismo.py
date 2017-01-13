@@ -58,8 +58,9 @@ class Organismo(Coso):
     def actualizar(símismo):
         """
         Esta función simplemente se asegura de que todo en el organismo esté actualizado según la configuración
-          actual en la receta. Si hay cualquier atributo del organismo que depiende de valore(s) en la receta,
-          aquí es el lugar par actualizarlos.
+        actual en la receta. Si hay cualquier atributo del organismo que depiende de valore(s) en la receta,
+        aquí es el lugar par actualizarlos.
+
         Esta función se llama automáticamente después de funciones tales como "secome()" y "quitar_etapa()".
 
         :return: Nada
@@ -174,7 +175,7 @@ class Organismo(Coso):
         Esta función establece relaciones de  entre organismos.
 
         :param víctima: La presa (usar un objeto Organismo, no el nombre de la presa).
-        :type víctima: Organismo
+        :type víctima: tikon.RAE.Organismo.Organismo
 
         :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que se comen a la presa. Si se deja como "None", tomará todas las fases.
@@ -272,7 +273,7 @@ class Organismo(Coso):
         Esta función borra relaciones de depredador y presa entre organismos.
 
         :param víctima: La presa que ya no se come (usar un objeto Organismo, no el nombre de la presa).
-        :type víctima: Organismo
+        :type víctima: tikon.RAE.Organismo.Organismo
 
         :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que ya no se comen a la presa. Si se deja como "None", tomará todas las fases.
