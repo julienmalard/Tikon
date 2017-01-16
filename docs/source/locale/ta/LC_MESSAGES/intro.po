@@ -1,0 +1,42 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-01-13 12:13-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2017\n"
+"Language-Team: Tamil (https://www.transifex.com/qatikon/teams/70660/ta/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ta\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/intro.rst:2
+msgid "Introducción a Tiko'n"
+msgstr "பயிற்சிக்கு முகவரை"
+
+#: ../../source/intro.rst:4
+msgid ""
+"Tiko'n es un programa para desarrollar modelos agroecológicos de manera "
+"sencilla, reproducible y divertida."
+msgstr ""
+"**பயிற்சி** ஒரு சுலபமான, தரப்படுத்தப்பட்ட, மற்றும் வேடிக்கையான் வேளாண் "
+"இயற்கை இயல் கணினி மாதிரி வளர்ச்சி செய்யமுறை உள்ளது."
+
+#: ../../source/intro.rst:6
+msgid ""
+"Este paquete está en modo de desarrollo activo. La documentación de muchos "
+"módulos ya está disponible. El resto irá apareciendo aquí con el tiempo."
+msgstr ""
+"இந்த தமிழ் மொழிபெயர்ப்பு `என்னால் "
+"<https://www.researchgate.net/profile/Julien_Malard/>` செய்யப்பட்டது. என் "
+"தமிழ் ரொம்ப நல்லாக இல்லை என்று தெரியும். நீங்கள் எதாவது தப்பு பிடித்தால், "
+"தய்வு செய்து அதை `இங்கே <https://www.transifex.com/qatikon/tikon_1_0/>` "
+"சரியாக செய்யுங்கள்."
