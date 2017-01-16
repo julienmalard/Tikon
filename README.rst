@@ -1,5 +1,6 @@
+
 .. image:: tikon/LogoTiko'n.png
-   :scale: 50 %
+   :width: 40 %
    
 Tiko'n
 ======
