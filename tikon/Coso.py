@@ -6,13 +6,13 @@ import time
 import warnings as avisar
 from datetime import datetime as ft
 
-from tikon.Matemáticas import NuevoIncert as Incert
+from tikon.Matemáticas import Incert as Incert
 import numpy as np
 import pymc
 from tikon.Matemáticas.Experimentos import Experimento
 
 from tikon.Controles import directorio_base
-from tikon.Matemáticas.NuevaCalib import ModBayes
+from tikon.Matemáticas.Calib import ModBayes
 
 
 class Coso(object):
@@ -230,7 +230,7 @@ class Coso(object):
     def _sacar_coefs_interno(símismo):
         """
         Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
-          Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+        Se debe implementar para cada Coso (objeto) que tiene coeficientes.
 
         :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
            [ {calib1: distribución o [lista de valores],
@@ -734,7 +734,7 @@ class Simulable(Coso):
     def _sacar_coefs_interno(símismo):
         """
         Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
-          Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+        Se debe implementar para cada Coso (objeto) que tiene coeficientes.
 
         :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
            [ {calib1: distribución o [lista de valores],
@@ -752,7 +752,7 @@ class Simulable(Coso):
     def _sacar_líms_coefs_interno(símismo):
         """
         Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
-          calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+        calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
 
         :return: Un tuple, conteniendo:
           1. Una lista de diccionarios de coeficientes, con el formato siguiente:

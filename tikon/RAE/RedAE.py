@@ -8,7 +8,7 @@ from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds
 from tikon.Matemáticas import Ecuaciones as Ec
 from tikon.Matemáticas.Arte import gráfico
-from tikon.Matemáticas.NuevoIncert import numerizar, validar, gen_vector_coefs
+from tikon.Matemáticas.Incert import numerizar, validar, gen_vector_coefs
 from tikon.RAE import Planta as Plt
 from tikon.RAE.Organismo import Organismo
 
@@ -1326,7 +1326,7 @@ class Red(Simulable):
 
     def _sacar_coefs_interno(símismo):
         """
-        No hay nada nada que hacer, visto que una red no tiene coeficientes propios.
+        No hay nada nada que hacer, visto que una Red no tiene coeficientes propios.
         """
 
         return []

@@ -35,6 +35,17 @@ class Parcela(Simulable):
         raise NotImplementedError  # Para hacer
 
     def incrementar(símismo, paso, i, extrn):
+        """
+        Incrementamos los modelos de RedAE y de cultivo.
+
+        :param paso:
+        :type paso:
+        :param i:
+        :type i:
+        :param extrn:
+        :type extrn:
+
+        """
         símismo.red.incrementar(paso=paso, i=i, extrn=extrn)
         símismo.modelo_cultivo.incrementar(paso=paso, i=i, extrn=extrn)
 
@@ -44,16 +55,16 @@ class Parcela(Simulable):
     def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificados):
         raise NotImplementedError  # Para hacer
 
-    def dibujar(símismo, mostrar=True, archivo=None, exper=None):
+    def dibujar(símismo, mostrar=True, archivo=None, exper=None, **kwargs):
         raise NotImplementedError  # Para hacer
 
     def _procesar_validación(símismo):
         raise NotImplementedError  # Para hacer
 
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, **kwargs):
         raise NotImplementedError  # Para hacer
 
-    def _actualizar_vínculos_exps(símismo, experimento, corresp):
+    def _actualizar_vínculos_exps(símismo):
         raise NotImplementedError  # Para hacer
 
     def _sacar_coefs_interno(símismo):

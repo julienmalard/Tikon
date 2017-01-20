@@ -1,6 +1,6 @@
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
-from tikon.Matemáticas.NuevoIncert import límites_a_texto_apriori
+from tikon.Matemáticas.Incert import límites_a_texto_apriori
 
 
 class Organismo(Coso):

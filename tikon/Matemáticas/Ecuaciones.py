@@ -1,6 +1,6 @@
 import numpy as np
 
-import tikon.Matemáticas.NuevoIncert as Incert
+import tikon.Matemáticas.Incert as Incert
 
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
 # pedazos de inforamción: 1) sus límites y 2) si interactua con la estructura del modelo. Por ejemplo, si un
@@ -9,335 +9,736 @@ import tikon.Matemáticas.NuevoIncert as Incert
 # se tiene que repetir para cada presa presente.
 
 
-ecs_orgs = {'Crecimiento': {'Modif': {'Nada': {},
-                                      'Ninguna': {'r': {'límites': (0, np.inf),
-                                                        'inter': None}},
-                                      'Log Normal Temperatura': {'t': {'límites': (0, np.inf),
-                                                                       'inter': None},
-                                                                 'p': {'límites': (0, np.inf),
-                                                                       'inter': None}}
-                                      },
-                            'Ecuación': {'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
-                                         'Logístico': {'K': {'límites': (0, np.inf),
-                                                             'inter': None}},
-                                         'Logístico Presa': {'K': {'límites': (0, np.inf),
-                                                                   'inter': ['presa']}},
-                                         'Logístico Depredación': {'K': {'límites': (0, np.inf),
-                                                                         'inter': ['presa']}},
-                                         'Externo Cultivo': {}
-                                         }
-                            },
+ecs_orgs = {
+    'Crecimiento': {'Modif': {'Nada': {},
+                              'Ninguna': {'r': {'límites': (0, np.inf),
+                                                'inter': None}},
+                              'Log Normal Temperatura': {'t': {'límites': (0, np.inf),
+                                                               'inter': None},
+                                                         'p': {'límites': (0, np.inf),
+                                                               'inter': None}}
+                              },
+                    'Ecuación': {'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
+                                 'Logístico': {'K': {'límites': (0, np.inf),
+                                                     'inter': None}},
+                                 'Logístico Presa': {'K': {'límites': (0, np.inf),
+                                                           'inter': ['presa']}},
+                                 'Logístico Depredación': {'K': {'límites': (0, np.inf),
+                                                                 'inter': ['presa']}},
+                                 'Externo Cultivo': {}
+                                 }
+                    },
 
-            'Depredación': {'Ecuación': {'Nada': {},
+    'Depredación': {'Ecuación': {'Nada': {},
 
-                                         'Tipo I_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                            'inter': ['presa', 'huésped']}
-                                                                      },
+                                 'Tipo I_Dependiente presa': {'a': {'límites': (0, 1),
+                                                                    'inter': ['presa', 'huésped']}
+                                                              },
 
-                                         'Tipo II_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                             'inter': ['presa', 'huésped']},
-                                                                       'b': {'límites': (0, np.inf),
-                                                                             'inter': ['presa', 'huésped']}
-                                                                       },
+                                 'Tipo II_Dependiente presa': {'a': {'límites': (0, 1),
+                                                                     'inter': ['presa', 'huésped']},
+                                                               'b': {'límites': (0, np.inf),
+                                                                     'inter': ['presa', 'huésped']}
+                                                               },
 
-                                         'Tipo III_Dependiente presa': {'a': {'límites': (0, 1),
-                                                                              'inter': ['presa', 'huésped']},
-                                                                        'b': {'límites': (0, np.inf),
-                                                                              'inter': ['presa', 'huésped']}
-                                                                        },
-
-                                         'Tipo I_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                            'inter': ['presa', 'huésped']}
-                                                                      },
-
-                                         'Tipo II_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                             'inter': ['presa', 'huésped']},
-                                                                       'b': {'límites': (0, np.inf),
-                                                                             'inter': ['presa', 'huésped']}
-                                                                       },
-
-                                         'Tipo III_Dependiente ratio': {'a': {'límites': (0, 1),
-                                                                              'inter': ['presa', 'huésped']},
-                                                                        'b': {'límites': (0, np.inf),
-                                                                              'inter': ['presa', 'huésped']}
-                                                                        },
-
-                                         'Beddington-DeAngelis': {'a': {'límites': (0, 1),
-                                                                        'inter': ['presa', 'huésped']},
-                                                                  'b': {'límites': (0, np.inf),
-                                                                        'inter': ['presa', 'huésped']},
-                                                                  'c': {'límites': (0, np.inf),
-                                                                        'inter': ['presa', 'huésped']}
-                                                                  },
-
-                                         'Tipo I_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                         'inter': ['presa', 'huésped']},
-                                                                   'm': {'límites': (0, np.inf),
-                                                                         'inter': ['presa', 'huésped']}
-                                                                   },
-
-                                         'Tipo II_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                          'inter': ['presa', 'huésped']},
-                                                                    'b': {'límites': (0, np.inf),
-                                                                          'inter': ['presa', 'huésped']},
-                                                                    'm': {'límites': (0, np.inf),
-                                                                          'inter': ['presa', 'huésped']}
-                                                                    },
-
-                                         'Tipo III_Hassell-Varley': {'a': {'límites': (0, np.inf),
-                                                                           'inter': ['presa', 'huésped']},
-                                                                     'b': {'límites': (0, np.inf),
-                                                                           'inter': ['presa', 'huésped']},
-                                                                     'm': {'límites': (0, np.inf),
-                                                                           'inter': ['presa', 'huésped']}
-                                                                     },
-
-                                         'Kovai': {'a': {'límites': (0, np.inf),
-                                                         'inter': ['presa', 'huésped']},
-                                                   'b': {'límites': (0, np.inf),
-                                                         'inter': ['presa', 'huésped']},
-                                                   }
-                                         },
-                            },
-
-            'Muertes': {'Ecuación': {'Nada': {},
-
-                                     'Constante': {'q': {'límites': (0, 1),
-                                                         'inter': None}
-                                                   },
-
-                                     'Log Normal Temperatura': {'t': {'límites': (-np.inf, np.inf),
-                                                                      'inter': None},
-                                                                'p': {'límites': (0, np.inf),
-                                                                      'inter': None}
+                                 'Tipo III_Dependiente presa': {'a': {'límites': (0, 1),
+                                                                      'inter': ['presa', 'huésped']},
+                                                                'b': {'límites': (0, np.inf),
+                                                                      'inter': ['presa', 'huésped']}
                                                                 },
 
-                                     'Asimptótico Humedad': {'a': {'límites': (0, np.inf),
-                                                                   'inter': None},
-                                                             'b': {'límites': (-np.inf, np.inf),
-                                                                   'inter': None}
-                                                             },
-                                     'Sigmoidal Temperatura': {'a': {'límites': (-np.inf, np.inf),
-                                                                     'inter': None},
+                                 'Tipo I_Dependiente ratio': {'a': {'límites': (0, 1),
+                                                                    'inter': ['presa', 'huésped']}
+                                                              },
+
+                                 'Tipo II_Dependiente ratio': {'a': {'límites': (0, 1),
+                                                                     'inter': ['presa', 'huésped']},
                                                                'b': {'límites': (0, np.inf),
+                                                                     'inter': ['presa', 'huésped']}
+                                                               },
+
+                                 'Tipo III_Dependiente ratio': {'a': {'límites': (0, 1),
+                                                                      'inter': ['presa', 'huésped']},
+                                                                'b': {'límites': (0, np.inf),
+                                                                      'inter': ['presa', 'huésped']}
+                                                                },
+
+                                 'Beddington-DeAngelis': {'a': {'límites': (0, 1),
+                                                                'inter': ['presa', 'huésped']},
+                                                          'b': {'límites': (0, np.inf),
+                                                                'inter': ['presa', 'huésped']},
+                                                          'c': {'límites': (0, np.inf),
+                                                                'inter': ['presa', 'huésped']}
+                                                          },
+
+                                 'Tipo I_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                                                 'inter': ['presa', 'huésped']},
+                                                           'm': {'límites': (0, np.inf),
+                                                                 'inter': ['presa', 'huésped']}
+                                                           },
+
+                                 'Tipo II_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                                                  'inter': ['presa', 'huésped']},
+                                                            'b': {'límites': (0, np.inf),
+                                                                  'inter': ['presa', 'huésped']},
+                                                            'm': {'límites': (0, np.inf),
+                                                                  'inter': ['presa', 'huésped']}
+                                                            },
+
+                                 'Tipo III_Hassell-Varley': {'a': {'límites': (0, np.inf),
+                                                                   'inter': ['presa', 'huésped']},
+                                                             'b': {'límites': (0, np.inf),
+                                                                   'inter': ['presa', 'huésped']},
+                                                             'm': {'límites': (0, np.inf),
+                                                                   'inter': ['presa', 'huésped']}
+                                                             },
+
+                                 'Kovai': {'a': {'límites': (0, np.inf),
+                                                 'inter': ['presa', 'huésped']},
+                                           'b': {'límites': (0, np.inf),
+                                                 'inter': ['presa', 'huésped']},
+                                           }
+                                 },
+                    },
+
+    'Muertes': {'Ecuación': {'Nada': {},
+
+                             'Constante': {'q': {'límites': (0, 1),
+                                                 'inter': None}
+                                           },
+
+                             'Log Normal Temperatura': {'t': {'límites': (-np.inf, np.inf),
+                                                              'inter': None},
+                                                        'p': {'límites': (0, np.inf),
+                                                              'inter': None}
+                                                        },
+
+                             'Asimptótico Humedad': {'a': {'límites': (0, np.inf),
+                                                           'inter': None},
+                                                     'b': {'límites': (-np.inf, np.inf),
+                                                           'inter': None}
+                                                     },
+                             'Sigmoidal Temperatura': {'a': {'límites': (-np.inf, np.inf),
+                                                             'inter': None},
+                                                       'b': {'límites': (0, np.inf),
+                                                             'inter': None}
+                                                       }
+                             }
+                },
+
+    'Transiciones': {'Edad': {'Nada': {},
+
+                              'Días': {},  # No se necesitan coeficientes en este caso
+
+                              'Días grados': {'mín': {'límites': (-np.inf, np.inf),
+                                                      'inter': None},
+                                              'máx': {'límites': (-np.inf, np.inf),
+                                                      'inter': None}
+                                              },
+                              'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                   'inter': None},
+                                                     't_letal': {'límites': (-np.inf, np.inf),
+                                                                 'inter': None}
+                                                     },
+                              'Logan Temperatura': {'rho': {'límites': (0, 1),
+                                                            'inter': None},
+                                                    'delta': {'límites': (0, 1),
+                                                              'inter': None},
+                                                    't_letal': {'límites': (-np.inf, np.inf),
+                                                                'inter': None}
+                                                    },
+                              'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                             'inter': None},
+                                                               't_letal': {'límites': (-np.inf, np.inf),
+                                                                           'inter': None},
+                                                               'm': {'límites': (0, np.inf),
                                                                      'inter': None}
-                                                               }
-                                     }
-                        },
+                                                               },
+                              },
 
-            'Transiciones': {'Edad': {'Nada': {},
+                     'Prob': {'Nada': {},
 
-                                      'Días': {},  # No se necesitan coeficientes en este caso
+                              'Constante': {'a': {'límites': (0, np.inf),
+                                                  'inter': None}
+                                            },
 
-                                      'Días grados': {'mín': {'límites': (-np.inf, np.inf),
+                              'Normal': {'mu': {'límites': (0, np.inf),
+                                                'inter': None},
+                                         'sigma': {'límites': (0, np.inf),
+                                                   'inter': None}
+                                         },
+                              'Triang': {'a': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'b': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'c': {'límites': (0, np.inf),
+                                               'inter': None}
+                                         },
+                              'Cauchy': {'u': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'f': {'límites': (0, np.inf),
+                                               'inter': None}
+                                         },
+                              'Gamma': {'u': {'límites': (0, np.inf),
+                                              'inter': None},
+                                        'f': {'límites': (0, np.inf),
+                                              'inter': None},
+                                        'a': {'límites': (0, np.inf),
+                                              'inter': None}
+                                        },
+                              'Logística': {'u': {'límites': (0, np.inf),
+                                                  'inter': None},
+                                            'f': {'límites': (0, np.inf),
+                                                  'inter': None},
+                                            },
+                              'T': {'k': {'límites': (0, np.inf),
+                                          'inter': None},
+                                    'mu': {'límites': (0, np.inf),
+                                           'inter': None},
+                                    'sigma': {'límites': (0, np.inf),
+                                              'inter': None}
+                                    }
+                              },
+
+                     'Mult': {'Nada': {},
+
+                              'Linear': {'a': {'límites': (0, np.inf),
+                                               'inter': None}
+                                         }
+                              }
+                     },
+
+    'Reproducción': {'Edad': {'Nada': {},
+
+                              'Días': {},  # No se necesitan coeficientes en este caso
+
+                              'Días grados': {'mín': {'límites': (-np.inf, np.inf),
+                                                      'inter': None},
+                                              'máx': {'límites': (-np.inf, np.inf),
+                                                      'inter': None}
+                                              },
+                              'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                   'inter': None},
+                                                     't_letal': {'límites': (-np.inf, np.inf),
+                                                                 'inter': None}
+                                                     },
+                              'Logan Temperatura': {'rho': {'límites': (0, 1),
+                                                            'inter': None},
+                                                    'delta': {'límites': (0, 1),
                                                               'inter': None},
-                                                      'máx': {'límites': (-np.inf, np.inf),
-                                                              'inter': None}
-                                                      },
-                                      'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                    't_letal': {'límites': (-np.inf, np.inf),
+                                                                'inter': None}
+                                                    },
+                              'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                             'inter': None},
+                                                               't_letal': {'límites': (-np.inf, np.inf),
                                                                            'inter': None},
-                                                             't_letal': {'límites': (-np.inf, np.inf),
-                                                                         'inter': None}
-                                                             },
-                                      'Logan Temperatura': {'rho': {'límites': (0, 1),
-                                                                    'inter': None},
-                                                            'delta': {'límites': (0, 1),
-                                                                      'inter': None},
-                                                            't_letal': {'límites': (-np.inf, np.inf),
-                                                                        'inter': None}
-                                                            },
-                                      'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                                     'inter': None},
-                                                                       't_letal': {'límites': (-np.inf, np.inf),
-                                                                                   'inter': None},
-                                                                       'm': {'límites': (0, np.inf),
-                                                                             'inter': None}
-                                                                       },
-                                      },
+                                                               'm': {'límites': (0, np.inf),
+                                                                     'inter': None}
+                                                               },
+                              },
 
-                             'Prob': {'Nada': {},
+                     'Prob': {'Nada': {},
 
-                                      'Constante': {'a': {'límites': (0, np.inf),
-                                                          'inter': None}
-                                                    },
-
-                                      'Normal': {'mu': {'límites': (0, np.inf),
-                                                        'inter': None},
-                                                 'sigma': {'límites': (0, np.inf),
-                                                           'inter': None}
-                                                 },
-                                      'Triang': {'a': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'b': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'c': {'límites': (0, np.inf),
-                                                       'inter': None}
-                                                 },
-                                      'Cauchy': {'u': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'f': {'límites': (0, np.inf),
-                                                       'inter': None}
-                                                 },
-                                      'Gamma': {'u': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                                'f': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                                'a': {'límites': (0, np.inf),
-                                                      'inter': None}
-                                                },
-                                      'Logística': {'u': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    'f': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    },
-                                      'T': {'k': {'límites': (0, np.inf),
+                              'Constante': {'n': {'límites': (0, np.inf),
                                                   'inter': None},
-                                            'mu': {'límites': (0, np.inf),
-                                                   'inter': None},
-                                            'sigma': {'límites': (0, np.inf),
-                                                      'inter': None}
-                                            }
-                                      },
-
-                             'Mult': {'Nada': {},
-
-                                      'Linear': {'a': {'límites': (0, np.inf),
-                                                       'inter': None}
-                                                 }
-                                      }
-                             },
-
-            'Reproducción': {'Edad': {'Nada': {},
-
-                                      'Días': {},  # No se necesitan coeficientes en este caso
-
-                                      'Días grados': {'mín': {'límites': (-np.inf, np.inf),
-                                                              'inter': None},
-                                                      'máx': {'límites': (-np.inf, np.inf),
-                                                              'inter': None}
-                                                      },
-                                      'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                           'inter': None},
-                                                             't_letal': {'límites': (-np.inf, np.inf),
-                                                                         'inter': None}
-                                                             },
-                                      'Logan Temperatura': {'rho': {'límites': (0, 1),
-                                                                    'inter': None},
-                                                            'delta': {'límites': (0, 1),
-                                                                      'inter': None},
-                                                            't_letal': {'límites': (-np.inf, np.inf),
-                                                                        'inter': None}
-                                                            },
-                                      'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                                     'inter': None},
-                                                                       't_letal': {'límites': (-np.inf, np.inf),
-                                                                                   'inter': None},
-                                                                       'm': {'límites': (0, np.inf),
-                                                                             'inter': None}
-                                                                       },
-                                      },
-
-                             'Prob': {'Nada': {},
-
-                                      'Constante': {'n': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    'q': {'límites': (0, np.inf),
-                                                          'inter': None}
-                                                    },
-                                      'Depredación': {'n': {'límites': (0, np.inf),
-                                                            'inter': ['presa']}
-                                                      },
-                                      'Normal': {'n': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'mu': {'límites': (0, np.inf),
-                                                        'inter': None},
-                                                 'sigma': {'límites': (0, np.inf),
-                                                           'inter': None}
-                                                 },
-                                      'Triang': {'n': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'a': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'b': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'c': {'límites': (0, np.inf),
-                                                       'inter': None}
-                                                 },
-                                      'Cauchy': {'n': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'u': {'límites': (0, np.inf),
-                                                       'inter': None},
-                                                 'f': {'límites': (0, np.inf),
-                                                       'inter': None}
-                                                 },
-                                      'Gamma': {'n': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                                'u': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                                'f': {'límites': (0, np.inf),
-                                                      'inter': None},
-                                                'a': {'límites': (0, np.inf),
-                                                      'inter': None}
-                                                },
-                                      'Logística': {'n': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    'u': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    'f': {'límites': (0, np.inf),
-                                                          'inter': None},
-                                                    },
-                                      'T': {'n': {'límites': (0, np.inf),
+                                            'q': {'límites': (0, np.inf),
+                                                  'inter': None}
+                                            },
+                              'Depredación': {'n': {'límites': (0, np.inf),
+                                                    'inter': ['presa']}
+                                              },
+                              'Normal': {'n': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'mu': {'límites': (0, np.inf),
+                                                'inter': None},
+                                         'sigma': {'límites': (0, np.inf),
+                                                   'inter': None}
+                                         },
+                              'Triang': {'n': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'a': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'b': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'c': {'límites': (0, np.inf),
+                                               'inter': None}
+                                         },
+                              'Cauchy': {'n': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'u': {'límites': (0, np.inf),
+                                               'inter': None},
+                                         'f': {'límites': (0, np.inf),
+                                               'inter': None}
+                                         },
+                              'Gamma': {'n': {'límites': (0, np.inf),
+                                              'inter': None},
+                                        'u': {'límites': (0, np.inf),
+                                              'inter': None},
+                                        'f': {'límites': (0, np.inf),
+                                              'inter': None},
+                                        'a': {'límites': (0, np.inf),
+                                              'inter': None}
+                                        },
+                              'Logística': {'n': {'límites': (0, np.inf),
                                                   'inter': None},
-                                            'k': {'límites': (0, np.inf),
+                                            'u': {'límites': (0, np.inf),
                                                   'inter': None},
-                                            'mu': {'límites': (0, np.inf),
-                                                   'inter': None},
-                                            'sigma': {'límites': (0, np.inf),
-                                                      'inter': None}
-                                            }
-                                      }
-                             },
+                                            'f': {'límites': (0, np.inf),
+                                                  'inter': None},
+                                            },
+                              'T': {'n': {'límites': (0, np.inf),
+                                          'inter': None},
+                                    'k': {'límites': (0, np.inf),
+                                          'inter': None},
+                                    'mu': {'límites': (0, np.inf),
+                                           'inter': None},
+                                    'sigma': {'límites': (0, np.inf),
+                                              'inter': None}
+                                    }
+                              }
+                     },
 
-            'Movimiento': {
-                # 'Ecuación': {None: {},
-                #            'Inversa cuadrada': {}
-                #           },
-                # 'Modif': {None: {},
-                #          'Presas': {'p': {}
-                #                   }
-                #        },
-                # 'Mobil': {'Constante': {'m': {}},
-                #          'Temperatura': {'m': {},
-                #                         't': {}
-                #                       },
-                #       'Radiación': {}
-                #       },
+    'Movimiento': {
+        # 'Ecuación': {None: {},
+        #            'Inversa cuadrada': {}
+        #           },
+        # 'Modif': {None: {},
+        #          'Presas': {'p': {}
+        #                   }
+        #        },
+        # 'Mobil': {'Constante': {'m': {}},
+        #          'Temperatura': {'m': {},
+        #                         't': {}
+        #                       },
+        #       'Radiación': {}
+        #       },
+    }
+
+}
+
+
+ecs_cult = {
+    'Día_corto_crít': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'CSDL',
+                    'unid': 'horas'
+                }
             }
-
+        }
+    },
+    'Pend_desarroll_fotoper': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'PPSEN',
+                    'unid': '1/hora'
+                }
             }
+        }
+    },
+    'Tiempo_emerg_flor': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'EM-FL',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_flor_fruta': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'FL-SH',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_flor_sem': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'FL-SD',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_sem_matur': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SD-PM',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_flor_finhoja': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'FL-LF',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Foto_máx': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'LFMAX',
+                    'unid': 'mg CO2/(m2*s)'
+                }
+            }
+        }
+    },
+    'Superfi_spec_hoja': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SLAVR',
+                    'unid': 'cm2/g'
+                }
+            }
+        }
+    },
+    'Tamañ_hoja_máx': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SIZLF',
+                    'unid': 'cm2'
+                }
+            }
+        }
+    },
+    'Máx_crec_semfrut': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'XFRT',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Peso_sem_máx': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'WTPSD',
+                    'unid': 'g'
+                }
+            }
+        }
+    },
+    'Tiempo_llenar_sem': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SFDUR',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Sem_por_frut': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SDPDV',
+                    'unid': 'semillas'
+                }
+            }
+        }
+    },
+    'Tiempo_llen_sem_opt': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'PODUR',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Ratio_sem_frut': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'THRSH',
+                    'unid': None
+                }
+            }
+        }
+    },
+    'Frac_prot_sem': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SDPRO',
+                    'unid': None
+                }
+            }
+        }
+    },
+    'Frac_aceit_sem': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'variedad',
+                    'cód': 'SDLIP',
+                    'unid': None
+                }
+            }
+        }
+    },
+    'Grupo_matur': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'MG',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Indic_adapt_temp': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'TM',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Taza_rep_min': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'THVAR',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Tiempo_siembr_emer': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'PL-EM',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_emer_hoja': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'EM-V1',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_hoja_finjuv': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'V1-JU',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiempo_inducflor': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'JU-R0',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Prop_tiemp_flor_frut': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'PM06',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Prop_tiemp_sem_mat': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'PM09',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Tiemp_frut': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'LNGSH',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiemp_matfis_matcos': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'R7-R8',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Tiemp_flor_hoja': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'FL-VS',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Taza_aparenc_hoja': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'TRIFL',
+                    'unid': 'días'
+                }
+            }
+        }
+    },
+    'Anch_rel_ecotipo': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'RWDTH',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Altura_rel_ecotipo': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'RHGHT',
+                    'unid': ''
+                }
+            }
+        }
+    },
+    'Aumen_sensit_día': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'R1PPO',
+                    'unid': 'h'
+                }
+            }
+        }
+    },
+    'Temp_min_flor': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'OPTBI',
+                    'unid': 'C'
+                }
+            }
+        }
+    },
+    'Pend_desarroll_flor': {
+        'tomate': {
+            'DSSAT': {
+                'CROPGRO': {
+                    'tipo': 'ecotipo',
+                    'cód': 'SLOBI',
+                    'unid': ''
+                }
+            }
+        }
+    }
+}
 
 
 # Funciones necesarias para el manejo de diccionarios de ecuaciones y de parámetros
 def gen_ec_inic(d_ecs, inter=None, d=None):
     """
     Esta función toma un diccionario de especificaciones de parámetros de ecuaciones y lo convierte en un diccionario
-      de distribuciones iniciales.
+    de distribuciones iniciales.
 
     :param d_ecs: El diccionario de las especificaciones de parámetros para cada tipo de ecuación posible
-      Por ejemplo, ecs_orgs.
+    Por ejemplo, ``ecs_orgs``.
     :type d_ecs: dict
 
     :param inter: Un diccionario, si se aplica, de las interacciones con otras partes del modelo necesarios para
-      establecer las ecuaciones de manera correcta. Un ejemplo común sería el diccionario de las presas de una etapa
-      para establecer las ecuaciones de depredación.
+    establecer las ecuaciones de manera correcta. Un ejemplo común sería el diccionario de las presas de una etapa
+    para establecer las ecuaciones de depredación.
     :type inter: dict
 
-    :param d: Parámetro que siempre se debe dejar a "None" cuando de usa esta función. Está allí para permetir las
-      funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
+    :param d: Parámetro que siempre se debe dejar a ``None`` cuando de usa esta función. Está allí para permetir las
+    funcionalidades recursivas de la función (que le permite convertir diccionarios de estructura arbitraria).
     :type d: dict
 
     :return: Un diccionario, con la misma estructura que d_tipos_ecs pero con diccionarios de distribuciones de
-      parámetros ya iniciados con distribuciones no informativas.
+    parámetros ya iniciados con distribuciones no informativas.
     :rtype: dict
     """
 
