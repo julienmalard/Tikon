@@ -15,6 +15,14 @@ class Cultivo(Coso):
 
 
 class ModeloCultivo(Simulable):
+    """
+    Esta clase sirve para representar modelos de cultivos simulables.
+    """
+
+    def __init__(símismo, cultivo, variedad, programa=None, modelo=None):
+
+
+
     def _prep_obs_exper(símismo, exper):
         raise NotImplementedError  # Para hacer
 
@@ -44,3 +52,75 @@ class ModeloCultivo(Simulable):
 
     def _sacar_coefs_interno(símismo):
         raise NotImplementedError  # Para hacer
+
+
+mods_cult = {
+    'Maíz': {
+        'DSSAT': {
+            'IXIM': {
+                'Comanda': 'DSCSM046.EXE MZIXM046',
+                'Código cultivo': 'MZ'
+            },
+            'CERES': {
+                'Comanda': 'DSCSM046.EXE MZCER046',
+                'Código cultivo': 'MZ'
+            }
+        }
+    },
+    'Tomato': {
+        'DSSAT': {
+            'CROPGRO': {
+                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Código cultivo': 'TM'
+            }
+        }
+    },
+    'Frijol': {
+        'DSSAT': {
+            'CROPGRO': {
+                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Código cultivo': 'BN'
+            }
+        }
+    },
+    'Repollo': {
+        'DSSAT': {
+            'CROPGRO': {
+                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Código cultivo': 'CB'
+            }
+        }
+    },
+    'Papas': {
+        'DSSAT': {
+            'SUBSTOR': {
+                'Comanda': 'DSCSM046.EXE PTSUB046',
+                'Código cultivo': 'PT'
+            }
+        }
+    },
+    'Piña': {
+        'PIAL': {
+            'CROPGRO': {
+                'Comanda': 'MDRIV980.EXE MINPT980.EXE PIALO980.EXE I',
+                'Código cultivo': 'PI'
+            }
+        }
+    },
+    'Habas': {
+        'DSSAT': {
+            'CROPGRO': {
+                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Código cultivo': 'FB'
+            }
+        }
+    },
+    'Garbanzo': {
+        'DSSAT': {
+            'CROPGRO': {
+                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Código cultivo': 'CH'
+            }
+        }
+    }
+}

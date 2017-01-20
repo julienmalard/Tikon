@@ -5,7 +5,7 @@ import pymc
 from matplotlib import pyplot as dib
 from scipy import stats as estad
 
-from tikon.Matemáticas.NuevoIncert import texto_a_dist
+from tikon.Matemáticas.Incert import texto_a_dist
 
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,

@@ -6,7 +6,7 @@ import numpy as np
 import pymc
 import scipy.stats as estad
 
-import tikon.Matemáticas.NuevoIncert as Inc
+import tikon.Matemáticas.Incert as Inc
 
 """
 Un módulo de pruebas, un poco inelegante.
