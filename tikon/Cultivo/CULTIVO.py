@@ -5,7 +5,7 @@ from COSO import Simulable
 from Cultivo.Controles import dir_DSSAT
 from Cultivo.Controles import sacar_modelos_disp
 
-import tikon.Cultivo.MODELOS_EXTERNOS.DSSAT.DSSAT as DSSAT
+import tikon.Cultivo.ModExtern.DSSAT.DSSAT as DSSAT
 
 """
 Notar que un Cultivo no se inicia como una instancia de un COSO, porque solamente es un objecto intermediario
@@ -63,7 +63,7 @@ class Cultivo(Simulable):
             return "Modelo de cultivo no reconocido."
         
         símismo.proceso = subprocess.Popen(comanda,
-                                           shell=True,
+                                           # shell=True,
                                            stdin=subprocess.PIPE,
                                            stdout=subprocess.PIPE,
                                            cwd=carpeta,
