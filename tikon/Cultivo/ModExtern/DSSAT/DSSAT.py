@@ -1,13 +1,22 @@
 import datetime as ft
 import os
 
-from Cultivo.MODELOS_EXTERNOS.DSSAT.fileC import FileC
-from Cultivo.MODELOS_EXTERNOS.DSSAT.fileS import FileS
-from Cultivo.MODELOS_EXTERNOS.DSSAT.fileX import FileX
+from tikon.Cultivo.ModExtern.DSSAT.fileC import FileC
+from tikon.Cultivo.ModExtern.DSSAT.fileS import FileS
+from tikon.Cultivo.ModExtern.DSSAT.fileX import FileX
 
-from tikon.Cultivo.MODELOS_EXTERNOS.DSSAT.fileW import FileW
+from tikon.Cultivo.ModExtern.DSSAT.fileW import FileW
 
 
+def gen_ingr(directorio, cultivo, variedad, disuelo, meteo, manejo):
+    pass
+
+
+def leer_egr(directorio):
+    pass
+
+
+# Para hacer: borrar todo lo que sigue una vez no sea necesario.
 class Experimento(object):
     def __init__(símismo, carpeta, suelo, variedad, meteo, cultivo, manejo):
         símismo.directorio = carpeta  # Donde vamos a guardar las carpetas de ingreso y egreso de DSSAT
@@ -22,7 +31,7 @@ class Experimento(object):
         # Una función para convertir objetos TIKON de suelos, clima y variedades a objetos de documentos DSSAT
         def convertir(obj, documento_conv):
             conversiones = {}
-            with open(os.path.join(os.getcwd(), "Cultivo", 'MODELOS_EXTERNOS', documento_conv)) as d:
+            with open(os.path.join(os.getcwd(), "Cultivo", 'ModExtern', documento_conv)) as d:
                 doc = d.readlines()
 
             col = doc[0].replace("\n", "").split(',').index('DSSAT')
