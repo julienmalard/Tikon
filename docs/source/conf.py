@@ -153,12 +153,12 @@ else:
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
-# html_short_title = None
+html_short_title = 'Tiko\'n'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = u'Imágenes/LogoTikon.png'
+html_logo = u'Imágenes/Logo_Tikon.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
