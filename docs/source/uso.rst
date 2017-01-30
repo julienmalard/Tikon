@@ -1,8 +1,9 @@
-Cómo se emplea Tiko'n
-=====================
+Qué hacer con Tiko'n
+====================
 
 .. toctree::
    :maxdepth: 3
 
-   uso_igu
-   uso_api
+   uso_sencillo
+   uso_intenso
+   desarrollo_prof

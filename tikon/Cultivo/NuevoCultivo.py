@@ -158,7 +158,7 @@ class EnvolturaModCult(object):
             tx_daño_plagas.replace(c[0], c[1])
         
         # Agregar el paso
-        tx = 'paso: {};'.format(paso) + tx_daño_plagas
+        tx = 'paso: {}:'.format(paso) + tx_daño_plagas
 
         símismo.proceso.stdin.write(tx)  # Envía el estado de daño al modelo de cultivo
         símismo.proceso.stdin.flush()  # Una tecnicalidad obscura
