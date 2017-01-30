@@ -1,168 +1,228 @@
-import os
+import numpy as np
+import re
+import pkg_resources
 
-from tikon.Cultivo.Controles import dir_DSSAT
+from tikon.Matemáticas import Ecuaciones as Ec
 
 
-# Objeto para representar documentos de typo FILES de DSSAT (información de suelos)
-class FileS(object):
-    def __init__(símismo):
+# Un diccionario para convertir códigos de variables DSSAT a nombres de variables de Tiko'n
+DSSAT_a_Tikon = dict([(x['cód_DSSAT'], x) for x in Ec.ecs_suelo if 'cód_DSSAT' in x.keys()])
 
-        # Si no existe el documento de suelos especificos a Tikon, crearlo
-        if not os.path.isfile(os.path.join(dir_DSSAT, 'Soil', 'Python.sol')):
-            with open(os.path.join(dir_DSSAT, 'Soil', 'Python.sol'), 'w'):
-                pass
 
-        símismo.dic = {"ID_SOIL": [], "SLSOURCE": [], "SLTX": [], "SLDP": [], "SLDESCRIP": [],
-                       "SITE": [], "COUNTRY": [], "LAT": [], "LONG": [], "SCS": [], "SCOM": [], "SALB": [],
-                       "SLU1": [], "SLDR": [], "SLRO": [], "SLNF": [], "SLPF": [], "SMHB": [], "SMPX": [],
-                       "SMKE": [], "SLB": [], "SLMH": [], "SLLL": [], "SDUL": [], "SSAT": [], "SRGF": [],
-                       "SSKS": [], "SBDM": [], "SLOC": [], "SLCL": [], "SLSI": [], "SLCF": [], "SLNI": [],
-                       "SLHW": [], "SLHB": [], "SCEC": [], "SADC": [], "SLPX": [], "SLPT": [], "SLPO": [],
-                       "CACO3": [], "SLAL": [], "SLFE": [], "SLMN": [], "SLBS": [], "SLPA": [], "SLPB": [],
-                       "SLKE": [], "SLMG": [], "SLNA": [], "SLSU": [], "SLEC": [], "SLCA": []
-                       }
+def cargar_suelo(nombre, archivo):
+    """
+    Esta función carga la información de un suelo de un archivo en particular.
 
-        # Lista del tamaño (en carácteres) de cada variable
-        símismo.prop_vars = {
-            "ID_SOIL": 12, "SLSOURCE": 11, "SLTX": 5, "SLDP": 5, "SLDESCRIP": 50,
-            "SITE": 12, "COUNTRY": 11, "LAT": 8, "LONG": 8, "SCS": 50,
-            "SCOM": 5, "SALB": 5, "SLU1": 5, "SLDR": 5, "SLRO": 5, "SLNF": 5, "SLPF": 5, "SMHB": 5, "SMPX": 5,
-            "SMKE": 5, "SLB": 5, "SLMH": 5, "SLLL": 5, "SDUL": 5, "SSAT": 5, "SRGF": 5, "SSKS": 5, "SBDM": 5,
-            "SLOC": 5, "SLCL": 5, "SLSI": 5, "SLCF": 5, "SLNI": 5, "SLHW": 5, "SLHB": 5, "SCEC": 5, "SADC": 5,
-            "SLPX": 5, "SLPT": 5, "SLPO": 5, "CACO3": 5, "SLAL": 5, "SLFE": 5, "SLMN": 5, "SLBS": 5, "SLPA": 5,
-            "SLPB": 5, "SLKE": 5, "SLMG": 5, "SLNA": 5, "SLSU": 5, "SLEC": 5, "SLCA": 5
-        }
+    :param nombre: El nombre del suelo.
+    :type nombre: str
 
-    def leer(símismo, cod_suelo):
-        # Los datos de suelos están combinados, con muchos en la misma carpeta.
-        # Este programa primero verifica si se ubica el suelo en la carpeta "Python.sol".
-        # Si el suelo no se ubica allá, buscará en los otros documentos de la carpeta "DSSAT45/soil/"
+    :param archivo: El archivo en el cuál se ubica este suelo.
+    :type archivo: str
 
-        # Vaciar el diccionario
-        for i in símismo.dic:
-            símismo.dic[i] = []
+    :return: Un tuple de los diccionarios de información y de coeficientes del suelo.
+    :rtype: tuple[dict, dict]
 
-        def buscar_suelo(doc):
-            with open(doc, "r") as p:
-                doc = []
-                for línea in p:
-                    doc.append(línea)
-            for línea in doc:
-                if cod_suelo in línea:
-                    return True  # Si lo encontramos
-            return False  # Si no lo encontramos
+    """
 
-        # Primero, miremos en el documento "Python.sol"
-        directorio = os.path.join(dir_DSSAT, 'Soil', 'Python.sol')
-        encontrado = buscar_suelo(directorio)
-        if encontrado:
-            símismo.decodar(directorio, cod_suelo)
-        # Si no encontramos el suelo en el documento "Python.sol"...
-        if not encontrado:
-            documentos = []
-            for doc_suelo in os.listdir(os.path.join(dir_DSSAT, 'Soil')):
-                if doc_suelo.lower().endswith(".sol"):
-                    documentos.append(doc_suelo)
-            for documento in documentos:
-                directorio = os.path.join(dir_DSSAT, 'Soil', documento)
-                encontrado = buscar_suelo(directorio)
-                if encontrado:
-                    símismo.decodar(directorio, cod_suelo)
-                    break
+    # Abrir el archivo
+    with open(archivo) as d:
+        doc = d.readlines()
 
-        # Si no lo encontramos en ningún lado
-        if not encontrado:
-            return "Error: El código de suelo no se ubica en la base de datos de DSSAT."
+    # Una lista de tuples que indican dónde empieza y termina cada suelo
+    princ = next(i for i, l in enumerate(doc) if re.match(r'\*{}'.format(nombre), l))
+    fin = (princ + 1) + next(i for i, l in enumerate(doc[princ + 1:])
+                             if re.match(r'\n|\*[\w]{10}', l))
 
-    # Esta función automáticamente escribe los datos del suelo en el documento "Python.sol". No excepciones.
-    def escribir(símismo, cod_suelo):
-        if símismo.dic["ID_SOIL"] == "":
-            print('Falta un código de suelo para poder guardarlo.')
-            return
+    # Decodar la sección correspondiente del documento
+    _, info, coefs = decodar(doc[princ:fin])
 
-        def encodar(doc_suelo):
-            for n, línea_suelo in enumerate(doc_suelo):
-                l = n
-                texto = línea_suelo
-                if '{' in texto:   # Si la línea tiene variables a llenar
-                    # Leer el primer variable de la línea (para calcular el número de niveles de suelo más adelante)
-                    var = texto[texto.index("{")+2:texto.index("]")]
-                    copia = texto   # Copiar la línea vacía (en caso que hayan otras líneas que agregar)
-                    for k, a in enumerate(símismo.dic[var]):    # Para cada nivel del perfil del suelo
-                        l += 1
-                        texto = texto.replace('[', '').replace("]", "[" + str(k) + "]")
-                        try:
-                            texto = texto.format(**símismo.dic)
-                            doc_suelo.insert(l, texto)
-                        except IndexError:
-                            pass
+    # Devolver el diccionario del suelo
+    return info, coefs
 
-                        texto = copia  # Reinicializar "texto"
-                    doc_suelo.remove(copia)
-            return doc_suelo
 
-        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
-            if not len(símismo.dic[i]):
-                símismo.dic[i] = ["-99"]
+def cargar_suelos_doc(archivo):
+    """
+    Esta función carga todos los suelos presentes en un documento de suelos.
 
-        with open("FILES.txt", "r") as d:    # Abrir el esquema general para archivos FILES
-            esquema = []
-            for línea in d:
-                esquema.append(línea)
-        esquema.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
+    :param archivo: El documento de suelos.
+    :type archivo: str
 
-        esquema = encodar(esquema)
-        esquema = ''.join(esquema)  # Lo que tenemos que añadir a la carpeta Python.sol
+    :return: Un tuple de listas con los nombres, los diccionarios de información y los diccionarios de coeficientes
+    de los suelos.
+    :rtype: tuple[list[str], list[dict], list[dict]]
 
-        # Salvar la carpeta FILES en Python.sol
-        with open(os.path.join(dir_DSSAT, 'Soil', 'Python.sol'), "r+") as d:
-            doc_final = d.readlines()
-            for j, i in enumerate(doc_final):  # Quitar las líneas vacías iniciales
-                if i == '\n':
-                    del doc_final[j]
-                else:
-                    break
-            for i, línea in enumerate(doc_final):
-                if cod_suelo in línea:
-                    prin = doc_final.index(línea)
-                    fin = doc_final.index("\n", prin)
-                    del doc_final[prin:fin]
-                    break
-            doc_final.append(esquema)
-            d.seek(0)
-            d.truncate()  # Borrar el documento
-            d.write(''.join(doc_final))
+    """
 
-    # Esta funcción convierte una suelo de un documento FILES en diccionario Python.
-    def decodar(símismo, doc, suelo):
-        # Encuentra la ubicación del principio y del fin de cada sección
-        prin = fin = None
-        for línea in doc:
-            if "*" in línea and suelo in línea:
-                prin = doc.index(línea)  # Empezamos a la línea con "*" y el código del suelo
-                fin = doc.index("\n", prin)  # Y terminamos donde hay una línea vacía
-                break
+    with open(archivo) as d:
+        doc = d.readlines()
 
-        if prin is not None:  # Si existe el suelo
-            for línea, texto in enumerate(doc[prin:fin-1], start=prin):
-                if "@" in texto or "*" in texto:
-                    if "@" not in texto:  # Para la primera línea
-                        variables = ['ID_SOIL', 'SLSOURCE', 'SLTX', 'SLDP', 'SLDESCRIP']
-                        núm_lin = línea
-                    else:
-                        variables = texto.replace('@', '').split()
-                        # Empezamos a leer los valores en la línea que sigue los nombres de los variables
-                        núm_lin = línea + 1
-                    if "FAMILY" in variables:
-                        variables.pop(len(variables)-1)
+    # Una lista de tuples que indican dónde empieza y termina cada suelo
+    índs_sl = [(n, (n + 1) + next(i for i, l_s in enumerate(doc[n + 1:]) if re.match('\n|\*[\w]{10}', l_s)))
+               for n, l in enumerate(doc) if re.match(r'\*[\w\d_]{10}', l)]
 
-                    # Mientras no llegamos a la próxima línea de nombres de variables o el fin de la sección
-                    while "@" not in doc[núm_lin] and len(doc[núm_lin].replace('\n', '')) > 0:
-                        valores = doc[núm_lin].replace('\n', '')
-                        for j, var in enumerate(variables):
-                            if var in símismo.dic:
-                                valor = valores[:símismo.prop_vars[var]+1].replace('*', '').strip()
-                                símismo.dic[var].append(valor)
-                                valores = valores[símismo.prop_vars[var]+1:]
-                        núm_lin += 1
+    # Listas para guardar los nombres de los suelos y sus coeficientes e inforamción
+    l_dics_coefs = []
+    l_dics_info = []
+    l_nombres = []
 
+    for u in índs_sl:
+        # Decodar cada suelo en el documento
+        nombre, dic_info, dic_coefs = decodar(doc[u[0]:u[1]])
+
+        # Agregar el nombre y los parámetros del suelo a las listas respectivas
+        l_nombres.append(nombre)
+        l_dics_info.append(dic_info)
+        l_dics_coefs.append(dic_coefs)
+
+    # Devolver la lista de los nombres y la lista de los diccionarios de parámetros de los suelos
+    return l_nombres, l_dics_info, l_dics_coefs
+
+
+def decodar(doc_suelo):
+    """
+    Esta función decoda las líneas de un documento de suelos que corresponden a un suelo en particular.
+
+    :param doc_suelo: Una lista de las líneas correspondiendo a un suelo en un archivo DSSAT.
+    :type doc_suelo: list[str]
+
+    :return: Un tuple con el nombre y los diccionarios de información y de coeficientes del suelo.
+    :rtype: tuple[str, dict, dict]
+
+    """
+
+    # El diccionario para contener los valores leídos del documento
+    dic_dssat = {}
+
+    # Sacar el nombre y unos variables individuales de la primera línea
+    info = {}
+
+    l_1 = doc_suelo[0].replace('\n', '')
+    nombre = l_1[1:11]
+
+    info['fuente'] = l_1[13:24].strip()
+    info['textura'] = l_1[25:30].strip()
+    info['descrip'] = l_1[37:].strip()
+
+    dic_dssat['profund'] = l_1[31:36].strip()
+
+    # Una lista de tuples de las ubicaciones de las varias secciones de variables en el documento de suelo
+    índ_sec_suelo = [(n, (n + 1) + next((i for i, l_s in enumerate(doc_suelo[n + 1:])
+                                         if re.match('@', l_s)), len(doc_suelo)))
+                     for n, l in enumerate(doc_suelo) if re.match(r'@', l)]
+
+    # Decodar cada sección del documento
+    for n, ubic_vars in enumerate(índ_sec_suelo):
+
+        # Leer la lista de códigos de variables (para hacer: arreglar)
+        l_vars_dssat = [x.strip() for x in doc_suelo[ubic_vars[0]].replace('@', '').replace('\n', '').split()]
+
+        # Las ubicaciones de los valores en la lista de valores
+        ubic_vals = np.array([0] + [Ec.ecs_suelo[DSSAT_a_Tikon[v]['tmñ_DSSAT']] for v in l_vars_dssat]).cumsum()
+
+        # Crear las llaves necesarias en el diccionario de valores DSSAT
+        for var in l_vars_dssat:
+            dic_dssat[var] = []
+
+        # Leer el valor de cada línea de los variables
+        for l in doc_suelo[ubic_vars[0] + 1:ubic_vars[1]]:
+            vals = [float(l[u:ubic_vals[n + 1]]) for n, u in enumerate(ubic_vals[:-1])]
+
+            for n_v, var in enumerate(l_vars_dssat):
+                dic_dssat[var].append(vals[n_v])
+
+    # El diccionario final del suelo
+    coefs = {}
+
+    # Convertir los códigos de variables DSSAT a nombres de variables Tiko'n
+    for var_DSSAT, val in dic_dssat:
+        try:
+            var = DSSAT_a_Tikon[var_DSSAT]
+            coefs[var] = dic_dssat[var]
+        except KeyError:
+            pass
+
+    # Convertir listas a números o a matrices numpy, según sus dimensiones.
+    for var, val in coefs.items():
+
+        # Detectar valores que faltan
+        val = np.array(val)
+        val[val == -99] = np.nan
+
+        # Convertir matrices de únicamente un número a un valor numérico
+        if len(val) == 1:
+            coefs[var] = val[0]
+
+    # Devolver el diccionario decodado
+    return nombre, info, coefs
+
+
+def escribir(archivo, nombre, dic, borrar=False):
+    """
+
+    :param archivo:
+    :type archivo:
+
+    :param nombre:
+    :type nombre:
+
+    :param dic:
+    :type dic:
+
+    :param borrar:
+    :type borrar:
+
+    """
+
+    ubic_plantilla = pkg_resources.resource_filename('tikon.Cultivo.ModExtern.DSSAT', 'FILES.txt')
+
+    # Abrir la plantilla general.
+    with open(ubic_plantilla, 'r') as d:
+        plantilla = d.readlines()
+
+    # Las nuevas líneas que hay que agregar al documento
+    nuevas_líneas = []
+
+    for l in plantilla:
+        # Para cada línea en la plantilla...
+
+        if re.match('@', l):
+            # Si es una línea con nombres de variables...
+            nuevas_líneas.append(l)
+            l_vars = [x.strip() for x in l.replace('@', '').replace('\n', '').split()]
+
+        else:
+            # El número de niveles de los variables en esta sección
+            n_niveles = len(dic[l_vars[0]])
+
+            # Agregar una nueva línea para cada nivel
+            for i in range(n_niveles):
+                # Para cada nivel...
+
+                # Hacer un diccionario con los valores del nivel
+                dic = dict([(Ec.ecs_suelo[v]['cód_DSSAT'], dic[v][i] if dic[v][i] != np.nan else -99) for v in l_vars])
+
+                # Agregar la línea formateada con los valores
+                nuevas_líneas.append(l.format(dic))
+
+    # Guardar el documento
+    if borrar:
+        with open(archivo, "w") as d:
+            d.write(''.join(nuevas_líneas))
+    else:
+
+        with open(archivo, "r+") as d:
+            doc = d.readlines()
+
+        try:
+            ubic_suelo = [(n, (n + 1) + next(i for i, l_s in enumerate(doc[n + 1:]) if re.match('\n|\*[\w]{10}', l_s)))
+                          for n, l in enumerate(doc) if re.match(r'\*{}'.format(nombre), l)]
+        except StopIteration:
+            ubic_suelo = None
+
+        if ubic_suelo is not None:
+            doc[ubic_suelo[0]:ubic_suelo[1]] = []
+
+        doc += nuevas_líneas
+
+        with open(archivo, 'w') as d:
+            d.write(''.join(doc))

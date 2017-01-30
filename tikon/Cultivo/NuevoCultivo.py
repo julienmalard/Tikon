@@ -123,19 +123,20 @@ class EnvolturaModCult(object):
 
     def empezar_simul(símismo):
 
-        símismo.proceso = subprocess.Popen(símismo.comanda,
-                                           # shell=True,
-                                           stdin=subprocess.PIPE,
-                                           stdout=subprocess.PIPE,
-                                           cwd=símismo.dir,
-                                           universal_newlines=True
-                                           )
+        símismo.proceso = subprocess.Popen(
+            símismo.comanda,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            cwd=símismo.dir,
+            universal_newlines=True
+        )
 
-    def incrementar(símismo, paso, daño_plagas):
+    def incrementar(símismo, paso, daño_plagas=None):
         """
 
         :param paso:
         :type paso: int
+
 
         :param daño_plagas:
         :type daño_plagas: dict
@@ -145,8 +146,10 @@ class EnvolturaModCult(object):
         # Convertir el diccionario de daño de plagas al formato texto (para ingresar en la línea de comanda)
         # El diccionario debe tener el formato siguiente: daño_plagas = dict(daño_hojas = (), daño_raíces = (),
         # daño_tallo = (), daño_semillas = (), daño_frutas = (), daño_asim = ()}
-        
-        tx_daño_plagas = ''.join(['{}: {};'.format(nmb, dñ) for nmb, dñ in daño_plagas.items()])
+        if daño_plagas is None:
+            tx_daño_plagas = ''
+        else:
+            tx_daño_plagas = ''.join(['{}: {};'.format(nmb, dñ) for nmb, dñ in daño_plagas.items()])
 
         # Para compatibilidad con FORTRAN (el modelo de cultivos DSSAT) y probablemente C++ también:
         conv_utf = [("ñ", "n"), ("í", "i"), ('é', 'e'), ('á', 'a'), ('ó', 'o'), ('ú', 'u'), ('Á', 'A'), ('É', 'E'),

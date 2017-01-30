@@ -6,19 +6,21 @@ from tikon.Matemáticas.Incert import límites_a_texto_apriori
 class Organismo(Coso):
     """
     Esta clase representa cualquier organismo vivo en una red agroecológica.: insectos, agentes de
-       enfermedad, etc. Maneja las ecuaciones y bases de datos de distribuciones probabilísticas para sus parámetros.
+    enfermedad, etc. Maneja las ecuaciones y bases de datos de distribuciones probabilísticas para sus parámetros.
+
     Esta clase se llama directamente muy rara vez, porque se llama más facilmente por el uso de una de sus subclases
-      (Insecto, Enfermedad, etc.). Hablando de subclases, puedes crear más subclases o sub-sub clases si te da las
-      ganas. Por ejemplo, hay subclases de "Insecto" para la mayoría de los ciclos de vida posibles para insectos
-      (Metamórfosis Completa, Metamórfosis Incompleta, etc.) y hacia sub-subclases de estas, si quieres.
-      Un ejemplo de algo que podrías añadir sería una sub-subclase de "Sencillo" para pulgones, o sub-clases de
-      Enfermedades para distintos tipos de enfermedades (enfermedades de insectos, enfermedades de hojas, de raíces,
-      etc.) (¡Marcela!) :)
+    (Insecto, Enfermedad, etc.). Hablando de subclases, puedes crear más subclases o sub-sub clases si te da las
+    ganas. Por ejemplo, hay subclases de "Insecto" para la mayoría de los ciclos de vida posibles para insectos
+    (Metamórfosis Completa, Metamórfosis Incompleta, etc.) y hacia sub-subclases de estas, si quieres.
+    Un ejemplo de algo que podrías añadir sería una sub-subclase de "Sencillo" para pulgones, o sub-clases de
+    Enfermedades para distintos tipos de enfermedades (enfermedades de insectos, enfermedades de hojas, de raíces,
+    etc.) (¡Marcela!) :)
+
     Una cosa importante: si quieres crear una nueva subclase, sub-subclase, sub-sub-subclase (no importa), y quieres
-      que la clase tenga métodos (fundiones) propias DISTINTAS de los métodos yá implementados en Organismo aquí,
-      (por ejemplo, un método de .parasita() para parasitoides), tendrás que especificar un tipo de extensión de
-      archivo único para tu clase (p.ej., '.ins' para Insecto) para que el módulo de Redes pueda distinguir archivos
-      guardados específicos a tu nueva clase.
+    que la clase tenga métodos (fundiones) propias DISTINTAS de los métodos yá implementados en Organismo aquí,
+    (por ejemplo, un método de .parasita() para parasitoides), tendrás que especificar un tipo de extensión de
+    archivo único para tu clase (p.ej., '.ins' para Insecto) para que el módulo de Redes pueda distinguir archivos
+    guardados específicos a tu nueva clase.
 
     """
 
@@ -335,6 +337,51 @@ class Organismo(Coso):
         # Los parámetros de interacciones con la antigua presa se quedan la receta del organismo para uso futuro
         # potencial.
 
+    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre, org_inter=None, etp_inter=None,
+                            dibujar=False):
+        """
+        Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
+
+        :param etapa: La etapa de este ORganismo a la cual hay que aplicar este a priori.
+        :type etapa: str
+
+        :param ubic_parám: Una lista de las llaves que traerán uno a través del diccionario de coeficientes del
+        Organismo hasta el parámetro de interés.
+        :type ubic_parám: list
+
+        :param rango: El rango a cuál queremos limitar el parámetro
+        :type rango: tuple
+
+        :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
+        :type certidumbre: float
+
+        :param org_inter: El nombre de otro organismo con el cual interactúa este Coso para este variable.
+        :type org_inter: str
+
+        :param etp_inter: La etapa del organismo con el cual interactua este.
+        :type etp_inter: str
+
+        :param dibujar: Si queremos dibujar el resultado o no.
+        :type dibujar: bool
+
+
+        """
+
+        dic_parám = símismo.receta['coefs'][etapa]
+        dic_ecs = símismo.dic_ecs
+
+        if org_inter is None:
+            if dic_ecs['inter'] is not None:
+                raise ValueError('Hay que especificar el organismo de interacción para parámetros con interacciones.')
+        else:
+            if etp_inter is None:
+                raise ValueError('Hay que especificar la etapa del organismo de interacción.')
+
+        inter = [org_inter, etp_inter]
+
+        símismo._estab_a_priori(dic_ecs=dic_ecs, dic_parám=dic_parám, ubic_parám=ubic_parám,
+                                rango=rango, certidumbre=certidumbre, inter=inter, dibujar=dibujar)
+
     def _sacar_coefs_interno(símismo):
         """
         Ver la documentación de Coso.
@@ -369,20 +416,20 @@ class Organismo(Coso):
 
                         inters = dic_info_paráms[parám]['inter']
                         if inters is None:
-                            # Si no hay interacciones, guardamos el diccionario como está.
-                            dic_coefs = [dic]
+                            # Si no hay interacciones, guardamos el diccionario así como es.
+                            l_coefs = [dic]
 
                         elif type(inters) is list:
-                            dic_coefs = []
+                            l_coefs = []
                             for tipo_inter in inters:
                                 for org_inter, lista_etps_inter in símismo.config[etp['nombre']][tipo_inter].items():
                                     for etp_inter in lista_etps_inter:
-                                        dic_coefs.append(dic[org_inter][etp_inter])
+                                        l_coefs.append(dic[org_inter][etp_inter])
 
                         else:
                             raise ValueError
 
-                        lista_coefs += dic_coefs
+                        lista_coefs += l_coefs
 
         return lista_coefs
 

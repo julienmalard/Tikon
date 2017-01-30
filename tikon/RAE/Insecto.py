@@ -106,7 +106,7 @@ class Sencillo(Insecto):
     def __init__(símismo, nombre, proyecto=None):
         """
         Esta clase representa insectos con ciclos de vida sencillos (para cuales sólo se incluye la etapa adulta en el
-          modelo).
+        modelo).
 
         :param nombre: El nombre del insecto
         :type nombre: str

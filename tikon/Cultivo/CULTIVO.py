@@ -63,7 +63,7 @@ class Cultivo(Simulable):
             return "Modelo de cultivo no reconocido."
         
         símismo.proceso = subprocess.Popen(comanda,
-                                           # shell=True,
+                                           shell=True,
                                            stdin=subprocess.PIPE,
                                            stdout=subprocess.PIPE,
                                            cwd=carpeta,

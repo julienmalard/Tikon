@@ -6,13 +6,13 @@ import time
 import warnings as avisar
 from datetime import datetime as ft
 
-from tikon.Matemáticas import Incert as Incert
 import numpy as np
 import pymc
-from tikon.Matemáticas.Experimentos import Experimento
 
 from tikon.Controles import directorio_base
+from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes
+from tikon.Matemáticas.Experimentos import Experimento
 
 
 class Coso(object):
@@ -48,10 +48,11 @@ class Coso(object):
         """
 
         # En 'coefs', ponemos todos los coeficientes del modelo (se pueden organizar en diccionarios). En 'estr',
-        # pondremos la información estructural del modelo.
+        # pondremos la información estructural del modelo. En 'info', se pone información adicional del Coso.
 
         símismo.receta = dict(coefs={},
-                              estr={}
+                              estr={},
+                              info={}
                               )
 
         # Acordarse de dónde vamos a guardar este Coso
@@ -72,98 +73,40 @@ class Coso(object):
         if proyecto:
             símismo.fuente = os.path.join(proyecto, símismo.nombre + símismo.ext)
 
-    def especificar_apriori(símismo, etapa, ubic_parám, rango, certidumbre, org_inter=None, etp_inter=None,
-                            dibujar=False):
-        # Para hacer: ¿implementar "etapa" en Organismo?
+    def especificar_apriori(símismo, **kwargs):
         """
-        Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
+        Esta función permite al usuario especificar una distribución especial para el a priori de un parámetro.
 
-        :param etapa: La etapa de este Coso a la cual hay que aplicar este a priori.
-        :type etapa: str
-
-        :param ubic_parám: Una lista de las llaves que traerán uno a través del diccionario de coeficientes del Coso
-          hasta el parámetro de interés.
-        :type ubic_parám: list
-
-        :param rango: El rango a cuál queremos limitar el parámetro
-        :type rango: tuple
-
-        :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
-        :type certidumbre: float
-
-        :param org_inter: El nombre de otro organismo con el cual interactúa este Coso para este variable.
-        :type org_inter: str
-
-        :param etp_inter: La etapa del organismo con el cual interactua este.
-        :type etp_inter: str
-
-        :param dibujar: Si queremos dibujar el resultado o no.
-        :type dibujar: bool
+        :param kwargs: Argumentos específicos a la instancia del Coso.
 
         :return: La distribución generada.
-        :rtype:str
+        :rtype: str
+
+        """
+        raise NotImplementedError
+
+    def guardar_especificados(símismo, nombre_dist='dist_especificada'):
+        """
+        Esta función guarda los valores de distribuciones especificadas bajo un nuevo nombre. Esto permite, después,
+        guardar y cargar el Coso sin perder las distribuciones especificadas, que son normalmente temporarias.
+
+        :param nombre_dist: El nombre de la distribución.
+        :type nombre_dist: str
 
         """
 
-        # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
-        if certidumbre > 1:
-            avisar.warn('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
-                        'porcentaje.')
-            certidumbre /= 100
+        # Cambiar el nombre de las distribuciones especificadas en el diccionario de coeficientes.
+        renombrar_dist(símismo.receta['coefs'], nombre_ant='especificado', nombre_nuevo=nombre_dist)
 
-        # Asegurarse de que "certidumbre" esté entre 0 y 1
-        if not 0 < certidumbre <= 1:
-            raise ValueError('El parámetro "certidumbre" debe ser un número en el rango (0, 1].')
-
-        dic_parám = símismo.receta['coefs'][etapa]
-        dic_ecs = símismo.dic_ecs
-
-        # Encontrar la ubicación del parámetro en el diccionario de especificaciones de parámetros y en el diccionario
-        # de ecuaciones del Coso.
-        for llave in ubic_parám:
-            try:
-                dic_parám = dic_parám[llave]
-                dic_ecs = dic_ecs[llave]
-            except KeyError:
-                raise KeyError('Ubicación de parámetro erróneo.')
-
-        # Sacar las límites teoréticas de la distribución.
-        try:
-            líms = dic_ecs['límites']
-        except KeyError:
-            raise KeyError('Ubicación de parámetro erróneo.')
-
-        if org_inter is None:
-            if dic_ecs['inter'] is not None:
-                raise ValueError('Hay que especificar el organismo de interacción para parámetros con interacciones.')
-
-        else:
-            if etp_inter is None:
-                raise ValueError('Hay que especificar la etapa del organismo de interacción.')
-
-            if org_inter not in dic_parám:
-                dic_parám[org_inter] = {}
-
-            if etp_inter not in dic_parám[org_inter]:
-                dic_parám[org_inter][etp_inter] = {}
-
-            dic_parám = dic_parám[org_inter][etp_inter]
-
-        texto_dist = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
-                                               cont=True)  # para hacer: parámetros discretos
-        dic_parám['especificado'] = texto_dist
-
-        if dibujar:
-            tikon.Matemáticas.Arte.graficar_dists([texto_dist], rango=rango)
-
-        return texto_dist
-
-    def guardar(símismo, archivo=None, iterativo=True):
+    def guardar(símismo, archivo=None, especificados=False, iterativo=True):
         """
         Esta función guarda el Coso para uso futuro.
 
         :param archivo: Donde hay que guardar el Coso
         :type archivo: str
+
+        :param especificados: Si hay que guardar los valores especificados o no. En general, NO es buena idea.
+        :type especificados: bool
 
         :param iterativo: Si también vamos a guardar todos los objetos vinculado con este (por ejemplo, todos los
           insectos vinculados con una Red).
@@ -178,6 +121,10 @@ class Coso(object):
             else:
                 # Si no hay archivo existente, tenemos un problema.
                 raise FileNotFoundError('Hay que especificar un archivo para guardar el objeto.')
+
+        # Si hay que guardar los especificados, hacerlo ahora.
+        if especificados:
+            símismo.guardar_especificados()
 
         # Si necesario, agregar la ubicación del directorio Proyectos de Tiko'n
         if not os.path.splitdrive(archivo)[0]:
@@ -227,6 +174,78 @@ class Coso(object):
             # Convertir listas a matrices numpy en las ecuaciones (coeficientes)
             dic_lista_a_np(símismo.receta['coefs'])
 
+    @staticmethod
+    def _estab_a_priori(dic_ecs, dic_parám, ubic_parám, rango, certidumbre, dibujar, inter=None):
+        """
+        Esta función implementa una distribución a priori en el diccionario especificado. Se llama desde la
+        implementación local de especificar_apriori.
+
+        :param dic_ecs: El diccionario de información de los parámetros de las ecuaciones.
+        :type dic_ecs: dict
+
+        :param dic_parám: El diccionario de parámetros (él que hay que modificar).
+        :type dic_parám: dict
+
+        :param ubic_parám: Una lista con la ubicación del parámetro en dic_parám.
+        :type ubic_parám: list
+
+        :param rango: El rango de la distribución.
+        :type rango: tuple
+
+        :param certidumbre: La probabilidad que el valor verdadero se encuentre en el rango especificado.
+        :type certidumbre: float
+
+        :param dibujar: Si queremos dibujar el resultado o no.
+        :type dibujar: bool
+
+        :param inter: Una lista anidada de interacciones (opcional).
+        :type inter: list
+
+        """
+
+        # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
+        if certidumbre > 1:
+            avisar.warn('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
+                        'porcentaje.')
+            certidumbre /= 100
+
+        # Asegurarse de que "certidumbre" esté entre 0 y 1
+        if not 0 < certidumbre <= 1:
+            raise ValueError('El parámetro "certidumbre" debe ser un número en el rango (0, 1].')
+
+        # Encontrar la ubicación del parámetro en el diccionario de especificaciones de parámetros y en el diccionario
+        # de ecuaciones del Coso.
+        for llave in ubic_parám:
+            try:
+                dic_parám = dic_parám[llave]
+                dic_ecs = dic_ecs[llave]
+            except KeyError:
+                raise KeyError('Ubicación de parámetro erróneo.')
+
+        # Sacar las límites teoréticas de la distribución.
+        try:
+            líms = dic_ecs['límites']
+        except KeyError:
+            raise KeyError('Ubicación de parámetro erróneo.')
+
+        texto_dist = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
+                                               cont=True)
+
+        # Si hay interacciones, buscar
+        if inter is not None:
+            for i in inter:
+                if i not in dic_parám:
+                    dic_parám[i] = {}
+
+                dic_parám = dic_parám[i]
+
+        # Guardar la distribución en el diccionario de parámetros
+        dic_parám['especificado'] = texto_dist
+
+        # Si necesario, dibujar y mostrar la nueva distribución.
+        if dibujar:
+            Arte.graficar_dists([texto_dist], rango=rango)
+
     def _sacar_coefs_interno(símismo):
         """
         Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
@@ -248,7 +267,7 @@ class Coso(object):
     def _sacar_líms_coefs_interno(símismo):
         """
         Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
-          calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+        calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
 
         :return: Un tuple, conteniendo:
           1. Una lista de diccionarios de coeficientes, con el formato siguiente:
@@ -290,7 +309,7 @@ class Simulable(Coso):
         # Añadir Calibraciones a la receta del Simulable. Este únicamente guarda la información sobre cada calibración.
         #   (Los resultados de las calibraciones se guardan en "coefs".
         if 'Calibraciones' not in símismo.receta:
-            símismo.receta['Calibraciones'] = {'0': "A prioris no informativos generados automáticamente por TIKO'N."}
+            símismo.receta['Calibraciones'] = {'0': "A prioris no informativos generados automáticamente por Tiko'n."}
 
         # Indica si el Simulable está listo para una simulación.
         símismo.listo = False
@@ -1134,8 +1153,8 @@ class Simulable(Coso):
 
             título = ':'.join(ubic[1:-1])
 
-            tikon.Matemáticas.Arte.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
-                                                  título=título, archivo=archivo)
+            Arte.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
+                                título=título, archivo=archivo)
 
 
 def dic_lista_a_np(d):
@@ -1172,16 +1191,16 @@ def dic_lista_a_np(d):
 def prep_json(d, d_egr=None):
     """
     Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
-      de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
-      quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
-      no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
-      pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
+    de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
+    quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
+    no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
+    pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
 
     :param d: El diccionario para convertir
     :type d: dict
 
     :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
-      se llama esta función)
+    se llama esta función)
     :type: dict
 
     """
@@ -1218,6 +1237,41 @@ def prep_json(d, d_egr=None):
             d_egr.pop(ll)
 
     return d_egr
+
+
+def renombrar_dist(d, nombre_ant, nombre_nuevo):
+    """
+    Esta función cambia el nombre de una distribución en un diccionario de coeficientes.
+
+    :param d: El diccionario de coeficientes.
+    :type d: dict
+
+    :param nombre_ant: El nombre actual de la distribución.
+    :type nombre_ant: str
+
+    :param nombre_nuevo: El nuevo nombre de la distribución.
+    :type nombre_nuevo: str
+
+    """
+
+    # Para cada itema (llave, valor) del diccionario
+    for ll, v in d.items():
+
+        if type(v) is dict:
+
+            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+            renombrar_dist(v, nombre_ant=nombre_ant, nombre_nuevo=nombre_nuevo)
+
+        elif type(v) is str:
+
+            # Cambiar el nombre de la llave
+            if ll == nombre_ant:
+
+                # Crear una llave con el nuevo nombre
+                d[nombre_nuevo] = d[ll]
+
+                # Quitar el viejo nombre
+                d.pop(ll)
 
 
 def generar_aprioris(clase):
