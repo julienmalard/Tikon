@@ -1,19 +1,108 @@
 import datetime as ft
+import glob
+import numpy as np
 import os
+import re
 
-from tikon.Cultivo.ModExtern.DSSAT.fileC import FileC
-from tikon.Cultivo.ModExtern.DSSAT.fileS import FileS
-from tikon.Cultivo.ModExtern.DSSAT.fileX import FileX
-
-from tikon.Cultivo.ModExtern.DSSAT.fileW import FileW
+from tikon.Cultivo.ModExtern.DSSAT import fileC, fileS, fileX, fileW
+import tikon.Controles as Ctrl
+from tikon.Cultivo.Suelo import Suelo
 
 
-def gen_ingr(directorio, cultivo, variedad, disuelo, meteo, manejo):
-    pass
+def gen_ingr(nombre, cultivo=None, suelo=None, meteo=None, manejo=None):
+
+    fileC.escribir(nombre, cultivo)
+    fileS.escribir(nombre, suelo)
+    fileX.escribir(nombre, manejo, cultivo=nombre, suelo=nombre, meteo=nombre)
+    fileW.escribir(nombre, meteo)
 
 
 def leer_egr(directorio):
+    ['ET', 'Evaluate', 'Mulch', 'PlantGro', 'PlantN', 'SoilNi', 'SoilOrg', 'SoilTemp', 'SoilWat', 'Weather']
+
+
+def leer_datos_egr(d, dic_vars, ):
+    """
+
+    :param d:
+    :type d:
+    :return:
+    :rtype:
+
+    """
+
+    with open(d, 'r', encoding='UTF-8') as d:
+
+        l_vars = next(x for x in d.readline() if re.match('@', x))
+
+
     pass
+
+
+def importar_suelo(archivo, nombre):
+    """
+    Esta función importa un suelo DSSAT en particular.
+
+    :param archivo: El archivo donde se ubica el suelo.
+    :type archivo: str
+
+    :param nombre: El nombre del suelo.
+    :type nombre: str
+
+    :return: El objeto de suelo Tiko'n correspondiendo al document DSSAT.
+    :rtype: Suelo
+
+    """
+
+    # Si no se especificó una dirección absoluta, suponer que se ubica en el directorio de DSSAT.
+    if not len(os.path.splitdrive(archivo)[0]):
+        archivo = os.path.join(Ctrl.dir_DSSAT, archivo)
+
+    # Si no había extensión, agregarla ahora.
+    if not len(os.path.splitext(archivo)[1]):
+        archivo += '.SOL'
+
+    # Cargar el diccionario de coeficientes del suelo
+    dic_info, dic_coefs = fileS.cargar_suelo(nombre=nombre, archivo=archivo)
+
+    # Crear el objeto de suelo
+    suelo = Suelo(nombre=nombre, proyecto='Suelos DSSAT')
+
+    # Guardar la información del suelo
+    suelo.receta['info'].update(dic_info)
+
+    # Guardar estos coeficientes como parámetros sin incertidumbre
+    for ll, v in dic_coefs.items:
+        suelo.especificar_apriori(rango=(v, v), certidumbre=1)
+
+    # Devolver el objeto de suelo
+    return suelo
+
+
+def importar_todos_suelos(directorio=os.path.join(Ctrl.dir_DSSAT, 'Soil')):
+    """
+    Esta función importa todos los suelos disponibles en DSSAT.
+
+    :param directorio: El directorio del cual hay que importar los suelos.
+    :type directorio: str
+
+    """
+
+    l_archivos = glob.glob('{}/**/*.SOL'.format(directorio), recursive=True)
+
+    for a in l_archivos:
+        l_nombres, l_d_info, l_d_coefs = fileS.cargar_suelos_doc(archivo=a)
+
+        for n, dic in enumerate(l_d_coefs):
+
+            suelo = Suelo(nombre=l_nombres[n], proyecto='Suelos DSSAT')
+
+            suelo.receta['info'].update(l_d_info)
+
+            for ll, v in dic.items:
+                suelo.especificar_apriori(rango=(v, v), certidumbre=1)
+
+            suelo.guardar(especificados=True)
 
 
 # Para hacer: borrar todo lo que sigue una vez no sea necesario.

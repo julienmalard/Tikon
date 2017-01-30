@@ -44,7 +44,7 @@ class Red(Simulable):
         super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
 
         # La información necesaria para recrear la Red
-        símismo.receta['estr'] = dict(Organismos={})
+        símismo.receta['estr']['Organismos'] ={}
 
         # Unas referencias internas para facilitar el manejo de la red.
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red

@@ -561,7 +561,7 @@ def validar(matr_predic, vector_obs):
     :type vector_obs: np.ndarray
 
     :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
-      exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
+    exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
     :rtype: (float, float, float)
     """
 

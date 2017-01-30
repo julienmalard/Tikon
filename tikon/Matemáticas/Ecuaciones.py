@@ -318,14 +318,206 @@ ecs_orgs = {
 }
 
 
+ecs_suelo = {
+    'profund': {'límites': (0, np.inf),
+                'unid': 'cm',
+                'cód_DSSAT': 'SLDP',
+                'tmñ_DSSAT': 5},
+    'albedo': {'límites': (0, 1),
+               'unid': None,
+               'cód_DSSAT': 'SALB',
+               'tmñ_DSSAT': 5
+               },
+    'límite_evap': {'límites': (0, np.inf),
+                    'unid': 'cm',
+                    'cód_DSSAT': 'SLU1',
+                    'tmñ_DSSAT': 5
+                    },
+    'taza_drenaje': {'límites': (0, 1),
+                     'unid': 'día -1',
+                     'cód_DSSAT': 'SLDR',
+                     'tmñ_DSSAT': 5
+                     },
+    'factor_drenaje_SCS': {'límites': (30, 100),
+                           'unid': None,  # Verificar las unidades
+                           'cód_DSSAT': 'SLDR',
+                           'tmñ_DSSAT': 5
+                           },
+    'factor_mineral': {'límites': (0, 1),
+                       'unid': None,
+                       'cód_DSSAT': 'SLNF',
+                       'tmñ_DSSAT': 5
+                       },
+    'factor_fotosyn': {'límites': (0, 1),
+                       'unid': None,
+                       'cód_DSSAT': 'SLPF',
+                       'tmñ_DSSAT': 5
+                       },
+    'niveles': {'límites': (0, np.inf),
+                'unid': 'cm',
+                'cód_DSSAT': 'SLB',
+                'tmñ_DSSAT': 5
+                },
+    'P_extract': {'límites': (0, np.inf),
+                  'unid': 'mg kg-1',
+                  'cód_DSSAT': 'SLPX',
+                  'tmñ_DSSAT': 5
+                  },
+    'P_total': {'límites': (0, np.inf),
+                'unid': 'mg kg-1',
+                'cód_DSSAT': 'SLPT',
+                'tmñ_DSSAT': 5
+                },
+    'P_orgán': {'límites': (0, np.inf),
+                'unid': 'mg kg -1',
+                'cód_DSSAT': 'SLPO',
+                'tmñ_DSSAT': 5
+                },
+    'CaCO3': {'límites': (0, np.inf),
+              'unid': 'g kg-1',
+              'cód_DSSAT': 'SLCA',
+              'tmñ_DSSAT': 5
+              },
+    'Al': {'límites': (0, np.inf),
+           'unid': 'cmol kg-1',  # Verificar unidades
+           'cód_DSSAT': 'SLAL',
+           'tmñ_DSSAT': 5
+           },
+    'Fe': {'límites': (0, np.inf),
+           'unid': 'cmol kg-1',  # Verificar unidades
+           'cód_DSSAT': 'SLFE',
+           'tmñ_DSSAT': 5
+           },
+    'Mn': {'límites': (0, np.inf),
+           'unid': 'cmol kg-1',  # Verificar unidades
+           'cód_DSSAT': 'SLMN',
+           'tmñ_DSSAT': 5
+           },
+    'satur_base': {'límites': (0, np.inf),
+                   'unid': 'cmol kg-1',
+                   'cód_DSSAT': 'SLBS',
+                   'tmñ_DSSAT': 5
+                   },
+    'isoterm_P_a': {'límites': (0, np.inf),
+                    'unid': 'mmol kg-1',
+                    'cód_DSSAT': 'SLPA',
+                    'tmñ_DSSAT': 5
+                    },
+    'isoterm_P_b': {'límites': (0, np.inf),
+                    'unid': 'mmol kg-1',
+                    'cód_DSSAT': 'SLPB',
+                    'tmñ_DSSAT': 5
+                    },
+    'K_intercamb': {'límites': (0, np.inf),
+                    'unid': 'cmol kg-1',
+                    'cód_DSSAT': 'SLKE',
+                    'tmñ_DSSAT': 5
+                    },
+    'Mg': {'límites': (0, np.inf),
+           'unid': 'cmol kg-1',
+           'cód_DSSAT': 'SLMG',
+           'tmñ_DSSAT': 5
+           },
+    'Na': {'límites': (0, np.inf),
+           'unid': 'cmol kg-|',
+           'cód_DSSAT': 'SLNA',
+           'tmñ_DSSAT': 5
+           },
+    'S': {'límites': (0, np.inf),
+          'unid': 'cmol kg-1',  # Verificar unidades
+          'cód_DSSAT': 'SLSU',
+          'tmñ_DSSAT': 5
+          },
+    'conduct_eléc': {'límites': (0, np.inf),
+                     'unid': 'seimen',
+                     'cód_DSSAT': 'SLEC',
+                     'tmñ_DSSAT': 5
+                     },
+    'límite_bajo': {'límites': (0, np.inf),
+                    'unid': None,
+                    'cód_DSSAT': 'SLLL',
+                    'tmñ_DSSAT': 5
+                    },
+    'límite_alto': {'límites': (0, np.inf),
+                    'unid': None,
+                    'cód_DSSAT': 'SDUL',
+                    'tmñ_DSSAT': 5
+                    },
+    'límite_alto_sat': {'límites': (0, np.inf),
+                        'unid': None,
+                        'cód_DSSAT': 'SSAT',
+                        'tmñ_DSSAT': 5
+                        },
+    'factor_crec_raíz': {'límites': (0, 1),
+                         'unid': None,
+                         'cód_DSSAT': 'SRGF',
+                         'tmñ_DSSAT': 5
+                         },
+    'cond_hídr_sat': {'límites': (0, np.inf),
+                      'unid': 'cm h-1',
+                      'cód_DSSAT': 'SSKS',
+                      'tmñ_DSSAT': 5
+                      },
+    'densidad_suelo': {'límites': (0, np.inf),
+                       'unid': 'g cm-3',
+                       'cód_DSSAT': 'SBDM',
+                       'tmñ_DSSAT': 5
+                       },
+    'C_org': {'límites': (0, 100),
+              'unid': None,
+              'cód_DSSAT': 'SLOC',
+              'tmñ_DSSAT': 5
+              },
+    'frac_arcill': {'límites': (0, 100),
+                    'unid': None,
+                    'cód_DSSAT': 'SLCL',
+                    'tmñ_DSSAT': 5
+                    },
+    'frac_lim': {'límites': (0, 100),
+                 'unid': None,
+                 'cód_DSSAT': 'SLSI',
+                 'tmñ_DSSAT': 5
+                 },
+    'frac_rocas': {'límites': (0, 100),
+                   'unid': None,
+                   'cód_DSSAT': 'SLCF',
+                   'tmñ_DSSAT': 5
+                   },
+    'N_total': {'límites': (0, 100),
+                'unid': None,
+                'cód_DSSAT': 'SLNI',
+                'tmñ_DSSAT': 5
+                },
+    'pH_agua': {'límites': (-np.inf, np.inf),
+                'unid': None,
+                'cód_DSSAT': 'SLHW',
+                'tmñ_DSSAT': 5
+                },
+    'pH_tamp': {'límites': (-np.inf, np.inf),
+                'unid': None,
+                'cód_DSSAT': 'SLHB',
+                'tmñ_DSSAT': 5
+                },
+    'poten_intercamb_cat': {'límites': (0, np.inf),
+                            'unid': 'cmol kg-1',
+                            'cód_DSSAT': 'SCEC',
+                            'tmñ_DSSAT': 5
+                            },
+}
+
+
 ecs_cult = {
     'Día_corto_crít': {
-        'tomate': {
-            'DSSAT': {
-                'CROPGRO': {
-                    'tipo': 'variedad',
-                    'cód': 'CSDL',
-                    'unid': 'horas'
+        'límites': (0, np.inf),
+        'unid': 'horas',
+        'cultivos': {
+            'tomate': {
+                'DSSAT': {
+                    'CROPGRO': {
+                        'tipo': 'variedad',
+                        'cód': 'CSDL',
+                        'unid': 'horas'
+                    }
                 }
             }
         }
@@ -758,7 +950,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
 
                 # Crear la distribución inicial según las interacciones, si hay. La distribución inicial siempre tiene
                 # el número de identificación '0'.
-                if v['inter'] is None:
+                if 'inter' not in v.keys() or v['inter'] is None:
                     # Si no hay interacciones, es muy fácil
                     d[ll]['0'] = Incert.límites_a_texto_apriori(v['límites'])
 
