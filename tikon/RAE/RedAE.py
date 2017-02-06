@@ -321,7 +321,7 @@ class Red(Simulable):
                             coefs['Transiciones']['Prob'][prob_trans] = coefs_prob_trans
                             coefs['Transiciones']['Edad'][edad_trans] = coefs_edad_trans
 
-                        dic['trans'] = n_trans
+                        dic['Trans'] = n_trans
 
                         dic_etp = dict(org=etp['org'],
                                        nombre=dic['nombre'],
@@ -362,10 +362,10 @@ class Red(Simulable):
                     símismo.ecs[categ][sub_categ].append(tipo_ec)
 
         # Guardar el orden de transiciones y de reproducciones
-        símismo.orden['trans'] = np.empty(len(símismo.etapas), dtype=np.int)
-        símismo.orden['trans'][:] = -1
-        símismo.orden['repr'] = np.empty(len(símismo.etapas), dtype=np.int)
-        símismo.orden['repr'][:] = -1
+        símismo.orden['Trans'] = np.empty(len(símismo.etapas), dtype=np.int)
+        símismo.orden['Trans'][:] = -1
+        símismo.orden['Repr'] = np.empty(len(símismo.etapas), dtype=np.int)
+        símismo.orden['Repr'][:] = -1
 
         for nombre_org, org in símismo.núms_etapas.items():
             # Para cada organismo...
@@ -382,14 +382,14 @@ class Red(Simulable):
                 # Si la etapa tiene transiciones y/o reproducciones, ajustar el número de la etapas a la cual esta
                 # etapa transiciona o se reproduce
                 if d_etp['ecs']['Transiciones']['Prob'] != 'Nada':
-                    símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín
+                    símismo.orden['Trans'][n_etp] = d_etp['Trans'] + n_etp_mín
                 if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
-                    símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín
+                    símismo.orden['Repr'][n_etp] = d_etp['Repr'] + n_etp_mín
 
         # Guardar el orden de transiciones y de reproducciones para etapas fantasmas
         for n_etp in range(n_etps_reg, len(símismo.etapas)):
-            símismo.orden['trans'][n_etp] = símismo.etapas[n_etp]['dic']['trans']
-            símismo.orden['repr'][n_etp] = símismo.etapas[n_etp]['dic']['repr']
+            símismo.orden['Trans'][n_etp] = símismo.etapas[n_etp]['dic']['Trans']
+            símismo.orden['Repr'][n_etp] = símismo.etapas[n_etp]['dic']['Repr']
 
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
@@ -797,7 +797,7 @@ class Red(Simulable):
                 continue
 
             # Una referencia a la parte apriopiada de la matriz de reproducciones
-            n_recip = símismo.orden['trans'][n]
+            n_recip = símismo.orden['Trans'][n]
             repr_etp_recip = reprs[..., n_recip]
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
@@ -873,7 +873,7 @@ class Red(Simulable):
                 edad_extra *= paso
 
                 cohortes = símismo.predics['Cohortes'][n_recip]['Pobs']
-                edades = símismo.predics['Cohortes'][n_recip]['Edades']['repr']
+                edades = símismo.predics['Cohortes'][n_recip]['Edades']['Repr']
 
                 if edad_extra is None:
                     raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
@@ -1103,7 +1103,7 @@ class Red(Simulable):
                 trans[..., n] *= coefs_mt[n]['a']
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
-        for n_don, n_recip in enumerate(símismo.orden['trans']):
+        for n_don, n_recip in enumerate(símismo.orden['Trans']):
             if n_recip >= 0:
                 np.add(pobs[..., n_recip], trans[..., n_don], out=pobs[..., n_recip])
 
@@ -1605,7 +1605,7 @@ class Red(Simulable):
                 # en cuestión (eje 3) a tiempo 0 (eje 4).
                 datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
 
-                cohortes = símismo.predics['Cohortes']
+                cohortes = datos_inic['Cohortes']
                 if n_etp in cohortes:
                     añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=matr_obs_inic)
 
@@ -1766,6 +1766,10 @@ class Red(Simulable):
         :type n_etps: int
         :param n_pasos: El número de pasos para la simulación
         :type n_pasos: int
+        :param i_coh_trans: Una lista de los índices de las etapas con cohortes para sus transiciones.
+        :type i_coh_trans: list[int]
+        :param i_coh_repr: Una lista de los índices de las etapas con cohortes para la reproducción.
+        :type i_coh_repr: list[int]
         :return: Un diccionario del formato de símismo.predics según las especificaciones en los argumentos de la
         función.
         :rtype: dict
@@ -1790,8 +1794,9 @@ class Red(Simulable):
 
         for n in i_coh_repr:
             dic_cohorte = cohortes[n] = {}
+            dic_cohorte['Edades'] = {}
             dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
-            dic_cohorte['repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
+            dic_cohorte['Edades']['Repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
         for n in i_coh_trans:
             try:
@@ -1800,7 +1805,7 @@ class Red(Simulable):
                 dic_cohorte = cohortes[n] = {}
                 dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
-            dic_cohorte['trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
+            dic_cohorte['Edades']['Trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
         return dic
 
@@ -1977,8 +1982,8 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
 
     :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
        {'Pobs': [matriz de poblaciones]
-       'Edades': {'trans': [matriz de edades],
-       'repr': [matriz de edades]
+       'Edades': {'Trans': [matriz de edades],
+       'Repr': [matriz de edades]
        }
 
       Todas las matrices tienen el mismo orden de eje:
@@ -1999,8 +2004,8 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
     :param edad: Las edades iniciales de los nuevos miembros al cohorte. El valor automático es, naturalmente, 0.
        (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
        diccionario, debe tener la forma general siguiente:
-       | {'trans': matriz Numpy,
-       | 'repr': matriz Numpy},
+       | {'Trans': matriz Numpy,
+       | 'Repr': matriz Numpy},
        | donde cada matriz NumPy tiene los ejes siguientes:
        | Eje 1: Parcela
        | Eje 2: Repetición estocástica
