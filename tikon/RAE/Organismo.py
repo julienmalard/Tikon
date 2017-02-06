@@ -90,6 +90,20 @@ class Organismo(Coso):
 
         """
 
+        # Aumentar la posición de las etapas que siguen la que añadiste, tanto como las referencias a las otras etapas
+        # a las cuales estas transicionan o a las cuales se reproducen.
+        for etp, dic_etp in símismo.receta['estr'].items():
+            if dic_etp['posición'] >= posición:
+                dic_etp['posición'] += 1
+            if dic_etp['trans'] >= posición:
+                dic_etp['trans'] += 1
+            if dic_etp['repr'] >= posición:
+                dic_etp['repr'] += 1
+
+            # Si no es la primera etapa, la etapa precedente a esta tendrá que transicionar a ésta
+            if dic_etp['posición'] == posición - 1:
+                dic_etp['trans'] = posición
+
         # Crear el diccionario inicial para la etapa
         dic_etapa = dict(nombre=nombre,
                          posición=posición,
@@ -97,7 +111,7 @@ class Organismo(Coso):
                          # Notar que los números que siguen solamente tendrán impacto en el modelo si la ecuación de
                          # Transición y/o de Reproducción de esta etapa != 'Nada'.
                          trans=posición,
-                         repr=0
+                         repr=0  # Siempre se reproduce a la primera etapa.
                          )
 
         # Guardar el diccionario en la receta del organismo
@@ -108,16 +122,6 @@ class Organismo(Coso):
 
         # Crear diccionarios para eventualmente contener las presas o huéspedes (si hay) de la nueva etapa
         símismo.config[nombre] = {'presa': {}, 'huésped': {}}
-
-        # Aumentar la posición de las etapas que siguen la que añadiste, tanto como las referencias a las otras etapas
-        # a las cuales estas transicionan o a las cuales se reproducen.
-        for etp, dic_etp in símismo.receta['estr'].items():
-            if dic_etp['posición'] >= posición:
-                dic_etp['posición'] += 1
-            if dic_etp['trans'] >= posición:
-                dic_etp['trans'] += 1
-            if dic_etp['repr'] >= posición:
-                dic_etp['repr'] += 1
 
         # Actualizar el organismo
         símismo.actualizar()
@@ -370,11 +374,7 @@ class Organismo(Coso):
         dic_parám = símismo.receta['coefs'][etapa]
         dic_ecs = símismo.dic_ecs
 
-        if org_inter is None:
-            if dic_ecs['inter'] is not None:
-                raise ValueError('Hay que especificar el organismo de interacción para parámetros con interacciones.')
-        else:
-            if etp_inter is None:
+        if org_inter is not None and etp_inter is None:
                 raise ValueError('Hay que especificar la etapa del organismo de interacción.')
 
         inter = [org_inter, etp_inter]
@@ -422,7 +422,15 @@ class Organismo(Coso):
                         elif type(inters) is list:
                             l_coefs = []
                             for tipo_inter in inters:
-                                for org_inter, lista_etps_inter in símismo.config[etp['nombre']][tipo_inter].items():
+
+                                for org_inter, v in símismo.config[etp['nombre']][tipo_inter].items():
+                                    if tipo_inter == 'huésped':
+                                        lista_etps_inter = v['entra']
+                                    elif tipo_inter == 'presa':
+                                        lista_etps_inter = v
+                                    else:
+                                        raise ValueError
+
                                     for etp_inter in lista_etps_inter:
                                         l_coefs.append(dic[org_inter][etp_inter])
 

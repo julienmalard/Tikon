@@ -1,4 +1,4 @@
-Cómo instalar Tiko'n
-====================
+Instalación
+===========
 
 Escribir las instrucciones aquí.

@@ -1,5 +1,5 @@
-Qué hacer con Tiko'n
-====================
+Uso
+===
 
 .. toctree::
    :maxdepth: 3
