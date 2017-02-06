@@ -362,10 +362,10 @@ class Red(Simulable):
                     símismo.ecs[categ][sub_categ].append(tipo_ec)
 
         # Guardar el orden de transiciones y de reproducciones
-        símismo.orden['Trans'] = np.empty(len(símismo.etapas), dtype=np.int)
-        símismo.orden['Trans'][:] = -1
-        símismo.orden['Repr'] = np.empty(len(símismo.etapas), dtype=np.int)
-        símismo.orden['Repr'][:] = -1
+        símismo.orden['trans'] = np.empty(len(símismo.etapas), dtype=np.int)
+        símismo.orden['trans'][:] = -1
+        símismo.orden['repr'] = np.empty(len(símismo.etapas), dtype=np.int)
+        símismo.orden['repr'][:] = -1
 
         for nombre_org, org in símismo.núms_etapas.items():
             # Para cada organismo...
@@ -382,14 +382,14 @@ class Red(Simulable):
                 # Si la etapa tiene transiciones y/o reproducciones, ajustar el número de la etapas a la cual esta
                 # etapa transiciona o se reproduce
                 if d_etp['ecs']['Transiciones']['Prob'] != 'Nada':
-                    símismo.orden['Trans'][n_etp] = d_etp['Trans'] + n_etp_mín
+                    símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín
                 if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
-                    símismo.orden['Repr'][n_etp] = d_etp['Repr'] + n_etp_mín
+                    símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín
 
         # Guardar el orden de transiciones y de reproducciones para etapas fantasmas
         for n_etp in range(n_etps_reg, len(símismo.etapas)):
-            símismo.orden['Trans'][n_etp] = símismo.etapas[n_etp]['dic']['Trans']
-            símismo.orden['Repr'][n_etp] = símismo.etapas[n_etp]['dic']['Repr']
+            símismo.orden['trans'][n_etp] = símismo.etapas[n_etp]['dic']['trans']
+            símismo.orden['repr'][n_etp] = símismo.etapas[n_etp]['dic']['repr']
 
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
@@ -1803,6 +1803,7 @@ class Red(Simulable):
                 dic_cohorte = cohortes[n]
             except KeyError:
                 dic_cohorte = cohortes[n] = {}
+                dic_cohorte['Edades'] = {}
                 dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
             dic_cohorte['Edades']['Trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
@@ -1976,7 +1977,7 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
     return np.sum(n_cambian, axis=0)
 
 
-def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
+def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
     """
     Esta función agrega nuevos miembros a un cohorte existente.
 
@@ -2012,6 +2013,10 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=0):
        | Eje 3: Repetición paramétrica
     :type edad: int | float | dict
     """
+
+    # SI no se especifica la edad, se supone una edad de 0.
+    if edad is None:
+        ed = {'Trans': 0, 'Repr': 0}
 
     # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
     try:
