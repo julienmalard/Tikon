@@ -12,3 +12,4 @@ Aquí sigue la documentación de todo el programa Tiko'n con todos sus módulos 
    Cultivo
    Parcela
    Paisaje
+   docs_profund

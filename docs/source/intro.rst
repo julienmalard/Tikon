@@ -1,5 +1,5 @@
-Introducción a Tiko'n
-=====================
+Introducción
+============
 
 Tiko'n es un programa para desarrollar modelos agroecológicos de manera sencilla, reproducible y divertida.
 

@@ -18,7 +18,8 @@ ecs_orgs = {
                                                          'p': {'límites': (0, np.inf),
                                                                'inter': None}}
                               },
-                    'Ecuación': {'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
+                    'Ecuación': {'Nada': {},
+                                 'Exponencial': {},  # El exponencial no tiene parámetros a parte de r
                                  'Logístico': {'K': {'límites': (0, np.inf),
                                                      'inter': None}},
                                  'Logístico Presa': {'K': {'límites': (0, np.inf),

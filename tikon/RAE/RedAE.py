@@ -200,12 +200,16 @@ class Red(Simulable):
                 # ...quitar el organismo del diccionario de organismos activos
                 símismo.organismos.pop(org)
 
-        # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
+        # Limpiar todo
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
         símismo.plantas['dic'].clear()  # Borrar los diccionarios para plantas
         símismo.plantas['n_etp'].clear()
+        símismo.fantasmas.clear()
+        símismo.núms_etapas.clear()
 
+        # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
         n = 0
+
         for nombre_org, org in sorted(símismo.organismos.items()):
             símismo.núms_etapas[nombre_org] = {}
             for etp in org.etapas:
@@ -260,7 +264,7 @@ class Red(Simulable):
                     n_sale = símismo.núms_etapas[org_hués][d_org_hués['sale']]
 
                     # Una lista con todas las etapas del huésped que pueden tener la infección.
-                    l_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_prim: n_sale + 1]]
+                    l_d_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_prim: n_sale + 1]]
 
                     # La segunda etapa existente del organismo que infecta (los individuos infectados terminarán por
                     # transicionar a la esta etapa).
@@ -272,7 +276,10 @@ class Red(Simulable):
                     n_larva = símismo.núms_etapas[org_hués][nombre_etp_larva_inf]
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped
-                    for n_etp_hués, d_etp_hués in enumerate(l_etps_hués):
+                    for d_etp_hués in l_d_etps_hués:
+
+                        # El indice, en el organismo, de la etapa hospedera
+                        n_etp_hués = d_etp_hués['posición']
 
                         # El índice de la etapa fantasma
                         n_etp_fant = len(símismo.etapas) - 1
@@ -295,11 +302,11 @@ class Red(Simulable):
                         coefs = copiar_dic_refs(obj_org_hués.receta['coefs'][nombre_etp_hués])
 
                         # Verificar si la etapa hospedera es la última de este organismo que puede estar infectada
-                        if n_etp_hués <= len(l_etps_hués):
-                            # Si no lo es, transiciona a la próxima etapa fantasma de este organismo.
+                        if n_etp_hués <= len(l_d_etps_hués) - 1:
+                            # Si no lo es, esta etapa transicionará a la próxima etapa fantasma de este organismo.
                             n_trans = n_etp_fant + 1
                         else:
-                            # Si lo es, transiciona a la etapa recipiente del organismo infectuoso.
+                            # Si lo es, transicionará a la etapa recipiente del organismo infectuoso.
                             n_trans = n_recip
 
                             # Usar las ecuaciones de transiciones de la larva del agente infectuoso para las
@@ -323,6 +330,8 @@ class Red(Simulable):
                                        coefs=coefs)
 
                         símismo.etapas.append(dic_etp)
+
+                        símismo.núms_etapas[etp['org']][dic['nombre']] = n_etp_fant
 
                         # Guardar el vínculo entre la etapa víctima y la(s) etapa(s) fanstasma(s) correspondiente(s)
                         if n_etp_hués not in símismo.fantasmas.keys():
@@ -518,7 +527,7 @@ class Red(Simulable):
         :type paso: int
 
         """
-        # arreglarme: ajustar depredación por superficies
+
         # Calcular cuántas presas cada especie de depredador podría comerse
 
         # A este punto, depred representa la depredación potencial per cápita de depredador
@@ -534,7 +543,7 @@ class Red(Simulable):
         for n in range(len(símismo.etapas)):  # Para cada etapa...
 
             # Los coeficientes para esta etapa
-            cf = coefs[n]
+            cf = coefs[n]  # type: dict
             # Los tipos de ecuaciones para esta etapa
             tipo_ec = tipos_ec[n]
 
@@ -602,7 +611,7 @@ class Red(Simulable):
                 dens_depred = dens[:, :, :, n]  # La población de esta etapa (depredador)
                 ratio = dens/dens_depred[..., np.newaxis]
 
-                np.multiply(cf['a']*np.subtract(1, np.exp(-1/cf['a']*np.where(ratio==np.inf, 0, ratio))),
+                np.multiply(cf['a']*np.subtract(1, np.exp(-1/cf['a']*np.where(ratio == np.inf, [0], ratio))),
                             np.square(dens)/(np.square(dens)+cf['b']),
                             out=depred_etp)
 
@@ -615,6 +624,9 @@ class Red(Simulable):
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0
+
+        # Ajustar por superficies
+        np.multiply(depred, extrn['superficies'].reshape(depred.shape[0], 1, 1, 1, 1), out=depred)
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora está en unidades
@@ -639,10 +651,16 @@ class Red(Simulable):
             if n in símismo.fantasmas:
                 # Si la etapa tiene etapas fantasmas, hacer las transiciones apropiadas a cada etapa fantasma
                 for n_fant in símismo.fantasmas[n]:
+
+                    # Sacar el cohorte recipiente
                     recip = símismo.predics['Cohortes'][n_fant]
+
+                    # Obtener el nombre del organismo y de la etapa depredadoras que corresponden a la creación de
+                    # esta etapa fantasma
                     nombre_org_depr = símismo.etapas[n_fant]['org']
-                    nombre_etp_depr = símismo.organismos[nombre_org_depr].etapas[-1]['nombre']
-                    n_depr = símismo.núms_etapas[nombre_org_depr, nombre_etp_depr]
+                    nombre_etp_depr = símismo.etapas[n_fant]['nombre']
+
+                    n_depr = símismo.núms_etapas[nombre_org_depr][nombre_etp_depr]
                     quitar_de_cohorte(coh, depred[..., n, n_depr], recip=recip)
             else:
                 quitar_de_cohorte(coh, depred_por_presa[..., n])
@@ -673,7 +691,7 @@ class Red(Simulable):
         coefs_mod = numerizar(símismo.coefs_act['Crecimiento']['Modif'])
 
         for n in range(len(símismo.etapas)):
-            cf = coefs_mod[n]
+            cf = coefs_mod[n]  # type: dict
             crec_etp = crec[:, :, :, n]  # Vinculo con la parte de la matriz "crec" de esta etapa.
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
@@ -698,9 +716,12 @@ class Red(Simulable):
             # Calcular el crecimiento de la población
 
             pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-            cf = coefs_ec[n]
+            cf = coefs_ec[n]  # type: dict
 
-            if tipos_ec[n] == 'Exponencial':
+            if tipos_ec[n] == 'Nada':
+                continue
+
+            elif tipos_ec[n] == 'Exponencial':
                 # Crecimiento exponencial
 
                 np.multiply(pob_etp, r, out=crec_etp)
@@ -893,12 +914,13 @@ class Red(Simulable):
 
         muertes = símismo.predics['Muertes']
         tipos_ec = símismo.ecs['Muertes']['Ecuación']
-        coefs = símismo.coefs_act['Muertes']['Ecuación']
+        coefs = numerizar(símismo.coefs_act['Muertes']['Ecuación'])
 
         for n, ec in enumerate(tipos_ec):
 
             cf = coefs[n]
             muerte_etp = muertes[:, :, :, n]
+            pob_etp = pobs[:, :, :, n]  # La población de esta etapa
 
             if ec == 'Nada':
                 continue
@@ -907,7 +929,7 @@ class Red(Simulable):
                 # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
-                np.multiply(pobs, cf['q'], out=muerte_etp)
+                np.multiply(pob_etp, cf['q'], out=muerte_etp)
 
             elif ec == 'Log Normal Temperatura':
                 # Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
@@ -917,7 +939,7 @@ class Red(Simulable):
                 #   control. Journal of Pest Science 87(2): 331-340.
 
                 sobrevivencia = mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2)
-                np.multiply(pobs, (1 - sobrevivencia), out=muerte_etp)
+                np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
             elif ec == 'Asimptótico Humedad':
 
@@ -925,12 +947,12 @@ class Red(Simulable):
                 #   Survival of Eggs and First-Instar Larvae of Delia radicum. Environmental Entomology 41(1): 159-165.
 
                 sobrevivencia = max(0, 1 - mat.exp(-cf['a'] * (extrn['humedad'] - cf['b'])))
-                np.multiply(pobs, (1 - sobrevivencia), out=muerte_etp)
+                np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
             elif ec == 'Sigmoidal Temperatura':
 
                 sobrevivencia = 1 / (1 + mat.exp((extrn['temp_máx'] - cf['a']) / cf['b']))
-                np.multiply(pobs, (1 - sobrevivencia), out=muerte_etp)
+                np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
             else:
                 raise ValueError
@@ -1239,7 +1261,7 @@ class Red(Simulable):
         combin_etps = símismo.info_exps['combin_etps'][exp]
 
         # Convertir poblaciones a unidades de organismos por hectárea
-        tamaño_superficies = símismo.info_exps['superficies'][exp]
+        tamaño_superficies = símismo.info_exps['superficies'][exp]  # type: np.ndarray
         np.divide(matr_predics, tamaño_superficies.reshape((tamaño_superficies.shape[0], 1, 1, 1, 1)), out=matr_predics)
 
         # Primero, vamos a sacar vectores para cada etapa de la red
@@ -1496,7 +1518,7 @@ class Red(Simulable):
             combin_etps = símismo.info_exps['combin_etps'][nombre]
 
             # La ubicación de los datos observados
-            ubic_obs = símismo.info_exps['ubic_obs'][nombre]
+            ubic_obs = símismo.info_exps['ubic_obs'][nombre]  # type: tuple
 
             # Combinar las etapas que lo necesitan
             for i in símismo.fantasmas:  # Combinaciones automáticas
@@ -1550,18 +1572,20 @@ class Red(Simulable):
             # Los índices de las etapas con cohortes para transiciones y para reproducciones
             i_coh_trans = []
             i_coh_repr = []
-            for nombre_org, org in símismo.núms_etapas.items():
-                # Para cada organismo...
-                for n_etp in org.values():
-                    # Para cara etapa...
 
-                    # Verificar si necesita cohortes
-                    ecs_prob_repr = símismo.ecs['Reproducción']['Prob'][n_etp]
-                    ecs_prob_trans = símismo.ecs['Transiciones']['Prob'][n_etp]
-                    if ecs_prob_repr != 'Nada' and ecs_prob_repr != 'Constante':
-                        i_coh_repr.append(n_etp)
-                    if ecs_prob_trans != 'Nada' and ecs_prob_trans != 'Constante':
-                        i_coh_trans.append(n_etp)
+            for etp in símismo.etapas:
+                # Para cara etapa de cada organismo...
+
+                # El número de la etapa
+                n_etp = símismo.núms_etapas[etp['org']][etp['nombre']]
+
+                # Verificar si necesita cohortes
+                ecs_prob_repr = símismo.ecs['Reproducción']['Prob'][n_etp]
+                ecs_prob_trans = símismo.ecs['Transiciones']['Prob'][n_etp]
+                if ecs_prob_repr != 'Nada' and ecs_prob_repr != 'Constante':
+                    i_coh_repr.append(n_etp)
+                if ecs_prob_trans != 'Nada' and ecs_prob_trans != 'Constante':
+                    i_coh_trans.append(n_etp)
 
             # Generamos el diccionario (vacío) de datos iniciales
             datos_inic = símismo._gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
@@ -1743,7 +1767,7 @@ class Red(Simulable):
         :param n_pasos: El número de pasos para la simulación
         :type n_pasos: int
         :return: Un diccionario del formato de símismo.predics según las especificaciones en los argumentos de la
-          función.
+        función.
         :rtype: dict
         """
 

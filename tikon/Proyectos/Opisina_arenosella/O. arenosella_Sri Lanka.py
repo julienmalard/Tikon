@@ -1,9 +1,7 @@
-from tikon.RAE import Planta as Plt
-from tikon.Matemáticas.Experimentos import Experimento
+import tikon.RAE.Insecto as Ins
+from tikon.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
-
-import tikon.RAE.Insecto as Ins
 
 # Opciones artísticas
 dib_aprioris = False
@@ -11,7 +9,7 @@ ops_dib = {'incert': None, 'todas_líneas': True}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
-
+"""
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
 
@@ -26,13 +24,13 @@ Parasitoide_senc.secome(O_arenosella_senc)
 Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc, Parasitoide_senc],
                     proyecto=proyecto)
 Red_coco_senc.guardar()
-
+"""
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
 Experimento_A.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429/500)
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
 Experimento_B.agregar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429/500)
-
+"""
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
                                   'Parasitoide_senc': {'adulto': ['Para_larva_abs', 'Para_pupa_abs']}
@@ -84,9 +82,10 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-
+"""
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
 Araña = Ins.Sencillo('Araña', proyecto=proyecto)
+"""
 Araña.secome(O_arenosella_senc)
 Araña.secome(Parasitoide_senc)
 
@@ -144,11 +143,11 @@ Red_coco.añadir_exp(Experimento_B,
 for a_priori in a_prioris[O_arenosella.nombre]:
     O_arenosella.especificar_apriori(**a_priori)
 
-for a_priori in a_prioris[Parasitoide_larvas.nombre]:
-    Parasitoide_larvas.especificar_apriori(**a_priori)
+# for a_priori in a_prioris[Parasitoide_larvas.nombre]:
+#     Parasitoide_larvas.especificar_apriori(**a_priori)
 
-for a_priori in a_prioris[Parasitoides_pupa.nombre]:
-    Parasitoides_pupa.especificar_apriori(**a_priori)
+# for a_priori in a_prioris[Parasitoides_pupa.nombre]:
+#     Parasitoides_pupa.especificar_apriori(**a_priori)
 
 
 Red_coco.calibrar(exper=Experimento_A)
@@ -178,4 +177,4 @@ Red_coco.guardar()
 
 
 # Podríamos hacer modelos más complejos con especies distintas de avispas, etc.
-"""
+

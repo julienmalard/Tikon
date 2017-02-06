@@ -62,6 +62,7 @@ class Insecto(Organismo):
 
             if pupa:
                 símismo.añadir_etapa('pupa', posición=pos, ecuaciones=tipo_ecuaciones['pupa'])
+                pos += 1
 
             if adulto:
                 símismo.añadir_etapa('adulto', posición=pos, ecuaciones=tipo_ecuaciones['adulto'])
@@ -299,7 +300,7 @@ class Parasitoide(Insecto):
         tipo_ec['adulto'] = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                                  Depredación={'Ecuación': 'Kovai'},
                                  Muertes={'Ecuación': 'Nada'},
-                                 Transiciones={'Edad': 'Día', 'Prob': 'Normal', 'Mult': 'Nada'},
+                                 Transiciones={'Edad': 'Días', 'Prob': 'Normal', 'Mult': 'Nada'},
                                  Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
                                  Movimiento={}
                                  )

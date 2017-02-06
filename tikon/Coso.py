@@ -10,9 +10,9 @@ import numpy as np
 import pymc
 
 from tikon.Controles import directorio_base
+from tikon.Experimentos import Experimento
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes
-from tikon.Matemáticas.Experimentos import Experimento
 
 
 class Coso(object):
@@ -232,7 +232,10 @@ class Coso(object):
                                                cont=True)
 
         # Si hay interacciones, buscar
-        if inter is not None:
+        if inter is None:
+            if 'inter' not in dic_ecs or dic_ecs['inter'] is not None:
+                raise ValueError('Hay que especificar interacciones para parámetros con interacciones.')
+        else:
             for i in inter:
                 if i not in dic_parám:
                     dic_parám[i] = {}

@@ -543,7 +543,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                      '(R, inf). Si lo quieres añadir, ¡dale pués!')
 
             else:  # El caso (R, R)
-                raise ValueError('No se puede especificar una certidumbre de inferior a 100 % con una distribución'
+                raise ValueError('No se puede especificar una certidumbre inferior a 100 % con una distribución'
                                  'de parámetro limitada a un intervalo (R, R).')
 
     return dist
