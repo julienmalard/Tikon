@@ -4,6 +4,6 @@ Cosas complicadas
 .. toctree::
    :maxdepth: 2
 
-   Coso
+   docu_fuente/Coso
    Simulable
    mat

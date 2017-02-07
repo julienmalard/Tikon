@@ -1,4 +1,4 @@
-Ejemplos con Tiko'n
-===================
+Ejemplos
+========
 
 Escribir ejemplos aquí.

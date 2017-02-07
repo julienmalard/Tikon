@@ -44,7 +44,7 @@ class Red(Simulable):
         super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
 
         # La información necesaria para recrear la Red
-        símismo.receta['estr']['Organismos'] ={}
+        símismo.receta['estr']['Organismos'] = {}
 
         # Unas referencias internas para facilitar el manejo de la red.
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
@@ -282,7 +282,7 @@ class Red(Simulable):
                         n_etp_hués = d_etp_hués['posición']
 
                         # El índice de la etapa fantasma
-                        n_etp_fant = len(símismo.etapas) - 1
+                        n_etp_fant = len(símismo.etapas)
 
                         # El nombre de la etapa hospedera original
                         nombre_etp_hués = d_etp_hués['nombre']
@@ -609,10 +609,10 @@ class Red(Simulable):
             elif tipo_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
                 dens_depred = dens[:, :, :, n]  # La población de esta etapa (depredador)
-                ratio = dens/dens_depred[..., np.newaxis]
+                ratio = dens / dens_depred[..., np.newaxis]
 
-                np.multiply(cf['a']*np.subtract(1, np.exp(-1/cf['a']*np.where(ratio == np.inf, [0], ratio))),
-                            np.square(dens)/(np.square(dens)+cf['b']),
+                np.multiply(cf['a'] * np.subtract(1, np.exp(-1 / cf['a'] * np.where(ratio == np.inf, [0], ratio))),
+                            np.square(dens) / (np.square(dens) + cf['b']),
                             out=depred_etp)
 
                 # Ajustar por la presencia de múltiples presas
@@ -651,7 +651,6 @@ class Red(Simulable):
             if n in símismo.fantasmas:
                 # Si la etapa tiene etapas fantasmas, hacer las transiciones apropiadas a cada etapa fantasma
                 for n_fant in símismo.fantasmas[n]:
-
                     # Sacar el cohorte recipiente
                     recip = símismo.predics['Cohortes'][n_fant]
 
@@ -1810,6 +1809,9 @@ class Red(Simulable):
 
         return dic
 
+    def especificar_apriori(símismo, **kwargs):
+        raise NotImplementedError('No hay parámetros para especificar en una Red.')
+
 
 # Funciones auxiliares
 
@@ -2016,15 +2018,15 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
 
     # SI no se especifica la edad, se supone una edad de 0.
     if edad is None:
-        ed = {'Trans': 0, 'Repr': 0}
+        edad = {'Trans': 0, 'Repr': 0}
 
     # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
     try:
-        primer_vacío = np.where(dic_cohorte['Pobs'] == 0)[0][0]  # El primero vacío
+        primer_vacío = np.where(np.sum(dic_cohorte['Pobs'], axis=(1, 2, 3)) == 0)[0]  # El primero vacío
     except IndexError:
-        # Si no había ligar, desdoblar el tañano de las matrices de cohortes
+        # Si no había lugar, desdoblar el tañano de las matrices de cohortes
 
-        primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primero vacío (que vamos a crear)
+        primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primer vacío (que vamos a crear)
         np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
 
         # Extender cada matriz de edades también
@@ -2131,7 +2133,7 @@ def probs_conj(matr, eje, pesos=1, máx=1):
         ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
     np.multiply(np.expand_dims(np.divide(np.subtract(1, np.product(
-        np.subtract(1, np.where(np.isnan(ratio), 0, ratio)), axis=eje)),
+        np.subtract(1, np.where(np.isnan(ratio), [0], ratio)), axis=eje)),
                                          np.nansum(ratio, axis=eje)
                                          ),
                                axis=eje),

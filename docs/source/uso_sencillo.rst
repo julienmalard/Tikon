@@ -1,5 +1,5 @@
-Uso normal de Tiko'n
-====================
+Uso normal
+==========
 
 .. toctree::
    :maxdepth: 3
