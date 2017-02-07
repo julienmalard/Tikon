@@ -117,6 +117,8 @@ Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas')
 
 Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
 
+Parasitoides_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
+
 Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa])
 
 Red_coco.añadir_exp(Experimento_A,
@@ -126,8 +128,8 @@ Red_coco.añadir_exp(Experimento_A,
                                                'juvenil_4': ['Estado 4'],
                                                'juvenil_5': ['Estado 5'],
                                                'pupa': ['Pupa']},
-                             'Parasitoide larvas': {'juvenil': ['Para_larv_abs']},
-                             'Parasitoide pupas': {'juvenil': ['Para_pupa_abs']}}
+                             'Parasitoide larvas': {'juvenil_1': ['Para_larva_abs']},
+                             'Parasitoide pupas': {'juvenil_1': ['Para_pupa_abs']}}
                     )
 
 Red_coco.añadir_exp(Experimento_B,
@@ -177,4 +179,3 @@ Red_coco.guardar()
 
 
 # Podríamos hacer modelos más complejos con especies distintas de avispas, etc.
-

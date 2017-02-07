@@ -785,8 +785,8 @@ class Red(Simulable):
         ec_edad = símismo.ecs['Reproducción']['Edad']
         probs = símismo.ecs['Reproducción']['Prob']
 
-        coefs_ed = símismo.coefs_act['Reproducción']['Edad']
-        coefs_pr = símismo.coefs_act['Reproducción']['Prob']
+        coefs_ed = numerizar(símismo.coefs_act['Reproducción']['Edad'])
+        coefs_pr = numerizar(símismo.coefs_act['Reproducción']['Prob'])
 
         for n, ec_ed in enumerate(ec_edad):
 
@@ -796,7 +796,7 @@ class Red(Simulable):
                 continue
 
             # Una referencia a la parte apriopiada de la matriz de reproducciones
-            n_recip = símismo.orden['Trans'][n]
+            n_recip = símismo.orden['trans'][n]
             repr_etp_recip = reprs[..., n_recip]
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
@@ -853,13 +853,15 @@ class Red(Simulable):
 
             # Y ya pasamos a calcular el número de individuos de esta etapa que se reproducen en este paso de tiempo
             cf = coefs_pr[n]
+            pob_etp = pobs[:, :, :, n]
+
             if probs[n] == 'Constante':
                 # Reproducciones en proporción al tamaño de la población.
 
                 # Tomamos el paso en cuenta según las regals de probabilidad:
                 #   p(x sucede n veces) = (1 - (1- p(x))^n)
 
-                np.multiply(cf['n'] * pobs, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
+                np.multiply(cf['n'] * pob_etp, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
 
             elif probs[n] == 'Depredación':
                 # Reproducciones en función de la depredación (útil para avispas esfécidas)
@@ -989,9 +991,9 @@ class Red(Simulable):
         ec_probs = símismo.ecs['Transiciones']['Prob']
         ec_mult = símismo.ecs['Transiciones']['Mult']
 
-        coefs_ed = símismo.coefs_act['Transiciones']['Edad']
-        coefs_pr = símismo.coefs_act['Transiciones']['Prob']
-        coefs_mt = símismo.coefs_act['Transiciones']['Mult']
+        coefs_ed = numerizar(símismo.coefs_act['Transiciones']['Edad'])
+        coefs_pr = numerizar(símismo.coefs_act['Transiciones']['Prob'])
+        coefs_mt = numerizar(símismo.coefs_act['Transiciones']['Mult'])
 
         cohortes = símismo.predics['Cohortes']
 
@@ -1102,7 +1104,7 @@ class Red(Simulable):
                 trans[..., n] *= coefs_mt[n]['a']
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
-        for n_don, n_recip in enumerate(símismo.orden['Trans']):
+        for n_don, n_recip in enumerate(símismo.orden['trans']):
             if n_recip >= 0:
                 np.add(pobs[..., n_recip], trans[..., n_don], out=pobs[..., n_recip])
 
@@ -1147,10 +1149,10 @@ class Red(Simulable):
         pobs += mov
 
     def _limpiar_cohortes(símismo):
-        for n, etp in enumerate(símismo.predics['Cohortes']):
+        for etp in símismo.predics['Cohortes'].values():
             vacíos = (etp['Pobs'] == 0)
             for ed in etp['Edades'].values():
-                ed[vacíos] = np.nan
+                ed[vacíos] = 0
 
     def incrementar(símismo, paso, i, mov=False, extrn=None):
 
@@ -1318,8 +1320,8 @@ class Red(Simulable):
                         nombre_serie = '% combinada' % etp
 
                         # La matriz de predicciones
-                        matr_preds_etp = matr_preds_etp + np.sum([matr_predics[..., x, :]
-                                                                  for x in combin_etps[n_etp]], axis=3)
+                        matr_preds_etp += np.sum([matr_predics[..., x, :]
+                                                  for x in combin_etps[n_etp]], axis=3)
 
                         # El vector para guardar las observaciones, llenado de valores np.nan. Eje 0: parcela, 1: día
                         vector_obs = np.empty((matr_preds_etp.shape[0], matr_preds_etp.shape[3]))
@@ -1795,7 +1797,7 @@ class Red(Simulable):
             dic_cohorte = cohortes[n] = {}
             dic_cohorte['Edades'] = {}
             dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
-            dic_cohorte['Edades']['Repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
+            dic_cohorte['Edades']['Repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
 
         for n in i_coh_trans:
             try:
@@ -1805,7 +1807,7 @@ class Red(Simulable):
                 dic_cohorte['Edades'] = {}
                 dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
 
-            dic_cohorte['Edades']['Trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám), dtype=int)
+            dic_cohorte['Edades']['Trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
 
         return dic
 
@@ -1824,6 +1826,7 @@ def _agregar_ruido(pobs, ruido):
     :type ruido: float
     """
 
+    # Para hacer: cohortes
     np.add(np.round(np.random.normal(0, np.maximum(1, pobs * ruido))), pobs, out=pobs)
 
     np.maximum(0, pobs, out=pobs)
