@@ -1,4 +1,4 @@
-Clima (Clima y y meteorología)
-==============================
+Clima y meteorología (Clima)
+============================
 
 Poner la documentación aquí.

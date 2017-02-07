@@ -1,4 +1,4 @@
-Redes Agroecológicas (RAE)
+RAE (Redes Agroecológicas)
 ==========================
 
 .. toctree::
