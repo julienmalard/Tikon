@@ -1814,23 +1814,25 @@ class Red(Simulable):
     def especificar_apriori(símismo, **kwargs):
         raise NotImplementedError('No hay parámetros para especificar en una Red.')
 
+    def _agregar_ruido(símismo, pobs, ruido):
+        """
+
+        :param pobs:
+        :type pobs: np.ndarray
+        :param ruido:
+        :type ruido: float
+        """
+
+        ruido = np.round(np.random.normal(0, np.maximum(1, pobs * ruido)))
+        np.add(ruido, pobs, out=pobs)
+
+        for i, coh in símismo.predics['Cohortes'].items():
+            añadir_a_cohorte(dic_cohorte=coh, nuevos=ruido[..., i])
+
+        np.maximum(0, pobs, out=pobs)
+
 
 # Funciones auxiliares
-
-def _agregar_ruido(pobs, ruido):
-    """
-
-    :param pobs:
-    :type pobs: np.ndarray
-    :param ruido:
-    :type ruido: float
-    """
-
-    # Para hacer: cohortes
-    np.add(np.round(np.random.normal(0, np.maximum(1, pobs * ruido))), pobs, out=pobs)
-
-    np.maximum(0, pobs, out=pobs)
-
 
 def redondear(matriz):
     """
@@ -2148,6 +2150,9 @@ def probs_conj(matr, eje, pesos=1, máx=1):
 
 def copiar_dic_refs(d, c=None):
     """
+    Esta función copia un diccionario pero deja las referencias a matrices y variables PyMC intactos. Esto permite
+    dejar que etapas fantasmas de una víctima de parasitoide tengan los mismos variables que la etapa original y evita
+    desdoblar variables en la calibración.
 
     :param d:
     :type d: dict | list
