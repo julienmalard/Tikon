@@ -3,10 +3,9 @@ import os
 from warnings import warn as avisar
 
 import numpy as np
-
+import tikon.RAE.Insecto as Ins
 from tikon.Coso import Simulable
-from tikon.Matemáticas import Distribuciones as Ds
-from tikon.Matemáticas import Ecuaciones as Ec
+from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec
 from tikon.Matemáticas.Arte import gráfico
 from tikon.Matemáticas.Incert import numerizar, validar, gen_vector_coefs
 from tikon.RAE import Planta as Plt
@@ -1182,7 +1181,7 @@ class Red(Simulable):
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
-        _agregar_ruido(pobs=pobs, ruido=0.01)
+        símismo._agregar_ruido(pobs=pobs, ruido=0.01)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
@@ -1537,7 +1536,7 @@ class Red(Simulable):
         """
         Ver la documentación de Coso.
 
-        :type exper: list
+        :type exper: list[str]
         :type n_rep_estoc: int
         :type n_rep_paráms: int
         :type tiempo_final: dict | None
@@ -1595,6 +1594,7 @@ class Red(Simulable):
 
             # Llenamos la poblaciones iniciales
             for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):
+
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
                 nombre_col = símismo.info_exps['nombres_cols'][exp][i]
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
@@ -1602,15 +1602,46 @@ class Red(Simulable):
                 # Convertir a unidades de organismos por parcela
                 np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
 
-                # Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones estocásticas y paramétricas) de la etapa
-                # en cuestión (eje 3) a tiempo 0 (eje 4).
-                datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
-
+                # Un vínculo as los cohortes
                 cohortes = datos_inic['Cohortes']
-                if n_etp in cohortes:
-                    añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=matr_obs_inic)
+
+                # Llenamos la población inicial y los cohortes. Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones
+                # estocásticas y paramétricas) de la etapa en cuestión (eje 3) a tiempo 0 (eje 4).
+
+                org = símismo.organismos[símismo.etapas[n_etp]['org']]
+                etp = símismo.etapas[n_etp]['nombre']
+                juvenil_paras = isinstance(org, Ins.Parasitoide) and etp == 'juvenil'
+
+                if juvenil_paras:
+                    # Si la etapa no es la larva de un parasitoide...
+
+                    # Agregarla directamente al diccionario de poblaciones iniciales
+                    datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+
+                    # Y verificar para cohortes, si necesario
+                    if n_etp in cohortes:
+                        añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=matr_obs_inic)
+
+                else:
+                    # ...si es el caso, hay que agregar sus poblaciones a las etapas fantasmas
+
+                    # Detectamos todas las etapas fantasmas del parasitoide
+                    n_etps_víc = [n for n, e in enumerate(símismo.etapas) if
+                                  e['org'] == org.nombre and 'infectando a' in e['nombre']]
+
+                    # Ajustar el las poblaciones iniciales por el número de etapas fantasmas de sus víctimas
+                    np.divide(matr_obs_inic, len(n_etps_víc), out=matr_obs_inic)
+
+                    # Y agregar la población inicial de cada etapa fantasma a la matriz de poblaciones.
+                    for n in n_etps_víc:
+                        datos_inic['Pobs'][..., n, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+
+                        # También agregamos la población inicial a los cohortes
+                        if n in cohortes:
+                            añadir_a_cohorte(dic_cohorte=cohortes[n], nuevos=matr_obs_inic)
 
             # Una cosa un poco a la par: llenar poblaciones iniciales manualmente para plantas con densidades fijas.
+            # Para hacer: ¿de verdad es buena idea hacer esto así?
             for org in símismo.organismos.values():
                 if type(org) is Plt.Constante:
                     n_etp = símismo.núms_etapas[org.nombre]['planta']
