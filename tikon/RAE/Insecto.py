@@ -57,7 +57,15 @@ class Insecto(Organismo):
                 raise ValueError('El número de juveniles no puede ser inferior a 0.')
 
             for i in range(0, njuvenil):
-                símismo.añadir_etapa('juvenil_%i' % (i+1), posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
+
+                # Establecer el nombre de la etapa juvenil
+                if njuvenil == 1:
+                    nombre = 'juvenil'
+                else:
+                    nombre = 'juvenil_%i' % (i + 1)
+
+                # Agregar la etapa
+                símismo.añadir_etapa(nombre, posición=pos, ecuaciones=tipo_ecuaciones['juvenil'])
                 pos += 1
 
             if pupa:
