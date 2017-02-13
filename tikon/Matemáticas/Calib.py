@@ -16,7 +16,7 @@ class ModBayes(object):
 
     def __init__(símismo, función, dic_argums, obs, lista_paráms, aprioris, lista_líms, id_calib, función_llenar_coefs):
         """
-        Al iniciarse, un Modelo hace lo siguiente:
+        Al iniciarse, un Modelo hace el siguiente:
 
            1. Crea variables estocásticos de PyMC para representar cada parámetro. Para escoger cuál clase de variable
             estocástico (¿distribución normal, gamma, beta, uniforme?) para cada parámetro, usa la función que cabe

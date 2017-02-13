@@ -192,7 +192,7 @@ class Coso(object):
         :param rango: El rango de la distribución.
         :type rango: tuple
 
-        :param certidumbre: La probabilidad que el valor verdadero se encuentre en el rango especificado.
+        :param certidumbre: La probabilidad, en (0, 1], que el valor verdadero se encuentre en el rango especificado.
         :type certidumbre: float
 
         :param dibujar: Si queremos dibujar el resultado o no.
@@ -1158,6 +1158,17 @@ class Simulable(Coso):
 
             Arte.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
                                 título=título, archivo=archivo)
+
+    def especificar_apriori(símismo, **kwargs):
+        """
+        Dejamos este para las subclases de Simulable, se les aplica.
+
+        :param kwargs:
+        :type kwargs:
+
+        """
+
+        raise NotImplementedError
 
 
 def dic_lista_a_np(d):

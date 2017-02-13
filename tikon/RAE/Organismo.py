@@ -356,7 +356,7 @@ class Organismo(Coso):
         :param rango: El rango a cuál queremos limitar el parámetro
         :type rango: tuple
 
-        :param certidumbre: El % de certidumbre de que el parámetro se encuentre adentro del rango especificado.
+        :param certidumbre: La certidumbre, en (0, 1], que el parámetro se encuentre adentro del rango especificado.
         :type certidumbre: float
 
         :param org_inter: El nombre de otro organismo con el cual interactúa este Coso para este variable.
