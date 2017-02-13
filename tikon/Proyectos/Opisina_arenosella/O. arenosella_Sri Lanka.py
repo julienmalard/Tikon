@@ -128,8 +128,8 @@ Red_coco.añadir_exp(Experimento_A,
                                                'juvenil_4': ['Estado 4'],
                                                'juvenil_5': ['Estado 5'],
                                                'pupa': ['Pupa']},
-                             'Parasitoide larvas': {'juvenil_1': ['Para_larva_abs']},
-                             'Parasitoide pupas': {'juvenil_1': ['Para_pupa_abs']}}
+                             'Parasitoide larvas': {'juvenil': ['Para_larva_abs']},
+                             'Parasitoide pupas': {'juvenil': ['Para_pupa_abs']}}
                     )
 
 Red_coco.añadir_exp(Experimento_B,

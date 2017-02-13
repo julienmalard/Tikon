@@ -26,6 +26,8 @@ ecs_orgs = {
                                                            'inter': ['presa']}},
                                  'Logístico Depredación': {'K': {'límites': (0, np.inf),
                                                                  'inter': ['presa']}},
+                                 'Constante': {'n': {'límites': (0, np.inf),
+                                                     'inter': None}},
                                  'Externo Cultivo': {}
                                  }
                     },

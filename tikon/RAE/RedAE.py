@@ -8,7 +8,6 @@ from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec
 from tikon.Matemáticas.Arte import gráfico
 from tikon.Matemáticas.Incert import numerizar, validar, gen_vector_coefs
-from tikon.RAE import Planta as Plt
 from tikon.RAE.Organismo import Organismo
 
 
@@ -81,9 +80,6 @@ class Red(Simulable):
         # las predicciones de la red en función a cada experimento.
         símismo.info_exps = {'etps_interés': {}, 'combin_etps': {}, 'nombres_cols': {},
                              'ubic_obs': {}, 'parcelas': {}, 'superficies': {}}
-
-        # Para guardar una conexión con los organismos de plantas en la red
-        símismo.plantas = {'dic': {}, 'n_etp': {}}
 
         # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
         if type(organismos) is not list:
@@ -201,8 +197,6 @@ class Red(Simulable):
 
         # Limpiar todo
         símismo.etapas.clear()  # Borrar la lista de etapas existentes
-        símismo.plantas['dic'].clear()  # Borrar los diccionarios para plantas
-        símismo.plantas['n_etp'].clear()
         símismo.fantasmas.clear()
         símismo.núms_etapas.clear()
 
@@ -228,12 +222,6 @@ class Red(Simulable):
 
                 # Y guardamos una referencia al número de la etapa
                 símismo.núms_etapas[nombre_org][nombre_etp] = n
-
-                # Para la gestión de cultivos/plantas
-                if isinstance(org, Plt.Planta):
-                    símismo.plantas['dic'][
-                        n] = org.densidad  # arreglar: ¿agrega el número para todas etapas de la planta?
-                    símismo.plantas['n_etp'][n] = nombre_etp
 
                 n += 1
 
@@ -272,7 +260,7 @@ class Red(Simulable):
 
                     # El nombre de la fase larval del organismo que infecta
                     nombre_etp_larva_inf = obj_org_inf.etapas[0]['nombre']
-                    n_larva = símismo.núms_etapas[org_hués][nombre_etp_larva_inf]
+                    n_larva = símismo.núms_etapas[obj_org_inf.nombre][nombre_etp_larva_inf]
 
                     # Crear las etapas fantasmas para las etapas infectadas del huésped
                     for d_etp_hués in l_d_etps_hués:
@@ -738,19 +726,32 @@ class Red(Simulable):
 
                 # Evitar péridadas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pob_etp, out=crec_etp)
-                pass
 
-            elif tipos_ec[n] == 'Depredación':
+            elif tipos_ec[n] == 'Logístico Depredación':
                 # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
-                # para hacer: implementar
-                raise NotImplementedError
+
+                depred = símismo.predics['Depred'][..., n, :]  # La depredación por esta etapa
+                k = np.nansum(np.multiply(depred, cf['K']), axis=3)  # Calcular la capacidad de carga
+                np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
+
+                # Evitar péridadas de poblaciones superiores a la población.
+                np.maximum(crec_etp, -pob_etp, out=crec_etp)
+
+            elif tipos_ec[n] == 'Constante':
+                nueva_pob = cf['n']
+                np.subtract(nueva_pob, pob_etp, out=crec_etp)
 
             elif tipos_ec[n] == 'Externo Cultivo':
                 # Esta ecuación guarda la población del organismo a un nivel constante, no importe qué esté pasando
-                # en el resto de la red. Puede ser util para representar plantas donde los herbívoros están bien
+                # en el resto de la red. Puede ser útil para representar plantas donde los herbívoros están bien
                 # abajo de sus capacidades de carga.
-                nueva_pob = símismo.plantas['dic'][n][símismo.plantas['n_etp'][n]]
-                np.subtract(nueva_pob, pob_etp, out=crec_etp)
+
+                try:
+                    np.subtract(extrn['Plantas'][n], pob_etp, out=crec_etp)
+                except (KeyError, TypeError):
+                    # Si la planta no ha sido conectada a través de una parcela, no hacemos nada. Esto dejará un valor
+                    # de 0 para la población de la planta.
+                    pass
 
             else:
                 raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tipos_ec[n])
@@ -1593,7 +1594,7 @@ class Red(Simulable):
                                                       i_coh_trans=i_coh_trans, i_coh_repr=i_coh_repr)
 
             # Llenamos la poblaciones iniciales
-            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):
+            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
 
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
                 nombre_col = símismo.info_exps['nombres_cols'][exp][i]
@@ -1640,19 +1641,27 @@ class Red(Simulable):
                         if n in cohortes:
                             añadir_a_cohorte(dic_cohorte=cohortes[n], nuevos=matr_obs_inic)
 
-            # Una cosa un poco a la par: llenar poblaciones iniciales manualmente para plantas con densidades fijas.
-            # Para hacer: ¿de verdad es buena idea hacer esto así?
+            # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
             for org in símismo.organismos.values():
-                if type(org) is Plt.Constante:
-                    n_etp = símismo.núms_etapas[org.nombre]['planta']
-                    datos_inic['Pobs'][..., n_etp, 0] = org.densidad['planta']
+                for d_etp in org.etapas:
+                    nombre = d_etp['nombre']
+                    if org.receta['estr'][nombre]['ecs']['Crecimiento'] == 'Constante':
+                        # Si la etapa tiene una población constante...
+
+                        # El número de la etapa
+                        n_etp = símismo.núms_etapas[org.nombre][nombre]
+
+                        # La población inicial se determina por el coeficiente de población constante del organismo
+                        pobs_inic = numerizar(org.coefs['Crecimiento']['Constante']['n']['especificado'])
+
+                        # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
+                        datos_inic['Pobs'][..., n_etp, 0] = pobs_inic
 
             # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
             dic_args['datos_inic'][exp] = datos_inic
 
-            # También guardamos el número de pasos y diccionarios de ingresos externos.
+            # También guardamos el número de pasos y las superficies de las parcelas.
             dic_args['n_pasos'][exp] = n_pasos
-            # Para hacer: implementar clima y aplicaciones
             dic_args['extrn'][exp] = {'superficies': símismo.info_exps['superficies'][exp]}
 
         return dic_args
@@ -1854,13 +1863,18 @@ class Red(Simulable):
         :type ruido: float
         """
 
+        # Una distribución normal
         ruido = np.round(np.random.normal(0, np.maximum(1, pobs * ruido)))
+
+        # Verificara que no quitamos más que existen
+        np.maximum(ruido, pobs, out=ruido)
+
+        # Aplicar el cambio
         np.add(ruido, pobs, out=pobs)
 
+        # Actualizar los cohortes
         for i, coh in símismo.predics['Cohortes'].items():
             añadir_a_cohorte(dic_cohorte=coh, nuevos=ruido[..., i])
-
-        np.maximum(0, pobs, out=pobs)
 
 
 # Funciones auxiliares
@@ -2129,11 +2143,13 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
         p = muertes / pobs_cums[n_día]
 
         # Quitar los de esta edad que se murieron
-        quitar = np.random.binomial(pobs_coh, p)
+        quitar = np.minimum(np.random.binomial(pobs_coh, p), muertes).astype(int)
+        if n_día < len(pobs) - 1:
+            quitar = np.maximum(quitar, muertes - pobs_cums[n_día + 1]).astype(int)
         np.subtract(pobs_coh, quitar, out=pobs_coh)
 
         # Actualizar las muertes que faltan implementar
-        np.subtract(muertes, quitar)
+        np.subtract(muertes, quitar, out=muertes)
 
         # Si transicion a otro cohorte (de otro organismo), implementarlo aquí
         if recip is not None:
