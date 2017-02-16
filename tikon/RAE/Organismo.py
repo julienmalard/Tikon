@@ -18,7 +18,7 @@ class Organismo(Coso):
 
     Una cosa importante: si quieres crear una nueva subclase, sub-subclase, sub-sub-subclase (no importa), y quieres
     que la clase tenga métodos (fundiones) propias DISTINTAS de los métodos yá implementados en Organismo aquí,
-    (por ejemplo, un método de .parasita() para parasitoides), tendrás que especificar un tipo de extensión de
+    (por ejemplo, el método .parasita() para parasitoides), tendrás que especificar un tipo de extensión de
     archivo único para tu clase (p.ej., '.ins' para Insecto) para que el módulo de Redes pueda distinguir archivos
     guardados específicos a tu nueva clase.
 
@@ -347,7 +347,7 @@ class Organismo(Coso):
         Esta función permite al usuario de especificar una distribución especial para el a priori de un parámetro.
 
         :param etapa: La etapa de este ORganismo a la cual hay que aplicar este a priori.
-        :type etapa: str
+        :type etapa: str | list
 
         :param ubic_parám: Una lista de las llaves que traerán uno a través del diccionario de coeficientes del
         Organismo hasta el parámetro de interés.
@@ -371,16 +371,92 @@ class Organismo(Coso):
 
         """
 
-        dic_parám = símismo.receta['coefs'][etapa]
+        # El diccionario de información de ecuaciones
         dic_ecs = símismo.dic_ecs
 
-        if org_inter is not None and etp_inter is None:
-                raise ValueError('Hay que especificar la etapa del organismo de interacción.')
+        # Asegurarse que la etapa esté en formato de lista
+        if type(etapa) is list:
+            lista_etps = etapa
+        else:
+            lista_etps = [etapa]
 
-        inter = [org_inter, etp_inter]
+        # Permitir que 'juvenil' refiera a todas las etapas juveniles
+        if 'juvenil' in lista_etps:
 
-        símismo._estab_a_priori(dic_ecs=dic_ecs, dic_parám=dic_parám, ubic_parám=ubic_parám,
-                                rango=rango, certidumbre=certidumbre, inter=inter, dibujar=dibujar)
+            # Quitar la palabra 'juvenil' (si hay una etapa que de verdad se llama 'juvenil', se agregará de nuevo
+            # abajo de todo modo).
+            lista_etps.remove(['juvenil'])
+
+            # Agregar todas las etapas juveniles
+            lista_etps += [x for x in símismo.receta['estr'] if 'juvenil' in x]
+
+        # Buscar el tipo de interacción para este parámetro
+        dic = dic_ecs
+        for llave in ubic_parám:
+            try:
+                dic = dic[llave]
+            except KeyError:
+                raise KeyError('Ubicación de parámetro erróneo.')
+
+        # Guardar el tipo de interacción
+        try:
+            tipo_inter = dic['inter']  # type: list
+        except KeyError:
+            tipo_inter = None
+
+        # Especificar la distribución para cada etapa
+        for etp in lista_etps:
+
+            # Verificar que la etapa existe y sacar su diccionario de coeficientes
+            try:
+                dic_parám = símismo.receta['coefs'][etapa]
+            except KeyError:
+                raise ValueError('La etapa "{}" no existe en este organismo.'.format(etp))
+
+            # Preparar la lista de interacciones para esta etapa
+
+            if tipo_inter is None:
+                # Si no hay intereacciones para este tipo de parámetro...
+
+                if org_inter is None:
+                    # Si no se especificó una interacción, perfecto.
+                    l_inter = [None]
+
+                else:
+                    # Pero si se especificó una interacción para un parámetro que no tiene interacciones, hay un
+                    # problema.
+                    raise ValueError('No se puede especificar interacciones para parámetros sin interacciones.')
+
+            else:
+                # Bueno, ahora si hay interacciones para este parámetro...
+
+                if org_inter is not None:
+                    # Si se especificó un orgamismo de interacción...
+
+                    if etp_inter is not None:
+                        # ...y si también se especificó una etapa de interacción, usamos estas.
+                        l_inter = [[org_inter, etp_inter]]
+                    else:
+                        # ...pero si se especificó organismo pero no etapa de interacción...
+
+                        # Vamos a tomar todas las etapas de este organismo que tienen una relación del tipo
+                        # de interacción apropiado para el parámetro en cuestión.
+                        l_inter = [[org_inter, e] for i in tipo_inter for e in símismo.config[etp][i][org_inter]]
+                else:
+                    # ...y se hacia no se especificó un organismo de interacción...
+
+                    # Tomamos todos los organismos y todas sus etapas que tienen una relación del tipo de interacción
+                    # apropiado para el parámetro en cuestión.
+                    l_inter = [[o, e] for i in tipo_inter
+                               for o in símismo.config[etp][i]
+                               for e in símismo.config[etp][i][o]]
+
+            # Ahora, para cada tipo de interacción identificado...
+            for inter in l_inter:
+
+                # ...establecer la distribución a priori
+                símismo._estab_a_priori(dic_ecs=dic_ecs, dic_parám=dic_parám, ubic_parám=ubic_parám,
+                                        rango=rango, certidumbre=certidumbre, inter=inter, dibujar=dibujar)
 
     def _sacar_coefs_interno(símismo):
         """
