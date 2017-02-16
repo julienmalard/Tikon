@@ -199,7 +199,7 @@ class Coso(object):
         :type dibujar: bool
 
         :param inter: Una lista anidada de interacciones (opcional).
-        :type inter: list
+        :type inter: list | None
 
         """
 
@@ -233,7 +233,7 @@ class Coso(object):
 
         # Si hay interacciones, buscar
         if inter is None:
-            if 'inter' not in dic_ecs or dic_ecs['inter'] is not None:
+            if 'inter' not in dic_ecs or dic_ecs['inter'] is not None:  # arreglarme: error
                 raise ValueError('Hay que especificar interacciones para parámetros con interacciones.')
         else:
             for i in inter:
@@ -332,12 +332,12 @@ class Simulable(Coso):
     def actualizar(símismo):
         """
         Esta función actualiza las matrices internas del Simulable para prepararlo para una simulación.
-          Se aplica individualmente en todas las subclases de Simulable, que también deben llamar esta función al
-          final para poner símismo.listo = True.
+        Se aplica individualmente en todas las subclases de Simulable, que también deben poner símismo.listo = True
+        al final.
 
         """
 
-        símismo.listo = True
+        raise NotImplementedError
 
     def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, dibujar=True, opciones_dib=None):
@@ -1169,6 +1169,9 @@ class Simulable(Coso):
         """
 
         raise NotImplementedError
+
+    def __str__(símismo):
+        return símismo.nombre
 
 
 def dic_lista_a_np(d):

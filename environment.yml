@@ -1,0 +1,7 @@
+name: py35
+dependencies:
+- matplotlib
+- numpy
+- pymc
+- python>=3.5.1
+- scipy

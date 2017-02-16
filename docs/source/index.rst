@@ -14,4 +14,5 @@ Tiko'n
    uso
    ejemplos
    docu
+   pubs
    contribuidores
