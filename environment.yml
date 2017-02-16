@@ -3,6 +3,6 @@ dependencies:
 - matplotlib
 - numpy
 - pymc
-- python>=3.5.1
+- python=3.5.1=0
 - scipy
-- sphinx>=1.5.1
+- sphinx=1.5.1=0
