@@ -5,3 +5,4 @@ dependencies:
 - pymc
 - python>=3.5.1
 - scipy
+- sphinx>=1.5.1

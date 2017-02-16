@@ -262,11 +262,6 @@ class Red(Simulable):
                     # Una lista con todas las etapas del huésped que pueden tener la infección.
                     l_d_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_rel_prim: n_rel_sale + 1]]
 
-                    # La segunda etapa existente del organismo que infecta (los individuos infectados terminarán por
-                    # transicionar a la esta etapa).
-                    nombre_etp_recip = obj_org_inf.etapas[1]['nombre']
-                    n_recip = símismo.núms_etapas[org_hués][nombre_etp_recip]  # Su posición absoluta en la Red
-
                     # El nombre de la fase larval del organismo que infecta
                     nombre_etp_larva_inf = obj_org_inf.etapas[0]['nombre']
                     n_larva = símismo.núms_etapas[obj_org_inf.nombre][nombre_etp_larva_inf]
@@ -299,11 +294,20 @@ class Red(Simulable):
 
                         # Verificar si la etapa hospedera es la última de este organismo que puede estar infectada
                         if n_etp_hués <= len(l_d_etps_hués) - 1:
-                            # Si no lo es, esta etapa transicionará a la próxima etapa fantasma de este organismo.
-                            n_trans = n_etp_fant + 1
+                            # Si no es la última, esta etapa transicionará a la próxima etapa fantasma de este
+                            # organismo.
+
+                            # Buscar la primera etapa existente del organismo que infecta
+                            nombre_etp_inf_0 = obj_org_inf.etapas[0]['nombre']
+                            n_etp_inf_0 = símismo.núms_etapas[obj_org_inf.nombre][nombre_etp_inf_0]
+
+                            # Se guarda la posición relativa al organismo infectuoso
+                            n_trans = n_etp_fant + 1 - n_etp_inf_0
+
                         else:
-                            # Si lo es, transicionará a la etapa recipiente del organismo infectuoso.
-                            n_trans = n_recip
+                            # Si lo es, transicionará a la etapa recipiente (siempre la segunda) del organismo
+                            # infectuoso.
+                            n_trans = 1
 
                             # Usar las ecuaciones de transiciones de la larva del agente infectuoso para las
                             # transiciones de la última etapa infectada de la víctima.
@@ -317,7 +321,7 @@ class Red(Simulable):
                             coefs['Transiciones']['Prob'][prob_trans] = coefs_prob_trans
                             coefs['Transiciones']['Edad'][edad_trans] = coefs_edad_trans
 
-                        dic['Trans'] = n_trans
+                        dic['trans'] = n_trans
 
                         dic_etp = dict(org=etp['org'],
                                        nombre=dic['nombre'],
@@ -388,11 +392,6 @@ class Red(Simulable):
                     símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín if d_etp['trans'] != -1 else -1
                 if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
                     símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín if d_etp['repr'] != -1 else -1
-
-        # Guardar el orden de transiciones y de reproducciones para etapas fantasmas
-        for n_etp in range(n_etps_reg, len(símismo.etapas)):
-            símismo.orden['trans'][n_etp] = símismo.etapas[n_etp]['dic']['trans']
-            símismo.orden['repr'][n_etp] = símismo.etapas[n_etp]['dic']['repr']
 
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
