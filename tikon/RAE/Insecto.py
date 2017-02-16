@@ -83,10 +83,10 @@ class Insecto(Organismo):
         :type presa: tikon.RAE.Organismo.Organismo
 
         :param etps_presa:
-        :type etps_presa:
+        :type etps_presa: str 1 list
 
         :param etps_depred:
-        :type etps_depred:
+        :type etps_depred: str | list
 
         """
 

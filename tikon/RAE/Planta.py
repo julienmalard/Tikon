@@ -156,6 +156,31 @@ class Hojas(Planta):
         super().__init__(nombre=nombre, tipo_ecs={'hoja': ecs}, proyecto=proyecto, fuente=fuente)
 
 
+class HojasRaices(Planta):
+    """
+    Una planta muy sencilla, con crecimiento logístico. Puede ser util para plantas vivaces y pruebas de modelos.
+    """
+
+    def __init__(símismo, nombre, proyecto=None, fuente=None):
+        """
+        Una planta Sencilla tiene una única parte de la planta, llamada "planta".
+
+        :type nombre: str
+        :type proyecto: str
+        :type fuente: str
+        """
+
+        ecs = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
+                   Depredación={'Ecuación': 'Nada'},
+                   Muertes={'Ecuación': 'Nada'},
+                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Movimiento={}
+                   )
+
+        super().__init__(nombre=nombre, tipo_ecs={'hoja': ecs, 'raíz': ecs}, raíz=True,
+                         proyecto=proyecto, fuente=fuente)
+
 class Completa(Planta):
     """
     Esta clase por sí misma no puede predecir el crecimiento de cada una de sus partes, y requiere el uso de un

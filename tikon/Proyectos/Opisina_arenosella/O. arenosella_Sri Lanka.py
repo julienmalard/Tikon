@@ -2,6 +2,7 @@ import tikon.RAE.Insecto as Ins
 from tikon.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
+import tikon.RAE.Planta as Plt
 
 # Opciones artísticas
 dib_aprioris = False
@@ -9,6 +10,9 @@ ops_dib = {'incert': None, 'todas_líneas': True}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
+Coco = Plt.Hojas('Coco', proyecto=proyecto)
+Coco.estimar_densidad(rango=(38000e6, 42000e6), certidumbre=0.95)
+
 """
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
@@ -115,11 +119,13 @@ Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas')
 
 Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas')
 
+O_arenosella.secome(Coco, etps_depred='juvenil')
+
 Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
 
 Parasitoides_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
 
-Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa])
+Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa, Coco])
 
 Red_coco.añadir_exp(Experimento_A,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
@@ -152,6 +158,7 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 #     Parasitoides_pupa.especificar_apriori(**a_priori)
 
 
+# Red_coco.validar(Experimento_A)
 Red_coco.calibrar(exper=Experimento_A)
 Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_B)

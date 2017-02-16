@@ -110,7 +110,7 @@ class Organismo(Coso):
                          ecs=ecuaciones.copy(),  # Copiar la selección de tipos de ecuaciones
                          # Notar que los números que siguen solamente tendrán impacto en el modelo si la ecuación de
                          # Transición y/o de Reproducción de esta etapa != 'Nada'.
-                         trans=posición,
+                         trans=-1,  # La etapas que no tienen etapas que siguen no transicionan a nada (sino se mueren)
                          repr=0  # Siempre se reproduce a la primera etapa.
                          )
 
@@ -174,7 +174,7 @@ class Organismo(Coso):
 
         for categ, dic_categ in tipo_ec.items():
             for sub_categ, opción_ec in dic_categ.items():
-                símismo.receta['estr'][etapa]['ecuaciones'][categ][sub_categ] = opción_ec
+                símismo.receta['estr'][etapa]['ecs'][categ][sub_categ] = opción_ec
 
     def victimiza(símismo, víctima, etps_símismo=None, etps_víctima=None, método='presa', etp_sale=None):
         """
@@ -219,6 +219,11 @@ class Organismo(Coso):
             etps_víctima = [etps_víctima]
         if type(etps_símismo) is str:
             etps_símismo = [etps_símismo]
+
+        # Permitir que 'juvenil' se refiera a todas las etapas juveniles del organismo
+        if 'juvenil' in etps_símismo:
+            etps_símismo.remove('juvenil')
+            etps_símismo += [e for e in símismo.receta['estr'] if 'juvenil' in e]
 
         # Guardar la relación de deprededor y presa o huésped en la configuración del organismo
         for e_depred in etps_símismo:
