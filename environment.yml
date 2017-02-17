@@ -1,8 +1,9 @@
-name: py35
+name: py36
 dependencies:
+- sphinx=1.5.1
 - matplotlib
 - numpy
 - pymc
 - python=3.6
 - scipy
-- sphinx=1.5.1
+
