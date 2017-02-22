@@ -76,7 +76,7 @@ class Cultivo(Simulable):
     def _sacar_líms_coefs_interno(símismo):
         raise NotImplementedError  # Para hacer
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificados):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
         raise NotImplementedError  # Para hacer
 
     def _procesar_validación(símismo):

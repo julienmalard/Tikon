@@ -181,6 +181,7 @@ class HojasRaices(Planta):
         super().__init__(nombre=nombre, tipo_ecs={'hoja': ecs, 'raíz': ecs}, raíz=True,
                          proyecto=proyecto, fuente=fuente)
 
+
 class Completa(Planta):
     """
     Esta clase por sí misma no puede predecir el crecimiento de cada una de sus partes, y requiere el uso de un

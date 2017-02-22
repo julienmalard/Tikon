@@ -6,11 +6,11 @@ import tikon.Matemáticas.Incert as Incert
 
 class ModBayes(object):
     """
-    Esta clase merece una descripción detallada. Al fin, un Modelo es lo que trae junto simulación, observaciones y
-      parámetros para calibrar estos últimos por medio de inferencia Bayesiana (usando el módulo de Python PyMC).
+    Esta clase merece una descripción detallada. Al final, un Modelo es lo que trae junto simulación, observaciones y
+    parámetros para calibrar estos últimos por medio de inferencia Bayesiana (usando el módulo de Python PyMC).
     Si no conoces bien la inferencia Bayesiana, ahora sería una buena cosa para leer antes de intentar entender lo
-      que sigue. Si hacia yo me confundo yo mismo en mi propio código, no lo vas a entender si no entiendes bien
-      el concepto de la inferencia Bayesiana con método de Monte Carlo.
+    que sigue. Si hacia yo me confundo yo mismo en mi propio código, no lo vas a entender si no entiendes bien
+    el concepto de la inferencia Bayesiana con método de Monte Carlo.
 
     """
 
@@ -42,39 +42,39 @@ class ModBayes(object):
              observaciones. Es este objeto que brinda acceso a las funcionalidades de calibración de PyMC.
 
         :param función: La función para calibrar. En general, eso sería la función 'simular' de un modelo (por ejemplo,
-          de una red agroecológica o de un cultivo). Esta función debe de tener un perámetros 'calib' que, en case que
-          sea 'True', llamará la versión de esta función apropiada para una calibración (entre otro, que usará
-          únicamente los valores de los parámetros tales como especificados por el Modelo y que devolverá los datos
-          en formato apropiado).
+        de una red agroecológica o de un cultivo). Esta función debe de tener un perámetros 'calib' que, en case que
+        sea 'True', llamará la versión de esta función apropiada para una calibración (entre otro, que usará
+        únicamente los valores de los parámetros tales como especificados por el Modelo y que devolverá los datos
+        en formato apropiado).
         :type función: function
 
         :param dic_argums: Un diccionario de los argumentos que hay que pasar a "función". Si no hay argumentos para
-          pasar, poner un diccionario vacío, {}.
+        pasar, poner un diccionario vacío, {}.
         :type dic_argums: dict
 
         :param obs: Una matriz numpy unidimensional con las observaciones. 'función' debe devolver  una matriz
-          unidimensional con las predicciones calculadas por el modelo, en el mismo orden, correspondiendo a estas
-          observaciones.
+        unidimensional con las predicciones calculadas por el modelo, en el mismo orden, correspondiendo a estas
+        observaciones.
         :type obs: np.ndarray
 
         :param lista_paráms: El diccionario de los parámetros para calibrar.
         :type lista_paráms: list
 
         :param aprioris: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
-          distribuciones a priori de los parámetros.
+        distribuciones a priori de los parámetros.
         :type aprioris: list
 
         :param lista_líms: Una lista con los límites teoréticos de los parámetros en el modelo. Esto se usa para
-          determinar los tipos de funciones apropiados para aproximar las distribuciones a priori de los parámetros.
-          (Por ejemplo, no se emplearía una distribución normal para aproximar un parámetro limitado al rango
-          (0, +inf).
+        determinar los tipos de funciones apropiados para aproximar las distribuciones a priori de los parámetros.
+        (Por ejemplo, no se emplearía una distribución normal para aproximar un parámetro limitado al rango
+        (0, +inf).
         :type lista_líms: list
 
         :param id_calib: El nombre para identificar la calibración.
         :type id_calib: str
 
         :param función_llenar_coefs: Una funcion que llenara los diccionarios del Simulable con los coeficientes PyMC
-          recién creados.
+        recién creados.
         :type función_llenar_coefs: function
 
         """
@@ -98,8 +98,10 @@ class ModBayes(object):
             if isinstance(parám, pymc.Deterministic):
                 lista_paráms.append(min(parám.extended_parents))
 
-        # Llenamos las matrices de coeficientes con los variables PyMC recién creados
-        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificados=True, comunes=False)
+        # Llenamos las matrices de coeficientes con los variables PyMC recién creados. Ponemos "usar_especificadas" =
+        # False para evitar que distribuciones especificadas tomen el lugar de las distribuciones de PyMC que acabamos
+        # de generar.
+        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificadas=False, comunes=False)
 
         # Para la varianza de la distribución normal, se emplea un tau no informativo, si es que exista tal cosa.
         símismo.precisión = pymc.Uniform('precision', lower=0.0001, upper=1.0)
@@ -127,15 +129,13 @@ class ModBayes(object):
         :type rep: int
 
         :param quema: El número de repeticiones iniciales a cortar de los resultados. Esto evita que los resultados
-          estén muy influenciados por los valores iniciales (y posiblemente erróneos) que toman los parámetros al
-          principio de la calibración.
+        estén muy influenciados por los valores iniciales (y posiblemente erróneos) que toman los parámetros al
+        principio de la calibración.
         :type quema: int
 
-        :param extraer: Cada cuántas repeticiones hay que guardar para los resultados. Por ejemplo, con extraer=10,
-          cada 10 repeticiones se guardará
-
-        Por ejemplo, con rep=10000, quema=100 y extraer=10, quedaremos con trazas de (10000 - 100) / 10 = 990 datos
-          para aproximar la destribución de cada parámetro.
+        :param extraer: Cada cuántas repeticiones hay que guardar para los resultados. Por ejemplo, con `extraer`=10,
+        cada 10 repeticiones se guardará, así que, con `rep`=10000, `quema`=100 y `extraer`=10, quedaremos con trazas
+        de (10000 - 100) / 10 = 990 datos para aproximar la destribución de cada parámetro.
 
         """
 
@@ -145,7 +145,7 @@ class ModBayes(object):
     def guardar(símismo):
         """
         Esta función guarda las trazas de los parámetros generadas por la calibración en el diccionario del parámetro
-          como una nueva calibración.
+        como una nueva calibración.
 
         """
 
@@ -161,22 +161,23 @@ class ModBayes(object):
 def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
     """
     Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
-      parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
-      PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
-      id_calib.
+    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
+    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
+    id_calib.
+    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
 
     :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
     :type id_calib: str
 
     :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
-      parámetro.
+    parámetro.
     :type l_pm: list
 
     :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
     :type l_lms: list
 
     :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
-      es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
+    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
     :type aprioris: list
 
     :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
