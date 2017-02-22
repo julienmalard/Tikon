@@ -85,6 +85,21 @@ class Coso(object):
         """
         raise NotImplementedError
 
+    def limpiar_especificados(símismo, recursivo=True):
+        """
+        Esta función limpia (borra) todas las distribuciones especificadas para este Coso.
+
+        :param recursivo: Si también limpiamos las distribuciones especificadas de los otros Cosos asociados con este.
+        :type recursivo: bool
+
+        """
+        borrar_dist(símismo.receta['coefs'], nombre='especificado')
+
+        # Si es una limpieza recursiva, limpiamos todos los objetos vinculados de manera recursiva también.
+        if recursivo:
+            for coso in símismo.objetos:
+                coso.limpiar_especificados(recursivo=recursivo)
+
     def guardar_especificados(símismo, nombre_dist='dist_especificada'):
         """
         Esta función guarda los valores de distribuciones especificadas bajo un nuevo nombre. Esto permite, después,
@@ -398,7 +413,7 @@ class Simulable(Coso):
 
         # Llenar las matrices internas de coeficientes
         símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
-                              usar_especificados=usar_especificadas)
+                              usar_especificadas=usar_especificadas)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
@@ -651,7 +666,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificados):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
           Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
@@ -668,8 +683,8 @@ class Simulable(Coso):
           parámetros calibrados en la misma calibración.
         :type comunes: bool
 
-        :param usar_especificados: Si vamos a utilizar las distribuciones especificadas manualmente por el usuario o no.
-        :type usar_especificados: bool
+        :param usar_especificadas: Si vamos a utilizar las distribuciones especificadas manualmente por el usuario o no.
+        :type usar_especificadas: bool
 
         """
 
@@ -950,10 +965,10 @@ class Simulable(Coso):
     def _filtrar_calibs(símismo, calibs, lista_paráms):
         """
         Esta función, dado una lista de diccionarios de calibraciones de parámetros y una especificación de cuales
-          calibraciones guardar, genera un lista de los nombre de las calibraciones que hay que incluir.
-          Se usa para preparar simulaciones, calibraciones y validaciones.
+        calibraciones guardar, genera un lista de los nombre de las calibraciones que hay que incluir.
+        Se usa para preparar simulaciones, calibraciones y validaciones.
         Notar que distribuciones a priori especificadas por el usuario para una calibración se aplican más tarde, en
-          el objeto ModBayes sí mismo.
+        el objeto ModBayes sí mismo.
 
         :param calibs: Una indicación de cuales calibraciones utilizar.
           Puede ser un número o texto con el nombre/id de la calibración deseada.
@@ -1254,6 +1269,35 @@ def prep_json(d, d_egr=None):
             d_egr.pop(ll)
 
     return d_egr
+
+
+def borrar_dist(d, nombre):
+    """
+    Esta función borra todas las distribuciones con un nombre específico en un diccionario de coeficientes.
+
+    :param d: El diccionario de coeficientes.
+    :type d: dict
+
+    :param nombre: El nombre de la distribución.
+    :type nombre: str
+
+    """
+
+    # Para cada itema (llave, valor) del diccionario
+    for ll, v in d.items():
+
+        if type(v) is dict:
+
+            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+            borrar_dist(v, nombre=nombre)
+
+        elif type(v) is str:
+
+            # Si la distribución lleva el nombre especificado...
+            if ll == nombre:
+
+                # ...borrar la distribución
+                d.pop(ll)
 
 
 def renombrar_dist(d, nombre_ant, nombre_nuevo):

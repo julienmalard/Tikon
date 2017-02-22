@@ -14,16 +14,19 @@ from tikon.RAE.Organismo import Organismo
 class Red(Simulable):
     """
     Una Red representa una red agroecológica. Trae varios Organismos juntos para interactuar. Aquí se implementan
-      los cálculos de todas las ecuaciones controlando las dinámicas de poblaciones de los organismos, tanto como las
-      interacciones entre ellos. Una red tiene la propiedad interesante de poder tomar datos iniciales para varias
-      parcelas al mismo tiempo y de simular las dinámicas de cada parcela simultáneamente por el uso de matrices.
-      Esto permite el empleo de un único objeto de red para modelizar las dinámicas de poblaciones en una cantidad
-      ilimitada de parcelas al mismo tiempo. Esto también facilita mucho el cálculo del movimiento de organismos entre
-      varias parcelas.
+    los cálculos de todas las ecuaciones controlando las dinámicas de poblaciones de los organismos, tanto como las
+    interacciones entre ellos. Una red tiene la propiedad interesante de poder tomar datos iniciales para varias
+    parcelas al mismo tiempo y de simular las dinámicas de cada parcela simultáneamente por el uso de matrices.
+    Esto permite el empleo de un único objeto de red para modelizar las dinámicas de poblaciones en una cantidad
+    ilimitada de parcelas al mismo tiempo. Esto también facilita mucho el cálculo del movimiento de organismos entre
+    varias parcelas.
     """
 
     # La extensión para guardar documentos de recetas de redes agroecológicas.
     ext = '.red'
+
+    # Una Red tiene ni ecuaciones, ni parámetros propios.
+    dic_ecs = None
 
     def __init__(símismo, nombre, organismos=None, proyecto=None, fuente=None):
 
@@ -231,7 +234,6 @@ class Red(Simulable):
                 n += 1
 
         # Crear etapas fantasmas para huéspedes infectados
-        n_etps_reg = len(símismo.etapas)  # El número de etapas regulares (no fantasmas)
 
         for etp in símismo.etapas:
             # Para cada etapa de la Red...
@@ -334,9 +336,13 @@ class Red(Simulable):
                         símismo.núms_etapas[etp['org']][dic['nombre']] = n_etp_fant
 
                         # Guardar el vínculo entre la etapa víctima y la(s) etapa(s) fanstasma(s) correspondiente(s)
-                        if n_etp_hués not in símismo.fantasmas.keys():
-                            símismo.fantasmas[n_etp_hués] = {}
-                        símismo.fantasmas[n_etp_hués][etp['org']] = n_etp_fant
+                        n_etp_hués_abs = símismo.núms_etapas[org_hués][nombre_etp_hués]
+                        if n_etp_hués_abs not in símismo.fantasmas.keys():
+                            símismo.fantasmas[n_etp_hués_abs] = {}
+                        símismo.fantasmas[n_etp_hués_abs][etp['org']] = n_etp_fant
+
+                        # Para hacer: agregar aquí un vínculo en símismo.etapas para enfermedades de etapas
+                        # víctimas de parasitoides.
 
         # Crear el diccionario de los tipos de las ecuaciones activas para cada etapa.
         símismo.ecs.clear()  # Borrar todo en el diccionario existente para evitar posibilidades de cosas raras
@@ -370,8 +376,17 @@ class Red(Simulable):
                 símismo.ecs['Transiciones']['Mult'][n_etp] = 'Nada'
                 símismo.ecs['Transiciones']['Prob'][n_etp] = 'Nada'
 
+        # Desactivar las ecuaciones de depredación para etapas que tienen ni presas, ni huéspedes
+        for n_etp, d_etp in enumerate(símismo.etapas):
+
+            # Si la etapa tiene ni presa, ni huésped...
+            if not len(d_etp['conf']['presa']) and not len(d_etp['conf']['huésped']):
+
+                # ...Desactivar sus ecuaciones de depredación.
+                símismo.ecs['Depredación']['Ecuación'][n_etp] = 'Nada'
+
         # Guardar el orden de transiciones y de reproducciones
-        símismo.orden['trans'] = np.arange(len(símismo.etapas))
+        símismo.orden['trans'] = np.full(len(símismo.etapas), -1, dtype=np.int)
         símismo.orden['repr'] = np.full(len(símismo.etapas), -1, dtype=np.int)
 
         for nombre_org, org in símismo.núms_etapas.items():
@@ -669,11 +684,10 @@ class Red(Simulable):
                         # El cohorte de la etapa fantasma recipiente
                         recip = símismo.predics['Cohortes'][n_fant]
 
-                        # Obtener el nombre del organismo y de la etapa depredadoras que corresponden a la creación de
+                        # Obtener el nombre del organismo y de la etapa depredadora que corresponden a la creación de
                         # esta etapa fantasma
                         nombre_org_depr = símismo.etapas[n_fant]['org']
-                        nombre_etp_depr = símismo.etapas[n_fant]['nombre']
-                        n_depr = símismo.núms_etapas[nombre_org_depr][nombre_etp_depr]
+                        n_depr = símismo.núms_etapas[nombre_org_depr]['adulto']  # Para hacer: limpiar este
 
                         # Actualizar los cohortes de la etapa víctima y de la etapa fantasma
                         quitar_de_cohorte(coh, depred[..., n_depr, n], recip=recip)
@@ -1618,7 +1632,10 @@ class Red(Simulable):
         # Para cada experimento...
         for exp in exper:
             # Sacamos el objeto correspondiendo al experimento
-            obj_exp = símismo.exps[exp]['Exp']
+            try:
+                obj_exp = símismo.exps[exp]['Exp']
+            except KeyError:
+                raise ValueError('El experimento "{}" no está vinculado con esta Red.'.format(exp))
 
             # Calculamos el número de parcelas en el experimento
             n_parc = len(símismo.info_exps['parcelas'][exp])
@@ -1656,50 +1673,87 @@ class Red(Simulable):
             # Un vínculo as los cohortes
             cohortes = datos_inic['Cohortes']
 
-            # Llenamos la poblaciones iniciales
-            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+            # Llenamos la poblaciones iniciales en la matriz de poblaciones
+            if __name__ == '__main__':
+                for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+                    # Para cada etapa de interés...
 
-                # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos eje 1.
-                nombre_col = símismo.info_exps['nombres_cols'][exp][i]
-                matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
+                    # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos el eje 1.
+                    nombre_col = símismo.info_exps['nombres_cols'][exp][i]
+                    matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
-                # Convertir a unidades de organismos por parcela
-                np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
+                    # Convertir a unidades de organismos por parcela
+                    np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
 
-                # Llenamos la población inicial y los cohortes. Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones
-                # estocásticas y paramétricas) de la etapa en cuestión (eje 3) a tiempo 0 (eje 4).
+                    # Asegurarse que tenemos números enteros.
+                    redondear(matr_obs_inic)  # Para hacer: esto debería arreglarse en Experimento directamente
 
-                org = símismo.organismos[símismo.etapas[n_etp]['org']]
-                etp = símismo.etapas[n_etp]['nombre']
-                juvenil_paras = isinstance(org, Ins.Parasitoide) and etp == 'juvenil'
+                    # Llenamos la población inicial y los cohortes. Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones
+                    # estocásticas y paramétricas) de la etapa en cuestión (eje 3) a tiempo 0 (eje 4).
 
-                if not juvenil_paras:
-                    # Si la etapa no es la larva de un parasitoide...
+                    org = símismo.organismos[símismo.etapas[n_etp]['org']]
+                    etp = símismo.etapas[n_etp]['nombre']
+                    juvenil_paras = isinstance(org, Ins.Parasitoide) and etp == 'juvenil'
 
-                    # Agregarla directamente al diccionario de poblaciones iniciales
-                    datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+                    if not juvenil_paras:
+                        # Si la etapa no es la larva de un parasitoide...
 
-                    # Y verificar para cohortes, si necesario
-                    if n_etp in cohortes:
-                        añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=matr_obs_inic)
+                        # Agregarla directamente al diccionario de poblaciones iniciales
+                        datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
 
-                else:
-                    # ...si es el caso, hay que agregar sus poblaciones a las etapas fantasmas
-                    # Para hacer: arreglar todo
-                    # Detectamos todas las etapas fantasmas del parasitoide
-                    n_etps_víc = [n for n, e in enumerate(símismo.etapas) if
-                                  e['org'] == org.nombre and 'infectando a' in e['nombre']]
+                    else:
+                        # ...pero si la etapa es una larva de parasitoide, es un poco más complicado. Hay que dividir
+                        # sus poblaciones entre las etapas fantasmas, y, además, hay que quitar estos valores de las
+                        # poblaciones de las víctimas.
 
-                    # Ajustar el las poblaciones iniciales por el número de etapas fantasmas de sus víctimas
-                    np.divide(matr_obs_inic, len(n_etps_víc), out=matr_obs_inic)
+                        # Primero, tenemos que hacer unas aproximaciones para estimar cuántos de estas larvas
+                        # están en cada etapa de la víctima potencialmente infectada.
 
-                    # Y agregar la población inicial de cada etapa fantasma a la matriz de poblaciones.
-                    for n in n_etps_víc:
-                        datos_inic['Pobs'][..., n, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+                        # Una lista de las etapas potencialmente hospederas de TODAS las víctimas del parasitoide.
+                        l_etps_víc =
+                        n_etps_víc = len(l_etps_víc)
 
-                        # También agregamos la población inicial a los cohortes
-                        if n in cohortes:
-                            añadir_a_cohorte(dic_cohorte=cohortes[n], nuevos=matr_obs_inic)
+                        # Una lista de las etapas fantasmas correspondientes
+                        l_etps_fant = [n for n, e in enumerate(símismo.etapas) if
+                                       e['org'] == org.nombre and 'infectando a' in e['nombre']]
+
+                        # Calcular las poblaciones iniciales de todas las etapas víctimas no infectadas.
+                        pobs_total_etps_víc =
+
+                        if sum(matr_obs_inic > pobs_total_etps_víc):
+                            # Si hay más juveniles de parasitoides que de etapas potencialmente hospederas,
+                            # hay un error.
+                            raise ValueError('Tenemos una complicacioncita con los datos inicales para el experimento'
+                                             '"{}". No es posible tener más poblaciones iniciales de juveniles'
+                                             'de parasitoides que hay indivíduos de etapas potencialmente hospederas.')
+
+                        # Dividir la población del parasitoide juvenil entre las etapas fantasmas, según las
+                        # poblaciones iniciales de las etapas víctimas (no infectadas) correspondientes
+                        pobs_etps_fant = np.full(n_etps_víc, np.floor(matr_obs_inic, n_etps_víc))
+                        pobs_etps_fant[:np.remainder()]
+
+                        # Dar las poblaciones iniciales apropiadas
+                        for n_etp_víc, n_etp_fant in zip(l_etps_víc, l_etps_fant):
+
+                            # Agregar a la población de la etapa fantasma
+                            datos_inic['Pobs'][.., n_etp_fant, 0] +=
+
+                            # Quitar de la población de la etapa víctima (no infectada) correspondiente.
+                            datos_inic['Pobs'][..., n_etp_víc, 0] -=
+
+            # Ahora, inicializamos los cohortes donde necesario.
+            for n_etp in range(len(símismo.etapas)):
+                # Para cada etapa...
+
+                if n_etp in cohortes:
+                    # Si la etapa está en los cohortes...
+
+                    # ...agregar las poblaciones iniciales (tiempo=0) de esta etapa.
+                    añadir_a_cohorte(dic_cohorte=cohortes[n_etp], nuevos=datos_inic['Pobs'][..., n_etp, 0])
+
+                    # No hay necesidad de coordinar cohortes de parasitoides y de víctimas porque todos
+                    # se agregan a edad=0.
+
 
             # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
             for org in símismo.organismos.values():
@@ -1726,14 +1780,14 @@ class Red(Simulable):
 
         return dic_args
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificados):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
         """
         Ver la documentación de Coso.
 
         :type n_rep_parám: int
         :type calibs: list | str
         :type comunes: bool
-        :type usar_especificados: bool
+        :type usar_especificadas: bool
 
         """
 
@@ -1767,7 +1821,7 @@ class Red(Simulable):
                 # Para cada etapa en la lista de diccionarios de parámetros de interés de las etapas...
                 for n_etp, tipo_ec in enumerate(lista_tipos_ecs):
 
-                    # Para cada parámetro en el diccionario de las ecuaciones de esta etapa en uso actual
+                    # Para cada parámetro en el diccionario de las ecuaciones activas de esta etapa
                     # (Ignoramos los parámetros para ecuaciones que no se usarán en esta simulación)...
                     for parám, d_parám in Ec.ecs_orgs[categ][subcateg][tipo_ec].items():
 
@@ -1781,7 +1835,7 @@ class Red(Simulable):
                             coefs_act[n_etp][parám] = gen_vector_coefs(dic_parám=d_parám_etp, calibs=calibs,
                                                                        n_rep_parám=n_rep_parám,
                                                                        comunes=comunes,
-                                                                       usar_especificados=usar_especificados)
+                                                                       usar_especificados=usar_especificadas)
 
                         # Si, al contrario, hay interacciones...
                         else:
@@ -1808,10 +1862,15 @@ class Red(Simulable):
                                         for etp_víc in l_etps_víc:
                                             n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
 
-                                            # Incluir etapas fantasmas
+                                            # Incluir etapas fantasmas, pero NO para parasitoides (así que una etapa
+                                            # fantasma puede caer víctima de un deprededor o de una enfermedad que
+                                            # se ataca la etapa no infectada correspondiente, pero NO puede caer
+                                            # víctima de otro (o del mismo) parasitoide que afecta la etapa original.
                                             l_etps_víc = [n_etp_víc]
                                             if n_etp_víc in símismo.fantasmas:
-                                                l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
+                                                obj_org = símismo.organismos[símismo.etapas[n_etp]['org']]
+                                                if not isinstance(obj_org, Ins.Parasitoide):
+                                                    l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
                                             for n in l_etps_víc:
                                                 matr[:, n] = gen_vector_coefs(
@@ -1819,7 +1878,7 @@ class Red(Simulable):
                                                     calibs=calibs,
                                                     n_rep_parám=n_rep_parám,
                                                     comunes=comunes,
-                                                    usar_especificados=usar_especificados)
+                                                    usar_especificados=usar_especificadas)
 
                                 else:
                                     # Al momento, solamente es posible tener interacciones con las presas de la etapa.
@@ -2137,11 +2196,11 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
         # Si no había lugar, desdoblar el tañano de las matrices de cohortes
 
         primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primer vacío (que vamos a crear)
-        np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
+        dic_cohorte['Pobs'] = np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
 
         # Extender cada matriz de edades también
-        for ed in dic_cohorte['Edades'].values():
-            np.append(ed, np.zeros_like(ed), axis=0)
+        for ed, matr in dic_cohorte['Edades'].items():
+            dic_cohorte['Edades'][ed] = np.append(matr, np.zeros_like(matr), axis=0)
 
     # Guardar el número de nuevos integrantes del grupo añadido
     dic_cohorte['Pobs'][primer_vacío, :, :, :] = nuevos
@@ -2156,6 +2215,7 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
 
 def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
     """
+    Esta funciôn quita individuos de un cohorte.
 
     :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
        | {'Pobs': [matriz de poblaciones]
@@ -2211,9 +2271,14 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
         # Actualizar las muertes que faltan implementar
         np.subtract(muertes, quitar, out=muertes)
 
-        # Si transicion a otro cohorte (de otro organismo), implementarlo aquí
+        # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recip is not None:
-            añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=dic_cohorte['Edades'])
+            edades = {}
+            if 'Trans' in dic_cohorte['Edades']:
+                edades['Trans'] = dic_cohorte['Edades']['Trans'][n_día]
+            if 'Repr' in dic_cohorte['Edades']:
+                edades['Repr'] = dic_cohorte['Edades']['Repr'][n_día]
+            añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=edades)
 
 
 def probs_conj(matr, eje, pesos=1, máx=1):

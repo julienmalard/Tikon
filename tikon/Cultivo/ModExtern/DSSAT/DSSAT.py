@@ -8,6 +8,7 @@ from tikon.Cultivo.ModExtern.DSSAT import fileC, fileS, fileX, fileW
 import tikon.Controles as Ctrl
 from tikon.Cultivo.Suelo import Suelo
 
+dir_DSSAT = Ctrl.dirs_modelos['DSSAT']
 
 def gen_ingr(nombre, cultivo=None, suelo=None, meteo=None, manejo=None):
 
@@ -56,7 +57,7 @@ def importar_suelo(archivo, nombre):
 
     # Si no se especificó una dirección absoluta, suponer que se ubica en el directorio de DSSAT.
     if not len(os.path.splitdrive(archivo)[0]):
-        archivo = os.path.join(Ctrl.dir_DSSAT, archivo)
+        archivo = os.path.join(dir_DSSAT, archivo)
 
     # Si no había extensión, agregarla ahora.
     if not len(os.path.splitext(archivo)[1]):
@@ -79,7 +80,7 @@ def importar_suelo(archivo, nombre):
     return suelo
 
 
-def importar_todos_suelos(directorio=os.path.join(Ctrl.dir_DSSAT, 'Soil')):
+def importar_todos_suelos(directorio=os.path.join(dir_DSSAT, 'Soil')):
     """
     Esta función importa todos los suelos disponibles en DSSAT.
 
