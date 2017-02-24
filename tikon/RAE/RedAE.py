@@ -1673,73 +1673,109 @@ class Red(Simulable):
             # Un vínculo as los cohortes
             cohortes = datos_inic['Cohortes']
 
-            # Llenamos la poblaciones iniciales en la matriz de poblaciones
-            if __name__ == '__main__':
-                for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
-                    # Para cada etapa de interés...
+            # Una lista de las poblaciones iniciales ajustadas (tomando en cuenta columnas de datos compartidas)
+            l_pobs_inic = [None] * len(símismo.etapas)
+            combin_etps = símismo.info_exps['combin_etps'][exp]
 
-                    # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos el eje 1.
-                    nombre_col = símismo.info_exps['nombres_cols'][exp][i]
-                    matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
+            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+                # Para cada etapa de interés...
 
-                    # Convertir a unidades de organismos por parcela
-                    np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
+                # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos el eje 1.
+                nombre_col = símismo.info_exps['nombres_cols'][exp][i]
+                matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
-                    # Asegurarse que tenemos números enteros.
-                    redondear(matr_obs_inic)  # Para hacer: esto debería arreglarse en Experimento directamente
+                # Convertir a unidades de organismos por parcela
+                np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
 
-                    # Llenamos la población inicial y los cohortes. Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones
-                    # estocásticas y paramétricas) de la etapa en cuestión (eje 3) a tiempo 0 (eje 4).
+                # Asegurarse que tenemos números enteros.
+                redondear(matr_obs_inic)  # Para hacer: esto debería arreglarse en Experimento directamente
 
-                    org = símismo.organismos[símismo.etapas[n_etp]['org']]
-                    etp = símismo.etapas[n_etp]['nombre']
-                    juvenil_paras = isinstance(org, Ins.Parasitoide) and etp == 'juvenil'
+                if n_etp not in combin_etps:
+                    # Si la etapa no comparte datos...
 
-                    if not juvenil_paras:
-                        # Si la etapa no es la larva de un parasitoide...
+                    l_pobs_inic[n_etp] = matr_obs_inic
 
-                        # Agregarla directamente al diccionario de poblaciones iniciales
-                        datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+                else:
+                    # ...sino, si la etapa tiene una columna compartida
 
-                    else:
-                        # ...pero si la etapa es una larva de parasitoide, es un poco más complicado. Hay que dividir
-                        # sus poblaciones entre las etapas fantasmas, y, además, hay que quitar estos valores de las
-                        # poblaciones de las víctimas.
+                    # Los índices de las etapas compartidas con esta, incluyendo esta
+                    etps_compart = [n_etp] + combin_etps[n_etp]
 
-                        # Primero, tenemos que hacer unas aproximaciones para estimar cuántos de estas larvas
-                        # están en cada etapa de la víctima potencialmente infectada.
+                    # Una división igual de la población inicial
+                    div = np.floor(np.divide(matr_obs_inic, len(etps_compart)))
 
-                        # Una lista de las etapas potencialmente hospederas de TODAS las víctimas del parasitoide.
-                        l_etps_víc =
-                        n_etps_víc = len(l_etps_víc)
+                    # El resto
+                    resto = np.remainder(matr_obs_inic, len(etps_compart))
 
-                        # Una lista de las etapas fantasmas correspondientes
-                        l_etps_fant = [n for n, e in enumerate(símismo.etapas) if
-                                       e['org'] == org.nombre and 'infectando a' in e['nombre']]
+                    for j, n in enumerate(etps_compart):
+                        l_pobs_inic[n] = np.add(div, np.less(j, resto))
 
-                        # Calcular las poblaciones iniciales de todas las etapas víctimas no infectadas.
-                        pobs_total_etps_víc =
 
-                        if sum(matr_obs_inic > pobs_total_etps_víc):
-                            # Si hay más juveniles de parasitoides que de etapas potencialmente hospederas,
-                            # hay un error.
-                            raise ValueError('Tenemos una complicacioncita con los datos inicales para el experimento'
-                                             '"{}". No es posible tener más poblaciones iniciales de juveniles'
-                                             'de parasitoides que hay indivíduos de etapas potencialmente hospederas.')
+            # Ahora, podemos llenar la poblaciones iniciales en la matriz de poblaciones
 
-                        # Dividir la población del parasitoide juvenil entre las etapas fantasmas, según las
-                        # poblaciones iniciales de las etapas víctimas (no infectadas) correspondientes
-                        pobs_etps_fant = np.full(n_etps_víc, np.floor(matr_obs_inic, n_etps_víc))
-                        pobs_etps_fant[:np.remainder()]
+            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+                # Para cada etapa de interés...
 
-                        # Dar las poblaciones iniciales apropiadas
-                        for n_etp_víc, n_etp_fant in zip(l_etps_víc, l_etps_fant):
+                # La matriz de poblaciones
+                matr_obs_inic = l_pobs_inic[n_etp]
 
-                            # Agregar a la población de la etapa fantasma
-                            datos_inic['Pobs'][.., n_etp_fant, 0] +=
+                # Llenamos la población inicial y los cohortes. Llenamos eje 0 (parcela), eje 1 y 2 (repeticiones
+                # estocásticas y paramétricas) de la etapa en cuestión (eje 3) a tiempo 0 (eje 4).
 
-                            # Quitar de la población de la etapa víctima (no infectada) correspondiente.
-                            datos_inic['Pobs'][..., n_etp_víc, 0] -=
+                org = símismo.organismos[símismo.etapas[n_etp]['org']]
+                etp = símismo.etapas[n_etp]['nombre']
+                juvenil_paras = isinstance(org, Ins.Parasitoide) and etp == 'juvenil'
+
+                if not juvenil_paras:
+                    # Si la etapa no es la larva de un parasitoide...
+
+                    # Agregarla directamente al diccionario de poblaciones iniciales
+                    datos_inic['Pobs'][..., n_etp, 0] = matr_obs_inic[:, np.newaxis, np.newaxis]
+
+                else:
+                    # ...pero si la etapa es una larva de parasitoide, es un poco más complicado. Hay que dividir
+                    # sus poblaciones entre las etapas fantasmas, y, además, hay que quitar estos valores de las
+                    # poblaciones de las víctimas.
+
+                    # Primero, tenemos que hacer unas aproximaciones para estimar cuántos de estas larvas
+                    # están en cada etapa de la víctima potencialmente infectada.
+
+                    # Una lista de las etapas potencialmente hospederas de TODAS las víctimas del parasitoide.
+                    l_etps_víc = [víc for víc, d in sorted(símismo.fantasmas.items()) if org.nombre in d]
+                    n_etps_víc = len(l_etps_víc)
+
+                    # Una lista de las etapas fantasmas correspondientes
+                    l_etps_fant = [d[org.nombre] for d in sorted(símismo.fantasmas) if org.nombre in d]
+
+                    # Calcular el total de las poblaciones iniciales de todas las etapas víctimas no infectadas.
+                    l_pobs_víc = [l_pobs_inic[j] for j in l_etps_víc]
+                    pobs_total_etps_víc = np.sum(l_pobs_víc, axis=0)
+
+                    if np.sum(matr_obs_inic > pobs_total_etps_víc):
+                        # Si hay más juveniles de parasitoides que de etapas potencialmente hospederas en cualquier
+                        # parcela, hay un error.
+                        raise ValueError('Tenemos una complicacioncita con los datos inicales para el experimento'
+                                         '"{}". No es posible tener más poblaciones iniciales de juveniles'
+                                         'de parasitoides que hay indivíduos de etapas potencialmente hospederas.')
+
+                    # Dividir la población del parasitoide juvenil entre las etapas fantasmas, según las
+                    # poblaciones iniciales de las etapas víctimas (no infectadas) correspondientes
+                    l_pobs_etps_fant =
+
+
+
+
+                    # Dar las poblaciones iniciales apropiadas
+                    for n_etp_víc, n_etp_fant in zip(l_etps_víc, l_etps_fant):
+
+                        # El índice de las etapas víctimas
+                        j = l_etps_víc.index(n_etp_víc)
+
+                        # Agregar a la población de la etapa fantasma
+                        datos_inic['Pobs'][..., n_etp_fant, 0] += l_pobs_etps_fant[j]
+
+                        # Quitar de la población de la etapa víctima (no infectada) correspondiente.
+                        datos_inic['Pobs'][..., n_etp_víc, 0] -= l_pobs_etps_fant[j]
 
             # Ahora, inicializamos los cohortes donde necesario.
             for n_etp in range(len(símismo.etapas)):
