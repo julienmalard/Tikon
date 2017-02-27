@@ -1,4 +1,4 @@
-El Interfaz (IGU) de Tinamit
-============================
+El Interfaz (IGU) de Tiko'n
+===========================
 
 Escribir la descripción aquí.
