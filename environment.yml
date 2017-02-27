@@ -1,9 +1,0 @@
-name: py35
-dependencies:
-- sphinx=1.5.1
-- matplotlib
-- numpy
-- pymc
-- python=3.5
-- scipy
-
