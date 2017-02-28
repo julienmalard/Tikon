@@ -1,5 +1,3 @@
-sphinx>=1.5.1
 numpy
 scipy
-pymc
 matplotlib
