@@ -173,7 +173,9 @@ Red_coco.guardar()
 # Ahora, con una red más compleja y con estructura completa para los insectos
 Red_coco.añadir_org(Araña)
 
-Red_coco.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=100, quema=10)
+print('Calibrando...')
+Red_coco.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=10, quema=1)
+print('Validando...')
 Red_coco.validar(exper=Experimento_A)
 Red_coco.validar(exper=Experimento_B)
 

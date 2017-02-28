@@ -840,7 +840,7 @@ class Red(Simulable):
 
         Esta función calcula las reproducciones de la etapa.
 
-        :param extrn: Un diccionario con las condiciones exógenas a la red
+        :param extrn: Un diccionario con las condiciones exógenas a la Red
         :type extrn: dict
 
         :param pobs: La matriz de poblaciones actuales de la red. Ejes tales como indicado arriba.
@@ -868,7 +868,7 @@ class Red(Simulable):
                 continue
 
             # Una referencia a la parte apriopiada de la matriz de reproducciones
-            n_recip = símismo.orden['trans'][n]
+            n_recip = símismo.orden['repr'][n]
             repr_etp_recip = reprs[..., n_recip]
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
@@ -1186,6 +1186,8 @@ class Red(Simulable):
                 # Si la próxima fase también tiene cohortes, añadirlo aquí
                 if n_recip in símismo.predics['Cohortes']:
                     añadir_a_cohorte(cohortes[n_recip], trans[..., n_don])
+
+        return
 
     def _calc_mov(símismo, pobs, paso, extrn):
         """
@@ -1685,10 +1687,11 @@ class Red(Simulable):
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
                 # Convertir a unidades de organismos por parcela
+                # Para hacer: URGENTE: esto debe arreglarse en Experimento directamente
                 np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
 
                 # Asegurarse que tenemos números enteros.
-                redondear(matr_obs_inic)  # Para hacer: esto debería arreglarse en Experimento directamente
+                matr_obs_inic = matr_obs_inic.astype(int)
 
                 if n_etp not in combin_etps:
                     # Si la etapa no comparte datos...
@@ -1746,7 +1749,7 @@ class Red(Simulable):
                     l_etps_fant = [d[org.nombre] for d in símismo.fantasmas.values() if org.nombre in d]
 
                     # Calcular el total de las poblaciones iniciales de todas las etapas víctimas no infectadas.
-                    l_pobs_víc = [l_pobs_inic[j] for j in l_etps_víc]
+                    l_pobs_víc = np.array([l_pobs_inic[j] for j in l_etps_víc])
                     pobs_total_etps_víc = np.sum(l_pobs_víc, axis=0)
 
                     if np.sum(matr_obs_inic > pobs_total_etps_víc):
@@ -1765,8 +1768,8 @@ class Red(Simulable):
                     # Empleamos un método iterativo para distribuir las infecciones entre las etapas potencialmente
                     # infectadas (etapas víctimas). No es muy elegante, pero es lo único que encontré que parece
                     # funcionar. Si tienes mejor idea, por favor no hesites en ayudar aquí.
-                    # Para hacer: asegurar números enteros en Experimento
-                    copia_matr = matr_obs_inic.copy().astype(int)  # Para no cambiar los datos del Experimento sí mismo
+
+                    copia_matr = matr_obs_inic.copy()  # Para no cambiar los datos del Experimento sí mismo
 
                     matr_pobs_etps_fant_cum = np.cumsum(l_pobs_víc[::-1], axis=0)[::-1]
 
@@ -1775,15 +1778,17 @@ class Red(Simulable):
                         p = np.divide(copia_matr, matr_pobs_etps_fant_cum[v])
 
                         # Alocar según una distribución binomial
-                        aloc = np.minimum(np.random.binomial(matr_pobs_etps_fant[v], p), copia_matr)
+                        aloc = np.minimum(np.random.binomial(l_pobs_víc[v], p), copia_matr)
                         if v < n_etps_víc - 1:
                             aloc = np.maximum(aloc, copia_matr - matr_pobs_etps_fant_cum[v + 1])
+                        else:
+                            aloc = np.maximum(aloc, copia_matr)
 
                         # Agregar las alocaciones a la matriz
-                        matr_pobs_etps_fant[v] += aloc.astype(int)
+                        matr_pobs_etps_fant[v] += aloc
 
                         # Quitar las alocaciones de las poblaciones que quedan a alocar
-                        copia_matr -= aloc.astype(int)
+                        copia_matr -= aloc
 
                     # Dar las poblaciones iniciales apropiadas
                     for n_etp_víc, n_etp_fant, pobs in zip(l_etps_víc, l_etps_fant, matr_pobs_etps_fant):
@@ -2038,14 +2043,14 @@ class Red(Simulable):
         ruido = np.round(np.random.normal(0, np.maximum(1, pobs * ruido)))
 
         # Verificara que no quitamos más que existen
-        np.maximum(ruido, pobs, out=ruido)
+        ruido = np.where(-ruido > pobs, -pobs, ruido)
 
         # Aplicar el cambio
         np.add(ruido, pobs, out=pobs)
 
         # Actualizar los cohortes
         for i, coh in símismo.predics['Cohortes'].items():
-            añadir_a_cohorte(dic_cohorte=coh, nuevos=ruido[..., i])
+            ajustar_cohorte(dic_cohorte=coh, cambio=ruido[..., i])
 
 
 # Funciones auxiliares
@@ -2192,7 +2197,12 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
     dist = Ds.dists[tipo_dist]['scipy'](**paráms)
 
     probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
-    n_cambian = np.random.binomial(pobs.astype(int), probs)
+    if pobs.dtype == 'int':
+        n_cambian = np.random.binomial(pobs, probs)
+    else:
+        n_cambian = np.round(np.multiply(pobs, probs))
+
+    np.add(edades, cambio, out=edades)
 
     if quitar:
         pobs -= n_cambian
@@ -2234,10 +2244,10 @@ def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
        | Eje 1: Parcela
        | Eje 2: Repetición estocástica
        | Eje 3: Repetición paramétrica
-    :type edad: int | float | dict
+    :type edad: dict
     """
 
-    # SI no se especifica la edad, se supone una edad de 0.
+    # Si no se especifica la edad, se supone una edad de 0.
     if edad is None:
         edad = {'Trans': 0, 'Repr': 0}
 
@@ -2311,13 +2321,25 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
         if np.sum(muertes) == 0:
             return
 
-        # Probabilidad condicional de morirse para este día, dado las muertes en días anteriores:
-        p = muertes / pobs_cums[n_día]
-
-        # Quitar los de esta edad que se murieron
-        quitar = np.minimum(np.random.binomial(pobs_coh, p), muertes)
         if n_día < len(pobs) - 1:
-            quitar = np.maximum(quitar, muertes - pobs_cums[n_día + 1])
+            # Si no es la última categoría de los cohortes...
+
+            # Quitar los de esta edad que se murieron
+            if pobs_coh.dtype == 'int':
+                # Probabilidad condicional de morirse para este día, dado las muertes en días anteriores:
+                p = muertes / pobs_cums[n_día]
+                quitar = np.minimum(np.random.binomial(pobs_coh, p), muertes)
+
+            else:
+                # Si tenemos números muy grandes, no podemos usar la función binomial de NumPy.
+                quitar = np.floor(np.multiply(np.divide(pobs_coh, pobs_cums[n_día]), muertes))
+
+            quitar = np.minimum(np.maximum(quitar, muertes - pobs_cums[n_día + 1]), muertes)
+
+        else:
+            # Si es la última categoría de cohortes, hay que quitar todo lo que queda en muertes
+            quitar = muertes
+
         np.subtract(pobs_coh, quitar, out=pobs_coh)
 
         # Actualizar las muertes que faltan implementar
@@ -2331,6 +2353,31 @@ def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
             if 'Repr' in dic_cohorte['Edades']:
                 edades['Repr'] = dic_cohorte['Edades']['Repr'][n_día]
             añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=edades)
+
+
+def ajustar_cohorte(dic_cohorte, cambio):
+    """
+    Esta función ajusta las poblaciones de cohortes. Es muy útil cuando no sabemos si el cambio es positivo o negativo.
+
+    :param dic_cohorte: El diccionario de cohorte.
+    :type dic_cohorte: dict
+
+    :param cambio: El cambio en poblaciones, en el mismo formato que la matriz de población en dic_cohorte.
+    :type cambio: np.ndarray
+
+    """
+
+    # Detectar dónde el cambio es positivo y dónde es negativo
+    positivos = np.where(cambio > 0, cambio, [0])
+    negativos = np.where(cambio < 0, -cambio, [0])
+
+    # Agregar los positivos...
+    añadir_a_cohorte(dic_cohorte=dic_cohorte, nuevos=positivos)
+
+    # ...y quitar los negativos.
+    quitar_de_cohorte(dic_cohorte=dic_cohorte, muertes=negativos)
+
+    return
 
 
 def probs_conj(matr, eje, pesos=1, máx=1):
