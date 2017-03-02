@@ -3,6 +3,7 @@ import os
 from warnings import warn as avisar
 
 import numpy as np
+import scipy.stats as estad
 import tikon.RAE.Insecto as Ins
 from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec
@@ -56,6 +57,9 @@ class Red(Simulable):
 
         # Diccionario que contendrá matrices de los coeficientes de la red
         símismo.coefs_act = {}
+
+        # Un diccionario para las distribuciones de transiciones y de reproducción
+        símismo.dists = {'Trans': [], 'Repr': []}
 
         # Para guardar los tipos de ecuaciones de los organismos en la red
         símismo.ecs = dict([(cat, dict([(sub_cat, [])
@@ -955,8 +959,8 @@ class Red(Simulable):
                                      'en el cálculo de reproducciones.')
 
                 try:
-                    trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
-                                  tipo_dist=probs[n], paráms_dist=cf, matr_egr=repr_etp_recip,
+                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=cohortes, edades=edades, cambio=edad_extra,
+                                  matr_egr=repr_etp_recip,
                                   quitar=False)
                     np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
 
@@ -1165,8 +1169,8 @@ class Red(Simulable):
                                      'en el cálculo de transiciones de inviduos.')
 
                 try:
-                    trans_cohorte(pobs=pobs_coh, edades=edades, cambio=edad_extra,
-                                  tipo_dist=ec_probs[n], paráms_dist=cf, matr_egr=trans_etp)
+                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=pobs_coh, edades=edades, cambio=edad_extra,
+                                  matr_egr=trans_etp)
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
 
@@ -1963,6 +1967,43 @@ class Red(Simulable):
                                     # interacciones entre competidores), se tendrían que añadir aquí.
                                     raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
 
+        # Por fin, vamos a crear unas distribuciones de SciPy para las probabilidades de transiciones y de
+        # reproducciones. Si no me equivoco, accelerará de manera importante la ejecución del programa.
+        símismo.dists['Trans'] = [None] * len(símismo.etapas)
+        símismo.dists['Repr'] = [None] * len(símismo.etapas)
+
+        for n_etp in range(len(símismo.etapas)):
+            # Para cada etapa de la Red...
+
+            for categ, corto in zip(['Transiciones', 'Reproducción'], ['Trans', 'Repr']):
+                # Para transiciones y para reproducciones...
+
+                # El tipo de distribución
+                tipo_dist = símismo.ecs[categ]['Prob'][n_etp]
+
+                if tipo_dist not in ['Nada', 'Constante']:
+                    # Si el tipo de distribución merece una distribución de SciPy...
+
+                    # Los parámetros de la distribución
+                    paráms_dist = símismo.coefs_act[categ]['Prob'][n_etp]
+
+                    # Convertir los parámetros a formato SciPy
+                    if tipo_dist == 'Normal':
+                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
+                    elif tipo_dist == 'Triang':
+                        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
+                    elif tipo_dist == 'Cauchy':
+                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
+                    elif tipo_dist == 'Gamma':
+                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
+                    elif tipo_dist == 'T':
+                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
+                    else:
+                        raise ValueError('La distribución "{}" no tiene definición.'.format(tipo_dist))
+
+                    # Guardar la distribución multidimensional en el diccionario de distribuciones.
+                    símismo.dists[corto] = Ds.dists[tipo_dist]['scipy'](**paráms)
+
     def _prep_obs_exper(símismo, exper):
         """
         Ver la documentación de Simulable.
@@ -2169,8 +2210,10 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
     return días_grd
 
 
-def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, matr_egr, quitar=True):
+def trans_cohorte(dists, pobs, edades, cambio, matr_egr, quitar=True):
     """
+    :param dists: Una distribución con parámetros en forma de matrices.
+    :type dists: estad._distn_infrastructure.rv_frozen
 
     :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
        | el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
@@ -2189,12 +2232,6 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, matr_egr, quita
     cantidad de días grados. Ejes iguales a 'edades'.
     :type cambio: np.ndarray or float
 
-    :param tipo_dist: El tipo de distribución usado para calcular probabilidades de transiciones.
-    :type tipo_dist: str
-
-    :param paráms_dist: Los parámetros de la distribución de probabilidad.
-    :type paráms_dist: dict
-
     :param quitar: Si hay que quitar las etapas que transicionaron (útil para cálculos de reproducción).
     :type quitar: bool
 
@@ -2202,22 +2239,13 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, matr_egr, quita
     :rtype: np.ndarray()
     """
 
-    if tipo_dist == 'Normal':
-        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
-    elif tipo_dist == 'Triang':
-        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
-    elif tipo_dist == 'Cauchy':
-        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
-    elif tipo_dist == 'Gamma':
-        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
-    elif tipo_dist == 'T':
-        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
-    else:
-        raise ValueError
+    probs = np.divide(np.subtract(dists.cdf(edades + cambio),
+                                  dists.cdf(edades)),
+                      np.subtract(1, dists.cdf(edades))
+                      )
 
-    dist = Ds.dists[tipo_dist]['scipy'](**paráms)
+    probs[np.isnan(probs)] = 1
 
-    probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
     n_cambian = np.floor(np.multiply(pobs, probs))
 
     np.add(edades, cambio, out=edades)
