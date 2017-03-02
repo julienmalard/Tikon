@@ -10,6 +10,8 @@ from tikon.Matemáticas.Arte import gráfico
 from tikon.Matemáticas.Incert import numerizar, validar, gen_vector_coefs
 from tikon.RAE.Organismo import Organismo
 
+import time
+
 
 class Red(Simulable):
     """
@@ -26,7 +28,7 @@ class Red(Simulable):
     ext = '.red'
 
     # Una Red tiene ni ecuaciones, ni parámetros propios.
-    dic_ecs = None
+    dic_info_ecs = None
 
     def __init__(símismo, nombre, organismos=None, proyecto=None, fuente=None):
 
@@ -655,9 +657,9 @@ class Red(Simulable):
 
         depred[np.isnan(depred)] = 0
 
-        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas). NO usamos la función "redondear()", porque
+        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas). NO usamos la función "np.round()", porque
         # esta podría darnos valores superiores a los límites establecidos por probs_conj() arriba.
-        redondear(depred)
+        np.floor(depred, out=depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
         depred_por_presa = np.sum(depred, axis=3)
@@ -830,7 +832,7 @@ class Red(Simulable):
 
         crec[np.isnan(crec)] = 0
 
-        redondear(crec)
+        np.floor(crec)
 
         # Actualizar la matriz de poblaciones
         np.add(pobs, crec, out=pobs)
@@ -953,15 +955,16 @@ class Red(Simulable):
                                      'en el cálculo de reproducciones.')
 
                 try:
-                    np.multiply(cf['n'], trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
-                                                       tipo_dist=probs[n], paráms_dist=cf, quitar=False),
-                                out=repr_etp_recip)
+                    trans_cohorte(pobs=cohortes, edades=edades, cambio=edad_extra,
+                                  tipo_dist=probs[n], paráms_dist=cf, matr_egr=repr_etp_recip,
+                                  quitar=False)
+                    np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
 
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para reproducciones.')
 
         # Redondear las reproducciones calculadas
-        redondear(reprs)
+        np.round(reprs, out=reprs)
 
         # Agregar las reproducciones a las poblaciones
         np.add(pobs, reprs, out=pobs)
@@ -1034,7 +1037,7 @@ class Red(Simulable):
                 raise ValueError
 
         np.multiply(muertes, paso, out=muertes)
-        redondear(muertes)
+        np.round(muertes, out=muertes)
 
         # Si la etapa usa cohortes para cualquier otro cálculo, actualizar los cohortes ahora.
         for n, coh in símismo.predics['Cohortes'].items():
@@ -1162,13 +1165,13 @@ class Red(Simulable):
                                      'en el cálculo de transiciones de inviduos.')
 
                 try:
-                    np.copyto(trans_etp, trans_cohorte(pobs=pobs_coh, edades=edades, cambio=edad_extra,
-                                                       tipo_dist=ec_probs[n], paráms_dist=cf))
+                    trans_cohorte(pobs=pobs_coh, edades=edades, cambio=edad_extra,
+                                  tipo_dist=ec_probs[n], paráms_dist=cf, matr_egr=trans_etp)
                 except ValueError:
                     raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
 
         # Redondear las transiciones calculadas
-        redondear(trans)
+        np.floor(trans, out=trans)
 
         # Quitar los organismos que transicionaron
         np.subtract(pobs, trans, out=pobs)
@@ -1186,8 +1189,6 @@ class Red(Simulable):
                 # Si la próxima fase también tiene cohortes, añadirlo aquí
                 if n_recip in símismo.predics['Cohortes']:
                     añadir_a_cohorte(cohortes[n_recip], trans[..., n_don])
-
-        return
 
     def _calc_mov(símismo, pobs, paso, extrn):
         """
@@ -1231,28 +1232,56 @@ class Red(Simulable):
             for ed in etp['Edades'].values():
                 ed[vacíos] = 0
 
+    def _inic_pobs_const(símismo):
+
+        # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
+        for n_etp in range(len(símismo.etapas)):
+            if símismo.ecs['Crecimiento']['Ecuación'][n_etp] == 'Constante':
+                # Si la etapa tiene una población constante...
+
+                # La población inicial se determina por el coeficiente de población constante del organismo
+                pobs_inic = numerizar(símismo.coefs_act['Crecimiento']['Ecuación'][n_etp])['n']
+
+                # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
+                símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
+
     def incrementar(símismo, paso, i, mov=False, extrn=None):
+
+        # Si es el primer paso, iniciar las poblaciones de organismos con poblaciones fijas
+        if i == 1:
+            símismo._inic_pobs_const()
 
         # Empezar con las poblaciones del paso anterior
         símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
         pobs = símismo.predics['Pobs'][..., i]
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
-
+        t_0 = time.time()
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso, extrn=extrn)
+        t_1 = time.time()
+        print('Depred calculada en: ', t_1 - t_0)
 
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
+        t_2 = time.time()
+        print('Crec calculado en: ', t_2 - t_1)
 
         # Muertes por el ambiente
         símismo._calc_muertes(pobs=pobs, extrn=extrn, paso=paso)
 
+        t_3 = time.time()
+        print('Muertes calculadas en: ', t_3 - t_2)
+
         # Una etapa que cambia a otra, o que se muere por su edad.
         símismo._calc_trans(pobs=pobs, extrn=extrn, paso=paso)
+        t_4 = time.time()
+        print('Trans calculadas en: ', t_4 - t_3)
 
         # Una etapa que se reproduce para producir más de otra etapa
         símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
+        t_5 = time.time()
+        print('Reprod calculada en: ', t_5 - t_4)
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
@@ -1260,9 +1289,13 @@ class Red(Simulable):
 
         # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
         símismo._agregar_ruido(pobs=pobs, ruido=0.01)
+        t_6 = time.time()
+        print('Ruido calculado en: ', t_6 - t_5)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
+        t_7 = time.time()
+        print('Limpiado en: ', t_7 - t_6)
 
     def _procesar_validación(símismo):
         """
@@ -1812,21 +1845,8 @@ class Red(Simulable):
                     # No hay necesidad de coordinar cohortes de parasitoides y de víctimas porque todos
                     # se agregan a edad=0.
 
-            # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
-            for org in símismo.organismos.values():
-                for d_etp in org.etapas:
-                    nombre = d_etp['nombre']
-                    if org.receta['estr'][nombre]['ecs']['Crecimiento'] == 'Constante':
-                        # Si la etapa tiene una población constante...
-
-                        # El número de la etapa
-                        n_etp = símismo.núms_etapas[org.nombre][nombre]
-
-                        # La población inicial se determina por el coeficiente de población constante del organismo
-                        pobs_inic = numerizar(org.coefs['Crecimiento']['Constante']['n']['especificado'])
-
-                        # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
-                        datos_inic['Pobs'][..., n_etp, 0] = pobs_inic
+            # Las poblaciones iniciales de organismos con poblaciones constantes se actualizarán antes de cada
+            # simulación.
 
             # Y, por fin, guardamos este diccionario bajo la llave "datos_inic" del diccionario.
             dic_args['datos_inic'][exp] = datos_inic
@@ -2055,31 +2075,32 @@ class Red(Simulable):
 
 # Funciones auxiliares
 
-def redondear(matriz):
-    """
-    Esta función redondea una matriz de manera estocástica, según el residuo. Por ejemplo, 8.5 se redondeará como
-      8 50% del tiempo y como 9 50% del tiempo. 8.01 se redondaría como 8 99% del tiempo y como 9 sólo 1% del
-      tiempo. Esta función es indispensable para evitar el "problema del nanozorro." *
 
-      * Así se llama en ecología la situación donde un nanozorro en un modelo ecológico se reproduce y establece
-        una población funcional con el tiempo.
-
-    :param matriz: La matriz a redondear
-    :type matriz: np.ndarray
-
-    """
-    # Quitar los decimales de la matriz
-    redondeada = np.floor(matriz)
-
-    # Guardar los residuos
-    residuos = matriz - redondeada
-
-    # Generar una matriz de valores aleatorias entre 0 y 1
-    prob = np.random.rand(*matriz.shape)
-
-    # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
-    # estocasticidad al modelo.
-    np.add(redondeada, np.greater(residuos, prob), out=matriz)
+# def redondear(matriz):
+#     """
+#     Esta función redondea una matriz de manera estocástica, según el residuo. Por ejemplo, 8.5 se redondeará como
+#       8 50% del tiempo y como 9 50% del tiempo. 8.01 se redondaría como 8 99% del tiempo y como 9 sólo 1% del
+#       tiempo. Esta función es indispensable para evitar el "problema del nanozorro." *
+#
+#       * Así se llama en ecología la situación donde un nanozorro en un modelo ecológico se reproduce y establece
+#         una población funcional con el tiempo.
+#
+#     :param matriz: La matriz a redondear
+#     :type matriz: np.ndarray
+#
+#     """
+#     # Quitar los decimales de la matriz
+#     redondeada = np.floor(matriz)
+#
+#     # Guardar los residuos
+#     residuos = matriz - redondeada
+#
+#     # Generar una matriz de valores aleatorias entre 0 y 1
+#     prob = np.random.rand(*matriz.shape)
+#
+#     # Redondear por arriba si el residuos es superior al valor aleatorio correspondiente. Este paso agrega
+#     # estocasticidad al modelo.
+#     np.add(redondeada, np.greater(residuos, prob), out=matriz)
 
 
 def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
@@ -2148,7 +2169,7 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
     return días_grd
 
 
-def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
+def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, matr_egr, quitar=True):
     """
 
     :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
@@ -2197,17 +2218,14 @@ def trans_cohorte(pobs, edades, cambio, tipo_dist, paráms_dist, quitar=True):
     dist = Ds.dists[tipo_dist]['scipy'](**paráms)
 
     probs = (dist.cdf(edades + cambio) - dist.cdf(edades)) / (1 - dist.cdf(edades))
-    if pobs.dtype == 'int':
-        n_cambian = np.random.binomial(pobs, probs)
-    else:
-        n_cambian = np.round(np.multiply(pobs, probs))
+    n_cambian = np.floor(np.multiply(pobs, probs))
 
     np.add(edades, cambio, out=edades)
 
     if quitar:
-        pobs -= n_cambian
+        np.subtract(pobs, n_cambian, out=pobs)
 
-    return np.sum(n_cambian, axis=0)
+    np.sum(n_cambian, axis=0, out=matr_egr)
 
 
 def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
@@ -2394,29 +2412,48 @@ def probs_conj(matr, eje, pesos=1, máx=1):
     :param pesos: Un peso inverso opcional para aplicar a la matriz ántes de hacer los cálculos.
     :type pesos: float | int | np.ndarray
 
-    :param máx: Una matriz con los valores máximos para la matriz para ajustar. Si es matriz, debe ser de tamaño
-    compatible con matr.
+    :param máx: Una matriz o número con los valores máximos para la matriz para ajustar. Si es matriz, debe ser de
+    tamaño compatible con matr.
     :type máx: float | int | np.ndarray
-
-
 
     """
 
+    if not isinstance(máx, np.ndarray):
+        tamaño = list(matr.shape)
+        tamaño.pop(eje)
+        máx = np.full(tuple(tamaño), máx)
+
     ajustados = np.divide(matr, pesos)
-    try:
-        ratio = np.divide(ajustados, máx)
-    except ValueError:
-        ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
-    np.multiply(np.expand_dims(np.divide(np.subtract(1, np.product(
-        np.subtract(1, np.where(np.isnan(ratio), [0], ratio)), axis=eje)),
-                                         np.nansum(ratio, axis=eje)
-                                         ),
-                               axis=eje),
-                matr,
-                out=matr)
+    ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
-    matr[np.isnan(matr)] = 0
+    final = np.zeros_like(matr)
+
+    np.multiply(
+        np.expand_dims(
+            np.divide(
+                np.subtract(
+                    1,
+                    np.product(
+                        np.subtract(1,
+                                    np.where(np.isnan(ratio), [0], ratio)
+                                    ), axis=eje
+                    )
+                ),
+                np.nansum(ratio, axis=eje)
+            ),
+            axis=eje),
+        matr,
+        out=final)
+
+    final[np.isnan(final)] = 0
+
+    suma = np.sum(final, axis=eje)
+    extra = np.where(suma > máx, suma - máx, [0])
+
+    np.floor(np.multiply(final, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje)), out=final)
+
+    np.copyto(matr, final)
 
 
 def copiar_dic_refs(d, c=None):

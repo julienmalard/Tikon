@@ -28,7 +28,7 @@ class Coso(object):
     ext = NotImplemented
 
     # Una referancia al diccionario con la información de los parámetros del objeto.
-    dic_ecs = NotImplemented
+    dic_info_ecs = NotImplemented
 
     def __init__(símismo, nombre, proyecto=None, fuente=None):
         """
@@ -708,7 +708,9 @@ class Simulable(Coso):
 
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(1, n_pasos):
+            antes = time.time()
             símismo.incrementar(paso, i=i, extrn=extrn)
+            print('Paso (%s) calculado en: ' % i, time.time() - antes)
 
     def incrementar(símismo, paso, i, extrn):
         """
@@ -1377,7 +1379,7 @@ def apriori_de_existente(lista_objs, clase_objs):
 
     """
 
-    dic_ecs = clase_objs.dic_ecs
+    dic_info_ecs = clase_objs.dic_info_ecs
 
     # Unas funciones útiles:
     # 1) Una función para generar un diccionario vacío con la misma estructura que el diccionario de ecuaciones
@@ -1469,7 +1471,7 @@ def apriori_de_existente(lista_objs, clase_objs):
                 d[ll] = Incert.dist_a_texto(dist)
 
     # Generar un diccionario para guardar los a prioris
-    dic_aprioris = gen_dic_vacío(dic_ecs)
+    dic_aprioris = gen_dic_vacío(dic_info_ecs)
 
     # Asegurarse que todos los objetos sean de la clase especificada.
     if not all([x.ext == clase_objs for x in lista_objs]):
@@ -1481,4 +1483,4 @@ def apriori_de_existente(lista_objs, clase_objs):
         sacar_trazas(d_fuente=d_coefs, d_final=dic_aprioris)
 
     # Convertir trazas a distribuciones en formato texto
-    gen_aprioris(d=dic_aprioris, d_ecs=dic_ecs)
+    gen_aprioris(d=dic_aprioris, d_ecs=dic_info_ecs)

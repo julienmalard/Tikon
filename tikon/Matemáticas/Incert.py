@@ -774,6 +774,9 @@ def numerizar(d, c=None):
             else:
                 c[ll] = v.astype(float)
 
+    else:
+        raise ValueError
+
     return c
 
 
