@@ -58,10 +58,7 @@ class Red(Simulable):
         símismo.dists = {'Trans': [], 'Repr': []}
 
         # Para guardar los tipos de ecuaciones de los organismos en la red
-        símismo.ecs = dict([(cat, dict([(sub_cat, [])
-                                        for sub_cat in Ec.ecs_orgs[cat].keys()]))
-                            for cat in Ec.ecs_orgs.keys()
-                            ])
+        símismo.ecs = {}
 
         # Para guardar el orden relativo de transiciones y de reproducciones entre etapas
         símismo.orden = {}
@@ -363,24 +360,34 @@ class Red(Simulable):
                 # Para cada tipo de ecuación posible para la subcategoría...
                 for tipo_ec in Ec.ecs_orgs[categ][sub_categ]:
 
-                    # Sacar los índices de las etapas de la Red con este tipo de ecuación.
-                    índs_etps = [n for n, d in enumerate(símismo.etapas) if
-                                 d['dic']['ecs'][categ][sub_categ] == tipo_ec]
+                    # Si el tipo no es "Nada"...
+                    if tipo_ec != 'Nada':
 
-                    # Si hay etapas con este tipo de ecuación...
-                    if len(índs_etps):
+                        # Sacar los índices de las etapas de la Red con este tipo de ecuación.
+                        índs_etps = [n for n, d in enumerate(símismo.etapas) if
+                                     d['dic']['ecs'][categ][sub_categ] == tipo_ec]
 
-                        # Guardar los índices bajo el nombre del tipo de ecuación.
-                        símismo.ecs[categ][sub_categ][tipo_ec] = np.array(índs_etps)
+                        # Si hay etapas con este tipo de ecuación...
+                        if len(índs_etps):
+
+                            # Guardar los índices bajo el nombre del tipo de ecuación.
+                            símismo.ecs[categ][sub_categ][tipo_ec] = índs_etps
 
         # Desactivar las ecuaciones de transiciones de juveniles de parasitoides (porque estas se implementan
         # por la última fase fantasma de la víctima correspondiente
         for org in símismo.organismos.values():
             if isinstance(org, Ins.Parasitoide):
                 n_etp = símismo.núms_etapas[org.nombre]['juvenil']
-                símismo.ecs['Transiciones']['Edad'][n_etp] = 'Nada'
-                símismo.ecs['Transiciones']['Mult'][n_etp] = 'Nada'
-                símismo.ecs['Transiciones']['Prob'][n_etp] = 'Nada'
+
+                dic = símismo.etapas[n_etp]['dic']['ecs']['Transiciones']
+                tipo_ed = dic['Edad']
+                tipo_mult = dic['Mult']
+                tipo_prob = dic['Prob']
+
+                if tipo_prob != 'Nada':
+                    símismo.ecs['Transiciones']['Edad'][tipo_ed].remove(n_etp)
+                    símismo.ecs['Transiciones']['Mult'][tipo_mult].remove(n_etp)
+                    símismo.ecs['Transiciones']['Prob'][tipo_prob].remove(n_etp)
 
         # Desactivar las ecuaciones de depredación para etapas que tienen ni presas, ni huéspedes
         for n_etp, d_etp in enumerate(símismo.etapas):
@@ -389,7 +396,10 @@ class Red(Simulable):
             if not len(d_etp['conf']['presa']) and not len(d_etp['conf']['huésped']):
 
                 # ...Desactivar sus ecuaciones de depredación.
-                símismo.ecs['Depredación']['Ecuación'][n_etp] = 'Nada'
+                tipo_depred = símismo.etapas[n_etp]['dic']['ecs']['Depredación']['Ecuación']
+
+                if tipo_depred != 'Nada':
+                    símismo.ecs['Depredación']['Ecuación'][tipo_depred].remove(n_etp)
 
         # Guardar el orden de transiciones y de reproducciones
         símismo.orden['trans'] = np.full(len(símismo.etapas), -1, dtype=np.int)
@@ -555,7 +565,11 @@ class Red(Simulable):
 
         # A este punto, depred representa la depredación potencial per cápita de depredador
         depred = símismo.predics['Depredación']
-        tipos_ec = símismo.ecs['Depredación']['Ecuación']
+        tipos_ec = símismo.ecs['Depredación']['Ecuación']  # type: dict
+
+        # Si no hay nada que hacer, devolver ahora
+        if not len(tipos_ec):
+            return
 
         # La lista de los coeficientes de cada etapa para la depredación
         coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
@@ -563,75 +577,68 @@ class Red(Simulable):
         # Densidades de poblaciones
         dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
 
-        for n in range(len(símismo.etapas)):  # Para cada etapa...
+        for tp_ec, í_etps in tipos_ec.items():  # Para cada tipo de ecuación...
 
-            # Los coeficientes para esta etapa
-            cf = coefs[n]  # type: dict
-            # Los tipos de ecuaciones para esta etapa
-            tipo_ec = tipos_ec[n]
+            # Los coeficientes para las etapas con este tipo de ecuación
+            cf = coefs[tp_ec]  # type: dict
 
-            # Una referencia a la parte de la matriz que representa la depredación por esta etapa
-            depred_etp = depred[:, :, :, n, :]
+            # Una COPIA de la parte de la matriz que representa la depredación por estas etapas
+            depred_etp = depred[:, :, :, í_etps, :]
 
             # Calcular la depredación según la ecuación de esta etapa.
-            if tipo_ec == 'Nada':
-                # Si no hay ecuación para la depredación del organismo (si ni tiene presas), seguir a la próxima etapa
-                # de una vez.
-                continue
-
-            elif tipo_ec == 'Tipo I_Dependiente presa':
+            if tp_ec == 'Tipo I_Dependiente presa':
                 # Depredación de respuesta funcional tipo I con dependencia en la población de la presa.
                 np.multiply(pobs, cf['a'], out=depred_etp)
 
-            elif tipo_ec == 'Tipo II_Dependiente presa':
+            elif tp_ec == 'Tipo II_Dependiente presa':
                 # Depredación de respuesta funcional tipo II con dependencia en la población de la presa.
                 np.multiply(dens, cf['a'] / (dens + cf['b']), out=depred_etp)
 
-            elif tipo_ec == 'Tipo III_Dependiente presa':
+            elif tp_ec == 'Tipo III_Dependiente presa':
                 # Depredación de respuesta funcional tipo III con dependencia en la población de la presa.
                 np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']), out=depred_etp)
 
-            elif tipo_ec == 'Tipo I_Dependiente ratio':
+            elif tp_ec == 'Tipo I_Dependiente ratio':
                 # Depredación de respuesta funcional tipo I con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(dens / dens_depred, cf['a'], out=depred_etp)
 
-            elif tipo_ec == 'Tipo II_Dependiente ratio':
+            elif tp_ec == 'Tipo II_Dependiente ratio':
                 # Depredación de respuesta funcional tipo II con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
-                np.multiply(dens / dens_depred, cf['a'] / (dens / dens[n] + cf['b']), out=depred_etp)
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
+                np.multiply(dens / dens_depred, cf['a'] / (dens / dens_depred + cf['b']), out=depred_etp)
 
-            elif tipo_ec == 'Tipo III_Dependiente ratio':
+            elif tp_ec == 'Tipo III_Dependiente ratio':
                 # Depredación de respuesta funcional tipo III con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(np.square(dens / dens_depred), cf['a'] / (np.square(dens / dens_depred) + cf['b']),
                             out=depred_etp)
 
-            elif tipo_ec == 'Beddington-DeAngelis':
+            elif tp_ec == 'Beddington-DeAngelis':
                 # Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(dens, cf['a'] / (cf['b'] + dens + cf['c'] * dens_depred), out=depred_etp)
 
-            elif tipo_ec == 'Tipo I_Hassell-Varley':
+            elif tp_ec == 'Tipo I_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(dens / dens_depred ** cf['m'], cf['a'], out=depred_etp)
 
-            elif tipo_ec == 'Tipo II_Hassell-Varley':
+            elif tp_ec == 'Tipo II_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']),
                             out=depred_etp)
 
-            elif tipo_ec == 'Tipo III_Hassell-Varley':
+            elif tp_ec == 'Tipo III_Hassell-Varley':
                 # Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
                 np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']),
                             out=depred_etp)
 
-            elif tipo_ec == 'Kovai':
+            elif tp_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                dens_depred = dens[:, :, :, n]  # La población de esta etapa (depredador)
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa (depredador)
                 ratio = dens / dens_depred[..., np.newaxis]
 
                 np.multiply(cf['a'] * np.subtract(1, np.exp(-1 / cf['a'] * np.where(ratio == np.inf, [0], ratio))),
@@ -643,7 +650,9 @@ class Red(Simulable):
 
             else:
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
-                raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tipo_ec)
+                raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tp_ec)
+
+            depred[:, :, :, í_etps, :] = depred_etp
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0
@@ -748,91 +757,93 @@ class Red(Simulable):
         """
 
         crec = símismo.predics['Crecimiento']
-        tipos_ec = símismo.ecs['Crecimiento']['Ecuación']
-        modifs = símismo.ecs['Crecimiento']['Modif']
+        tipos_ec = símismo.ecs['Crecimiento']['Ecuación']  # type: dict
+        modifs = símismo.ecs['Crecimiento']['Modif']  # type: dict
+
+        # Si no hay nada que hacer, devolver ahora
+        if not len(tipos_ec):
+            return
 
         coefs_ec = símismo.coefs_act_númzds['Crecimiento']['Ecuación']
         coefs_mod = símismo.coefs_act_númzds['Crecimiento']['Modif']
 
-        for n in range(len(símismo.etapas)):
-            cf = coefs_mod[n]  # type: dict
-            crec_etp = crec[:, :, :, n]  # Vinculo con la parte de la matriz "crec" de esta etapa.
+        if len(modifs):
+            r = np.zeros_like(coefs_mod['r'])
+
+        for mod, í_etps in modifs.items():
+
+            cf = coefs_mod[mod]  # type: dict
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
-            if modifs[n] == 'Nada':
-                # Si no hay crecimiento para este insecto, no hacer nada. Notar que si no quieres
-                # modificación ambiental a r, pero sí quieres crecimiento, hay que escoger la modificación ambiental
-                # 'Ninguna' y NO 'None'. Esto permetirá crear la variable 'r' que se necesitará después.
-                pass
-
-            elif modifs[n] == 'Ninguna':
+            if mod == 'Ninguna':
                 # Sin modificación a r.
-                r = np.multiply(cf['r'], paso)
+                r[:, í_etps] = np.multiply(cf['r'], paso)
 
-            elif modifs[n] == 'Log Normal Temperatura':
+            elif mod == 'Log Normal Temperatura':
                 # r responde a la temperatura con una ecuación log normal.
-                r = cf['r'] * paso
-                r *= mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2)
+                r[:, í_etps] = (cf['r'] * paso) * mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2)
 
             else:
                 raise ValueError
 
-            # Calcular el crecimiento de la población
+        # Calcular el crecimiento de la población
+        for tp_ec, í_etps in tipos_ec.items():
 
-            pob_etp = pobs[:, :, :, n]  # La población de esta etapa
-            cf = coefs_ec[n]  # type: dict
+            crec_etp = crec[:, :, :, í_etps]  # COPIA de la parte de la matriz "crec" de esta etapa.
 
-            if tipos_ec[n] == 'Nada':
-                continue
+            pobs_etps = pobs[:, :, :, í_etps]  # La población de esta etapa
+            cf = coefs_ec[tp_ec]  # type: dict
 
-            elif tipos_ec[n] == 'Exponencial':
+            if tp_ec == 'Exponencial':
                 # Crecimiento exponencial
 
-                np.multiply(pob_etp, r, out=crec_etp)
+                np.multiply(pobs_etps, r, out=crec_etp)
 
-            elif tipos_ec[n] == 'Logístico':
+            elif tp_ec == 'Logístico':
                 # Crecimiento logístico.
 
-                np.multiply(r, pob_etp * (1 - pob_etp / cf['K']), out=crec_etp)  # Ecuación logística sencilla
+                np.multiply(r, pobs_etps * (1 - pobs_etps / cf['K']), out=crec_etp)  # Ecuación logística sencilla
 
-            elif tipos_ec[n] == 'Logístico Presa':
+            elif tp_ec == 'Logístico Presa':
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
                 k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga
-                np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
+                np.multiply(r, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
-                np.maximum(crec_etp, -pob_etp, out=crec_etp)
+                np.maximum(crec_etp, -pobs_etps, out=crec_etp)
 
-            elif tipos_ec[n] == 'Logístico Depredación':
+            elif tp_ec == 'Logístico Depredación':
                 # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
 
-                depred = símismo.predics['Depred'][..., n, :]  # La depredación por esta etapa
+                depred = símismo.predics['Depred'][..., í_etps, :]  # La depredación por esta etapa
                 k = np.nansum(np.multiply(depred, cf['K']), axis=3)  # Calcular la capacidad de carga
-                np.multiply(r, pob_etp * (1 - pob_etp / k), out=crec_etp)  # Ecuación logística sencilla
+                np.multiply(r, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
-                np.maximum(crec_etp, -pob_etp, out=crec_etp)
+                np.maximum(crec_etp, -pobs_etps, out=crec_etp)
 
-            elif tipos_ec[n] == 'Constante':
+            elif tp_ec == 'Constante':
                 nueva_pob = cf['n']
-                np.subtract(nueva_pob, pob_etp, out=crec_etp)
+                np.subtract(nueva_pob, pobs_etps, out=crec_etp)
 
-            elif tipos_ec[n] == 'Externo Cultivo':
+            elif tp_ec == 'Externo Cultivo':
                 # Esta ecuación guarda la población del organismo a un nivel constante, no importe qué esté pasando
                 # en el resto de la red. Puede ser útil para representar plantas donde los herbívoros están bien
                 # abajo de sus capacidades de carga.
 
                 try:
-                    np.subtract(extrn['Plantas'][n], pob_etp, out=crec_etp)
+                    np.subtract(extrn['Plantas'], pobs_etps, out=crec_etp)
                 except (KeyError, TypeError):
                     # Si la planta no ha sido conectada a través de una parcela, no hacemos nada. Esto dejará un valor
                     # de 0 para la población de la planta.
                     pass
 
             else:
-                raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tipos_ec[n])
+                raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tp_ec)
+
+            crec[:, :, :, í_etps] = crec_etp
 
         crec[np.isnan(crec)] = 0
 
@@ -860,40 +871,34 @@ class Red(Simulable):
         # Simplificamos el código un poco.
         reprs = símismo.predics['Reproducción']
 
-        ec_edad = símismo.ecs['Reproducción']['Edad']
-        probs = símismo.ecs['Reproducción']['Prob']
+        tipos_edad = símismo.ecs['Reproducción']['Edad']  # type: dict
+        tipos_probs = símismo.ecs['Reproducción']['Prob']  # type: dict
+
+        if not len(tipos_probs):
+            return
 
         coefs_ed = símismo.coefs_act_númzds['Reproducción']['Edad']
         coefs_pr = símismo.coefs_act_númzds['Reproducción']['Prob']
 
-        for n, ec_ed in enumerate(ec_edad):
+        # Para hacer: simplificar
+        edad_extra = np.zeros_like(pobs)
 
-            # Si no hay cálculos de reproducción para esta etapa, sigamos a la próxima etapa de una vez. Esto se
-            # detecta por etapas que tienen 'Nada' como ecuación de densidad (probabilidad) de reproducción.
-            if probs[n] == 'Nada':
-                continue
-
-            # Una referencia a la parte apriopiada de la matriz de reproducciones
-            n_recip = símismo.orden['repr'][n]
-            repr_etp_recip = reprs[..., n_recip]
+        for tp_ed, í_etps in tipos_edad.items():
 
             # Si hay que guardar cuenta de cohortes, hacerlo aquí
-            cf_ed = coefs_ed[n]
+            cf_ed = coefs_ed[tp_ed]
 
-            if ec_ed == 'Nada':
-                edad_extra = None
-
-            elif ec_ed == 'Días':
+            if tp_ed == 'Días':
                 # Edad calculada en días.
-                edad_extra = paso
+                edad_extra[:, í_etps] = paso
 
-            elif ec_ed == 'Días Grados':
+            elif tp_ed == 'Días Grados':
                 # Edad calculada por días grados.
-                edad_extra = días_grados(extrn['temp_máx'], extrn['temp_mín'],
-                                         umbrales=(cf_ed['mín'], cf_ed['máx'])
-                                         ) * paso
+                edad_extra[í_etps] = días_grados(extrn['temp_máx'], extrn['temp_mín'],
+                                                 umbrales=(cf_ed['mín'], cf_ed['máx'])
+                                                 ) * paso
 
-            elif ec_ed == 'Brière Temperatura':
+            elif tp_ed == 'Brière Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura Briere. En esta ecuación,
                 # tal como en las otras con taza de desarrollo, quitamos el parámetro típicamente multiplicado por
                 # toda la ecuación, porque eso duplicaría el propósito del parámetro de ubicación de las distribuciones
@@ -902,38 +907,44 @@ class Red(Simulable):
                 # Mokhtar, Abrul Monim y Salem Saif al Nabhani. 2010. Temperature-dependent development of dubas bug,
                 #   Ommatissus lybicus (Hemiptera: Tropiduchidae), an endemic pest of date palm, Phoenix dactylifera.
                 #   Eur. J. Entomol. 107: 681–685
-                edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
+                edad_extra[:, í_etps] = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
                              mat.sqrt(cf_ed['t_letal'] - extrn['temp_prom'])
 
-            elif ec_ed == 'Brière No Linear Temperatura':
+            elif tp_ed == 'Brière No Linear Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura no linear de Briere.
                 #
                 # Youngsoo Son et al. 2012. Estimation of developmental parameters for adult emergence of Gonatocerus
                 #   morgani, a novel egg parasitoid of the glassy-winged sharpshooter, and development of a degree-day
                 #   model. Biological Control 60(3): 233-260.
 
-                edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
+                edad_extra[:, í_etps] = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
                              mat.pow(cf_ed['t_letal'] - extrn['temp_prom'], 1 / cf_ed['m'])
 
-            elif ec_ed == 'Logan Temperatura':
+            elif tp_ed == 'Logan Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
                 #
                 # Youngsoo Son y Lewis, Edwin E. 2005. Modelling temperature-dependent development and survival of
                 #   Otiorhynchus sulcatus (Coleoptera: Curculionidae). Agricultural and Forest Entomology 7(3): 201–209.
 
-                edad_extra = mat.exp(cf_ed['rho'] * extrn['temp_prom']) - \
-                             mat.exp(cf_ed['rho'] * cf_ed['t_letal'] - (cf_ed['t_letal'] -
-                                                                        extrn['temp_prom'])
-                                     / cf_ed['delta'])
+                edad_extra[:, í_etps] = mat.exp(cf_ed['rho'] * extrn['temp_prom']) - \
+                                     mat.exp(cf_ed['rho'] * cf_ed['t_letal'] - (cf_ed['t_letal'] -
+                                                                                extrn['temp_prom'])
+                                             / cf_ed['delta'])
 
             else:
-                raise ValueError('No reconozco el tipo de ecuación "%s" para la edad de transiciones.' % ec_ed)
+                raise ValueError('No reconozco el tipo de ecuación "%s" para la edad de transiciones.' % tp_ed)
+
+        for tp_prob, í_etps in tipos_probs.items():
 
             # Y ya pasamos a calcular el número de individuos de esta etapa que se reproducen en este paso de tiempo
-            cf = coefs_pr[n]
-            pob_etp = pobs[:, :, :, n]
+            cf = coefs_pr[tp_prob]
+            pob_etp = pobs[:, :, :, í_etps]
 
-            if probs[n] == 'Constante':
+            # Una referencia a la parte apriopiada de la matriz de reproducciones
+            n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
+            repr_etp_recip = reprs[..., n_recip]
+
+            if tp_prob == 'Constante':
                 # Reproducciones en proporción al tamaño de la población.
 
                 # Tomamos el paso en cuenta según las regals de probabilidad:
@@ -941,9 +952,9 @@ class Red(Simulable):
 
                 np.multiply(cf['n'] * pob_etp, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
 
-            elif probs[n] == 'Depredación':
+            elif tp_prob == 'Depredación':
                 # Reproducciones en función de la depredación (útil para avispas esfécidas)
-                depred = símismo.predics['Depredación'][..., n, :]
+                depred = símismo.predics['Depredación'][..., í_etps, :]
 
                 np.sum(np.multiply(cf['n'], depred), axis=-1, out=repr_etp_recip)
 
@@ -951,17 +962,21 @@ class Red(Simulable):
                 # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
                 edad_extra *= paso
 
-                cohortes = símismo.predics['Cohortes'][n_recip]['Pobs']
-                edades = símismo.predics['Cohortes'][n_recip]['Edades']['Repr']
+                for i, (n, n_r) in enumerate(zip(í_etps, n_recip)):
+                    cohortes = símismo.predics['Cohortes'][n_r]['Pobs']
+                    edades = símismo.predics['Cohortes'][n_r]['Edades']['Repr']
 
-                if edad_extra is None:
-                    raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
-                                     'en el cálculo de reproducciones.')
+                    if edad_extra is None:
+                        raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
+                                         'en el cálculo de reproducciones.')
 
-                trans_cohorte(dists=símismo.dists['Trans'][n], pobs=cohortes, edades=edades, cambio=edad_extra,
-                              matr_egr=repr_etp_recip,
-                              quitar=False)
+                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=cohortes, edades=edades,
+                                  cambio=edad_extra[..., n], matr_egr=repr_etp_recip[..., i],
+                                  quitar=False)
+
                 np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
+
+            reprs[..., n_recip] = repr_etp_recip
 
         # Redondear las reproducciones calculadas
         np.round(reprs, out=reprs)
@@ -992,25 +1007,26 @@ class Red(Simulable):
         # Simplificamos el código un poco.
 
         muertes = símismo.predics['Muertes']
-        tipos_ec = símismo.ecs['Muertes']['Ecuación']
+        tipos_ec = símismo.ecs['Muertes']['Ecuación']  # type: dict
+
+        if not len(tipos_ec):
+            return
+
         coefs = símismo.coefs_act_númzds['Muertes']['Ecuación']
 
-        for n, ec in enumerate(tipos_ec):
+        for tp_ec, í_etps in tipos_ec.items():
 
-            cf = coefs[n]
-            muerte_etp = muertes[:, :, :, n]
-            pob_etp = pobs[:, :, :, n]  # La población de esta etapa
+            cf = coefs[tp_ec]
+            muerte_etp = muertes[:, :, :, í_etps]
+            pob_etp = pobs[:, :, :, í_etps]  # La población de estas etapas
 
-            if ec == 'Nada':
-                continue
-
-            elif ec == 'Constante':
+            if tp_ec == 'Constante':
                 # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
                 np.multiply(pob_etp, cf['q'], out=muerte_etp)
 
-            elif ec == 'Log Normal Temperatura':
+            elif tp_ec == 'Log Normal Temperatura':
                 # Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
                 #
                 # Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
@@ -1020,7 +1036,7 @@ class Red(Simulable):
                 sobrevivencia = mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2)
                 np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
-            elif ec == 'Asimptótico Humedad':
+            elif tp_ec == 'Asimptótico Humedad':
 
                 # M. P. Lepage, G. Bourgeois, J. Brodeur, G. Boivin. 2012. Effect of Soil Temperature and Moisture on
                 #   Survival of Eggs and First-Instar Larvae of Delia radicum. Environmental Entomology 41(1): 159-165.
@@ -1028,13 +1044,15 @@ class Red(Simulable):
                 sobrevivencia = max(0, 1 - mat.exp(-cf['a'] * (extrn['humedad'] - cf['b'])))
                 np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
-            elif ec == 'Sigmoidal Temperatura':
+            elif tp_ec == 'Sigmoidal Temperatura':
 
                 sobrevivencia = 1 / (1 + mat.exp((extrn['temp_máx'] - cf['a']) / cf['b']))
                 np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
             else:
                 raise ValueError
+
+            muertes[:, :, :, í_etps] = muerte_etp
 
         np.multiply(muertes, paso, out=muertes)
         np.round(muertes, out=muertes)
@@ -1065,9 +1083,12 @@ class Red(Simulable):
         # Simplificamos el código un poco.
         trans = símismo.predics['Transiciones']
 
-        ec_edad = símismo.ecs['Transiciones']['Edad']
-        ec_probs = símismo.ecs['Transiciones']['Prob']
-        ec_mult = símismo.ecs['Transiciones']['Mult']
+        tipos_edad = símismo.ecs['Transiciones']['Edad']  # type: dict
+        tipos_probs = símismo.ecs['Transiciones']['Prob']  # type: dict
+        tipos_mult = símismo.ecs['Transiciones']['Mult']  # type: dict
+
+        if not len(tipos_probs):
+            return
 
         coefs_ed = símismo.coefs_act_númzds['Transiciones']['Edad']
         coefs_pr = símismo.coefs_act_númzds['Transiciones']['Prob']
@@ -1075,33 +1096,23 @@ class Red(Simulable):
 
         cohortes = símismo.predics['Cohortes']
 
-        for n, ec_ed in enumerate(ec_edad):
+        edad_extra = None
 
-            # Si no hay cálculos de transiciones para esta etapa, sigamos a la próxima etapa de una vez. Esto se
-            # detecta por etapas que tienen 'Nada' como ecuación de probabilidad de transición.
-            if ec_probs[n] == 'Nada':
-                continue
+        for tp_ed, í_etps in tipos_edad.items():
 
-            # Una referencia a la parte apriopiada de la matriz de transiciones
-            trans_etp = trans[..., n]
+            cf_ed = coefs_ed[tp_ed]
 
-            # Si hay que guardar cuenta de cohortes, hacerlo aquí
-            cf_ed = coefs_ed[n]
-
-            if ec_ed == 'Nada':
-                edad_extra = None
-
-            elif ec_ed == 'Días':
+            if tp_ed == 'Días':
                 # Edad calculada en días.
                 edad_extra = paso
 
-            elif ec_ed == 'Días Grados':
+            elif tp_ed == 'Días Grados':
                 # Edad calculada por días grados.
                 edad_extra = días_grados(extrn['temp_máx'], extrn['temp_mín'],
                                          umbrales=(cf_ed['mín'], cf_ed['máx'])
                                          ) * paso
 
-            elif ec_ed == 'Brière Temperatura':
+            elif tp_ed == 'Brière Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura Briere. En esta ecuación,
                 # tal como en las otras con taza de desarrollo, quitamos el parámetro típicamente multiplicado por
                 # toda la ecuación, porque eso duplicaría el propósito del parámetro de ubicación de las distribuciones
@@ -1113,7 +1124,7 @@ class Red(Simulable):
                 edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
                              mat.sqrt(cf_ed['t_letal'] - extrn['temp_prom'])
 
-            elif ec_ed == 'Brière No Linear Temperatura':
+            elif tp_ed == 'Brière No Linear Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura no linear de Briere.
                 #
                 # Youngsoo Son et al. 2012. Estimation of developmental parameters for adult emergence of Gonatocerus
@@ -1123,7 +1134,7 @@ class Red(Simulable):
                 edad_extra = extrn['temp_prom'] * (extrn['temp_prom'] - cf_ed['t_dev_mín']) * \
                              mat.pow(cf_ed['t_letal'] - extrn['temp_prom'], 1 / cf_ed['m'])
 
-            elif ec_ed == 'Logan Temperatura':
+            elif tp_ed == 'Logan Temperatura':
                 # Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
                 #
                 # Youngsoo Son y Lewis, Edwin E. 2005. Modelling temperature-dependent development and survival of
@@ -1135,11 +1146,17 @@ class Red(Simulable):
                                      / cf_ed['delta'])
 
             else:
-                raise ValueError('No reconozco el tipo de ecuación %s para la edad de transiciones.' % ec_ed)
+                raise ValueError('No reconozco el tipo de ecuación %s para la edad de transiciones.' % tp_ed)
+
+        for tp_prob, í_etps in tipos_probs.items():
 
             # Y ya pasamos a calcular el número de individuos de esta etapa que se transicionan en este paso de tiempo
-            cf = coefs_pr[n]
-            if ec_probs[n] == 'Constante':
+            cf = coefs_pr[tp_prob]
+
+            # Una COPIA de la parte apriopiada de la matriz de transiciones
+            trans_etp = trans[..., í_etps]
+
+            if tp_prob == 'Constante':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
                 # exponencial.
 
@@ -1150,22 +1167,26 @@ class Red(Simulable):
 
                 # Si la etapa usa cohortes para cualquier otro cálculo (transiciones a parte), actualizar los
                 # cohortes ahora.
-                if n in cohortes:
-                    quitar_de_cohorte(cohortes[n], trans_etp)
+                for n in í_etps:
+                    if n in cohortes:
+                        quitar_de_cohorte(cohortes[n], trans_etp)
 
             else:
                 # Aquí tenemos todas las probabilidades de muerte dependientes en distribuciones de cohortes:
                 edad_extra *= paso
 
-                pobs_coh = símismo.predics['Cohortes'][n]['Pobs']
-                edades = símismo.predics['Cohortes'][n]['Edades']['Trans']
+                for i, n in enumerate(í_etps):
+                    pobs_coh = símismo.predics['Cohortes'][n]['Pobs']
+                    edades = símismo.predics['Cohortes'][n]['Edades']['Trans']
 
-                if edad_extra is None:
-                    raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
-                                     'en el cálculo de transiciones de inviduos.')
+                    if edad_extra is None:
+                        raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
+                                         'en el cálculo de transiciones de inviduos.')
 
-                trans_cohorte(dists=símismo.dists['Trans'][n], pobs=pobs_coh, edades=edades, cambio=edad_extra,
-                              matr_egr=trans_etp)
+                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=pobs_coh, edades=edades, cambio=edad_extra,
+                                  matr_egr=trans_etp[..., i])
+
+            trans[..., í_etps] = trans_etp
 
 
         # Redondear las transiciones calculadas
@@ -1175,9 +1196,11 @@ class Red(Simulable):
         np.subtract(pobs, trans, out=pobs)
 
         # Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides)
-        for n, ec_ed in enumerate(ec_mult):
-            if ec_ed != 'Nada':
-                trans[..., n] *= coefs_mt[n]['a']
+        for tp_mult, í_etps in tipos_mult.items():
+            if tp_mult == 'Linear':
+                trans[..., í_etps] *= coefs_mt[tp_mult]['a']
+            else:
+                raise ValueError('Tipo de mul')
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
         for n_don, n_recip in enumerate(símismo.orden['trans']):
@@ -1234,11 +1257,13 @@ class Red(Simulable):
 
         # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
         for n_etp in range(len(símismo.etapas)):
-            if símismo.ecs['Crecimiento']['Ecuación'][n_etp] == 'Constante':
+
+            dic = símismo.ecs['Crecimiento']['Ecuación']
+            if 'Constante' in dic.keys() and n_etp in dic['Constante']:
                 # Si la etapa tiene una población constante...
 
                 # La población inicial se determina por el coeficiente de población constante del organismo
-                pobs_inic = símismo.coefs_act_númzds['Crecimiento']['Ecuación'][n_etp]['n']
+                pobs_inic = símismo.coefs_act_númzds['Crecimiento']['Ecuación']['Constante']['n'][:, n_etp]
 
                 # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
                 símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
@@ -1687,11 +1712,17 @@ class Red(Simulable):
                 # Para cara etapa de cada organismo...
 
                 # Verificar si necesita cohortes
-                ecs_prob_repr = símismo.ecs['Reproducción']['Prob'][n_etp]
-                ecs_prob_trans = símismo.ecs['Transiciones']['Prob'][n_etp]
-                if ecs_prob_repr != 'Nada' and ecs_prob_repr != 'Constante':
+                req_cohs_repr = any([n_etp in l_etps for tipo_prob, l_etps
+                                     in símismo.ecs['Reproducción']['Prob'].items()
+                                     if tipo_prob != 'Constante'])
+
+                req_cohs_trans = any([n_etp in l_etps for tipo_prob, l_etps
+                                      in símismo.ecs['Transiciones']['Prob'].items()
+                                     if tipo_prob != 'Constante'])
+
+                if req_cohs_repr:
                     i_coh_repr.append(n_etp)
-                if ecs_prob_trans != 'Nada' and ecs_prob_trans != 'Constante':
+                if req_cohs_trans:
                     i_coh_trans.append(n_etp)
 
             # Generamos el diccionario (vacío) de datos iniciales
@@ -1881,11 +1912,14 @@ class Red(Simulable):
             # Para cada subcategoría de ecuación...
             for subcateg in dic_categ:
 
+                # Crear una llave correspondiente en coefs_act
+                símismo.coefs_act[categ][subcateg] = {}
+
                 # Para cada tipo de ecuación activa para esta subcategoría...
                 for tipo_ec, índs_etps in símismo.ecs[categ][subcateg].items():
 
                     # Crear una diccionario en coefs_act para de los parámetros de cada etapa
-                    coefs_act = símismo.coefs_act[categ][subcateg] = {}
+                    coefs_act = símismo.coefs_act[categ][subcateg][tipo_ec] = {}
 
                     # Para cada parámetro en el diccionario de las ecuaciones activas de esta etapa
                     # (Ignoramos los parámetros para ecuaciones que no se usarán en esta simulación)...
@@ -1894,11 +1928,11 @@ class Red(Simulable):
                         # El tamaño de la matriz de parámetros
                         if d_parám['inter'] is None:
                             # Si no hay interacciones, # Eje 0: repetición paramétrica, eje 1: etapa
-                            tamaño_matr = (n_rep_parám, n_etapas)
+                            tamaño_matr = (n_rep_parám, len(índs_etps))
                         else:
                             # Pero si hay interacciones...
                             # Eje 0: repetición paramétrica, eje 1: etapa, eje 2: etapa con la cuál hay la interacción.
-                            tamaño_matr = (n_rep_parám, n_etapas, n_etapas)
+                            tamaño_matr = (n_rep_parám, len(índs_etps), n_etapas)
 
                         # La matriz de parámetros
                         coefs_act[parám] = np.empty(tamaño_matr, dtype=object)
@@ -1953,7 +1987,7 @@ class Red(Simulable):
                                                         l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
                                                 for n in l_etps_víc:
-                                                    matr_etp[:, :, n] = gen_vector_coefs(
+                                                    matr_etp[:, n] = gen_vector_coefs(
                                                         dic_parám=d_parám_etp[org_víc][etp_víc],
                                                         calibs=calibs,
                                                         n_rep_parám=n_rep_parám,
@@ -2087,37 +2121,40 @@ class Red(Simulable):
         símismo.dists['Trans'] = [None] * len(símismo.etapas)
         símismo.dists['Repr'] = [None] * len(símismo.etapas)
 
-        for n_etp in range(len(símismo.etapas)):
-            # Para cada etapa de la Red...
+        for categ, corto in zip(['Transiciones', 'Reproducción'], ['Trans', 'Repr']):
+            # Para transiciones y para reproducciones...
 
-            for categ, corto in zip(['Transiciones', 'Reproducción'], ['Trans', 'Repr']):
-                # Para transiciones y para reproducciones...
+            # Para cada tipo de distribución
 
-                # El tipo de distribución
-                tipo_dist = símismo.ecs[categ]['Prob'][n_etp]
+            for tp_dist, í_etps in símismo.ecs[categ]['Prob'].items():
 
-                if tipo_dist not in ['Nada', 'Constante']:
+                if tp_dist not in ['Nada', 'Constante']:
                     # Si el tipo de distribución merece una distribución de SciPy...
 
-                    # Los parámetros de la distribución
-                    paráms_dist = símismo.coefs_act_númzds[categ]['Prob'][n_etp]
+                    for i, n_etp in enumerate(í_etps):
 
-                    # Convertir los parámetros a formato SciPy
-                    if tipo_dist == 'Normal':
-                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
-                    elif tipo_dist == 'Triang':
-                        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
-                    elif tipo_dist == 'Cauchy':
-                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
-                    elif tipo_dist == 'Gamma':
-                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
-                    elif tipo_dist == 'T':
-                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
-                    else:
-                        raise ValueError('La distribución "{}" no tiene definición.'.format(tipo_dist))
+                        # Los parámetros de la distribución
+                        paráms_dist = símismo.coefs_act_númzds[categ]['Prob'][tp_dist]
 
-                    # Guardar la distribución multidimensional en el diccionario de distribuciones.
-                    símismo.dists[corto][n_etp] = Ds.dists[tipo_dist]['scipy'](**paráms)
+                        # Convertir los parámetros a formato SciPy
+                        if tp_dist == 'Normal':
+                            paráms = dict(loc=paráms_dist['mu'][:, i], scale=paráms_dist['sigma'][:, i])
+                        elif tp_dist == 'Triang':
+                            paráms = dict(loc=paráms_dist['a'][:, i], scale=paráms_dist['b'][:, i],
+                                          c=paráms_dist['c'][:, i])
+                        elif tp_dist == 'Cauchy':
+                            paráms = dict(loc=paráms_dist['u'][:, i], scale=paráms_dist['f'][:, i])
+                        elif tp_dist == 'Gamma':
+                            paráms = dict(loc=paráms_dist['u'][:, i], scale=paráms_dist['f'][:, i],
+                                          a=paráms_dist['a'][:, i])
+                        elif tp_dist == 'T':
+                            paráms = dict(loc=paráms_dist['mu'][:, i], scale=paráms_dist['sigma'][:, i],
+                                          df=paráms_dist['k'][:, i])
+                        else:
+                            raise ValueError('La distribución "{}" no tiene definición.'.format(tp_dist))
+
+                        # Guardar la distribución multidimensional en el diccionario de distribuciones.
+                        símismo.dists[corto][n_etp] = Ds.dists[tp_dist]['scipy'](**paráms)
 
         # Iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
