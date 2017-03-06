@@ -1,5 +1,5 @@
 import डिब्बा
-from tikon.Interfaz.अनुप्रयोग import डिब्बा_शुरू
+from tikon.Interfaz.anuprayog import डिब्बा_शुरू
 
 apli = डिब्बा.अनुप्रयोग.अनुप्रयोग(नाम='பயிற்சி')
 
