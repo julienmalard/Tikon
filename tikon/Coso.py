@@ -338,6 +338,10 @@ class Simulable(Coso):
         # Experimentos asociados
         símismo.exps = {}
 
+        # Parámetros activos en la simulación actual.
+        símismo.coefs_act = {}
+        símismo.coefs_act_númzds = {}
+
         # Predicciones del modelo correspondiendo a los Experimentos asociados (para calibración y validación)
         símismo.predics_exps = {}
 
@@ -705,6 +709,10 @@ class Simulable(Coso):
         :type extrn: dict
 
         """
+
+        # Cosas que hay que hacer justo antes de simular
+        símismo._numerizar_coefs()
+        símismo._justo_antes_de_simular()
 
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(1, n_pasos):
@@ -1183,6 +1191,31 @@ class Simulable(Coso):
         :param kwargs:
         :type kwargs:
 
+        """
+
+        raise NotImplementedError
+
+    def _numerizar_coefs(símismo):
+        """
+        Esta función numeriza los coeficientes de un Simulable (convierte variables PyMC a matrices NumPy).
+        """
+
+        # Numerizar el diccionario de coeficientes.
+        numerizados = Incert.numerizar(f=símismo.coefs_act)
+
+        # Vaciar el diccionario existente.
+        símismo.coefs_act_númzds.clear()
+
+        # Llenar el diccionario con los coeficientes numerizados.
+        símismo.coefs_act_númzds.update(numerizados)
+
+    def _justo_antes_de_simular(símismo):
+        """
+        Esta función, aplicada en las subclases de Simulable, efectua acciones necesarias una vez antes de cada
+        simulación de cada experimento. Esto implica cosas que dependen en, por ejemplo, los valores de los parámetros
+        de la simulación actual, pero que solamente necesitan hacerse una vez al principio de la simulación. Un ejemplo
+        sería la inicialización de las poblaciones iniciales de organismos con poblaciones fijas en Redes según el valor
+        del parámetro del tamaño de población fija.
         """
 
         raise NotImplementedError

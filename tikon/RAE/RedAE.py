@@ -3,12 +3,11 @@ import os
 from warnings import warn as avisar
 
 import numpy as np
-import scipy.stats as estad
 import tikon.RAE.Insecto as Ins
 from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec
 from tikon.Matemáticas.Arte import gráfico
-from tikon.Matemáticas.Incert import numerizar, validar, gen_vector_coefs
+from tikon.Matemáticas.Incert import validar, gen_vector_coefs
 from tikon.RAE.Organismo import Organismo
 
 import time
@@ -55,9 +54,6 @@ class Red(Simulable):
         símismo.etapas = []  # Una lista de las recetas (y más) de las etapas de los organismos en la red
         símismo.núms_etapas = {}
 
-        # Diccionario que contendrá matrices de los coeficientes de la red
-        símismo.coefs_act = {}
-
         # Un diccionario para las distribuciones de transiciones y de reproducción
         símismo.dists = {'Trans': [], 'Repr': []}
 
@@ -65,8 +61,7 @@ class Red(Simulable):
         símismo.ecs = dict([(cat, dict([(sub_cat, [])
                                         for sub_cat in Ec.ecs_orgs[cat].keys()]))
                             for cat in Ec.ecs_orgs.keys()
-                            ]
-                           )
+                            ])
 
         # Para guardar el orden relativo de transiciones y de reproducciones entre etapas
         símismo.orden = {}
@@ -363,15 +358,20 @@ class Red(Simulable):
             for sub_categ in Ec.ecs_orgs[categ]:
 
                 # Crear una lista
-                símismo.ecs[categ][sub_categ] = []
+                símismo.ecs[categ][sub_categ] = {}
 
-                # Para cada etapa de esta red...
-                for d_etp in símismo.etapas:
-                    # Leer el tipo de ecuación activo para esta simulación
-                    tipo_ec = d_etp['dic']['ecs'][categ][sub_categ]
+                # Para cada tipo de ecuación posible para la subcategoría...
+                for tipo_ec in Ec.ecs_orgs[categ][sub_categ]:
 
-                    # Guardar el tipo de ecuación en su lugar en símismo.ecs
-                    símismo.ecs[categ][sub_categ].append(tipo_ec)
+                    # Sacar los índices de las etapas de la Red con este tipo de ecuación.
+                    índs_etps = [n for n, d in enumerate(símismo.etapas) if
+                                 d['dic']['ecs'][categ][sub_categ] == tipo_ec]
+
+                    # Si hay etapas con este tipo de ecuación...
+                    if len(índs_etps):
+
+                        # Guardar los índices bajo el nombre del tipo de ecuación.
+                        símismo.ecs[categ][sub_categ][tipo_ec] = np.array(índs_etps)
 
         # Desactivar las ecuaciones de transiciones de juveniles de parasitoides (porque estas se implementan
         # por la última fase fantasma de la víctima correspondiente
@@ -558,7 +558,7 @@ class Red(Simulable):
         tipos_ec = símismo.ecs['Depredación']['Ecuación']
 
         # La lista de los coeficientes de cada etapa para la depredación
-        coefs = numerizar(símismo.coefs_act['Depredación']['Ecuación'])
+        coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
 
         # Densidades de poblaciones
         dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
@@ -751,8 +751,8 @@ class Red(Simulable):
         tipos_ec = símismo.ecs['Crecimiento']['Ecuación']
         modifs = símismo.ecs['Crecimiento']['Modif']
 
-        coefs_ec = numerizar(símismo.coefs_act['Crecimiento']['Ecuación'])
-        coefs_mod = numerizar(símismo.coefs_act['Crecimiento']['Modif'])
+        coefs_ec = símismo.coefs_act_númzds['Crecimiento']['Ecuación']
+        coefs_mod = símismo.coefs_act_númzds['Crecimiento']['Modif']
 
         for n in range(len(símismo.etapas)):
             cf = coefs_mod[n]  # type: dict
@@ -863,8 +863,8 @@ class Red(Simulable):
         ec_edad = símismo.ecs['Reproducción']['Edad']
         probs = símismo.ecs['Reproducción']['Prob']
 
-        coefs_ed = numerizar(símismo.coefs_act['Reproducción']['Edad'])
-        coefs_pr = numerizar(símismo.coefs_act['Reproducción']['Prob'])
+        coefs_ed = símismo.coefs_act_númzds['Reproducción']['Edad']
+        coefs_pr = símismo.coefs_act_númzds['Reproducción']['Prob']
 
         for n, ec_ed in enumerate(ec_edad):
 
@@ -958,14 +958,10 @@ class Red(Simulable):
                     raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
                                      'en el cálculo de reproducciones.')
 
-                try:
-                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=cohortes, edades=edades, cambio=edad_extra,
-                                  matr_egr=repr_etp_recip,
-                                  quitar=False)
-                    np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
-
-                except ValueError:
-                    raise ValueError('Error en el tipo de distribución de probabilidad para reproducciones.')
+                trans_cohorte(dists=símismo.dists['Trans'][n], pobs=cohortes, edades=edades, cambio=edad_extra,
+                              matr_egr=repr_etp_recip,
+                              quitar=False)
+                np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
 
         # Redondear las reproducciones calculadas
         np.round(reprs, out=reprs)
@@ -997,7 +993,7 @@ class Red(Simulable):
 
         muertes = símismo.predics['Muertes']
         tipos_ec = símismo.ecs['Muertes']['Ecuación']
-        coefs = numerizar(símismo.coefs_act['Muertes']['Ecuación'])
+        coefs = símismo.coefs_act_númzds['Muertes']['Ecuación']
 
         for n, ec in enumerate(tipos_ec):
 
@@ -1073,9 +1069,9 @@ class Red(Simulable):
         ec_probs = símismo.ecs['Transiciones']['Prob']
         ec_mult = símismo.ecs['Transiciones']['Mult']
 
-        coefs_ed = numerizar(símismo.coefs_act['Transiciones']['Edad'])
-        coefs_pr = numerizar(símismo.coefs_act['Transiciones']['Prob'])
-        coefs_mt = numerizar(símismo.coefs_act['Transiciones']['Mult'])
+        coefs_ed = símismo.coefs_act_númzds['Transiciones']['Edad']
+        coefs_pr = símismo.coefs_act_númzds['Transiciones']['Prob']
+        coefs_mt = símismo.coefs_act_númzds['Transiciones']['Mult']
 
         cohortes = símismo.predics['Cohortes']
 
@@ -1168,11 +1164,9 @@ class Red(Simulable):
                     raise ValueError('Se debe usar una ecuación de edad para poder usar distribuciones de cohortes'
                                      'en el cálculo de transiciones de inviduos.')
 
-                try:
-                    trans_cohorte(dists=símismo.dists['Trans'][n], pobs=pobs_coh, edades=edades, cambio=edad_extra,
-                                  matr_egr=trans_etp)
-                except ValueError:
-                    raise ValueError('Error en el tipo de distribución de probabilidad para muertes naturales.')
+                trans_cohorte(dists=símismo.dists['Trans'][n], pobs=pobs_coh, edades=edades, cambio=edad_extra,
+                              matr_egr=trans_etp)
+
 
         # Redondear las transiciones calculadas
         np.floor(trans, out=trans)
@@ -1213,7 +1207,7 @@ class Red(Simulable):
 
         tipos_ec = símismo.ecs['Movimiento']
 
-        coefs = símismo.coefs_act['Movimiento']
+        coefs = símismo.coefs_act_númzds['Movimiento']
 
         for ec in tipos_ec:
             mobil = NotImplemented
@@ -1244,16 +1238,12 @@ class Red(Simulable):
                 # Si la etapa tiene una población constante...
 
                 # La población inicial se determina por el coeficiente de población constante del organismo
-                pobs_inic = numerizar(símismo.coefs_act['Crecimiento']['Ecuación'][n_etp])['n']
+                pobs_inic = símismo.coefs_act_númzds['Crecimiento']['Ecuación'][n_etp]['n']
 
                 # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
                 símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
 
     def incrementar(símismo, paso, i, mov=False, extrn=None):
-
-        # Si es el primer paso, iniciar las poblaciones de organismos con poblaciones fijas
-        if i == 1:
-            símismo._inic_pobs_const()
 
         # Empezar con las poblaciones del paso anterior
         símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
@@ -1891,118 +1881,90 @@ class Red(Simulable):
             # Para cada subcategoría de ecuación...
             for subcateg in dic_categ:
 
-                # Crear una lista en coefs_act para guardar los diccionarios de los parámetros de cada etapa
-                coefs_act = símismo.coefs_act[categ][subcateg] = []
-                for _ in range(n_etapas):
-                    coefs_act.append({})
+                # Para cada tipo de ecuación activa para esta subcategoría...
+                for tipo_ec, índs_etps in símismo.ecs[categ][subcateg].items():
 
-                # La lista de los tipos de ecuaciones para esta subcategoría para todas las etapas
-                lista_tipos_ecs = símismo.ecs[categ][subcateg]
-
-                # Para cada etapa en la lista de diccionarios de parámetros de interés de las etapas...
-                for n_etp, tipo_ec in enumerate(lista_tipos_ecs):
+                    # Crear una diccionario en coefs_act para de los parámetros de cada etapa
+                    coefs_act = símismo.coefs_act[categ][subcateg] = {}
 
                     # Para cada parámetro en el diccionario de las ecuaciones activas de esta etapa
                     # (Ignoramos los parámetros para ecuaciones que no se usarán en esta simulación)...
                     for parám, d_parám in Ec.ecs_orgs[categ][subcateg][tipo_ec].items():
 
-                        # El diccionario del parámetro
-                        d_parám_etp = símismo.etapas[n_etp]['coefs'][categ][subcateg][tipo_ec][parám]
-
-                        # Si no hay interacciones entre este parámetro y otras etapas...
+                        # El tamaño de la matriz de parámetros
                         if d_parám['inter'] is None:
-                            # Generar la matríz de valores para este parámetro de una vez
-
-                            coefs_act[n_etp][parám] = gen_vector_coefs(dic_parám=d_parám_etp, calibs=calibs,
-                                                                       n_rep_parám=n_rep_parám,
-                                                                       comunes=comunes,
-                                                                       usar_especificados=usar_especificadas)
-
-                        # Si, al contrario, hay interacciones...
+                            # Si no hay interacciones, # Eje 0: repetición paramétrica, eje 1: etapa
+                            tamaño_matr = (n_rep_parám, n_etapas)
                         else:
-                            # Generar una matriz para guardar los valores de parámetros. Eje 0 = repetición
-                            # paramétrica, eje 1 = etapa con la cuál hay la interacción.
-                            matr = coefs_act[n_etp][parám] = np.empty(shape=(n_rep_parám, len(símismo.etapas)),
-                                                                      dtype=object)
-                            matr[:] = np.nan
+                            # Pero si hay interacciones...
+                            # Eje 0: repetición paramétrica, eje 1: etapa, eje 2: etapa con la cuál hay la interacción.
+                            tamaño_matr = (n_rep_parám, n_etapas, n_etapas)
 
-                            for tipo_inter in d_parám['inter']:
+                        # La matriz de parámetros
+                        coefs_act[parám] = np.empty(tamaño_matr, dtype=object)
+                        coefs_act[parám][:] = np.nan
 
-                                if tipo_inter == 'presa' or tipo_inter == 'huésped':
+                        # Para cada etapa en la lista de diccionarios de parámetros de interés de las etapas...
+                        for i, n_etp in enumerate(índs_etps):
 
-                                    # Para cada víctima del organismo...
-                                    for org_víc, v in símismo.etapas[n_etp]['conf'][tipo_inter].items():
+                            matr_etp = coefs_act[parám][:, i, ...]
 
-                                        # Buscar la lista de etapas que caen víctima
-                                        if tipo_inter == 'presa':
-                                            l_etps_víc = v
-                                        else:
-                                            l_etps_víc = v['entra']
+                            # El diccionario del parámetro en los coeficientes de la etapa
+                            d_parám_etp = símismo.etapas[n_etp]['coefs'][categ][subcateg][tipo_ec][parám]
 
-                                        # Para cada etapa víctima
-                                        for etp_víc in l_etps_víc:
-                                            n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
+                            # Si no hay interacciones entre este parámetro y otras etapas...
+                            if d_parám['inter'] is None:
+                                # Generar la matríz de valores para este parámetro de una vez
 
-                                            # Incluir etapas fantasmas, pero NO para parasitoides (así que una etapa
-                                            # fantasma puede caer víctima de un deprededor o de una enfermedad que
-                                            # se ataca la etapa no infectada correspondiente, pero NO puede caer
-                                            # víctima de otro (o del mismo) parasitoide que afecta la etapa original.
-                                            l_etps_víc = [n_etp_víc]
-                                            if n_etp_víc in símismo.fantasmas:
-                                                obj_org = símismo.organismos[símismo.etapas[n_etp]['org']]
-                                                if not isinstance(obj_org, Ins.Parasitoide):
-                                                    l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
+                                matr_etp[:] = gen_vector_coefs(dic_parám=d_parám_etp, calibs=calibs,
+                                                               n_rep_parám=n_rep_parám,
+                                                               comunes=comunes,
+                                                               usar_especificados=usar_especificadas)
 
-                                            for n in l_etps_víc:
-                                                matr[:, n] = gen_vector_coefs(
-                                                    dic_parám=d_parám_etp[org_víc][etp_víc],
-                                                    calibs=calibs,
-                                                    n_rep_parám=n_rep_parám,
-                                                    comunes=comunes,
-                                                    usar_especificados=usar_especificadas)
+                            else:
+                                # Si, al contrario, hay interacciones...
 
-                                else:
-                                    # Al momento, solamente es posible tener interacciones con las presas de la etapa.
-                                    # Si un día alguien quiere incluir más tipos de interacciones (como, por ejemplo,
-                                    # interacciones entre competidores), se tendrían que añadir aquí.
-                                    raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
+                                for tipo_inter in d_parám['inter']:
 
-        # Por fin, vamos a crear unas distribuciones de SciPy para las probabilidades de transiciones y de
-        # reproducciones. Si no me equivoco, accelerará de manera importante la ejecución del programa.
-        símismo.dists['Trans'] = [None] * len(símismo.etapas)
-        símismo.dists['Repr'] = [None] * len(símismo.etapas)
+                                    if tipo_inter == 'presa' or tipo_inter == 'huésped':
 
-        for n_etp in range(len(símismo.etapas)):
-            # Para cada etapa de la Red...
+                                        # Para cada víctima del organismo...
+                                        for org_víc, v in símismo.etapas[n_etp]['conf'][tipo_inter].items():
 
-            for categ, corto in zip(['Transiciones', 'Reproducción'], ['Trans', 'Repr']):
-                # Para transiciones y para reproducciones...
+                                            # Buscar la lista de etapas que caen víctima
+                                            if tipo_inter == 'presa':
+                                                l_etps_víc = v
+                                            else:
+                                                l_etps_víc = v['entra']
 
-                # El tipo de distribución
-                tipo_dist = símismo.ecs[categ]['Prob'][n_etp]
+                                            # Para cada etapa víctima
+                                            for etp_víc in l_etps_víc:
+                                                n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
 
-                if tipo_dist not in ['Nada', 'Constante']:
-                    # Si el tipo de distribución merece una distribución de SciPy...
+                                                # Incluir etapas fantasmas, pero NO para parasitoides (así que una etapa
+                                                # fantasma puede caer víctima de un deprededor o de una enfermedad que
+                                                # se ataca la etapa no infectada correspondiente, pero NO puede caer
+                                                # víctima de otro (o del mismo) parasitoide que afecta la etapa
+                                                # original.
+                                                l_etps_víc = [n_etp_víc]
+                                                if n_etp_víc in símismo.fantasmas:
+                                                    obj_org = símismo.organismos[símismo.etapas[n_etp]['org']]
+                                                    if not isinstance(obj_org, Ins.Parasitoide):
+                                                        l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
-                    # Los parámetros de la distribución
-                    paráms_dist = símismo.coefs_act[categ]['Prob'][n_etp]
+                                                for n in l_etps_víc:
+                                                    matr_etp[:, :, n] = gen_vector_coefs(
+                                                        dic_parám=d_parám_etp[org_víc][etp_víc],
+                                                        calibs=calibs,
+                                                        n_rep_parám=n_rep_parám,
+                                                        comunes=comunes,
+                                                        usar_especificados=usar_especificadas)
 
-                    # Convertir los parámetros a formato SciPy
-                    if tipo_dist == 'Normal':
-                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
-                    elif tipo_dist == 'Triang':
-                        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
-                    elif tipo_dist == 'Cauchy':
-                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
-                    elif tipo_dist == 'Gamma':
-                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
-                    elif tipo_dist == 'T':
-                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
-                    else:
-                        raise ValueError('La distribución "{}" no tiene definición.'.format(tipo_dist))
-
-                    # Guardar la distribución multidimensional en el diccionario de distribuciones.
-                    símismo.dists[corto] = Ds.dists[tipo_dist]['scipy'](**paráms)
+                                    else:
+                                        # Al momento, solamente es posible tener interacciones con las presas de la
+                                        # etapa. Si un día alguien quiere incluir más tipos de interacciones (como, por
+                                        # ejemplo, interacciones entre competidores), se tendrían que añadir aquí.
+                                        raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
 
     def _prep_obs_exper(símismo, exper):
         """
@@ -2113,6 +2075,52 @@ class Red(Simulable):
         for i, coh in símismo.predics['Cohortes'].items():
             ajustar_cohorte(dic_cohorte=coh, cambio=ruido[..., i])
 
+    def _justo_antes_de_simular(símismo):
+        """
+        Esta función hace cosas que hay que hacer justo antes de cada simulación (en particular, cosas que tienen
+        que ver con los valores de los parámetros, pero que no hay que hacer a cada paso de la simulación.
+
+        """
+
+        # Primero, vamos a crear unas distribuciones de SciPy para las probabilidades de transiciones y de
+        # reproducciones. Si no me equivoco, accelerará de manera importante la ejecución del programa.
+        símismo.dists['Trans'] = [None] * len(símismo.etapas)
+        símismo.dists['Repr'] = [None] * len(símismo.etapas)
+
+        for n_etp in range(len(símismo.etapas)):
+            # Para cada etapa de la Red...
+
+            for categ, corto in zip(['Transiciones', 'Reproducción'], ['Trans', 'Repr']):
+                # Para transiciones y para reproducciones...
+
+                # El tipo de distribución
+                tipo_dist = símismo.ecs[categ]['Prob'][n_etp]
+
+                if tipo_dist not in ['Nada', 'Constante']:
+                    # Si el tipo de distribución merece una distribución de SciPy...
+
+                    # Los parámetros de la distribución
+                    paráms_dist = símismo.coefs_act_númzds[categ]['Prob'][n_etp]
+
+                    # Convertir los parámetros a formato SciPy
+                    if tipo_dist == 'Normal':
+                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
+                    elif tipo_dist == 'Triang':
+                        paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
+                    elif tipo_dist == 'Cauchy':
+                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
+                    elif tipo_dist == 'Gamma':
+                        paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'], a=paráms_dist['a'])
+                    elif tipo_dist == 'T':
+                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'], df=paráms_dist['k'])
+                    else:
+                        raise ValueError('La distribución "{}" no tiene definición.'.format(tipo_dist))
+
+                    # Guardar la distribución multidimensional en el diccionario de distribuciones.
+                    símismo.dists[corto][n_etp] = Ds.dists[tipo_dist]['scipy'](**paráms)
+
+        # Iniciar las poblaciones de organismos con poblaciones fijas
+        símismo._inic_pobs_const()
 
 # Funciones auxiliares
 
@@ -2455,8 +2463,6 @@ def probs_conj(matr, eje, pesos=1, máx=1):
 
     ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
-    final = np.zeros_like(matr)
-
     np.multiply(
         np.expand_dims(
             np.divide(
@@ -2472,16 +2478,15 @@ def probs_conj(matr, eje, pesos=1, máx=1):
             ),
             axis=eje),
         matr,
-        out=final)
+        out=matr)
 
-    final[np.isnan(final)] = 0
+    matr[np.isnan(matr)] = 0
 
-    suma = np.sum(final, axis=eje)
+    suma = np.sum(matr, axis=eje)
     extra = np.where(suma > máx, suma - máx, [0])
 
-    np.floor(np.multiply(final, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje)), out=final)
-
-    np.copyto(matr, final)
+    np.multiply(matr, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje), out=matr)
+    np.floor(matr, out=matr)
 
 
 def copiar_dic_refs(d, c=None):
