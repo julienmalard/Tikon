@@ -724,7 +724,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
     return paráms_pymc, transform_pymc
 
 
-def numerizar(d, c=None):
+def numerizar(f, c=None):
     """
     Esta función toma un diccionaro o una lista de estructura arbitraria y convierte todos
       los objetos adentro en forma numérica. Es particularmente útil para sacar los valores
@@ -732,8 +732,8 @@ def numerizar(d, c=None):
       Notar que puede tomar diccionarios, listas, listas de diccionarios, diccionarios de listas,
       etc. No mmodifica el objeto original, sino genera una copia.
 
-    :param d: El diccionario o lista para numerizar.
-    :type d: dict | list
+    :param f: El diccionario o lista para numerizar.
+    :type f: dict | list
 
     :param c: Para recursiones. No especificar al llamar la función.
     :type c: dict | list
@@ -744,13 +744,13 @@ def numerizar(d, c=None):
     """
 
     if c is None:
-        if type(d) is list:
+        if type(f) is list:
             c = []
-        elif type(d) is dict:
+        elif type(f) is dict:
             c = {}
 
-    if type(d) is list:
-        for n, v in enumerate(d):
+    if type(f) is list:
+        for n, v in enumerate(f):
             if type(v) is dict:
                 c.append({})
                 numerizar(v, c=c[n])
@@ -760,14 +760,14 @@ def numerizar(d, c=None):
             else:
                 c[n] = v.astype(float)
 
-    elif type(d) is dict:
-        for ll, v in d.items():
+    elif type(f) is dict:
+        for ll, v in f.items():
 
             if type(v) is dict:
                 c[ll] = {}
                 numerizar(v, c=c[ll])
 
-            if type(v) is list:
+            elif type(v) is list:
                 c[ll] = []
                 numerizar(v, c=c[ll])
 
@@ -778,5 +778,3 @@ def numerizar(d, c=None):
         raise ValueError
 
     return c
-
-
