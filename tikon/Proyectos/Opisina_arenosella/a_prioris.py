@@ -3,7 +3,7 @@
 
 """
 Estos datos de distribuciones a prioris vienen de la literatura (ver el documento Excel adjunto).
-¿Se me olvidó adjuntarlo? Escríbame: julien.malard@mail.mcgill.ca
+¿Se me olvidó juntarlo? Escríbame: julien.malard@mail.mcgill.ca
 
 Referencia excelente:
 http://www.nhm.ac.uk/our-science/data/chalcidoids/database/detail.dsml?VALDATE=1930&ValidAuthBracket=false&FamilyCode
@@ -59,6 +59,7 @@ a_prioris = {
                               certidumbre=.95)  # para hacer
 
                          ],
+
     'Araña': [dict(etapa='adulto',
                    ubic_parám=['Crecimiento', 'Modif', 'Ninguna', 'r'],
                    rango=(100/60/2, 300/60/2),
@@ -232,6 +233,7 @@ a_prioris = {
                            rango=(0.07, 0.3),
                            certidumbre=1),
                       ],
+
     'Parasitoide larvas': {
 
     },

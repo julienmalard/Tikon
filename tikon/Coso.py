@@ -303,6 +303,20 @@ class Coso(object):
 
         raise NotImplementedError
 
+    @classmethod
+    def generar_aprioris(cls, directorio=None):
+        """
+        Esta función, específica a cada subclase de Coso, debe generar valores a prioris a base de los objetos del
+        mismo tipo que ya existen.
+
+        :param directorio:
+        :type directorio:
+
+        """
+
+        # Para hacer: completar
+        pass
+
 
 class Simulable(Coso):
     """

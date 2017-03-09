@@ -159,8 +159,8 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 
 
 # Red_coco.validar(Experimento_A)
+Red_coco.validar(Experimento_A, n_rep_parám=40, n_rep_estoc=40)
 Red_coco.calibrar(exper=Experimento_A)
-Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_B)
 
 Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoides) para O. arenosella en coco, '
