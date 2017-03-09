@@ -63,6 +63,9 @@ class Red(Simulable):
         # Para guardar el orden relativo de transiciones y de reproducciones entre etapas
         símismo.orden = {}
 
+        # Para guardar los índices de las etapas con cohortes
+        símismo.info_cohortes = {'índices_repr': [], 'índices_trans': [], 'índices_pobs': []}
+
         # Para guardar etapas que siempre se deben combinar antes de reportar resultados (por ejemplo, etapas fantasmas)
         # Tendrá la forma siguiente:
         # {núm_etp_víctima : {'Parasitoide 1': núm_etp_fantasma,
@@ -424,6 +427,33 @@ class Red(Simulable):
                 if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
                     símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín if d_etp['repr'] != -1 else -1
 
+        # Actualizar la información de los cohortes.
+        í_coh_repr = símismo.info_cohortes['índices_repr']  # Índices de etapas con cohortes de reproducción
+        í_coh_trans = símismo.info_cohortes['índices_trans']  # Índices de etapas con cohortes de transiciones
+        í_coh_repr.clear()
+        í_coh_trans.clear()
+
+        for n_etp, etp in enumerate(símismo.etapas):
+            # Para cara etapa de cada organismo...
+
+            # Verificar si necesita cohortes
+            req_cohs_repr = any([n_etp in l_etps for tipo_prob, l_etps
+                                 in símismo.ecs['Reproducción']['Prob'].items()
+                                 if tipo_prob != 'Constante'])
+
+            req_cohs_trans = any([n_etp in l_etps for tipo_prob, l_etps
+                                  in símismo.ecs['Transiciones']['Prob'].items()
+                                  if tipo_prob != 'Constante'])
+
+            if req_cohs_repr:
+                í_coh_repr.append(n_etp)
+            if req_cohs_trans:
+                í_coh_trans.append(n_etp)
+
+        # Los índices de todas etapas con cohortes (de cualquier tipo)
+        í_cohs_pobs = símismo.info_cohortes['índices_pobs'] = list({*í_coh_repr, *í_coh_trans})
+        í_cohs_pobs.sort()
+
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
 
@@ -575,7 +605,7 @@ class Red(Simulable):
         coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
 
         # Densidades de poblaciones
-        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
+        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))[..., np.newaxis, :]
 
         for tp_ec, í_etps in tipos_ec.items():  # Para cada tipo de ecuación...
 
@@ -638,7 +668,7 @@ class Red(Simulable):
 
             elif tp_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa (depredador)
+                dens_depred = dens[:, :, :, 0, í_etps]  # La población de esta etapa (depredador)
                 ratio = dens / dens_depred[..., np.newaxis]
 
                 np.multiply(cf['a'] * np.subtract(1, np.exp(-1 / cf['a'] * np.where(ratio == np.inf, [0], ratio))),
@@ -1188,7 +1218,6 @@ class Red(Simulable):
 
             trans[..., í_etps] = trans_etp
 
-
         # Redondear las transiciones calculadas
         np.floor(trans, out=trans)
 
@@ -1210,6 +1239,8 @@ class Red(Simulable):
                 # Si la próxima fase también tiene cohortes, añadirlo aquí
                 if n_recip in símismo.predics['Cohortes']:
                     añadir_a_cohorte(cohortes[n_recip], trans[..., n_don])
+
+        return
 
     def _calc_mov(símismo, pobs, paso, extrn):
         """
@@ -1248,6 +1279,8 @@ class Red(Simulable):
         pobs += mov
 
     def _limpiar_cohortes(símismo):
+
+        # para hacer: ¿quitar?
         for etp in símismo.predics['Cohortes'].values():
             vacíos = (etp['Pobs'] == 0)
             for ed in etp['Edades'].values():
@@ -1279,28 +1312,28 @@ class Red(Simulable):
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso, extrn=extrn)
         t_1 = time.time()
-        print('Depred calculada en: ', t_1 - t_0)
+        print('\tDepred calculada en: ', t_1 - t_0)
 
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, paso=paso)
         t_2 = time.time()
-        print('Crec calculado en: ', t_2 - t_1)
+        print('\tCrec calculado en: ', t_2 - t_1)
 
         # Muertes por el ambiente
         símismo._calc_muertes(pobs=pobs, extrn=extrn, paso=paso)
 
         t_3 = time.time()
-        print('Muertes calculadas en: ', t_3 - t_2)
+        print('\tMuertes calculadas en: ', t_3 - t_2)
 
         # Una etapa que cambia a otra, o que se muere por su edad.
         símismo._calc_trans(pobs=pobs, extrn=extrn, paso=paso)
         t_4 = time.time()
-        print('Trans calculadas en: ', t_4 - t_3)
+        print('\tTrans calculadas en: ', t_4 - t_3)
 
         # Una etapa que se reproduce para producir más de otra etapa
         símismo._calc_reprod(pobs=pobs, extrn=extrn, paso=paso)
         t_5 = time.time()
-        print('Reprod calculada en: ', t_5 - t_4)
+        print('\tReprod calculada en: ', t_5 - t_4)
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
@@ -1309,12 +1342,12 @@ class Red(Simulable):
         # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
         símismo._agregar_ruido(pobs=pobs, ruido=0.01)
         t_6 = time.time()
-        print('Ruido calculado en: ', t_6 - t_5)
+        print('\tRuido calculado en: ', t_6 - t_5)
 
         # Limpiar los cohortes de los organismos de la Red.
         símismo._limpiar_cohortes()
         t_7 = time.time()
-        print('Limpiado en: ', t_7 - t_6)
+        print('\tLimpiado en: ', t_7 - t_6)
 
     def _procesar_validación(símismo):
         """
@@ -1704,31 +1737,12 @@ class Red(Simulable):
             else:
                 n_pasos = tiempo_final[exp]
 
-            # Los índices de las etapas con cohortes para transiciones y para reproducciones
-            i_coh_trans = []
-            i_coh_repr = []
-
-            for n_etp, etp in enumerate(símismo.etapas):
-                # Para cara etapa de cada organismo...
-
-                # Verificar si necesita cohortes
-                req_cohs_repr = any([n_etp in l_etps for tipo_prob, l_etps
-                                     in símismo.ecs['Reproducción']['Prob'].items()
-                                     if tipo_prob != 'Constante'])
-
-                req_cohs_trans = any([n_etp in l_etps for tipo_prob, l_etps
-                                      in símismo.ecs['Transiciones']['Prob'].items()
-                                     if tipo_prob != 'Constante'])
-
-                if req_cohs_repr:
-                    i_coh_repr.append(n_etp)
-                if req_cohs_trans:
-                    i_coh_trans.append(n_etp)
-
             # Generamos el diccionario (vacío) de datos iniciales
+            n_coh_trans = len(símismo.info_cohortes['índices_trans'])
+            n_coh_repr = len(símismo.info_cohortes['índices_repr'])
             datos_inic = símismo._gen_dic_matr_predic(n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
                                                       n_etps=n_etapas, n_pasos=n_pasos,
-                                                      i_coh_trans=i_coh_trans, i_coh_repr=i_coh_repr)
+                                                      n_coh_trans=n_coh_trans, n_coh_repr=n_coh_repr)
 
             # Un vínculo as los cohortes
             cohortes = datos_inic['Cohortes']
@@ -2026,7 +2040,8 @@ class Red(Simulable):
         return np.concatenate(lista_obs)
 
     @staticmethod
-    def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, i_coh_trans, i_coh_repr):
+    def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, n_coh_trans, n_coh_repr,
+                             n_grupos_coh=10):
         """
         Esta función genera un diccionario con matrices del tamaño apropiado para guardar las predicciones del modelo.
           Por usar una función auxiliar, se facilita la generación de matrices para simulaciones de muchos experimentos.
@@ -2040,10 +2055,12 @@ class Red(Simulable):
         :type n_etps: int
         :param n_pasos: El número de pasos para la simulación
         :type n_pasos: int
-        :param i_coh_trans: Una lista de los índices de las etapas con cohortes para sus transiciones.
-        :type i_coh_trans: list[int]
-        :param i_coh_repr: Una lista de los índices de las etapas con cohortes para la reproducción.
-        :type i_coh_repr: list[int]
+        :param n_coh_trans: El número de etapas con cohortes para sus transiciones.
+        :type n_coh_trans: int
+        :param n_coh_repr: El número de etapas con cohortes para la reproducción.
+        :type n_coh_repr: int
+        :param n_grupos_coh: El número de categorías de edad distintas en cada cohorte.
+        :type n_grupos_coh: int
         :return: Un diccionario del formato de símismo.predics según las especificaciones en los argumentos de la
         función.
         :rtype: dict
@@ -2065,26 +2082,29 @@ class Red(Simulable):
 
         # Agregar cohortes
         cohortes = dic['Cohortes']
+        n_cohs = n_coh_repr + n_coh_trans  # El número de etapas que tienen cohortes para algo
 
-        for n in i_coh_repr:
-            dic_cohorte = cohortes[n] = {}
-            dic_cohorte['Edades'] = {}
-            dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
-            dic_cohorte['Edades']['Repr'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
+        if n_cohs > 0:
+            # La matriz de poblaciones para todas las etapas con cohortes
+            cohortes['Pobs'] = np.zeros(shape=(n_grupos_coh, n_cohs, n_parc, n_rep_estoc, n_rep_parám))
+            cohortes['Edades'] = {}
 
-        for n in i_coh_trans:
-            try:
-                dic_cohorte = cohortes[n]
-            except KeyError:
-                dic_cohorte = cohortes[n] = {}
-                dic_cohorte['Edades'] = {}
-                dic_cohorte['Pobs'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
+            if n_coh_repr > 0:
+                # Cohortes para reproducciones
+                cohortes['Edades']['Repr'] = np.zeros(shape=(n_grupos_coh, n_coh_repr,
+                                                             n_parc, n_rep_estoc, n_rep_parám))
 
-            dic_cohorte['Edades']['Trans'] = np.zeros(shape=(10, n_parc, n_rep_estoc, n_rep_parám))
+            if n_coh_trans > 0:
+                # Cohortes para transiciones
+                cohortes['Edades']['Trans'] = np.zeros(shape=(n_grupos_coh, n_coh_trans,
+                                                              n_parc, n_rep_estoc, n_rep_parám))
 
         return dic
 
     def especificar_apriori(símismo, **kwargs):
+        """
+        Una Red no tiene parámetros para especificar.
+        """
         raise NotImplementedError('No hay parámetros para especificar en una Red.')
 
     def _agregar_ruido(símismo, pobs, ruido):
@@ -2158,6 +2178,191 @@ class Red(Simulable):
 
         # Iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
+
+    def _trans_cohorte(símismo, dists, pobs, edades, cambio, matr_egr, quitar=True):
+        """
+        :param dists: Una distribución con parámetros en forma de matrices.
+        :type dists: estad._distn_infrastructure.rv_frozen
+
+        :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
+           | el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
+           | Eje 0: Cohorte
+           | Eje 1: Parcela
+           | Eje 2: Repetición estocástica
+           | Eje 3: Repetición paramétrica
+        :type pobs: np.ndarray
+
+        :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
+        ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
+        (por ejemplo, exposición cumulativo a días grados). Los ejes son iguales que en 'pobs'.
+        :type edades: np.ndarray
+
+        :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar. Podría ser 1 día, o una
+        cantidad de días grados. Ejes iguales a 'edades'.
+        :type cambio: np.ndarray or float
+
+        :param quitar: Si hay que quitar las etapas que transicionaron (útil para cálculos de reproducción).
+        :type quitar: bool
+
+        :return: El número total de individuos que transicionaron.
+        :rtype: np.ndarray()
+        """
+
+        probs = np.divide(np.subtract(dists.cdf(edades + cambio),
+                                      dists.cdf(edades)),
+                          np.subtract(1, dists.cdf(edades))
+                          )
+
+        probs[np.isnan(probs)] = 1
+
+        n_cambian = np.floor(np.multiply(pobs, probs))
+
+        np.add(edades, cambio, out=edades)
+
+        if quitar:
+            np.subtract(pobs, n_cambian, out=pobs)
+
+        np.sum(n_cambian, axis=0, out=matr_egr)
+
+    def _añadir_a_cohorte(símismo, dic_cohorte, nuevos, edad=None):
+        """
+        Esta función agrega nuevos miembros a un cohorte existente.
+
+        :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
+           {'Pobs': [matriz de poblaciones]
+           'Edades': {'Trans': [matriz de edades],
+           'Repr': [matriz de edades]
+           }
+
+          Todas las matrices tienen el mismo orden de eje:
+             | Eje 0: Cohorte
+             | Eje 1: Parcela
+             | Eje 2: Repetición estocástica
+             | Eje 3: Repetición paramétrica
+
+        :type dic_cohorte: dict
+
+        :param nuevos: La matriz de poblaciones para agregar.
+           | Eje 0: Parcela
+           | Eje 1: Repetición estocástica
+           | Eje 2: Repetición paramétrica
+
+        :type nuevos: np.ndarray
+
+        :param edad: Las edades iniciales de los nuevos miembros al cohorte. El valor automático es, naturalmente, 0.
+           (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
+           diccionario, debe tener la forma general siguiente:
+           | {'Trans': matriz Numpy,
+           | 'Repr': matriz Numpy},
+           | donde cada matriz NumPy tiene los ejes siguientes:
+           | Eje 1: Parcela
+           | Eje 2: Repetición estocástica
+           | Eje 3: Repetición paramétrica
+        :type edad: dict
+        """
+
+        # Si no se especifica la edad, se supone una edad de 0.
+        if edad is None:
+            edad = {'Trans': 0, 'Repr': 0}
+
+        # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
+        try:
+            primer_vacío = np.where(np.sum(dic_cohorte['Pobs'], axis=(1, 2, 3)) == 0)[0][0]  # El primero vacío
+        except IndexError:
+            # Si no había lugar, desdoblar el tañano de las matrices de cohortes
+
+            primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primer vacío (que vamos a crear)
+            dic_cohorte['Pobs'] = np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
+
+            # Extender cada matriz de edades también
+            for ed, matr in dic_cohorte['Edades'].items():
+                dic_cohorte['Edades'][ed] = np.append(matr, np.zeros_like(matr), axis=0)
+
+        # Guardar el número de nuevos integrantes del grupo añadido
+        dic_cohorte['Pobs'][primer_vacío, :, :, :] = nuevos
+
+        # Inicializar las edades de este nuevo grupo
+        for tipo_ed, ed in dic_cohorte['Edades'].items():
+            # Para cada matriz de edad...
+
+            # Poner su índice correspondiente a la edad inicial
+            ed[primer_vacío, :, :, :] = edad[tipo_ed]
+
+    def _quitar_de_cohorte(símismo, dic_cohorte, muertes, recip=None):
+        """
+        Esta funciôn quita individuos de un cohorte.
+
+        :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
+           | {'Pobs': [matriz de poblaciones]
+           | 'Edades': {'Trans': [matriz de edades],
+           | 'Repr': [matriz de edades]
+           | }
+
+          Todas las matrices tienen el mismo orden de eje:
+             | Eje 0: Cohorte
+             | Eje 1: Parcela
+             | Eje 2: Repetición estocástica
+             | Eje 3: Repetición paramétrica
+
+        :type dic_cohorte: dict
+
+        :param muertes: La matriz de muertes aleatorias a quitar del cohorte.
+           | Eje 0: Cohorte
+           | Eje 1: Parcela
+           | Eje 2: Repetición estocástica
+           | Eje 3: Repetición paramétrica
+
+        :type muertes: np.ndarray
+
+        :param recip: Un diccionario, opcional, de un otro cohorte al cual los organismos quitados del primero cohorte
+        se tienen que añadir. Tiene el mismo formato que dic_cohorte.
+        :type recip: dict
+
+        """
+
+        # Para simplificar el código
+        pobs = dic_cohorte['Pobs']
+
+        muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
+
+        # Una suma cumulativa inversa de la distribución de cohortes
+        pobs_cums = np.cumsum(pobs[::-1], axis=0)[::-1]
+
+        for n_día, pobs_coh in enumerate(pobs):
+
+            # Si ya no hay nada que hacer, parar aquí
+            if np.sum(muertes) == 0:
+                return
+
+            if n_día < len(pobs) - 1:
+                # Si no es la última categoría de los cohortes...
+
+                # Quitar los de esta edad que se murieron
+                quitar = np.floor(np.multiply(np.divide(pobs_coh, pobs_cums[n_día]), muertes))
+
+                quitar[np.isnan(quitar)] = 0
+
+                quitar = np.minimum(np.maximum(quitar, muertes - pobs_cums[n_día + 1]), muertes)
+
+            else:
+                # Si es la última categoría de cohortes, hay que quitar todo lo que queda en muertes
+                quitar = muertes
+
+            np.subtract(pobs_coh, quitar, out=pobs_coh)
+
+            # Actualizar las muertes que faltan implementar
+            np.subtract(muertes, quitar, out=muertes)
+
+            # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
+            if recip is not None:
+                edades = {}
+                if 'Trans' in dic_cohorte['Edades']:
+                    edades['Trans'] = dic_cohorte['Edades']['Trans'][n_día]
+                if 'Repr' in dic_cohorte['Edades']:
+                    edades['Repr'] = dic_cohorte['Edades']['Repr'][n_día]
+                añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=edades)
+
+            return
 
 # Funciones auxiliares
 
@@ -2255,197 +2460,6 @@ def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal')
     return días_grd
 
 
-def trans_cohorte(dists, pobs, edades, cambio, matr_egr, quitar=True):
-    """
-    :param dists: Una distribución con parámetros en forma de matrices.
-    :type dists: estad._distn_infrastructure.rv_frozen
-
-    :param pobs: Una matriz multidimensional de la distribución de los cohortes de la etapa. Cada valor representa
-       | el número de individuos en una edad particular (determinada por el valor correspondiente en la matriz edades).
-       | Eje 0: Cohorte
-       | Eje 1: Parcela
-       | Eje 2: Repetición estocástica
-       | Eje 3: Repetición paramétrica
-    :type pobs: np.ndarray
-
-    :param edades: Una matriz multidimensional con las edades de cada cohorte de la etapa. Notar que la edad puede
-    ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo medida por otro método
-    (por ejemplo, exposición cumulativo a días grados). Los ejes son iguales que en 'pobs'.
-    :type edades: np.ndarray
-
-    :param cambio: Un número con el cambio a la edad de las poblaciones que hay que aplicar. Podría ser 1 día, o una
-    cantidad de días grados. Ejes iguales a 'edades'.
-    :type cambio: np.ndarray or float
-
-    :param quitar: Si hay que quitar las etapas que transicionaron (útil para cálculos de reproducción).
-    :type quitar: bool
-
-    :return: El número total de individuos que transicionaron.
-    :rtype: np.ndarray()
-    """
-
-    probs = np.divide(np.subtract(dists.cdf(edades + cambio),
-                                  dists.cdf(edades)),
-                      np.subtract(1, dists.cdf(edades))
-                      )
-
-    probs[np.isnan(probs)] = 1
-
-    n_cambian = np.floor(np.multiply(pobs, probs))
-
-    np.add(edades, cambio, out=edades)
-
-    if quitar:
-        np.subtract(pobs, n_cambian, out=pobs)
-
-    np.sum(n_cambian, axis=0, out=matr_egr)
-
-
-def añadir_a_cohorte(dic_cohorte, nuevos, edad=None):
-    """
-    Esta función agrega nuevos miembros a un cohorte existente.
-
-    :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
-       {'Pobs': [matriz de poblaciones]
-       'Edades': {'Trans': [matriz de edades],
-       'Repr': [matriz de edades]
-       }
-
-      Todas las matrices tienen el mismo orden de eje:
-         | Eje 0: Cohorte
-         | Eje 1: Parcela
-         | Eje 2: Repetición estocástica
-         | Eje 3: Repetición paramétrica
-
-    :type dic_cohorte: dict
-
-    :param nuevos: La matriz de poblaciones para agregar.
-       | Eje 0: Parcela
-       | Eje 1: Repetición estocástica
-       | Eje 2: Repetición paramétrica
-
-    :type nuevos: np.ndarray
-
-    :param edad: Las edades iniciales de los nuevos miembros al cohorte. El valor automático es, naturalmente, 0.
-       (Esto se puede cambiar si estamos transicionando cohortes existentes de un otro cohorte.) Si es un
-       diccionario, debe tener la forma general siguiente:
-       | {'Trans': matriz Numpy,
-       | 'Repr': matriz Numpy},
-       | donde cada matriz NumPy tiene los ejes siguientes:
-       | Eje 1: Parcela
-       | Eje 2: Repetición estocástica
-       | Eje 3: Repetición paramétrica
-    :type edad: dict
-    """
-
-    # Si no se especifica la edad, se supone una edad de 0.
-    if edad is None:
-        edad = {'Trans': 0, 'Repr': 0}
-
-    # Primero, hay que ver si hay suficientemente espacio en la matriz de cohortes.
-    try:
-        primer_vacío = np.where(np.sum(dic_cohorte['Pobs'], axis=(1, 2, 3)) == 0)[0][0]  # El primero vacío
-    except IndexError:
-        # Si no había lugar, desdoblar el tañano de las matrices de cohortes
-
-        primer_vacío = dic_cohorte['Pobs'].shape[0]  # El primer vacío (que vamos a crear)
-        dic_cohorte['Pobs'] = np.append(dic_cohorte['Pobs'], np.zeros_like(dic_cohorte['Pobs']), axis=0)
-
-        # Extender cada matriz de edades también
-        for ed, matr in dic_cohorte['Edades'].items():
-            dic_cohorte['Edades'][ed] = np.append(matr, np.zeros_like(matr), axis=0)
-
-    # Guardar el número de nuevos integrantes del grupo añadido
-    dic_cohorte['Pobs'][primer_vacío, :, :, :] = nuevos
-
-    # Inicializar las edades de este nuevo grupo
-    for tipo_ed, ed in dic_cohorte['Edades'].items():
-        # Para cada matriz de edad...
-
-        # Poner su índice correspondiente a la edad inicial
-        ed[primer_vacío, :, :, :] = edad[tipo_ed]
-
-
-def quitar_de_cohorte(dic_cohorte, muertes, recip=None):
-    """
-    Esta funciôn quita individuos de un cohorte.
-
-    :param dic_cohorte: El diccionario del cohorte. Tiene la forma general siguiente:
-       | {'Pobs': [matriz de poblaciones]
-       | 'Edades': {'Trans': [matriz de edades],
-       | 'Repr': [matriz de edades]
-       | }
-
-      Todas las matrices tienen el mismo orden de eje:
-         | Eje 0: Cohorte
-         | Eje 1: Parcela
-         | Eje 2: Repetición estocástica
-         | Eje 3: Repetición paramétrica
-
-    :type dic_cohorte: dict
-
-    :param muertes: La matriz de muertes aleatorias a quitar del cohorte.
-       | Eje 0: Cohorte
-       | Eje 1: Parcela
-       | Eje 2: Repetición estocástica
-       | Eje 3: Repetición paramétrica
-
-    :type muertes: np.ndarray
-
-    :param recip: Un diccionario, opcional, de un otro cohorte al cual los organismos quitados del primero cohorte
-    se tienen que añadir. Tiene el mismo formato que dic_cohorte.
-    :type recip: dict
-
-    """
-
-    # Para simplificar el código
-    pobs = dic_cohorte['Pobs']
-
-    muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
-
-    # Una suma cumulativa inversa de la distribución de cohortes
-    pobs_cums = np.cumsum(pobs[::-1], axis=0)[::-1]
-
-    for n_día, pobs_coh in enumerate(pobs):
-
-        # Si ya no hay nada que hacer, parar aquí
-        if np.sum(muertes) == 0:
-            return
-
-        if n_día < len(pobs) - 1:
-            # Si no es la última categoría de los cohortes...
-
-            # Quitar los de esta edad que se murieron
-            if pobs_coh.dtype == 'int':
-                # Probabilidad condicional de morirse para este día, dado las muertes en días anteriores:
-                p = muertes / pobs_cums[n_día]
-                quitar = np.minimum(np.random.binomial(pobs_coh, p), muertes)
-
-            else:
-                # Si tenemos números muy grandes, no podemos usar la función binomial de NumPy.
-                quitar = np.floor(np.multiply(np.divide(pobs_coh, pobs_cums[n_día]), muertes))
-
-            quitar = np.minimum(np.maximum(quitar, muertes - pobs_cums[n_día + 1]), muertes)
-
-        else:
-            # Si es la última categoría de cohortes, hay que quitar todo lo que queda en muertes
-            quitar = muertes
-
-        np.subtract(pobs_coh, quitar, out=pobs_coh)
-
-        # Actualizar las muertes que faltan implementar
-        np.subtract(muertes, quitar, out=muertes)
-
-        # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
-        if recip is not None:
-            edades = {}
-            if 'Trans' in dic_cohorte['Edades']:
-                edades['Trans'] = dic_cohorte['Edades']['Trans'][n_día]
-            if 'Repr' in dic_cohorte['Edades']:
-                edades['Repr'] = dic_cohorte['Edades']['Repr'][n_día]
-            añadir_a_cohorte(dic_cohorte=recip, nuevos=quitar, edad=edades)
-
-
 def ajustar_cohorte(dic_cohorte, cambio):
     """
     Esta función ajusta las poblaciones de cohortes. Es muy útil cuando no sabemos si el cambio es positivo o negativo.
@@ -2467,8 +2481,6 @@ def ajustar_cohorte(dic_cohorte, cambio):
 
     # ...y quitar los negativos.
     quitar_de_cohorte(dic_cohorte=dic_cohorte, muertes=negativos)
-
-    return
 
 
 def probs_conj(matr, eje, pesos=1, máx=1):
