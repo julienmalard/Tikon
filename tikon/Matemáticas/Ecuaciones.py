@@ -129,36 +129,38 @@ ecs_orgs = {
                              }
                 },
 
-    'Transiciones': {'Edad': {'Nada': {},
+    'Edad': {'Ecuación': {'Nada': {},
 
-                              'Días': {},  # No se necesitan coeficientes en este caso
+                          'Días': {},  # No se necesitan coeficientes en este caso
 
-                              'Días grados': {'mín': {'límites': (-np.inf, np.inf),
-                                                      'inter': None},
-                                              'máx': {'límites': (-np.inf, np.inf),
-                                                      'inter': None}
-                                              },
-                              'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                   'inter': None},
-                                                     't_letal': {'límites': (-np.inf, np.inf),
+                          'Días grados': {'mín': {'límites': (-np.inf, np.inf),
+                                                  'inter': None},
+                                          'máx': {'límites': (-np.inf, np.inf),
+                                                  'inter': None}
+                                          },
+                          'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                               'inter': None},
+                                                 't_letal': {'límites': (-np.inf, np.inf),
+                                                             'inter': None}
+                                                 },
+                          'Logan Temperatura': {'rho': {'límites': (0, 1),
+                                                        'inter': None},
+                                                'delta': {'límites': (0, 1),
+                                                          'inter': None},
+                                                't_letal': {'límites': (-np.inf, np.inf),
+                                                            'inter': None}
+                                                },
+                          'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
+                                                                         'inter': None},
+                                                           't_letal': {'límites': (-np.inf, np.inf),
+                                                                       'inter': None},
+                                                           'm': {'límites': (0, np.inf),
                                                                  'inter': None}
-                                                     },
-                              'Logan Temperatura': {'rho': {'límites': (0, 1),
-                                                            'inter': None},
-                                                    'delta': {'límites': (0, 1),
-                                                              'inter': None},
-                                                    't_letal': {'límites': (-np.inf, np.inf),
-                                                                'inter': None}
-                                                    },
-                              'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                             'inter': None},
-                                                               't_letal': {'límites': (-np.inf, np.inf),
-                                                                           'inter': None},
-                                                               'm': {'límites': (0, np.inf),
-                                                                     'inter': None}
-                                                               },
-                              },
+                                                           },
+                          },
+             },
 
+    'Transiciones': {
                      'Prob': {'Nada': {},
 
                               'Constante': {'a': {'límites': (0, np.inf),
@@ -211,36 +213,7 @@ ecs_orgs = {
                               }
                      },
 
-    'Reproducción': {'Edad': {'Nada': {},
-
-                              'Días': {},  # No se necesitan coeficientes en este caso
-
-                              'Días grados': {'mín': {'límites': (-np.inf, np.inf),
-                                                      'inter': None},
-                                              'máx': {'límites': (-np.inf, np.inf),
-                                                      'inter': None}
-                                              },
-                              'Brière Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                   'inter': None},
-                                                     't_letal': {'límites': (-np.inf, np.inf),
-                                                                 'inter': None}
-                                                     },
-                              'Logan Temperatura': {'rho': {'límites': (0, 1),
-                                                            'inter': None},
-                                                    'delta': {'límites': (0, 1),
-                                                              'inter': None},
-                                                    't_letal': {'límites': (-np.inf, np.inf),
-                                                                'inter': None}
-                                                    },
-                              'Brière No Linear Temperatura': {'t_dev_mín': {'límites': (-np.inf, np.inf),
-                                                                             'inter': None},
-                                                               't_letal': {'límites': (-np.inf, np.inf),
-                                                                           'inter': None},
-                                                               'm': {'límites': (0, np.inf),
-                                                                     'inter': None}
-                                                               },
-                              },
-
+    'Reproducción': {
                      'Prob': {'Nada': {},
 
                               'Constante': {'n': {'límites': (0, np.inf),
