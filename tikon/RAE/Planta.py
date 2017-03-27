@@ -9,9 +9,9 @@ class Planta(Organismo):
     ext = '.plt'
 
     # La extensión para plantas
-    def __init__(símismo, nombre, raíz=False, palo=False, sabia=False, hoja=True, flor=False, fruta=False,
-                 semilla=False, tipo_ecs=None,
-                 proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto,
+                 raíz=False, palo=False, sabia=False, hoja=True, flor=False, fruta=False, semilla=False,
+                 tipo_ecs=None):
         """
         Para un cultivo, tomamos una visión un poco relajada de las etapas de un Organismo, y las empleamos para
         distinguir entre las distintas partes de la planta. ¿Parece raro? No, escúchame, tenemos una razón bien
@@ -43,23 +43,22 @@ class Planta(Organismo):
 
         """
 
-        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
-        if fuente is None:
-            if raíz:
-                símismo.añadir_etapa(nombre='raíz', posición=0, ecuaciones=tipo_ecs['raíz'])
-            if palo:
-                símismo.añadir_etapa(nombre='palo', posición=0, ecuaciones=tipo_ecs['palo'])
-            if sabia:
-                símismo.añadir_etapa(nombre='sabia', posición=0, ecuaciones=tipo_ecs['sabia'])
-            if hoja:
-                símismo.añadir_etapa(nombre='hoja', posición=0, ecuaciones=tipo_ecs['hoja'])
-            if flor:
-                símismo.añadir_etapa(nombre='flor', posición=0, ecuaciones=tipo_ecs['flor'])
-            if fruta:
-                símismo.añadir_etapa(nombre='fruta', posición=0, ecuaciones=tipo_ecs['fruta'])
-            if semilla:
-                símismo.añadir_etapa(nombre='semilla', posición=0, ecuaciones=tipo_ecs['semilla'])
+        if raíz:
+            símismo.añadir_etapa(nombre='raíz', posición=0, ecuaciones=tipo_ecs['raíz'])
+        if palo:
+            símismo.añadir_etapa(nombre='palo', posición=0, ecuaciones=tipo_ecs['palo'])
+        if sabia:
+            símismo.añadir_etapa(nombre='sabia', posición=0, ecuaciones=tipo_ecs['sabia'])
+        if hoja:
+            símismo.añadir_etapa(nombre='hoja', posición=0, ecuaciones=tipo_ecs['hoja'])
+        if flor:
+            símismo.añadir_etapa(nombre='flor', posición=0, ecuaciones=tipo_ecs['flor'])
+        if fruta:
+            símismo.añadir_etapa(nombre='fruta', posición=0, ecuaciones=tipo_ecs['fruta'])
+        if semilla:
+            símismo.añadir_etapa(nombre='semilla', posición=0, ecuaciones=tipo_ecs['semilla'])
 
     def fijar_densidad(símismo, densidad, parte='hoja'):
         """
@@ -76,8 +75,9 @@ class Planta(Organismo):
         ecs = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Constante'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Edad={'Ecuación': 'Nada'},
+                   Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Prob': 'Nada'},
                    Movimiento={}
                    )
 
@@ -101,8 +101,9 @@ class Planta(Organismo):
         ecs = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Constante'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Edad={'Ecuación': 'Nada'},
+                   Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Prob': 'Nada'},
                    Movimiento={}
                    )
 
@@ -121,8 +122,9 @@ class Planta(Organismo):
         ecs_extrn = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Externo Cultivo'},
                          Depredación={'Ecuación': 'Nada'},
                          Muertes={'Ecuación': 'Nada'},
-                         Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                         Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                         Edad={'Ecuación': 'Nada'},
+                         Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                         Reproducción={'Prob': 'Nada'},
                          Movimiento={}
                          )
 
@@ -136,24 +138,24 @@ class Hojas(Planta):
     Una planta muy sencilla, con crecimiento logístico. Puede ser util para plantas vivaces y pruebas de modelos.
     """
 
-    def __init__(símismo, nombre, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto=None,):
         """
         Una planta Sencilla tiene una única parte de la planta, llamada "planta".
 
         :type nombre: str
         :type proyecto: str
-        :type fuente: str
         """
 
         ecs = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Edad={'Ecuación': 'Nada'},
+                   Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Prob': 'Nada'},
                    Movimiento={}
                    )
 
-        super().__init__(nombre=nombre, tipo_ecs={'hoja': ecs}, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto, tipo_ecs={'hoja': ecs})
 
 
 class HojasRaices(Planta):
@@ -161,25 +163,24 @@ class HojasRaices(Planta):
     Una planta muy sencilla, con crecimiento logístico. Puede ser util para plantas vivaces y pruebas de modelos.
     """
 
-    def __init__(símismo, nombre, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto):
         """
         Una planta Sencilla tiene una única parte de la planta, llamada "planta".
 
         :type nombre: str
         :type proyecto: str
-        :type fuente: str
         """
 
         ecs = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Edad={'Ecuación': 'Nada'},
+                   Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Prob': 'Nada'},
                    Movimiento={}
                    )
 
-        super().__init__(nombre=nombre, tipo_ecs={'hoja': ecs, 'raíz': ecs}, raíz=True,
-                         proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto, tipo_ecs={'hoja': ecs, 'raíz': ecs}, raíz=True)
 
 
 class Completa(Planta):
@@ -188,19 +189,20 @@ class Completa(Planta):
       modelo de cultivo (o la especificación de un valor fijo).
     """
 
-    def __init__(símismo, nombre, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto):
         """
 
         :type nombre: str
         :type proyecto: str
-        :type fuente: str
+
         """
 
         ecs = dict(Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
                    Depredación={'Ecuación': 'Nada'},
                    Muertes={'Ecuación': 'Nada'},
-                   Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                   Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                   Edad={'Ecuación': 'Nada'},
+                   Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                   Reproducción={'Prob': 'Nada'},
                    Movimiento={}
                    )
 
@@ -209,6 +211,6 @@ class Completa(Planta):
         for etp in ['raíz', 'palo', 'sabia', 'hoja', 'flor', 'fruta', 'semilla']:
             dic_ecs[etp] = ecs
 
-        super().__init__(nombre=nombre, raíz=True, palo=True, sabia=True, hoja=True, flor=True, fruta=True,
-                         semilla=True, tipo_ecs=dic_ecs,
-                         proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto,
+                         raíz=True, palo=True, sabia=True, hoja=True, flor=True, fruta=True, semilla=True,
+                         tipo_ecs=dic_ecs)

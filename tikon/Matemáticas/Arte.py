@@ -10,7 +10,7 @@ from tikon.Matemáticas.Incert import texto_a_dist
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
             etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', todas_líneas=False,
-            mostrar=True, archivo=''):
+            mostrar=True, archivo=None):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
@@ -60,8 +60,12 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         etiq_y = título
 
     if mostrar is False:
-        if len(archivo) == 0:
+        if archivo is None:
             raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
+        else:
+            dir_archivo = os.path.split(archivo)[0]
+            if not os.path.isdir(dir_archivo):
+                os.makedirs(dir_archivo)
 
     # El vector de días
     x = np.arange(matr_predic.shape[2])

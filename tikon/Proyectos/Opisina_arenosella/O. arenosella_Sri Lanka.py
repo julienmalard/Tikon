@@ -125,7 +125,8 @@ Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 
 
 Parasitoides_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
 
-Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa, Coco])
+Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa, Coco],
+               proyecto=proyecto)
 
 Red_coco.añadir_exp(Experimento_A,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
@@ -159,7 +160,7 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 
 
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=40, n_rep_estoc=40)
+Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=11, mostrar=False)
 Red_coco.calibrar(exper=Experimento_A)
 Red_coco.validar(Experimento_B)
 

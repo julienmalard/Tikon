@@ -9,20 +9,17 @@ class Enfermedad(Organismo):
 
     # Te recomiendo que lo escribieras según el ejemplo de la clase Insecto
 
-    def __init__(símismo, nombre, fuente=None, proyecto=None):
+    def __init__(símismo, nombre, proyecto=None):
         """
 
         :param nombre:
         :type nombre: str
 
-        :param fuente:
-        :type fuente: str
-
         :param proyecto:
         :type proyecto: str
         """
 
-        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
     def infecta(símismo, etp_símismo, etp_huésped, huésped):
         """
@@ -43,7 +40,7 @@ class Enfermedad(Organismo):
 
 class EnfermedadHoja(Enfermedad):
 
-    def __init__(símismo, nombre, huéspedes, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto, huéspedes):
         """
 
         :param nombre:
@@ -55,26 +52,25 @@ class EnfermedadHoja(Enfermedad):
         :param proyecto:
         :type proyecto: str
 
-        :param fuente:
-        :type fuente: str
-
         """
 
-        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
         ecs_esp = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                        Depredación={'Ecuación': 'Kovai'},
                        Muertes={'Ecuación': 'Nada'},
-                       Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                       Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                       Edad={'Ecuación': 'Nada'},
+                       Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                       Reproducción={'Prob': 'Nada'},
                        Movimiento={}
                        )
 
         ecs_inf = dict(Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
                        Depredación={'Ecuación': 'Kovai'},
                        Muertes={'Ecuación': 'Nada'},
-                       Transiciones={'Edad': 'Nada', 'Prob': 'Nada', 'Mult': 'Nada'},
-                       Reproducción={'Edad': 'Nada', 'Prob': 'Nada'},
+                       Edad={'Ecuación': 'Nada'},
+                       Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
+                       Reproducción={'Prob': 'Nada'},
                        Movimiento={}
                        )
 
@@ -90,6 +86,6 @@ class EnfermedadHoja(Enfermedad):
 
 class DosHuéspedes(EnfermedadHoja):
 
-    def __init__(símismo, nombre, huésped_1, huésped_2, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, huésped_1, huésped_2, proyecto):
 
-        super().__init__(nombre=nombre, huéspedes=[huésped_1, huésped_2], proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto, huéspedes=[huésped_1, huésped_2])
