@@ -28,24 +28,22 @@ class Organismo(Coso):
     ext = '.org'
 
     # La ubicación del diccionario de especificaciones de ecuaciones y parámetros
-    dic_ecs = Ec.ecs_orgs
+    dic_info_ecs = Ec.ecs_orgs
 
-    def __init__(símismo, nombre=None, proyecto=None, fuente=None):
+    def __init__(símismo, nombre=None, proyecto=None):
         """
 
 
         :param nombre: El nombre del organismo
         :type nombre: str
-
+        
+        :param proyecto:
         :type proyecto: str
-
-        :param fuente: Un archivo de organismo guardada (opcional) para cargar.
-        :type fuente: str
 
         """
 
         # Iniciar el Organismo como Coso
-        super().__init__(nombre=nombre, fuente=fuente, proyecto=proyecto)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
         # Una lista ordenada de las etapas del organismo (para facilitar su acceso)
         símismo.etapas = []
@@ -65,7 +63,6 @@ class Organismo(Coso):
 
         Esta función se llama automáticamente después de funciones tales como "secome()" y "quitar_etapa()".
 
-        :return: Nada
         """
 
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
@@ -82,13 +79,16 @@ class Organismo(Coso):
         :type posición: int
 
         :param ecuaciones: Un diccionario con los tipos de ecuaciones para esta etapa. (Siempre se puede cambiar
-          más tarde con la función usar_ecuación()). Notar que las nuevas etapas tendrán TODAS las ecuaciones posibles
-          en su diccionario inicial; la especificación de ecuación aquí únicamente determina cual(es) de estas se usarán
-          para la calibración, simulación, etc.
-          Tiene el formato: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...}, Categoría_2: {...}, ...}
+        más tarde con la función usar_ecuación()). Notar que las nuevas etapas tendrán TODAS las ecuaciones posibles
+        en su diccionario inicial; la especificación de ecuación aquí únicamente determina cual(es) de estas se usarán
+        para la calibración, simulación, etc.
+        Tiene el formato: {Categoría_1: {subcategoría_1: tipo_de_ecuacion, ...}, Categoría_2: {...}, ...}
         :type ecuaciones: dict
 
         """
+
+        # Verificar que las ecuaciones sean consistentes
+        símismo.verificar_ecs(ecuaciones, etp=nombre)
 
         # Aumentar la posición de las etapas que siguen la que añadiste, tanto como las referencias a las otras etapas
         # a las cuales estas transicionan o a las cuales se reproducen.
@@ -127,9 +127,9 @@ class Organismo(Coso):
         símismo.actualizar()
 
     def quitar_etapa(símismo, nombre):
-        # Quitar el diccionario de la etapa
         """
         Esta función quita una etapa del organismo.
+        
         :param nombre: El nombre de la etapa a quitar (p. ej., "huevo" o "adulto")
         :type nombre: str
         """
@@ -162,16 +162,20 @@ class Organismo(Coso):
     def aplicar_ecuación(símismo, etapa, tipo_ec):
         """
         Esta función aplica una configuración de ecuaciones a una etapa específica del organismo. No borar otras
-          ecuaciones, sino simplemente cambia la ecuación activa usada para calibraciones, simulaciones, etc.
+        ecuaciones, sino simplemente cambia la ecuación activa usada para calibraciones, simulaciones, etc.
 
         :param etapa: El nombre de la etapa a cual esta ecuación se aplicará
         :type etapa: str
 
         :param tipo_ec: Un diccionario del tipo de ecuación que se aplicará. Debe tener el formato
-          {categoría: {sub_categoría: opción_ecuación, sub_categoría: opción_ecuación, ...}, categoría: ...}
+        {categoría: {sub_categoría: opción_ecuación, sub_categoría: opción_ecuación, ...}, categoría: ...}
         :type tipo_ec: dict
         """
 
+        # Verificar que las ecuaciones propuestas sean aceptables.
+        símismo.verificar_ecs(ecs=tipo_ec, etp=etapa)
+
+        # Aplicar la ecuación.
         for categ, dic_categ in tipo_ec.items():
             for sub_categ, opción_ec in dic_categ.items():
                 símismo.receta['estr'][etapa]['ecs'][categ][sub_categ] = opción_ec
@@ -377,7 +381,7 @@ class Organismo(Coso):
         """
 
         # El diccionario de información de ecuaciones
-        dic_ecs = símismo.dic_ecs
+        dic_ecs = símismo.dic_info_ecs
 
         # Asegurarse que la etapa esté en formato de lista
         if type(etapa) is list:
@@ -539,3 +543,39 @@ class Organismo(Coso):
                         lista_líms += líms
 
         return lista_líms
+
+    def verificar_ecs(símismo, ecs, etp):
+        """
+        Esta función verifica que las ecuaciones de una nueva etapa propuesta sean consistentes con las definiciones
+        de ecuaciones para Organismos.
+
+        :param ecs: El diccionario de ecuaciones propuestas.
+        :type ecs: dict
+
+        :param etp: El nombre de la etapa.
+        :type etp: str
+
+        """
+
+        # Para cada categoría de ecuaciones...
+        for categ, d_categ in símismo.dic_info_ecs.items():
+
+            # Si las ecuaciones propuestas no tienen la categoría, hay un error.
+            if categ not in ecs:
+                raise ValueError('Falta implementar ecuaciones de {} en etapa {} de organismo {}.'
+                                 .format(categ, etp, símismo.nombre))
+
+            # Para cada subcategoría de ecuaciones...
+            for sub_categ, d_sub_categ in d_categ.items():
+
+                # Si no existe la subcategoría en las ecuaciones propuestas...
+                if sub_categ not in ecs[categ]:
+                    raise ValueError('Falta implementar ecuaciones de {} para {} en etapa {} de organismo {}.'
+                                     .format(sub_categ, categ, etp, símismo.nombre))
+
+                # Verificar que el tipo de ecuación exista
+                tipo_ec = ecs[categ][sub_categ]
+                if tipo_ec not in d_sub_categ:
+                    raise ValueError('El tipo de ecuación "{}" para {} en {} de etapa {} de organismo {} '
+                                     'no está definido en Tiko\'n.'
+                                     .format(tipo_ec, sub_categ, categ, etp, símismo.nombre))

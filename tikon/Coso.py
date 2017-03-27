@@ -2,6 +2,7 @@ import copy as copiar
 import io
 import json
 import os
+import random
 import time
 import warnings as avisar
 from datetime import datetime as ft
@@ -9,7 +10,7 @@ from datetime import datetime as ft
 import numpy as np
 import pymc
 
-from tikon.Controles import directorio_base
+from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Experimentos import Experimento
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes
@@ -30,7 +31,7 @@ class Coso(object):
     # Una referancia al diccionario con la información de los parámetros del objeto.
     dic_info_ecs = NotImplemented
 
-    def __init__(símismo, nombre, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto):
         """
         Creamos un Coso con un numbre y, posiblemente, una fuente de cual cargarlo.
 
@@ -38,13 +39,9 @@ class Coso(object):
         :type nombre: str
 
         :param proyecto: Si este Coso hace parte de un proyecto (se creará, si necesario, el archivo apropiado
-          para guardarlo).
+        para guardarlo).
         :type proyecto: str
 
-        :param fuente: El archivo de cual cargar el Coso. Si se especifica y un proyecto, y una fuente, se cargará
-          el Coso de la fuente pero en el futuro se guardará bajo el proyecto. Esto puede ser útil para usar Cosos
-          de proyectos existentes en nuevos proyectos.
-        :type fuente: str
         """
 
         # En 'coefs', ponemos todos los coeficientes del modelo (se pueden organizar en diccionarios). En 'estr',
@@ -56,7 +53,7 @@ class Coso(object):
                               )
 
         # Acordarse de dónde vamos a guardar este Coso
-        símismo.fuente = fuente
+        símismo.proyecto = proyecto
 
         # También el nombre, para referencia fácil
         símismo.nombre = nombre
@@ -65,13 +62,8 @@ class Coso(object):
         #  mirar para una simulación o calibración.
         símismo.objetos = []
 
-        # Si se especificó un archivo para cargar, cargarlo.
-        if fuente is not None:
-            símismo.cargar(fuente)
-
-        # Si se especifició un proyecto, guardarlo como la fuente.
-        if proyecto:
-            símismo.fuente = os.path.join(proyecto, símismo.nombre + símismo.ext)
+    def actualizar(símismo):
+        raise NotImplementedError
 
     def especificar_apriori(símismo, **kwargs):
         """
@@ -113,12 +105,12 @@ class Coso(object):
         # Cambiar el nombre de las distribuciones especificadas en el diccionario de coeficientes.
         renombrar_dist(símismo.receta['coefs'], nombre_ant='especificado', nombre_nuevo=nombre_dist)
 
-    def guardar(símismo, archivo=None, especificados=False, iterativo=True):
+    def guardar(símismo, proyecto=None, especificados=False, iterativo=True):
         """
         Esta función guarda el Coso para uso futuro.
 
-        :param archivo: Donde hay que guardar el Coso
-        :type archivo: str
+        :param proyecto: Donde hay que guardar el Coso
+        :type proyecto: str
 
         :param especificados: Si hay que guardar los valores especificados o no. En general, NO es buena idea.
         :type especificados: bool
@@ -130,26 +122,27 @@ class Coso(object):
         """
 
         # Si no se especificó archivo...
-        if archivo is None:
-            if símismo.fuente is not None:
-                archivo = símismo.fuente  # utilizar el archivo existente
+        if proyecto is None:
+            if símismo.proyecto is not None:
+                proyecto = símismo.proyecto  # utilizar el archivo existente
             else:
                 # Si no hay archivo existente, tenemos un problema.
                 raise FileNotFoundError('Hay que especificar un archivo para guardar el objeto.')
+        else:
+            símismo.proyecto = proyecto
 
         # Si hay que guardar los especificados, hacerlo ahora.
         if especificados:
             símismo.guardar_especificados()
 
-        # Si necesario, agregar la ubicación del directorio Proyectos de Tiko'n
-        if not os.path.splitdrive(archivo)[0]:
-            archivo = os.path.join(directorio_base, 'Proyectos', archivo)
+        # Preparar el directorio
+        símismo._prep_directorio(proyecto)
 
         # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
         receta_prep = prep_json(símismo.receta)
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
-        with io.open(archivo, 'w', encoding='utf8') as d:
+        with io.open(proyecto, 'w', encoding='utf8') as d:
             json.dump(receta_prep, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
         # Si se especificó así, guardar todos los objetos vinculados con este objeto también.
@@ -303,6 +296,29 @@ class Coso(object):
 
         raise NotImplementedError
 
+    def _prep_directorio(símismo, directorio):
+        """
+        Esta función prepara una dirección de directorio.
+
+        :param directorio: 
+        :type directorio: str
+
+        :return: 
+        :rtype: str
+
+        """
+
+        if directorio[0] == '.':
+            directorio = os.path.join(símismo.proyecto, directorio[1:])
+
+        if not os.path.splitdrive(directorio):
+            directorio = os.path.join(dir_proyectos, directorio)
+
+        if not os.path.exists(directorio):
+            os.makedirs(directorio)
+
+        return directorio
+
     @classmethod
     def generar_aprioris(cls, directorio=None):
         """
@@ -317,6 +333,9 @@ class Coso(object):
         # Para hacer: completar
         pass
 
+    def __str__(símismo):
+        return símismo.nombre
+
 
 class Simulable(Coso):
     """
@@ -324,19 +343,17 @@ class Simulable(Coso):
       Parcela, pero NO un Insecto.
     """
 
-    def __init__(símismo, nombre, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto):
         """
         Un simulable se inicia como Coso.
 
         :param nombre: El nombre del simulable
         :type nombre: str
 
-        :param fuente: Un archivo de cual cargar el Simulable
-        :type fuente: str
         """
 
         # Primero, llamamos la función de inicio de la clase pariente 'Coso'
-        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
         # Añadir Calibraciones a la receta del Simulable. Este únicamente guarda la información sobre cada calibración.
         #   (Los resultados de las calibraciones se guardan en "coefs".
@@ -373,7 +390,8 @@ class Simulable(Coso):
         raise NotImplementedError
 
     def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
-                calibs='Todos', usar_especificadas=False, dibujar=True, opciones_dib=None):
+                calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
+                mostrar=True, opciones_dib=None):
         """
         Esta función corre una simulación del Simulable.
 
@@ -404,11 +422,19 @@ class Simulable(Coso):
         :param opciones_dib: Un diccionario de opciones de dibujo a pasar a la función de generación de gráficos
         :type opciones_dib: dict
 
+        :param directorio_dib: El directorio en el cuál guardar los dibujos de los resultados, si aplica.
+        :type directorio_dib: str
+
         """
 
         # Cambiar no opciones de dibujo a un diccionario vacío
         if opciones_dib is None:
             opciones_dib = {}
+
+        if directorio_dib is None:
+            directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, 'Gráficos simulación')
+
+        directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
 
         # Actualizar el objeto, si necesario. Si ya se ha actualizado el objeto una vez, no se actualizará
         # automáticamente aquí (y no tendrá en cuenta cambios al objeto desde la última calibración).
@@ -436,11 +462,11 @@ class Simulable(Coso):
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
                                                    tiempo_final=tiempo_final)
-        símismo._simul_exps(**dic_argums, paso=paso, vectorizar_preds=False)
+        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, vectorizar_preds=False)
 
         # Si hay que dibujar, dibujar
         if dibujar:
-            símismo.dibujar(exper=exper, **opciones_dib)
+            símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1,
                  n_iter=10000, quema=100, extraer=10, dibujar=False):
@@ -464,7 +490,7 @@ class Simulable(Coso):
         :type aprioris: int | str | list | None
 
         :param exper: Los experimentos vinculados al objeto a usar para la calibración. exper=None lleva al uso de
-          todos los experimentos disponibles.
+        todos los experimentos disponibles.
         :type exper: list | str | Experimento | None
 
         :param paso: El paso para la calibración
@@ -474,18 +500,22 @@ class Simulable(Coso):
         :type n_iter: int
 
         :param quema: El número de iteraciones iniciales que hay que botar. (Para evitar el efecto de condiciones
-          iniciales en la calibración).
+        iniciales en la calibración).
         :type quema: int
 
         :param extraer: Cada cuantas iteraciones guardar (para limitar el efecto de autocorrelación entre iteraciones).
-          extraer = 1 lleva al uso de todas las iteraciones.
+        extraer = 1 lleva al uso de todas las iteraciones.
         :type extraer: int
 
         :param dibujar: Si queremos dibujar los resultados de las calibraciones (cambios en distribuciones de
-          parámetros) o no.
+        parámetros) o no.
         :type dibujar: bool
 
         """
+
+        # Actualizar, si necesario
+        if not símismo.listo:
+            símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
         # Si se especificó un nombre para la calibración, asegurarse de que no existe en la lista de calibraciones
@@ -495,11 +525,11 @@ class Simulable(Coso):
 
         # Si no se especificó nombre para la calibración, generar un número de identificación aleatorio.
         if nombre is None:
-            nombre = int(np.random.uniform() * 1e10)
+            nombre = int(random.random() * 1e10)
 
             # Evitar el caso muy improbable que el código aleatorio ya exista
             while nombre in símismo.receta['Calibraciones']:
-                nombre = int(np.random.uniform() * 1e10)
+                nombre = int(random.random() * 1e10)
         nombre = str(nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
@@ -534,7 +564,7 @@ class Simulable(Coso):
         # 8. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
         símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
 
-        # Si querríamos dibujos, hacerlos ahora
+        # Si querríamos dibujos de la calibración, hacerlos ahora
         if dibujar:
             símismo.dibujar_calib()
 
@@ -606,17 +636,22 @@ class Simulable(Coso):
         :type experimento: Experimento
 
         :param corresp: Un diccionario con la información necesaria para hacer la conexión entre el experimento
-          y las predicciones del Simulable.
+        y las predicciones del Simulable.
         :type corresp: dict
 
         """
+
+        # Si necesario, actualizar el Simulable
+        if not símismo.listo:
+            símismo.actualizar()
 
         símismo.exps[experimento.nombre] = {'Exp': experimento, 'Corresp': corresp}
 
         símismo._actualizar_vínculos_exps()
 
     def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, usar_especificadas=False,
-                dibujar=True, opciones_dib=None):
+                detalles=True,
+                dibujar=True, mostrar=True, opciones_dib=None):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -650,6 +685,10 @@ class Simulable(Coso):
         :rtype: dict
         """
 
+        # Actualizar, si necesario
+        if not símismo.listo:
+            símismo.actualizar()
+
         # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
         # contrario tomamos el conjunto de todas las calibraciones anteriores.
         if calibs is None:
@@ -660,24 +699,25 @@ class Simulable(Coso):
 
         # Simular los experimentos
         símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
-                        calibs=calibs, usar_especificadas=usar_especificadas, dibujar=dibujar,
+                        calibs=calibs, usar_especificadas=usar_especificadas, detalles=detalles,
+                        dibujar=dibujar, mostrar=mostrar,
                         opciones_dib=opciones_dib)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación()
 
-    def dibujar(símismo, mostrar=True, archivo=None, exper=None, **kwargs):
+    def dibujar(símismo, mostrar=True, directorio=None, exper=None, **kwargs):
         """
         Una función para generar gráficos de los resultados del objeto.
 
         :param mostrar: Si vamos a mostrar el gráfico al usuario de manera interactiva.
         :type mostrar: bool
 
-        :param archivo: Donde vamos a guardar el gráfico. archivo = None indica que no se guardará el archivo.
-        :type archivo: str
+        :param directorio: Donde vamos a guardar el gráfico. archivo = None indica que no se guardará el archivo.
+        :type directorio: str
 
         :param exper: Una lista de los experimentos para dibujar. Con exper=None, tomamos los experimentos de la
-          última calibración o validación.
+        última calibración o validación.
         :type exper: list
 
         """
@@ -708,7 +748,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _calc_simul(símismo, paso, n_pasos, extrn=None):
+    def _calc_simul(símismo, paso, n_pasos, detalles, extrn=None):
         """
         Esta función aumenta el modelo para cada paso en la simulación. Se usa en simulaciones normales, tanto como en
           simulaciones de experimentos.
@@ -731,10 +771,10 @@ class Simulable(Coso):
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(1, n_pasos):
             antes = time.time()
-            símismo.incrementar(paso, i=i, extrn=extrn)
+            símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
             print('Paso (%s) calculado en: ' % i, time.time() - antes)
 
-    def incrementar(símismo, paso, i, extrn):
+    def incrementar(símismo, paso, i, detalles, extrn):
         """
         Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
         
@@ -853,7 +893,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, tiempo_final):
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, tiempo_final, detalles):
         """
         Prepara un diccionaro de los argumentos para simul_exps. El diccionario debe de tener la forma elaborada
           abajo. Se implementa para cada subclase de Simulable.
@@ -868,7 +908,7 @@ class Simulable(Coso):
         :type n_rep_paráms: int
 
         :param tiempo_final: Un diccionario del tiempo final para cada experimento. Un valor de 'None' resulta en
-          tomar el último día de datos disponibles para cada experimento como su tiempo final.
+        tomar el último día de datos disponibles para cada experimento como su tiempo final.
         :type tiempo_final: dict | None
 
         :return: Un diccionario del formato siguiente:
@@ -884,7 +924,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn, vectorizar_preds=True):
+    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn, detalles, vectorizar_preds):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
           correspondiendo a los valores observados, y eso en el mismo orden.
@@ -904,7 +944,7 @@ class Simulable(Coso):
         :type extrn: dict
 
         :param vectorizar_preds: Si es necesario generar un vector de las predicciones (solamente se genera para
-          calibraciones, no para validaciones).
+        calibraciones, no para validaciones).
         :type vectorizar_preds: bool
 
         :return: Matriz unidimensional Numpy de las predicciones del modelo correspondiendo a los valores observados.
@@ -923,7 +963,7 @@ class Simulable(Coso):
 
             # Simular el modelo
             antes = time.time()
-            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], extrn=extrn[exp])
+            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp])
             print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
         if not vectorizar_preds:
@@ -1186,7 +1226,7 @@ class Simulable(Coso):
 
         for ubic, dist in lista_dists:
 
-            directorio = os.path.join(directorio_base, 'Proyectos', os.path.splitext(símismo.fuente)[0],
+            directorio = os.path.join(directorio_base, 'Proyectos', os.path.splitext(símismo.proyecto)[0],
                                       'Gráficos calibración', símismo.ModBayes.id, ubic[0])
             archivo = os.path.join(directorio, '_'.join(ubic[1:-1]) + '.png')
 
@@ -1233,9 +1273,6 @@ class Simulable(Coso):
         """
 
         raise NotImplementedError
-
-    def __str__(símismo):
-        return símismo.nombre
 
 
 def dic_lista_a_np(d):
@@ -1344,7 +1381,6 @@ def borrar_dist(d, nombre):
 
             # Si la distribución lleva el nombre especificado...
             if ll == nombre:
-
                 # ...borrar la distribución
                 d.pop(ll)
 
@@ -1376,7 +1412,6 @@ def renombrar_dist(d, nombre_ant, nombre_nuevo):
 
             # Cambiar el nombre de la llave
             if ll == nombre_ant:
-
                 # Crear una llave con el nuevo nombre
                 d[nombre_nuevo] = d[ll]
 
@@ -1387,8 +1422,8 @@ def renombrar_dist(d, nombre_ant, nombre_nuevo):
 def generar_aprioris(clase):
     """
     Esta función generar a prioris para una clase dada de Coso basado en las calibraciones existentes de todas las
-      otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
-      clase lo puedan acceder.
+    otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
+    clase lo puedan acceder.
 
     :param clase: La clase para cuál hay que establecer a prioris. Debe ser Coso o una subclase suya.
     :type clase: type(Coso)
@@ -1420,9 +1455,6 @@ def apriori_de_existente(lista_objs, clase_objs):
 
     :param clase_objs:
     :type clase_objs: type | Coso
-
-    :return:
-    :rtype:
 
     """
 
