@@ -2163,6 +2163,15 @@ class Red(Simulable):
         # Ahora, iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
 
+    def _sacar_coefs_no_espec(símismo):
+        """
+        
+        :return: 
+        :rtype: 
+        """
+
+        return {}
+
     def _prep_dists(símismo):
         """
         Esta función inicializa los diccionarios de distribuciones de la Red.

@@ -544,6 +544,80 @@ class Organismo(Coso):
 
         return lista_líms
 
+    def _sacar_coefs_no_espec(símismo):
+        """
+        
+        :return: 
+        :rtype: dict 
+        """
+
+        # El diccionario en el cual vamos a guardar la información de los parámetros
+        sin_especif = {}
+
+        # Una función para agregar un parámetro al diccionario
+        def agregar_a_dic(e, c, s_c, t_e, p, o_i=None, e_i=None):
+
+            d = sin_especif
+
+            # Agregar llaves para la etapa, categ, sub_categ, y tipo_ec si necesario.
+            if e not in d:
+                d[e] = {}
+            d = d[e]
+            if c not in d:
+                d[c] = {}
+            d = d[c]
+            if s_c not in d:
+                d[s_c] = {}
+            d = d[s_c]
+            if o_i is not None:
+                if o_i not in d:
+                    d[o_i] = {}
+                if e_i not in d[o_i]:
+                    d[o_i][e_i] = {}
+                d = d[o_i][e_i]
+
+            if t_e not in d:
+                d[t_e] = []
+
+            # Agregar el parámetro
+            d[t_e].append(p)
+
+        # Para cada etapa del organismo...
+        for etp in símismo.etapas:
+            for categ in sorted(Ec.ecs_orgs):
+                for sub_categ in sorted(Ec.ecs_orgs[categ]):
+                    tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
+                    dic_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec]
+                    
+                    dic_info = Ec.ecs_orgs[categ][sub_categ][tipo_ec]
+
+                    for parám in sorted(dic_info):
+                        inters = dic_info[parám]['inter']
+
+                        if inters is None:
+                            if 'especificado' not in dic_coefs[parám]:
+                                agregar_a_dic(etp['nombre'], categ, sub_categ, tipo_ec, parám)
+                        elif type(inters) is list:
+
+                            for tipo_inter in inters:
+                                for org_inter, v in símismo.config[etp['nombre']][tipo_inter].items():
+                                    if tipo_inter == 'presa':
+                                        lista_etps_inter = v
+                                    elif tipo_inter == 'huésped':
+                                        lista_etps_inter = v['entra']
+                                    else:
+                                        raise ValueError
+                                    for etp_inter in lista_etps_inter:
+                                        dic = dic_coefs[parám][org_inter][etp_inter]
+                                        if 'especificado' not in dic:
+                                            agregar_a_dic(etp['nombre'], categ, sub_categ, tipo_ec, parám,
+                                                          o_i=org_inter, e_i=etp_inter)
+
+                        else:
+                            raise ValueError
+
+        return sin_especif
+
     def verificar_ecs(símismo, ecs, etp):
         """
         Esta función verifica que las ecuaciones de una nueva etapa propuesta sean consistentes con las definiciones
