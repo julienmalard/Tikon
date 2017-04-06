@@ -1,6 +1,6 @@
 import os.path
 
-import tikon.RAE as RAE
+from tikon import RAE as RAE
 
 
 def generar_org(archivo):

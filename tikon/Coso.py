@@ -311,7 +311,7 @@ class Coso(object):
         if directorio[0] == '.':
             directorio = os.path.join(símismo.proyecto, directorio[1:])
 
-        if not os.path.splitdrive(directorio):
+        if not os.path.splitdrive(directorio)[0]:
             directorio = os.path.join(dir_proyectos, directorio)
 
         if not os.path.exists(directorio):
@@ -461,7 +461,7 @@ class Simulable(Coso):
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
-                                                   tiempo_final=tiempo_final)
+                                                   tiempo_final=tiempo_final, detalles=detalles)
         símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, vectorizar_preds=False)
 
         # Si hay que dibujar, dibujar
@@ -544,8 +544,11 @@ class Simulable(Coso):
         # para la calibración.
         exper = símismo._prep_lista_exper(exper=exper)
 
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1, tiempo_final=None)
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1, tiempo_final=None,
+                                                   detalles=False)
         dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
+        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...
+        dic_argums['vectorizar_preds'] = True  # ...pero sí tenemos que vectorizar las predicciones.
 
         # 5. Generar el vector numpy de observaciones para los experimentos
         obs = símismo._prep_obs_exper(exper=exper)
@@ -651,7 +654,7 @@ class Simulable(Coso):
 
     def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, usar_especificadas=False,
                 detalles=True,
-                dibujar=True, mostrar=True, opciones_dib=None):
+                dibujar=True, mostrar=False, opciones_dib=None):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -770,9 +773,7 @@ class Simulable(Coso):
 
         # Para cada paso de tiempo, incrementar el modelo
         for i in range(1, n_pasos):
-            antes = time.time()
             símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
-            print('Paso (%s) calculado en: ' % i, time.time() - antes)
 
     def incrementar(símismo, paso, i, detalles, extrn):
         """
@@ -1227,7 +1228,7 @@ class Simulable(Coso):
         for ubic, dist in lista_dists:
 
             directorio = os.path.join(directorio_base, 'Proyectos', os.path.splitext(símismo.proyecto)[0],
-                                      'Gráficos calibración', símismo.ModBayes.id, ubic[0])
+                                      símismo.nombre, 'Gráficos calibración', símismo.ModBayes.id, ubic[0])
             archivo = os.path.join(directorio, '_'.join(ubic[1:-1]) + '.png')
 
             if not os.path.exists(directorio):

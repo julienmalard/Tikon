@@ -1,6 +1,5 @@
 import math as mat
 import os
-import time
 from warnings import warn as avisar
 
 import numpy as np
@@ -31,21 +30,19 @@ class Red(Simulable):
     # Una Red tiene ni ecuaciones, ni parámetros propios.
     dic_info_ecs = None
 
-    def __init__(símismo, nombre, organismos=None, proyecto=None, fuente=None):
+    def __init__(símismo, nombre, proyecto, organismos=None):
 
         """
         :param nombre: El nombre de la red.
         :type nombre: str
 
         :param organismos: Una lista de objetos o nombres de organismos para añadir a la red, o una instancia única
-          de un tal objeto o nombre.
+        de un tal objeto.
         :type organismos: list
-
-        :param fuente: De dónde cargar la Red, si estamos cargando una Red ya definida.
-        :type fuente: str
+        
         """
 
-        super().__init__(nombre=nombre, proyecto=proyecto, fuente=fuente)
+        super().__init__(nombre=nombre, proyecto=proyecto)
 
         # La información necesaria para recrear la Red
         símismo.receta['estr']['Organismos'] = {}
@@ -257,7 +254,8 @@ class Red(Simulable):
                 obj_org_inf = símismo.organismos[etp['org']]
 
                 # Agregar el organismo a la lista de parasitoides
-                d_info_parás = símismo.parasitoides['adultos'][n_etp] = {'n_fants': [], 'n_vícs': []}
+                d_info_parás = símismo.parasitoides['adultos'][n_etp] = {'n_fants': [], 'n_vícs': [],
+                                                                         'n_entra': []}
 
                 n_juv = símismo.núms_etapas[obj_org_inf.nombre]['juvenil']
                 símismo.parasitoides['juvs'][n_juv] = n_etp
@@ -271,6 +269,9 @@ class Red(Simulable):
                     # El índice de la primera y la última etapa del huésped que pueden tener la infección
                     n_prim = min([símismo.núms_etapas[org_hués][x] for x in d_org_hués['entra']])  # type: int
                     n_sale = símismo.núms_etapas[org_hués][d_org_hués['sale']]  # type: int
+
+                    # Guardar los índices de las etapas de la víctima en las cuales el parasitoide puede entrar
+                    d_info_parás['n_entra'] = [símismo.núms_etapas[org_hués][x] for x in d_org_hués['entra']]
 
                     # Los índices relativos (internos al organismo)
                     n_rel_prim = símismo.etapas[n_prim]['dic']['posición']
@@ -363,9 +364,10 @@ class Red(Simulable):
                         # Para hacer: agregar aquí un vínculo en símismo.etapas para enfermedades de etapas
                         # víctimas de parasitoides.
 
-        # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices.
-        índs_parás = [p for n_p, d_p in símismo.parasitoides['adultos'].items() for p in [n_p] * len(d_p['n_vícs'])]
-        índs_víc = [v for d in símismo.parasitoides['adultos'].values() for v in d['n_vícs']]
+        # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
+        # depredación
+        índs_parás = [p for n_p, d_p in símismo.parasitoides['adultos'].items() for p in [n_p] * len(d_p['n_entra'])]
+        índs_víc = [v for d in símismo.parasitoides['adultos'].values() for v in d['n_entra']]
         símismo.parasitoides['índices'] = (índs_parás, índs_víc)
 
         # Crear el diccionario de los tipos de las ecuaciones activas para cada etapa.
@@ -438,7 +440,7 @@ class Red(Simulable):
             # Encontrar el índice de la primera etapa del organismo
             n_etp_mín = min(org.values())
 
-            for etp, n_etp in org.items():
+            for etp, n_etp in org.items():  # type: int
                 # Para cada etapa del organismo...
 
                 # Buscar el diccionario de la etapa
@@ -533,18 +535,16 @@ class Red(Simulable):
 
                         # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
                         if len(símismo.info_exps['parcelas'][exp]) > 1:
-                            dic_título['prc'] = símismo.info_exps['parcelas'][exp][n_p]
-                            archivo_img = os.path.join(dir_img, '{exp}_{prc}_{org}_{etp}'.format(**dic_título))
-                            título = '{exp}, Parcela {prc}: {org}, etapa {etp}'.format(**dic_título)
+                            prc = símismo.info_exps['parcelas'][exp][n_p]
+                            título = '{exp}, Parcela {prc}, {org}, etapa {etp}'.format(**dic_título, prc=prc)
                         else:
-                            archivo_img = os.path.join(dir_img, '{exp}_{org}_{etp}'.format(**dic_título))
-                            título = '{exp}: {org}, etapa {etp}'.format(**dic_título)
+                            título = '{exp}, {org}, etapa {etp}'.format(**dic_título)
 
                             # Generar el gráfico
                         gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
                                 título=título, etiq_y='Población',
                                 todas_líneas=todas_líneas, incert=incert,
-                                mostrar=mostrar, archivo=archivo_img)
+                                mostrar=mostrar, directorio=dir_img)
 
             # Ahora, vamos a dibujar los detalles de la simulación
             if símismo.predics_exps[exp]['Reproducción'].shape == símismo.predics_exps[exp]['Pobs'].shape:
@@ -561,17 +561,24 @@ class Red(Simulable):
 
                         for det in ['Crecimiento', 'Muertes', 'Transiciones', 'Reproducción']:
 
-                            if not any([n_etp in x for x in símismo.ecs[det]['Ecuación']]):
+                            if not any([n_etp in x
+                                        for s_c in símismo.ecs[det].values()
+                                        for x in s_c.values()]):
                                 continue
+
+                            if det == 'Reproducción':
+                                tipo = 'Recipiente'
+                                n_etp_dib = símismo.orden['repr'][n_etp]
+                            elif det == 'Transiciones':
+                                tipo = 'Recipiente'
+                                n_etp_dib = símismo.orden['trans'][n_etp]
+                            else:
+                                tipo = 'Etapa'
+                                n_etp_dib = n_etp
 
                             # La matriz de predicciones
                             # Eje 0: parcela, 1: rep estoc, 2: rep parám, 4: día
-                            matr_predic = símismo.predics_exps[exp][det][..., n_etp, :]
-
-                            if det == 'Transiciones':
-                                tipo = 'Recipiente'
-                            else:
-                                tipo = 'Etapa'
+                            matr_predic = símismo.predics_exps[exp][det][..., n_etp_dib, :]
 
                             # Para cada parcela en las predicciones...
                             for n_p in range(matr_predic.shape[0]):
@@ -584,21 +591,20 @@ class Red(Simulable):
 
                                 # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
                                 if len(símismo.info_exps['parcelas'][exp]) > 1:
-                                    dic_título['prc'] = símismo.info_exps['parcelas'][exp][n_p]
-                                    archivo_img = os.path.join(dir_img, '{exp}_{prc}_{org}_{etp}'.format(**dic_título))
-                                    título = '{exp}, Parcela {prc}: {org}, {tipo} {etp}'.format(**dic_título, tipo=tipo)
+                                    prc = símismo.info_exps['parcelas'][exp][n_p]
+                                    título = '{exp}, Parcela {prc}, {org}, {tipo} {etp}'\
+                                        .format(**dic_título, prc=prc, tipo=tipo)
                                 else:
-                                    archivo_img = os.path.join(dir_img, '{exp}_{org}_{etp}'.format(**dic_título))
-                                    título = '{exp}: {org}, {tipo} {etp}'.format(**dic_título, tipo=tipo)
+                                    título = '{exp}, {org}, {tipo} {etp}'.format(**dic_título, tipo=tipo)
 
                                 # Generar el gráfico
                                 gráfico(matr_predic=matr_predic_prc,
                                         título=título, etiq_y=det,
                                         todas_líneas=todas_líneas, incert=incert,
-                                        mostrar=mostrar, archivo=archivo_img)
+                                        mostrar=mostrar, directorio=dir_img)
 
                         # Ahora para la depredación
-                        if not any([n_etp in x for x in símismo.ecs['Depredación']['Ecuación']]):
+                        if not any([n_etp in x for x in símismo.ecs['Depredación']['Ecuación'].values()]):
                             continue
 
                         # La matriz de predicciones
@@ -614,9 +620,18 @@ class Red(Simulable):
                             # El archivo para guardar la imagen
                             dir_img = os.path.join(directorio, 'Depredación')
 
-                            for org_víc, etp_víc in símismo.etapas[n_etp]['conf']['presa'].items():
+                            presas = [símismo.núms_etapas[o][e]
+                                      for o, d_e in símismo.etapas[n_etp]['conf']['presa'].items()
+                                      for e in d_e]
+                            huéspedes = [símismo.núms_etapas[o][e]
+                                         for o, d_e in símismo.etapas[n_etp]['conf']['huésped'].items()
+                                         for e in d_e['entra']]
+                            víctimas = presas + huéspedes
 
-                                n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
+                            for n_etp_víc in víctimas:  # type: int
+
+                                etp_víc = símismo.etapas[n_etp_víc]['nombre']
+                                org_víc = símismo.etapas[n_etp_víc]['org']
 
                                 dic_título['víc'] = etp_víc
 
@@ -624,22 +639,19 @@ class Red(Simulable):
 
                                 # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
                                 if len(símismo.info_exps['parcelas'][exp]) > 1:
-                                    dic_título['prc'] = símismo.info_exps['parcelas'][exp][n_p]
-
-                                    archivo_img = os.path.join(dir_img, '{exp}_{prc}_{org}_{etp}_{víc}'
-                                                               .format(**dic_título))
-                                    título = '{exp}, Parcela {prc}: {org}, {tipo} {etp}'.format(**dic_título, tipo=tipo)
+                                    prc = símismo.info_exps['parcelas'][exp][n_p]
+                                    título = '{exp}, Parcela {prc}, ' \
+                                             '{org}, {etp} atacando a {org_víc}, etapa {etp_víc}'.\
+                                        format(**dic_título, prc=prc, org_víc=org_víc, etp_víc=etp_víc)
                                 else:
-                                    archivo_img = os.path.join(dir_img, '{exp}_{org}_{etp}_{víc}'
-                                                               .format(**dic_título))
-                                    título = '{exp}: {org}, {etp} atacando a {org_víc}, etapa {etp_víc}'\
-                                        .format(**dic_título, tipo=tipo, org_víc=org_víc, etp_víc=etp_víc)
+                                    título = '{exp}, {org}, {etp} atacando a {org_víc}, etapa {etp_víc}'\
+                                        .format(**dic_título, org_víc=org_víc, etp_víc=etp_víc)
 
                                 # Generar el gráfico
                                 gráfico(matr_predic=matr_predic_prc_víc,
                                         título=título, etiq_y='Depredación',
                                         todas_líneas=todas_líneas, incert=incert,
-                                        mostrar=mostrar, archivo=archivo_img)
+                                        mostrar=mostrar, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
         """
@@ -682,7 +694,7 @@ class Red(Simulable):
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
             Kovai (Asíntota doble):
-                y = -a*(1 - e^(-P/(a*D))) * (P^2 / (P^2 + b)
+                y = a*(1 - e^(-P/(a*D))) * (P^2 / (P^2 + b)
 
                   a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
                     depredadores no compiten entre sí mismos)
@@ -714,7 +726,7 @@ class Red(Simulable):
         coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
 
         # Densidades de poblaciones
-        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))[..., np.newaxis, :]
+        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
 
         for tp_ec, í_etps in tipos_ec.items():  # Para cada tipo de ecuación...
 
@@ -777,15 +789,26 @@ class Red(Simulable):
 
             elif tp_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                dens_depred = dens[:, :, :, 0, í_etps]  # La población de esta etapa (depredador)
+                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa (depredador)
                 ratio = dens / dens_depred[..., np.newaxis]
 
-                np.multiply(cf['a'] * np.subtract(1, np.exp(-1 / cf['a'] * np.where(ratio == np.inf, [0], ratio))),
-                            np.square(dens) / (np.square(dens) + cf['b']),
+                np.multiply(cf['a'],
+                            np.multiply(
+                                np.subtract(1,
+                                            np.exp(
+                                                np.divide(
+                                                    -np.where(ratio == np.inf, [0], ratio),
+                                                    cf['a'])
+                                            )
+                                            ),
+                                np.divide(np.square(dens),
+                                          np.square(dens) + cf['b']
+                                          )
+                            ),
                             out=depred_etp)
 
-                # Ajustar por la presencia de múltiples presas
-                probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=3)
+                # Ajustar por la presencia de múltiples presas (eje 4 = presas)
+                probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=4)
 
             else:
                 # Si el tipo de ecuación no estaba definida arriba, hay un error.
@@ -804,7 +827,7 @@ class Red(Simulable):
         # del número total de presas comidas por cada tipo de depredador por unidad de tiempo.
         np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)
 
-        # Ajustar por la presencia de varios depredadores
+        # Ajustar por la presencia de varios depredadores (eje 3 = depredadores)
         probs_conj(depred, pesos=1, máx=pobs, eje=3)
 
         depred[np.isnan(depred)] = 0
@@ -830,13 +853,13 @@ class Red(Simulable):
 
         # Para cada parasitoide...
         for n_parás, d_parás in símismo.parasitoides['adultos'].items():
-            índ_recip = d_parás['n_fants']
-            índ_vícs = d_parás['n_vícs']
+            índ_entra = d_parás['n_entra']
+            índ_recip = d_parás['n_fants'][:len(índ_entra)]
             símismo._quitar_de_cohortes(muertes=depred_infec[..., n_parás, símismo.índices_cohortes],
-                                        í_recip=índ_recip)
+                                        í_don=índ_entra, í_recip=índ_recip)
 
             # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
-            pobs[..., índ_recip] += depred_infec[..., n_parás, índ_vícs]
+            pobs[..., índ_recip] += depred_infec[..., n_parás, índ_entra]
 
     def _calc_crec(símismo, pobs, crec, extrn, paso):
         """
@@ -1044,7 +1067,7 @@ class Red(Simulable):
 
             # Una referencia a la parte apriopiada de la matriz de reproducciones
             n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
-            repr_etp_don = reprod[..., í_etps]
+            repr_etp_recip = reprod[..., í_etps]
 
             if tp_prob == 'Constante':
                 # Reproducciones en proporción al tamaño de la población.
@@ -1052,11 +1075,11 @@ class Red(Simulable):
                 # Tomamos el paso en cuenta según las regals de probabilidad:
                 #   p(x sucede n veces) = (1 - (1- p(x))^n)
 
-                np.multiply(cf['n'] * pob_etp, (1 - (1 - cf['q']) ** paso), out=repr_etp_don)
+                np.multiply(cf['n'] * pob_etp, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
 
             elif tp_prob == 'Depredación':
                 # Reproducciones en función de la depredación (útil para avispas esfécidas)
-                np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1, out=repr_etp_don)
+                np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1, out=repr_etp_recip)
 
             else:
                 # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
@@ -1064,11 +1087,11 @@ class Red(Simulable):
 
                 símismo._trans_cohortes(cambio_edad=edad_extra[..., í_etps], etps=í_etps,
                                         dists=símismo.dists['Repr'][tp_prob],
-                                        matr_egr=repr_etp_don, quitar=False)
+                                        matr_egr=repr_etp_recip, quitar=False)
 
-                np.multiply(cf['n'], repr_etp_don, out=repr_etp_don)
+                np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
 
-            reprod[..., n_recip] = repr_etp_don
+            reprod[..., n_recip] = repr_etp_recip
 
         # Redondear las reproducciones calculadas
         np.round(reprod, out=reprod)
@@ -1131,7 +1154,7 @@ class Red(Simulable):
                 # M. P. Lepage, G. Bourgeois, J. Brodeur, G. Boivin. 2012. Effect of Soil Temperature and Moisture on
                 #   Survival of Eggs and First-Instar Larvae of Delia radicum. Environmental Entomology 41(1): 159-165.
 
-                sobrevivencia = max(0, 1 - mat.exp(-cf['a'] * (extrn['humedad'] - cf['b'])))
+                sobrevivencia = np.maximum([0], np.subtract(1, mat.exp(-cf['a'] * (extrn['humedad'] - cf['b']))))
                 np.multiply(pob_etp, (1 - sobrevivencia), out=muerte_etp)
 
             elif tp_ec == 'Sigmoidal Temperatura':
@@ -1303,36 +1326,23 @@ class Red(Simulable):
         edades = símismo.predics['Edades']
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
-        t_0 = time.time()
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
-        t_1 = time.time()
-        print('\tDepred calculada en: ', t_1 - t_0)
 
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
-        t_2 = time.time()
-        print('\tCrec calculado en: ', t_2 - t_1)
 
         # Muertes por el ambiente
         símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
-        t_3 = time.time()
-        print('\tMuertes calculadas en: ', t_3 - t_2)
 
         # Calcular cambios de edades
         símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
-        t_3a = time.time()
-        print('\tEdades calculadas en: ', t_3a - t_3)
 
         # Una etapa que cambia a otra, o que se muere por su edad.
         símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
-        t_4 = time.time()
-        print('\tTrans calculadas en: ', t_4 - t_3a)
 
         # Una etapa que se reproduce para producir más de otra etapa
         símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
-        t_5 = time.time()
-        print('\tReprod calculada en: ', t_5 - t_4)
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
@@ -1340,8 +1350,6 @@ class Red(Simulable):
 
         # Ruido aleatorio; Para hacer: formalizar el proceso de agregación de ruido aleatorio
         símismo._agregar_ruido(pobs=pobs, ruido=0.01)
-        t_6 = time.time()
-        print('\tRuido calculado en: ', t_6 - t_5)
 
     def _procesar_validación(símismo):
         """
@@ -2068,7 +2076,7 @@ class Red(Simulable):
             tamaño_pobs = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos)
             tamaño_depr = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_etps)
 
-        tamaño_edades = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos)
+        tamaño_edades = (n_parc, n_rep_estoc, n_rep_parám, n_etps)
 
         # El diccionario en formato símismo.predics
         dic = {'Pobs': np.zeros(shape=tamaño_pobs),
@@ -2311,13 +2319,16 @@ class Red(Simulable):
         # Guardar las poblaciones actualizadas en los índices apropiados
         matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps] += nuevos.flatten()
 
-    def _quitar_de_cohortes(símismo, muertes, í_recip=None):
+    def _quitar_de_cohortes(símismo, muertes, í_don=None, í_recip=None):
         """
         Esta funciôn quita individuos de los cohortes de la Red.
 
         :param muertes: La matriz de muertes aleatorias a quitar del cohorte. Eje 0: Parcela,
         Eje 1: Repetición estocástica, Eje 2: Repetición paramétrica, Eje 3: Etapa.
         :type muertes: np.ndarray
+        
+        :param í_don:
+        :type í_don: np.ndarray
 
         :param í_recip:
         :type í_recip: np.ndarray
@@ -2364,15 +2375,20 @@ class Red(Simulable):
             # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
             if í_recip is not None:
 
+                if í_don is None:
+                    raise ValueError
+
                 # Los índices (en la matriz de cohortes) de las etapas recipientes.
                 í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
+
+                í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
 
                 # Las edades de las etapas que se quitaron
                 eds = edades[n_día, ...]
 
                 # Cambiar el orden de las etapas para los cohortes recipientes
                 nuevos = np.zeros_like(quitar)
-                nuevos[..., í_recip_coh] = quitar[..., í_recip_coh]
+                nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
                 símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
 
     def _ajustar_cohortes(símismo, cambio):
@@ -2507,16 +2523,17 @@ def probs_conj(matr, eje, pesos=1, máx=1):
                 np.nansum(ratio, axis=eje)
             ),
             axis=eje),
-        matr,
-        out=matr)
+        ajustados,
+        out=ajustados)
 
-    matr[np.isnan(matr)] = 0
+    ajustados[np.isnan(ajustados)] = 0
 
-    suma = np.sum(matr, axis=eje)
+    suma = np.sum(ajustados, axis=eje)
     extra = np.where(suma > máx, suma - máx, [0])
 
-    np.multiply(matr, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje), out=matr)
-    np.floor(matr, out=matr)
+    np.multiply(ajustados, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje), out=ajustados)
+
+    np.multiply(ajustados, pesos, out=matr)
 
 
 def copiar_dic_refs(d, c=None):

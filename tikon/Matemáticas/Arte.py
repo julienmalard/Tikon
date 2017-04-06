@@ -10,7 +10,7 @@ from tikon.Matemáticas.Incert import texto_a_dist
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
             etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', todas_líneas=False,
-            mostrar=True, archivo=None):
+            mostrar=True, directorio=None):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
@@ -48,8 +48,8 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     :param mostrar: Si hay que mostrar el gráfico de inmediato, o solo guardarlo.
     :type mostrar: bool
 
-    :param archivo: El archivo donde guardar el gráfico
-    :type archivo: str
+    :param directorio: El archivo donde guardar el gráfico
+    :type directorio: str
 
     """
 
@@ -60,12 +60,10 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         etiq_y = título
 
     if mostrar is False:
-        if archivo is None:
+        if directorio is None:
             raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
-        else:
-            dir_archivo = os.path.split(archivo)[0]
-            if not os.path.isdir(dir_archivo):
-                os.makedirs(dir_archivo)
+        elif not os.path.isdir(directorio):
+                os.makedirs(directorio)
 
     # El vector de días
     x = np.arange(matr_predic.shape[2])
@@ -156,9 +154,10 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     if mostrar is True:
         dib.show()
     else:
-        if '.png' not in archivo:
-            archivo = os.path.join(archivo, título + '.png')
-        dib.savefig(archivo)
+        if '.png' not in directorio:
+            directorio = os.path.join(directorio, título + '.png')
+        dib.savefig(directorio)
+        dib.close()
 
 
 def graficar_dists(dists, n=10000, valores=None, rango=None, título=None, archivo=None):
