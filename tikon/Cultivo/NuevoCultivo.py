@@ -199,19 +199,20 @@ class EnvolturaDSSAT(EnvolturaModCult):
         resul = DSSAT.leer_egr(directorio=símismo.dir)
 
 
+dic_info = {
+    'exe_DSSAT': 'DSCSM046_TKN.EXE'
+}
 
-
-# Para hacer: cambiar los códigos de los ejecutables a los modificados para intercambiar info de plagas
 
 mods_cult = {
     'Maíz': {
         'DSSAT': {
             'IXIM': {
-                'Comanda': 'DSCSM046.EXE MZIXM046',
+                'Comanda': '{exe_DSSAT} MZIXM046'.format(**dic_info),
                 'Código cultivo': 'MZ'
             },
             'CERES': {
-                'Comanda': 'DSCSM046.EXE MZCER046',
+                'Comanda': '{exe_DSSAT} MZCER046'.format(**dic_info),
                 'Código cultivo': 'MZ'
             }
         }
@@ -219,7 +220,7 @@ mods_cult = {
     'Tomate': {
         'DSSAT': {
             'CROPGRO': {
-                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Comanda': '{exe_DSSAT} CRGRO046'.format(**dic_info),
                 'Código cultivo': 'TM'
             }
         }
@@ -227,7 +228,7 @@ mods_cult = {
     'Frijol': {
         'DSSAT': {
             'CROPGRO': {
-                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Comanda': '{exe_DSSAT} CRGRO046'.format(**dic_info),
                 'Código cultivo': 'BN'
             }
         }
@@ -235,7 +236,7 @@ mods_cult = {
     'Repollo': {
         'DSSAT': {
             'CROPGRO': {
-                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Comanda': '{exe_DSSAT} CRGRO046'.format(**dic_info),
                 'Código cultivo': 'CB'
             }
         }
@@ -243,7 +244,7 @@ mods_cult = {
     'Papas': {
         'DSSAT': {
             'SUBSTOR': {
-                'Comanda': 'DSCSM046.EXE PTSUB046',
+                'Comanda': '{exe_DSSAT} PTSUB046'.format(**dic_info),
                 'Código cultivo': 'PT'
             }
         }
@@ -259,7 +260,7 @@ mods_cult = {
     'Habas': {
         'DSSAT': {
             'CROPGRO': {
-                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Comanda': '{exe_DSSAT} CRGRO046'.format(**dic_info),
                 'Código cultivo': 'FB'
             }
         }
@@ -267,7 +268,7 @@ mods_cult = {
     'Garbanzo': {
         'DSSAT': {
             'CROPGRO': {
-                'Comanda': 'DSCSM046.EXE CRGRO046',
+                'Comanda': '{exe_DSSAT} CRGRO046'.format(**dic_info),
                 'Código cultivo': 'CH'
             }
         }

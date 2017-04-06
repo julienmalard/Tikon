@@ -1,0 +1,4 @@
+1. vector obs parasitoides larvas suma observaciones de larvas no parasitadas
+2. Nunca se parasitan nuevas larvas
+3. Juvenil 1 nunca come coco
+5. Reproducción recipiente adulto

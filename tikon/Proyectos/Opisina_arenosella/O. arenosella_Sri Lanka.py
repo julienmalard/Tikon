@@ -113,11 +113,11 @@ Red_coco_senc.guardar()
 """
 
 # Intentemos algo más interesante ahora.
-O_arenosella = Ins.MetamCompleta('O. arenosella', njuvenil=5)
+O_arenosella = Ins.MetamCompleta('O. arenosella', proyecto=proyecto, njuvenil=5)
 
-Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas')
+Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas', proyecto=proyecto)
 
-Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas')
+Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas', proyecto=proyecto)
 
 O_arenosella.secome(Coco, etps_depred='juvenil')
 
@@ -160,8 +160,9 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 
 
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=11, mostrar=False)
-Red_coco.calibrar(exper=Experimento_A)
+Red_coco.validar(Experimento_A, n_rep_parám=1, n_rep_estoc=1, mostrar=False)
+raise SystemExit(0)
+Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
 Red_coco.validar(Experimento_B)
 
 Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoides) para O. arenosella en coco, '

@@ -46,7 +46,7 @@ class ModBayes(object):
         sea 'True', llamará la versión de esta función apropiada para una calibración (entre otro, que usará
         únicamente los valores de los parámetros tales como especificados por el Modelo y que devolverá los datos
         en formato apropiado).
-        :type función: function
+        :type función: Callable
 
         :param dic_argums: Un diccionario de los argumentos que hay que pasar a "función". Si no hay argumentos para
         pasar, poner un diccionario vacío, {}.
@@ -75,7 +75,7 @@ class ModBayes(object):
 
         :param función_llenar_coefs: Una funcion que llenara los diccionarios del Simulable con los coeficientes PyMC
         recién creados.
-        :type función_llenar_coefs: function
+        :type función_llenar_coefs: Callable
 
         """
 
