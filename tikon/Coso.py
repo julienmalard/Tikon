@@ -60,7 +60,7 @@ class Coso(object):
 
         # Para guardar los objetos relacionados con este Coso. Sirve para encontrar todos los objetos que hay que
         #  mirar para una simulación o calibración.
-        símismo.objetos = []
+        símismo.objetos = []  # type: list[Coso]
 
     def actualizar(símismo):
         raise NotImplementedError
@@ -318,6 +318,31 @@ class Coso(object):
             os.makedirs(directorio)
 
         return directorio
+
+    def _sacar_coefs_no_espec(símismo):
+        """
+        
+        :return: 
+        :rtype: dict
+        
+        """
+
+        raise NotImplementedError
+
+    def ver_coefs_no_espec(símismo):
+        """
+
+        :return: 
+        :rtype: dict
+        
+        """
+
+        sin_especif = {símismo.nombre: símismo._sacar_coefs_no_espec()}
+
+        for obj in símismo.objetos:
+            sin_especif[obj.nombre] = obj.ver_coefs_no_espec()
+
+        return sin_especif
 
     @classmethod
     def generar_aprioris(cls, directorio=None):

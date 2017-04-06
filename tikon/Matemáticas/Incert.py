@@ -44,7 +44,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
     else:
         calibs_usables = [x for x in dic_parám if x in calibs]
         if len(calibs_usables) == 0:
-            avisar('Algunos parámetros no tienen las calibraciones especificadas y usarán su distribuciones a prioris'
+            avisar('Algunos parámetros no tienen las calibraciones especificadas y usarán su distribuciones a prioris '
                    'en vez.')
             calibs_usables = ['0']
 

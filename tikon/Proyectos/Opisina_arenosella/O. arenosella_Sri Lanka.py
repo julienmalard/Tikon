@@ -158,7 +158,8 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 # for a_priori in a_prioris[Parasitoides_pupa.nombre]:
 #     Parasitoides_pupa.especificar_apriori(**a_priori)
 
-
+from pprint import pprint
+pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_A, n_rep_parám=1, n_rep_estoc=1, mostrar=False)
 raise SystemExit(0)
