@@ -206,8 +206,8 @@ class Coso(object):
         :param dibujar: Si queremos dibujar el resultado o no.
         :type dibujar: bool
 
-        :param inter: Una lista anidada de interacciones (opcional).
-        :type inter: list | None
+        :param inter: Un tuple de interacciones (opcional).
+        :type inter: tuple | None
 
         """
 
@@ -241,7 +241,7 @@ class Coso(object):
 
         # Si hay interacciones, buscar
         if inter is None:
-            if 'inter' not in dic_ecs or dic_ecs['inter'] is not None:  # arreglarme: error
+            if 'inter' in dic_ecs and dic_ecs['inter'] is not None:
                 raise ValueError('Hay que especificar interacciones para parámetros con interacciones.')
         else:
             for i in inter:
