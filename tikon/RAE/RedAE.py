@@ -726,7 +726,7 @@ class Red(Simulable):
         coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
 
         # Densidades de poblaciones
-        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
+        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))[..., np.newaxis, :]
 
         for tp_ec, í_etps in tipos_ec.items():  # Para cada tipo de ecuación...
 
@@ -789,8 +789,8 @@ class Red(Simulable):
 
             elif tp_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa (depredador)
-                ratio = dens / dens_depred[..., np.newaxis]
+                dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
+                ratio = dens / dens_depred
 
                 np.multiply(cf['a'],
                             np.multiply(
@@ -1072,10 +1072,7 @@ class Red(Simulable):
             if tp_prob == 'Constante':
                 # Reproducciones en proporción al tamaño de la población.
 
-                # Tomamos el paso en cuenta según las regals de probabilidad:
-                #   p(x sucede n veces) = (1 - (1- p(x))^n)
-
-                np.multiply(cf['n'] * pob_etp, (1 - (1 - cf['q']) ** paso), out=repr_etp_recip)
+                np.multiply(cf['a'], pob_etp * paso, out=repr_etp_recip)
 
             elif tp_prob == 'Depredación':
                 # Reproducciones en función de la depredación (útil para avispas esfécidas)
