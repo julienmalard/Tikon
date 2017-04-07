@@ -394,7 +394,7 @@ class Organismo(Coso):
 
             # Quitar la palabra 'juvenil' (si hay una etapa que de verdad se llama 'juvenil', se agregará de nuevo
             # abajo de todo modo).
-            lista_etps.remove(['juvenil'])
+            lista_etps.remove('juvenil')
 
             # Agregar todas las etapas juveniles
             lista_etps += [x for x in símismo.receta['estr'] if 'juvenil' in x]
