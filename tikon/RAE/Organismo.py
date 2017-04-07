@@ -456,9 +456,13 @@ class Organismo(Coso):
 
                     # Tomamos todos los organismos y todas sus etapas que tienen una relación del tipo de interacción
                     # apropiado para el parámetro en cuestión.
-                    l_inter = [[o, e] for i in tipo_inter
-                               for o in símismo.config[etp][i]
-                               for e in símismo.config[etp][i][o]]
+                    l_inter = [(o, e) for i in tipo_inter for o in símismo.config[etp][i]
+                               for e in (
+                                   símismo.config[etp][i][o] if i == 'presa'
+                                   else símismo.config[etp][i][o]['entra'] if i == 'huésped'
+                                   else ValueError
+                               )
+                               ]
 
             # Ahora, para cada tipo de interacción identificado...
             for inter in l_inter:
