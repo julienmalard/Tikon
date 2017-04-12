@@ -156,8 +156,10 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     if mostrar is True:
         dib.show()
     else:
-        if '.png' not in directorio:
-            directorio = os.path.join(directorio, título + '.png')
+        if directorio[-4:] != '.png':
+            válidos = (' ','.','_')
+            nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
+            directorio = os.path.join(directorio, nombre_arch)
         dib.savefig(directorio)
         dib.close()
 
