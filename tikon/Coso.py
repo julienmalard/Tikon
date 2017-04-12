@@ -356,7 +356,7 @@ class Coso(object):
         """
 
         # Para hacer: completar
-        pass
+        raise NotImplementedError
 
     def __str__(símismo):
         return símismo.nombre
@@ -461,10 +461,8 @@ class Simulable(Coso):
 
         directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
 
-        # Actualizar el objeto, si necesario. Si ya se ha actualizado el objeto una vez, no se actualizará
-        # automáticamente aquí (y no tendrá en cuenta cambios al objeto desde la última calibración).
-        if not símismo.listo:
-            símismo.actualizar()
+        # Actualizar el objeto
+        símismo.actualizar()
 
         # Poner los experimentos en la forma correcta:
         exper = símismo._prep_lista_exper(exper=exper)
@@ -538,9 +536,8 @@ class Simulable(Coso):
 
         """
 
-        # Actualizar, si necesario
-        if not símismo.listo:
-            símismo.actualizar()
+        # Actualizar
+        símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
         # Si se especificó un nombre para la calibración, asegurarse de que no existe en la lista de calibraciones
@@ -713,9 +710,8 @@ class Simulable(Coso):
         :rtype: dict
         """
 
-        # Actualizar, si necesario
-        if not símismo.listo:
-            símismo.actualizar()
+        # Actualizar
+        símismo.actualizar()
 
         # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
         # contrario tomamos el conjunto de todas las calibraciones anteriores.
