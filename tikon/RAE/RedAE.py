@@ -582,11 +582,9 @@ class Red(Simulable):
                                 título = '{exp}, Recip- "{org}", "{etp}"' \
                                     .format(exp=exp, org=org_r, etp=etp_r)
                             elif det == 'Transiciones':
-                                n_etp_dib = símismo.orden['trans'][n_etp]   # type: int
-                                org_r = símismo.etapas[n_etp_dib]['org']
-                                etp_r = símismo.etapas[n_etp_dib]['nombre']
-                                título = '{exp}, Recip- "{org}", "{etp}"' \
-                                    .format(exp=exp, org=org_r, etp=etp_r)
+                                n_etp_dib = n_etp
+                                título = '{exp}, Desde- "{org}", "{etp}"' \
+                                    .format(exp=exp, org=org, etp=etp)
                             else:
                                 n_etp_dib = n_etp
                                 título = '{exp}, "{org}", Etapa "{etp}"'\
@@ -1239,21 +1237,20 @@ class Red(Simulable):
         # Quitar los organismos que transicionaron
         np.subtract(pobs, trans, out=pobs)
 
-        # Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides)
-        for tp_mult, í_etps in tipos_mult.items():
-            í_etps_recip = [símismo.orden['trans'][í] for í in í_etps]
-            if tp_mult == 'Linear':
-                trans[..., í_etps_recip] *= coefs_mt[tp_mult]['a']
-            else:
-                raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
-
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
         orden_recip = símismo.orden['trans']
         nuevos = np.zeros_like(trans)
 
+        # Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides)
+        for tp_mult, í_etps in tipos_mult.items():
+            if tp_mult == 'Linear':
+                trans[..., í_etps] *= coefs_mt[tp_mult]['a']
+            else:
+                raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
+
         for i in range(len(símismo.etapas)):
             i_recip = orden_recip[i]
-            if i != -1:
+            if i_recip != -1:
                 nuevos[..., i_recip] += trans[..., i]
 
         np.add(pobs, nuevos, out=pobs)
@@ -1523,7 +1520,7 @@ class Red(Simulable):
     def _sacar_líms_coefs_interno(símismo):
         """
         No hay nada nada que hacer aquí, visto que una red no tiene coeficientes propios. Devolvemos
-          una lista vacía.
+        una lista vacía.
         """
 
         return []
@@ -2175,9 +2172,8 @@ class Red(Simulable):
 
     def _sacar_coefs_no_espec(símismo):
         """
-        
-        :return: 
-        :rtype: 
+        Una Red no tiene coeficientes.
+         
         """
 
         return {}
