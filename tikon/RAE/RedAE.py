@@ -1194,6 +1194,9 @@ class Red(Simulable):
 
         :param paso:
         :type paso: int
+        
+        :param trans:
+        :type trans:
 
         """
 
@@ -1245,6 +1248,7 @@ class Red(Simulable):
         for tp_mult, í_etps in tipos_mult.items():
             if tp_mult == 'Linear':
                 trans[..., í_etps] *= coefs_mt[tp_mult]['a']
+                np.floor(trans)
             else:
                 raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
 
