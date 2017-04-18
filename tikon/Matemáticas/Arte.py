@@ -82,7 +82,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         tiempos_obs = tiempos_obs[vacíos]
         vector_obs = vector_obs[vacíos]
 
-        dib.plot(tiempos_obs, vector_obs, 'o', color=color)
+        dib.plot(tiempos_obs, vector_obs, 'o', color=color, label='Obs')
         dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
 
     # Incluir la incertidumbre
@@ -131,12 +131,12 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         máx_parám = matr_prom_estoc.max(axis=0)
         mín_parám = matr_prom_estoc.min(axis=0)
 
-        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5)
+        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
 
         máx_total = matr_predic.max(axis=(0, 1))
         mín_total = matr_predic.min(axis=(0, 1))
 
-        dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3)
+        dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3, label='Incert estocástico')
 
     else:
         raise ValueError('No entiendo el tipo de incertidumbre "%s" que especificaste para el gráfico.' % incert)
@@ -151,11 +151,15 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     dib.ylabel(etiq_y)
     dib.title(título)
 
+    dib.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+
     if mostrar is True:
         dib.show()
     else:
-        if '.png' not in directorio:
-            directorio = os.path.join(directorio, título + '.png')
+        if directorio[-4:] != '.png':
+            válidos = (' ','.','_')
+            nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
+            directorio = os.path.join(directorio, nombre_arch)
         dib.savefig(directorio)
         dib.close()
 
