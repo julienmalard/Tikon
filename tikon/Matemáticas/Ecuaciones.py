@@ -163,7 +163,7 @@ ecs_orgs = {
     'Transiciones': {
                      'Prob': {'Nada': {},
 
-                              'Constante': {'a': {'límites': (0, np.inf),
+                              'Constante': {'q': {'límites': (0, 1),
                                                   'inter': None}
                                             },
 
@@ -216,10 +216,8 @@ ecs_orgs = {
     'Reproducción': {
                      'Prob': {'Nada': {},
 
-                              'Constante': {'n': {'límites': (0, np.inf),
+                              'Constante': {'a': {'límites': (0, np.inf),
                                                   'inter': None},
-                                            'q': {'límites': (0, np.inf),
-                                                  'inter': None}
                                             },
                               'Depredación': {'n': {'límites': (0, np.inf),
                                                     'inter': ['presa']}

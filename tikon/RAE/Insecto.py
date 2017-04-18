@@ -391,7 +391,7 @@ class Esfécido(Insecto):
                                    Muertes={'Ecuación': 'Nada'},
                                    Edad={'Ecuación': 'Días'},
                                    Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                                   Reproducción={'Prob': 'Depredación'},
+                                   Reproducción={'Prob': 'Nsda'},
                                    Movimiento={}
                                    )
                    }

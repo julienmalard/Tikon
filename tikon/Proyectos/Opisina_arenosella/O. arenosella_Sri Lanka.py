@@ -149,8 +149,12 @@ Red_coco.añadir_exp(Experimento_B,
                     )
 
 # A prioris para la nueva red
-for a_priori in a_prioris[O_arenosella.nombre]:
-    O_arenosella.especificar_apriori(**a_priori)
+for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
+    try:
+        for a_priori in a_prioris[org.nombre]:
+            org.especificar_apriori(**a_priori)
+    except KeyError:
+        pass
 
 # for a_priori in a_prioris[Parasitoide_larvas.nombre]:
 #     Parasitoide_larvas.especificar_apriori(**a_priori)
@@ -161,7 +165,7 @@ for a_priori in a_prioris[O_arenosella.nombre]:
 from pprint import pprint
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=1, n_rep_estoc=1, mostrar=False)
+Red_coco.validar(Experimento_A, n_rep_parám=9, n_rep_estoc=11)
 raise SystemExit(0)
 Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
 Red_coco.validar(Experimento_B)
