@@ -218,7 +218,7 @@ class Coso(object):
             certidumbre /= 100
 
         # Asegurarse de que "certidumbre" esté entre 0 y 1
-        if not 0 < certidumbre <= 1:
+        if not 0. < certidumbre <= 1:
             raise ValueError('El parámetro "certidumbre" debe ser un número en el rango (0, 1].')
 
         # Encontrar la ubicación del parámetro en el diccionario de especificaciones de parámetros y en el diccionario
@@ -350,13 +350,13 @@ class Coso(object):
         Esta función, específica a cada subclase de Coso, debe generar valores a prioris a base de los objetos del
         mismo tipo que ya existen.
 
-        :param directorio:
-        :type directorio:
+        :param directorio: El directorio en el cual buscar los objetos para generar a prioris.
+        :type directorio: str
 
         """
 
         # Para hacer: completar
-        raise NotImplementedError
+        raise NotImplemented
 
     def __str__(símismo):
         return símismo.nombre
@@ -1223,8 +1223,8 @@ class Simulable(Coso):
             :param l: Una lista para la recursión. Nunca especificar este parámetro mientras que se llama la función.
             :type l: list
 
-            :return: Una lista de tuples de los parámetros con la forma general:
-              (lista de la ubicación del parámetro, distribución PyMC)
+            :return: Una lista de tuples de los parámetros, cada uno con la forma general:
+            (lista de la ubicación del parámetro, distribución PyMC)
             :rtype: list
 
             """
@@ -1292,6 +1292,14 @@ class Simulable(Coso):
         de la simulación actual, pero que solamente necesitan hacerse una vez al principio de la simulación. Un ejemplo
         sería la inicialización de las poblaciones iniciales de organismos con poblaciones fijas en Redes según el valor
         del parámetro del tamaño de población fija.
+        """
+
+        raise NotImplementedError
+
+    def _sacar_coefs_no_espec(símismo):
+        """
+        Esta funciónn se deja a las subclases de Simulable para implementar.
+         
         """
 
         raise NotImplementedError
@@ -1455,7 +1463,7 @@ def generar_aprioris(clase):
     lista_objs = []
 
     # Sacar la lista de los objetos de este tipo en Proyectos
-    for raíz, dirs, archivos in os.walk(os.path, topdown=False):
+    for raíz, dirs, archivos in os.walk(dir_proyectos, topdown=False):
         for nombre in archivos:
             ext = os.path.splitext(nombre)[1]
             if ext == clase.ext:

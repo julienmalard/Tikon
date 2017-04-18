@@ -165,8 +165,10 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
 from pprint import pprint
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=9, n_rep_estoc=11)
-raise SystemExit(0)
+Red_coco.validar(Experimento_A, n_rep_parám=20, n_rep_estoc=5)
+
+input('¿Seguir con la calibración?')
+
 Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
 Red_coco.validar(Experimento_B)
 

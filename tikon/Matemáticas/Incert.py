@@ -533,8 +533,8 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                  estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
 
                     if valid-certidumbre > 0.0001:
-                        raise ValueError('Error en la optimización de la distribución especificada. Esto es un error de'
-                                         'programación, así que mejor se queja al programador.')
+                        avisar('Error en la optimización de la distribución especificada. Esto es un error de'
+                               ' programación, así que mejor se queje al programador.')
 
                     dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
 
