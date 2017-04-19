@@ -166,7 +166,7 @@ from pprint import pprint
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
 Red_coco.validar(Experimento_A, n_rep_parám=9, n_rep_estoc=11)
-raise SystemExit(0)
+raise SystemExit(0) #Para programa
 Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
 Red_coco.validar(Experimento_B)
 
