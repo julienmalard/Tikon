@@ -37,11 +37,9 @@ L_coffeella.secome(Café, etps_depred='juvenil')
 Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas', proyecto=proyecto)
 Parasitoide_larvas.parasita(L_coffeella, etps_infec=['juvenil'], etp_sale='juvenil')
 
-Parasitoide_pupa = Ins.Parasitoide('Parasitoide pupas', proyecto=proyecto)
-Parasitoide_pupa.parasita(L_coffeella, etps_infec=['pupa'], etp_sale='pupa')
 
 # Crear objeto red
-Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Parasitoide_pupa, Café],
+Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Café],
                proyecto=proyecto)
 
 Red_café.añadir_exp(El_Encanto,
@@ -52,7 +50,7 @@ Red_café.añadir_exp(El_Encanto,
                     )
 
 # A prioris para la nueva red
-for org in [L_coffeella, Parasitoide_larvas, Parasitoide_pupa]:
+for org in [L_coffeella, Parasitoide_larvas]:
     try:
         for a_priori in a_prioris[org.nombre]:
             org.especificar_apriori(**a_priori)
