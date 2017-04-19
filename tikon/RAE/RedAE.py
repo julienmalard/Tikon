@@ -811,7 +811,7 @@ class Red(Simulable):
                                                     cf['a'])
                                             )
                                             ),
-                                np.divide(dens + cf['b']*np.exp(dens/cf['b']) - cf['b'],
+                                np.divide(dens + cf['b']*np.exp(-dens/cf['b']) - cf['b'],
                                           dens
                                           )
                             ),
