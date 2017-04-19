@@ -811,8 +811,8 @@ class Red(Simulable):
                                                     cf['a'])
                                             )
                                             ),
-                                np.divide(np.square(dens),
-                                          np.square(dens) + cf['b']
+                                np.divide(dens + cf['b']*np.exp(dens/cf['b']) - cf['b'],
+                                          dens
                                           )
                             ),
                             out=depred_etp)
