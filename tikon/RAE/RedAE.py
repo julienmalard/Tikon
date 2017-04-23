@@ -811,8 +811,8 @@ class Red(Simulable):
                                                     cf['a'])
                                             )
                                             ),
-                                np.divide(np.square(dens),
-                                          np.square(dens) + cf['b']
+                                np.divide(dens + cf['b']*np.exp(-dens/cf['b']) - cf['b'],
+                                          dens
                                           )
                             ),
                             out=depred_etp)
@@ -1194,6 +1194,9 @@ class Red(Simulable):
 
         :param paso:
         :type paso: int
+        
+        :param trans:
+        :type trans:
 
         """
 
@@ -1245,6 +1248,7 @@ class Red(Simulable):
         for tp_mult, í_etps in tipos_mult.items():
             if tp_mult == 'Linear':
                 trans[..., í_etps] *= coefs_mt[tp_mult]['a']
+                np.floor(trans)
             else:
                 raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
 

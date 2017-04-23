@@ -29,4 +29,4 @@ if not os.path.exists(dirs_modelos['DSSAT']):
             json.dump(dirs_modelos, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
     else:
-        avisar('Directorio DSSAT no encontrado. No se pueden usar modelos de DSSAT en esta sessión de Tiko\'n.')
+        avisar('Directorio DSSAT no encontrado. No se pueden usar modelos de DSSAT en esta sesión de Tiko\'n.')
