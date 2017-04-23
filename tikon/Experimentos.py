@@ -246,7 +246,7 @@ class Experimento(object):
 
         """
 
-        # Una lista de lso formatos de fecha posibles. Esta función intentará de leer los datos de fechas con cada
+        # Una lista de los formatos de fecha posibles. Esta función intentará de leer los datos de fechas con cada
         # formato en esta lista y, si encuentra un que funciona, parará allí.
         separadores = ['-', '/', ' ', '.']
 
