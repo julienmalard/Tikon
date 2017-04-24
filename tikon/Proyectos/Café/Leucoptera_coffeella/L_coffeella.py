@@ -25,7 +25,7 @@ El_Encanto = Experimento(nombre='Suconusco_Chiapas', proyecto=proyecto)
 #       Elevation on Coffee Leafminer Leucoptera Coffeella (Lepidoptera: Lyonetiidae) Population Dynamics and
 #       Natural Enemies.” Crop Protection 29 (9): 1039–48. doi:10.1016/j.cropro.2010.03.007.
 
-El_Encanto.agregar_orgs(archivo='Suconusco_Chiapas.csv', col_tiempo='Dia', factor=100)
+El_Encanto.agregar_orgs(archivo='Suconusco_Chiapas.csv', col_tiempo='Día', factor=900 * 1000)
 # Factor: datos en Suconusco_Chiapas está por larvas/plantas; se asume que hay 1 panta cada 10 m2 (2mx5m).
 # El factor de 100 cambia los datos de individuos/plantas a individuos/hectarias.
 
@@ -44,9 +44,10 @@ Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Caf
 
 Red_café.añadir_exp(El_Encanto,
                     corresp={'L. coffeella': {'juvenil': ['Juvenil'],
-                                              'pupa': ['Pupa']},
-                             'Parasitoide larvas': {'juvenil': ['Para_larva']},
-                             'Parasitoide pupas': {'juvenil': ['Para_pupa']}}
+                                              'huevo': ['Huevo'],
+                                              'pupa': ['Pupa'],
+                                              'adulto': ['Adulto']},
+                             'Parasitoide larvas': {'juvenil': ['Para_larva']}}
                     )
 
 # A prioris para la nueva red
@@ -60,3 +61,5 @@ for org in [L_coffeella, Parasitoide_larvas]:
 from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
+
+Red_café.validar(El_Encanto, n_rep_parám=1, n_rep_estoc=1)
