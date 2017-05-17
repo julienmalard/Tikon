@@ -800,21 +800,22 @@ class Red(Simulable):
             elif tp_ec == 'Kovai':
                 # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
                 dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
-                ratio = dens / dens_depred
+
+                presa_efec = np.add(dens,
+                                    np.multiply(cf['b'], np.subtract(np.exp(
+                                        np.divide(-dens, cf['b'])
+                                    ), 1)),
+                                    )
+                ratio = presa_efec / dens_depred
 
                 np.multiply(cf['a'],
-                            np.multiply(
-                                np.subtract(1,
-                                            np.exp(
-                                                np.divide(
-                                                    -np.where(ratio == np.inf, [0], ratio),
-                                                    cf['a'])
-                                            )
-                                            ),
-                                np.divide(dens + cf['b']*np.exp(-dens/cf['b']) - cf['b'],
-                                          dens
-                                          )
-                            ),
+                            np.subtract(1,
+                                        np.exp(
+                                            np.divide(
+                                                -np.where(ratio == np.inf, [0], ratio),
+                                                cf['a'])
+                                        )
+                                        ),
                             out=depred_etp)
 
                 # Ajustar por la presencia de múltiples presas (eje 4 = presas)
