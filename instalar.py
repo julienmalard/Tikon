@@ -54,8 +54,6 @@ sistema = 'win' + bits
 
 info_paquetes = {'numpy': {'versión': '1.11.3',
                            'formato_archivo': 'numpy-{versión}+mkl-cp{v_py}-cp{v_py}m-{sis}.whl',
-                           'id_google': {'32': '0B8RjC9bwyAOwUV9zV2lSdjA3eHM',
-                                         '64': None},
                            'id_dropbox': {'32': 'rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1',
                                           '64': None}
                            },
@@ -93,8 +91,8 @@ def _descargar_whl(nombre):
     print('Descargando paquete "{}"...'.format(nombre))
     llave = url = None
 
-    repositorios = {'id_google': 'https://drive.google.com/uc?export=download&id=',
-                    'id_dropbox': 'https://www.dropbox.com/s/'}
+    repositorios = {'id_google': 'https://drive.google.com/uc?export=download&id={}',
+                    'id_dropbox': 'https://www.dropbox.com/s/{}'}
 
     for r, u in repositorios.items():
         try:
@@ -102,7 +100,7 @@ def _descargar_whl(nombre):
         except KeyError:
             pass
         if llave is not None:
-            url = u + llave
+            url = u.format(llave)
             break
 
     if url is None:
