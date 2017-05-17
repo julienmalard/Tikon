@@ -704,13 +704,13 @@ class Red(Simulable):
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
             Kovai (Asíntota doble):
-                y = a*(1 - e^(-P/(a*D))) * (P^2 / (P^2 + b)
+                y = a*(1 - e^(-u/(a*D))); u = P + e^(-P/b) - b
 
                   a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
                     depredadores no compiten entre sí mismos)
 
-                  b^0.5 es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
-                    competition entre ellos, los depredadores consumirán a/2 presas por depredador.
+                  b es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
+                    competition entre ellos, los depredadores consumirán a/e presas por depredador.
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
