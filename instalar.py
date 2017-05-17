@@ -55,7 +55,9 @@ sistema = 'win' + bits
 info_paquetes = {'numpy': {'versión': '1.11.3',
                            'formato_archivo': 'numpy-{versión}+mkl-cp{v_py}-cp{v_py}m-{sis}.whl',
                            'id_google': {'32': '0B8RjC9bwyAOwUV9zV2lSdjA3eHM',
-                                         '64': None}
+                                         '64': None},
+                           'id_dropbox': {'32': 'rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1',
+                                          '64': None}
                            },
                  'scipy': {'versión': '0.18.1',
                            'formato_archivo': 'scipy-{versión}-cp{v_py}-none-{sis}.whl',
@@ -89,13 +91,23 @@ def _actualizar_pip():
 def _descargar_whl(nombre):
 
     print('Descargando paquete "{}"...'.format(nombre))
-    llave = info_paquetes[nombre]['id_google'][bits]  # type: str
-    if llave is None:
+    llave = url = None
+
+    repositorios = {'id_google': 'https://drive.google.com/uc?export=download&id=',
+                    'id_dropbox': 'https://www.dropbox.com/s/'}
+
+    for r, u in repositorios.items():
+        try:
+            llave = info_paquetes[nombre][r][bits]  # type: str
+        except KeyError:
+            pass
+        if llave is not None:
+            url = u + llave
+            break
+
+    if url is None:
         raise ValueError('No existe descarga para paquete {} en {} bits.'.format(nombre, bits))
-    if nombre == 'numpy':
-        url = 'https://www.dropbox.com/s/rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1'
-    else:
-        url = 'https://drive.google.com/uc?export=download&id=' + llave
+
     nombre_archivo = info_paquetes[nombre]['formato_archivo']
     urllib.request.urlretrieve(url, os.path.join(directorio_móds, nombre_archivo))
 
@@ -115,6 +127,8 @@ def _instalar_whl(nombre):
 
 
 def instalar_requísitos():
+    print('Instalando paquetes requísitos...')
+
     lista_paquetes = []
 
     if np is None:
@@ -163,7 +177,6 @@ def instalar_requísitos():
 
 def instalar_todo():
 
-    print('Instalando paquetes requísitos...')
     instalar_requísitos()
 
     print('Instalando Tiko\'n...')
@@ -173,4 +186,4 @@ def instalar_todo():
 
 
 if __name__ == '__main__':
-    instalar_todo()
+    instalar_requísitos()
