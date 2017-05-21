@@ -1,13 +1,15 @@
 import डिब्बा
-from tikon.Interfaz.anuprayog import डिब्बा_शुरू
+from tikon.Interfaz.matthiya import தப்பா_மத்திய
+from tikon.Interfaz.ஆரம்பு import தப்பா_ஆரம்பு
+from tikon.Interfaz.mozhigal import தப்பா_மொழிகள்
 
 apli = डिब्बा.अनुप्रयोग.अनुप्रयोग(नाम='பயிற்சி')
 
-apli.जोड़ना(पन्ना=डिब्बा_शुरू)
+apli.जोड़ना(पन्ना=தப்பா_ஆரம்பு)
 
-apli.जोड़ना(पन्ना=डिब्बा_भाषाएं)
+apli.जोड़ना(पन्ना=தப்பா_மொழிகள்)
 
-apli.जोड़ना(पन्ना=डिब्बा_केंद्रिया)
+apli.जोड़ना(पन्ना=தப்பா_மொழிகள்)
 
 if __name__ == '__main__':
     apli.चलाना()
