@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import tikon.RAE.Insecto as Ins
 from tikon.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
@@ -6,7 +8,7 @@ import tikon.RAE.Planta as Plt
 
 # Opciones artísticas
 dib_aprioris = False
-ops_dib = {'incert': None, 'todas_líneas': True}
+ops_dib = {'n_líneas': 5}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
@@ -162,11 +164,11 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
 # for a_priori in a_prioris[Parasitoides_pupa.nombre]:
 #     Parasitoides_pupa.especificar_apriori(**a_priori)
 
-from pprint import pprint
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10)
+Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10, opciones_dib=ops_dib)
 
+input('¿Seguir?')
 Red_coco.calibrar(exper=Experimento_A, n_iter=1000, quema=0, extraer=1, dibujar=True)
 Red_coco.validar(Experimento_B, n_rep_parám=10, n_rep_estoc=10)
 
@@ -177,7 +179,7 @@ Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoid
                        contacto='julien.malard@mail.mcgill.ca')
 Red_coco.guardar()
 
-raise SystemExit(0)
+input('¿Seguir?')
 # Ahora, con una red más compleja y con estructura completa para los insectos
 Red_coco.añadir_org(Araña)
 
