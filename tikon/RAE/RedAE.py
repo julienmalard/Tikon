@@ -479,7 +479,7 @@ class Red(Simulable):
         # La Red ya está lista para simular
         símismo.listo = True
 
-    def dibujar(símismo, mostrar=True, directorio=None, exper=None, todas_líneas=False, incert='componentes'):
+    def dibujar(símismo, mostrar=True, directorio=None, exper=None, n_líneas=0, incert='componentes'):
         """
         Ver la documentación de Simulable.
 
@@ -550,7 +550,7 @@ class Red(Simulable):
                             # Generar el gráfico
                         gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
                                 título=título, etiq_y='Población',
-                                todas_líneas=todas_líneas, incert=incert,
+                                n_líneas=n_líneas, incert=incert,
                                 mostrar=mostrar, directorio=dir_img)
 
             # Ahora, vamos a dibujar los detalles de la simulación
@@ -610,7 +610,7 @@ class Red(Simulable):
                                 # Generar el gráfico
                                 gráfico(matr_predic=matr_predic_prc,
                                         título=título, etiq_y=det,
-                                        todas_líneas=todas_líneas, incert=incert,
+                                        n_líneas=n_líneas, incert=incert,
                                         mostrar=mostrar, directorio=dir_img)
 
                         # Ahora para la depredación
@@ -660,7 +660,7 @@ class Red(Simulable):
                                 # Generar el gráfico
                                 gráfico(matr_predic=matr_predic_prc_víc,
                                         título=título, etiq_y='Depredación',
-                                        todas_líneas=todas_líneas, incert=incert,
+                                        n_líneas=n_líneas, incert=incert,
                                         mostrar=mostrar, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
@@ -1006,7 +1006,7 @@ class Red(Simulable):
 
             if tp_ed == 'Días':
                 # Edad calculada en días.
-                edad_extra[..., í_etps] = 1
+                edad_extra[..., í_etps] = 1 
 
             elif tp_ed == 'Días Grados':
                 # Edad calculada por días grados.

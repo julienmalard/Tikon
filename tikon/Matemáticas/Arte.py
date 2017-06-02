@@ -9,13 +9,13 @@ from tikon.Matemáticas.Incert import texto_a_dist
 
 
 def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
-            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', todas_líneas=False,
+            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', n_líneas=0,
             mostrar=True, directorio=None):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
-    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástica, eje 1 = incertidumbre
-      paramétrica, eje 2 = día.
+    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástico, eje 1 = incertidumbre
+    paramétric0, eje 2 = día.
     :type matr_predic: np.ndarray
 
     :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
@@ -124,28 +124,49 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     elif incert == 'componentes':
         # Mostrar la incertidumbre descompuesta por sus fuentes
 
-        # Una matriz sin la incertidumbre estocástica
-        matr_prom_estoc = matr_predic.mean(axis=0)
-
-        # Ahora, el eje 0 es el eje de incertidumbre paramétrica
-        máx_parám = matr_prom_estoc.max(axis=0)
-        mín_parám = matr_prom_estoc.min(axis=0)
-
-        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
-
+        # El rango total de las simulaciones
         máx_total = matr_predic.max(axis=(0, 1))
         mín_total = matr_predic.min(axis=(0, 1))
+        rango_total = np.subtract(máx_total, mín_total)
+
+        # La desviación estándar de todas las simulaciones (incertidumbre total)
+        des_est_total = np.std(matr_predic, axis=(0, 1))
+
+        # El incertidumbre estocástico promedio
+        des_est_estóc = np.mean(np.std(matr_predic, axis=0), axis=0)
+
+        # Inferir el incertidumbre paramétrico
+        des_est_parám = np.subtract(des_est_total, des_est_estóc)
+        frac_des_est_parám = np.divide(des_est_parám, des_est_total)
+        incert_parám = np.multiply(rango_total, frac_des_est_parám)
+
+        # Límites de la región de incertidumbre paramétrica en el gráfico
+        mitad = np.divide(np.add(máx_total, mín_total), 2)
+        máx_parám = np.add(mitad, np.divide(incert_parám, 2))
+        mín_parám = np.subtract(mitad, np.divide(incert_parám, 2))
+
+        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
 
         dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3, label='Incert estocástico')
 
     else:
         raise ValueError('No entiendo el tipo de incertidumbre "%s" que especificaste para el gráfico.' % incert)
 
-    # Si lo especificó el usuario, mostrar todas las líneas de todas las repeticiones.
-    if todas_líneas:
-        for incert_estóc in matr_predic:
-            for incert_parám in incert_estóc:
-                dib.plot(x, incert_parám, lw=1, color=color)
+    # Si lo especificó el usuario, mostrar las líneas de algunas repeticiones.
+    if n_líneas > 0:
+        n_rep_estoc = matr_predic.shape[0]
+        n_rep_parám = matr_predic.shape[1]
+        rep_total = n_rep_estoc * n_rep_parám
+
+        if n_líneas > rep_total:
+            n_líneas = rep_total
+
+        í_líneas = np.random.randint(rep_total, size=n_líneas)
+        í_lín_estoc = np.floor_divide(í_líneas, n_rep_estoc)
+        í_lín_parám = np.remainder(í_líneas, n_rep_parám)
+
+        for n in range(í_lín_estoc.shape[0]):
+            dib.plot(x, matr_predic[í_lín_estoc[n], í_lín_parám[n]], lw=1, color=color)
 
     dib.xlabel(etiq_x)
     dib.ylabel(etiq_y)

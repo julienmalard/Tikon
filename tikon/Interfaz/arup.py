@@ -1,10 +1,11 @@
+from डिब्बा.कला.अरूप import अरूप
 
-colores = {
+நிறங்கள் = {
     'Botón_normal': '',
     'Botón_sel': '',
     'Botón_clic': '',
 
-    'Fondo': '',
+    'Fondo': '#FFFFFF',
 
     'Texto_bt': '',
     'Texto_1': '',
@@ -26,7 +27,7 @@ colores = {
 
 }
 
-tamaños = {
+அள்ளவுகள் = {
     'Texto_1': '',
     'Texto_2': '',
     'Texto_3': '',
@@ -36,7 +37,7 @@ tamaños = {
     'Menú': ''
 }
 
-fuentes_texto = {
+எழுத்து = {
     'Texto_1': '',
     'Texto_2': '',
     'Texto_3': '',
@@ -45,3 +46,7 @@ fuentes_texto = {
     'Ingr_tx': '',
     'Menú': ''
 }
+
+விவரங்கள் = dict(रंग=நிறங்கள், माप=அள்ளவுகள், लिपि=எழுத்து)
+
+formato = अरूप(कोश=விவரங்கள்)
