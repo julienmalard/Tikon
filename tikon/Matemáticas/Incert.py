@@ -221,7 +221,7 @@ def dist_a_texto(dist):
 def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist=None):
     """
     Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
-      distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros.
+    distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros.
 
     :param datos: Un vector de valores del parámetro
     :type datos: np.ndarray
@@ -267,14 +267,16 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
     if lista_dist is not None:
         dists_potenciales = [x for x in dists_potenciales if x in lista_dist]
 
-        if len(dists_potenciales) == 0:
-            raise ValueError('Ninguna de las distribuciones especificadas es apropiada para el tipo de distribución.')
-
     # Si queremos generar una distribución PyMC, guardar únicamente las distribuciones con objeto de PyMC disponible
+    # (y lo mismo para SciPy).
     if usar_pymc is True:
         dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['pymc'] is not None]
     else:
         dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['scipy'] is not None]
+
+    # Verificar que todavia queden distribuciones para considerar.
+    if len(dists_potenciales) == 0:
+        raise ValueError('Ninguna de las distribuciones especificadas es apropiada para el tipo de distribución.')
 
     # Para cada distribución potencial para representar a nuestros datos...
     for nombre_dist in dists_potenciales:
@@ -288,7 +290,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
         # El máximo y el mínimo de la distribución
         mín_dist, máx_dist = dic_dist['límites']
 
-        # Verificar que los límites del parámetro y de la distribución son compatibles
+        # Verificar que los límites del parámetro y de la distribución sean compatibles
         lím_igual = (((mín_dist == mín_parám == -np.inf) or
                      (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
                      ((máx_dist == máx_parám == np.inf) or
@@ -314,19 +316,24 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 
                 if np.isinf(máx_parám):
                     # En el caso [R, inf), limitamos el valor inferior de la distribución al límite inferior del
-                    # parámtro
+                    # parámetro
                     restric = {'floc': mín_parám}
 
                 else:
                     # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
-                    restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
+                    if nombre_dist == 'Uniforme' or nombre_dist == 'Beta':
+                        restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
+                    elif nombre_dist == 'NormalTrunc':
+                        restric = {'floc': (máx_parám + mín_parám)/2}
+                    else:
+                        raise ValueError(nombre_dist)
 
             # Ajustar los parámetros de la distribución SciPy para caber con los datos.
-            if nombre_dist != 'Uniforme':
-                args = dic_dist['scipy'].fit(datos, **restric)
-            else:
+            if nombre_dist == 'Uniforme':
                 # Para distribuciones uniformes, no hay nada que calibrar.
                 args = tuple(restric.values())
+            else:
+                args = dic_dist['scipy'].fit(datos, **restric)
 
             # Medir el ajuste de la distribución
             p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
@@ -357,7 +364,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 
     # Si no logramos un buen aujste, avisar al usuario.
     if mejor_ajuste['p'] <= 0.10:
-        avisar('El ajuste de la mejor distribución quedó muy mala (p = %f).' % round(mejor_ajuste['p'], 4))
+        avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
 
     # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
     return mejor_ajuste['dist'], mejor_ajuste['p']
@@ -532,7 +539,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                     valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
                                  estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
 
-                    if valid-certidumbre > 0.0001:
+                    if abs(valid-certidumbre) > 0.0001:
                         avisar('Error en la optimización de la distribución especificada. Esto es un error de'
                                ' programación, así que mejor se queje al programador.')
 
@@ -543,8 +550,28 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                      '(R, inf). Si lo quieres añadir, ¡dale pués!')
 
             else:  # El caso (R, R)
-                raise ValueError('No se puede especificar una certidumbre inferior a 100 % con una distribución'
-                                 'de parámetro limitada a un intervalo (R, R).')
+                if cont:
+                    opt = minimize(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-x[1])/x[0], b=(máx-x[1])/x[0],
+                                                                      loc=x[1], scale=x[0]) -
+                                                  estad.truncnorm.cdf(rango[0], a=(mín-x[1])/x[0], b=(máx-x[1])/x[0],
+                                                                      loc=x[1], scale=x[0])) -
+                                                 certidumbre), bounds=[(1e-10, None), (mín, máx)],
+                                   x0=np.array([1, (máx+mín)/2]))
+                    paráms = np.array([opt.x[1], opt.x[0], (mín-opt.x[1])/opt.x[0], (máx-opt.x[1])/opt.x[0]])
+
+                    valid = abs((estad.truncnorm.cdf(rango[1], loc=paráms[0], scale=paráms[1],
+                                                     a=paráms[2], b=paráms[3]) -
+                                 estad.truncnorm.cdf(rango[0], loc=paráms[0], scale=paráms[1],
+                                                     a=paráms[2], b=paráms[3],)))
+
+                    if abs(valid - certidumbre) > 0.0001:
+                        avisar('Error en la optimización de la distribución especificada. Esto es un error de'
+                               ' programación, así que mejor se queje al programador.')
+                    dist = 'NormalTrunc~({}, {}, {}, {})'.format(paráms[2], paráms[3], paráms[0], paráms[1])
+
+                else:
+                    raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
+                                     '(R, inf). Si lo quieres añadir, ¡dale pués!')
 
     return dist
 
@@ -602,7 +629,7 @@ def validar(matr_predic, vector_obs):
 def paráms_scipy_a_pymc(tipo_dist, paráms):
     """
     Esta función transforma un tuple de parámetros de distribución SciPy a parámetros correspondientes para una función
-      de PyMC.
+    de PyMC.
 
     :param tipo_dist: El tipo de distribución.
     :type tipo_dist: str
@@ -681,7 +708,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
     elif tipo_dist == 'NormalTrunc':
         mu, sigma = paráms[2], paráms[3]
         mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        paráms_pymc = (mu, 1 / sigma**2, mín * sigma + mu, máx * sigma + mu)
+        paráms_pymc = (1 / sigma**2, mu, mín * sigma + mu, máx * sigma + mu)
 
     elif tipo_dist == 'Uniforme':
         paráms_pymc = (paráms[0], paráms[1] + paráms[0])

@@ -150,19 +150,20 @@ Red_coco.añadir_exp(Experimento_B,
                                                'pupa': ['Pupa']}}
                     )
 
+if True:
+    araña = Ins.Sencillo('Araña', proyecto=proyecto)
+    for a_priori in a_prioris[araña.nombre]:
+        araña.especificar_apriori(dibujar=dib_aprioris, **a_priori)
+
+    Red_coco.añadir_org(araña)
+
 # A prioris para la nueva red
 for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
     try:
         for a_priori in a_prioris[org.nombre]:
-            org.especificar_apriori(**a_priori)
+            org.especificar_apriori(dibujar=dib_aprioris, **a_priori)
     except KeyError:
         pass
-
-# for a_priori in a_prioris[Parasitoide_larvas.nombre]:
-#     Parasitoide_larvas.especificar_apriori(**a_priori)
-
-# for a_priori in a_prioris[Parasitoides_pupa.nombre]:
-#     Parasitoides_pupa.especificar_apriori(**a_priori)
 
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
