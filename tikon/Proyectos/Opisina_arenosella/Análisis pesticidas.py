@@ -18,7 +18,7 @@ parc.simular()
 parc.limpiar_aplicaciones()
 
 específico = Insecticida('Específico')
-específico.estab_mortalidd('Plagas', 0.90)
+específico.estab_mortalidad('Plagas', 0.90)
 
 parc.aplicar(específico, día=[25, 50])
 parc.simular()

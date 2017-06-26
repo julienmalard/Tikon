@@ -897,10 +897,11 @@ class Red(Simulable):
         coefs_ec = símismo.coefs_act_númzds['Crecimiento']['Ecuación']
         coefs_mod = símismo.coefs_act_númzds['Crecimiento']['Modif']
 
-        if len(modifs):
-            r = np.zeros_like(coefs_mod['r'])
 
         for mod, í_etps in modifs.items():
+
+            # Una copia del
+            crec_etp = crec[:, :, :, í_etps]
 
             cf = coefs_mod[mod]  # type: dict
 
@@ -1301,18 +1302,25 @@ class Red(Simulable):
 
     def _inic_pobs_const(símismo):
 
-        # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
-        for n_etp in range(len(símismo.etapas)):
+        # El diccionario de crecimiento
+        dic = símismo.ecs['Crecimiento']['Ecuación']
 
-            dic = símismo.ecs['Crecimiento']['Ecuación']
-            if 'Constante' in dic.keys() and n_etp in dic['Constante']:
-                # Si la etapa tiene una población constante...
+        if 'Constante' in dic.keys():
+            # Si hay al menos una etapa con ecuaciones constantes...
 
-                # La población inicial se determina por el coeficiente de población constante del organismo
-                pobs_inic = símismo.coefs_act_númzds['Crecimiento']['Ecuación']['Constante']['n'][:, n_etp]
+            # Llenar poblaciones iniciales manualmente para organismos con poblaciones fijas.
+            for n_etp in range(len(símismo.etapas)):
 
-                # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
-                símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
+                if n_etp in dic['Constante']:
+                    # Si la etapa tiene una población constante...
+
+                    í_etp = dic['Constante'].index(n_etp)
+
+                    # La población inicial se determina por el coeficiente de población constante del organismo
+                    pobs_inic = símismo.coefs_act_númzds['Crecimiento']['Ecuación']['Constante']['n'][:, í_etp]
+
+                    # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
+                    símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
 
     def incrementar(símismo, paso, i, detalles, mov=False, extrn=None):
 
