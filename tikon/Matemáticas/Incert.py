@@ -554,23 +554,57 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
             else:  # El caso (R, R)
                 if cont:
-                    opt = minimize(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-x[1])/x[0], b=(máx-x[1])/x[0],
-                                                                      loc=x[1], scale=x[0]) -
-                                                  estad.truncnorm.cdf(rango[0], a=(mín-x[1])/x[0], b=(máx-x[1])/x[0],
-                                                                      loc=x[1], scale=x[0])) -
-                                                 certidumbre), bounds=[(1e-10, None), (mín, máx)],
-                                   x0=np.array([1, (máx+mín)/2]))
-                    paráms = np.array([opt.x[1], opt.x[0], (mín-opt.x[1])/opt.x[0], (máx-opt.x[1])/opt.x[0]])
 
+                    # Una distribución normal truncada con límites especificados y mu en la mitad del rango
+                    # especificado
+                    rango = (0.1, 0.9)
+                    certidumbre = 0.3
+                    mín = 0; máx = 1
+
+                    mu = (rango[0]+rango[1])/2
+
+                    opt = minimize(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-mu)/x, b=(máx-mu)/x,
+                                                                      loc=mu, scale=x) -
+                                                  estad.truncnorm.cdf(rango[0], a=(mín-mu)/x, b=(máx-mu)/x,
+                                                                      loc=mu, scale=x)) -
+                                                 certidumbre), bounds=[(1e-10, None)],
+                                   x0=np.array([0.2]),
+                                   method='Nelder-Mead')
+
+                    paráms = np.array([mu, opt.x[0], (mín-mu)/opt.x[0], (máx-mu)/opt.x[0]])
+
+                    # Validar la optimización
                     valid = abs((estad.truncnorm.cdf(rango[1], loc=paráms[0], scale=paráms[1],
                                                      a=paráms[2], b=paráms[3]) -
                                  estad.truncnorm.cdf(rango[0], loc=paráms[0], scale=paráms[1],
-                                                     a=paráms[2], b=paráms[3],)))
+                                                     a=paráms[2], b=paráms[3],))
+                                - certidumbre)
 
-                    if abs(valid - certidumbre) > 0.0001:
-                        avisar('Error en la optimización de la distribución especificada. Esto es un error de'
-                               ' programación, así que mejor se queje al programador.')
-                    dist = 'NormalTrunc~({}, {}, {}, {})'.format(paráms[2], paráms[3], paráms[0], paráms[1])
+                    # Si validó bien, guardar la distribución...
+                    if valid < 0.0001:
+                        dist = 'NormalTrunc~({}, {}, {}, {})'.format(paráms[2], paráms[3], paráms[0], paráms[1])
+
+                    else:
+                        # ... si no, intentar con una distribución beta.
+                        opt = minimize(
+                            lambda x: abs((estad.beta.cdf(rango[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
+                                           estad.beta.cdf(rango[0], a=x[0], b=x[1], loc=mín, scale=máx - mín)) -
+                                          certidumbre), bounds=[(1e-10, None), (1e-10, None)],
+                            x0=np.array([1e-10, 1e-10]))
+
+                        paráms = [opt.x[0], opt.x[1], mín, máx-mín]
+
+                        valid = abs((estad.beta.cdf(rango[1], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín) -
+                                     estad.beta.cdf(rango[0], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín)) -
+                                     certidumbre)
+
+                        # Avizar si todavía no optimizó bien
+                        if valid > 0.0001:
+                            avisar('Error en la optimización de la distribución especificada. Esto es un error de '
+                                   'programación, así que mejor se queje al programador. '
+                                   '(julien.malard@mail.mcgill.ca)')
+
+                        dist = 'Beta~({}, {}, {}, {})'.format(paráms[0], paráms[1], paráms[2], paráms[3])
 
                 else:
                     raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
