@@ -2,9 +2,10 @@ from tikon.RAE import Insecto as Ins
 
 
 class பூச்சி(Ins.Insecto):
-    def __init__(தாங்கள்,  பெயர், திட்டம், முட்டை=False, புழு_எண்=0, கூடு=False, பெரியது=True, tipo_ecuaciones=None):
+    def __init__(தாங்கள்,  பெயர், திட்டம், முட்டை=False, புழு_எண்=0, கூடு=False, பெரியது=True,
+                 சமன்பாடு_வகை=None):
         super().__init__(nombre=பெயர், proyecto=திட்டம், huevo=முட்டை, njuvenil=புழு_எண்,
-                         pupa=கூடு, adulto=பெரியது, tipo_ecuaciones=tipo_ecuaciones)
+                         pupa=கூடு, adulto=பெரியது, tipo_ecuaciones=சமன்பாடு_வகை)
 
     def தின்றுகிறது(símismo, இரை, இரை_படி=None, தின்றவர்_படி=None):
         símismo.secome(símismo, presa=இரை, etps_presa=இரை_படி, etps_depred=தின்றவர்_படி)
