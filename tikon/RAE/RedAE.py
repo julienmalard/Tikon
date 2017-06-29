@@ -6,8 +6,7 @@ from copy import deepcopy as copiar
 import numpy as np
 
 from tikon.Coso import Simulable
-from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec
-from tikon.Matemáticas.Arte import gráfico
+from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
 from tikon.Matemáticas.Incert import validar, gen_vector_coefs
 from . import Insecto as Ins
 from .Organismo import Organismo
@@ -537,7 +536,7 @@ class Red(Simulable):
                         else:
                             vector_obs_prc = vector_obs[n_p, :]
 
-                        # El archivo para guardar la imagen
+                        # El archivo para guardar el imagen
                         dir_img = os.path.join(directorio, 'Pobs')
 
                         # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
@@ -548,10 +547,10 @@ class Red(Simulable):
                             título = '{exp}, {org}, etapa {etp}'.format(**dic_título)
 
                             # Generar el gráfico
-                        gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
-                                título=título, etiq_y='Población',
-                                n_líneas=n_líneas, incert=incert,
-                                mostrar=mostrar, directorio=dir_img)
+                        Arte.gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
+                                     título=título, etiq_y='Población',
+                                     n_líneas=n_líneas, incert=incert,
+                                     mostrar=mostrar, directorio=dir_img)
 
             # Ahora, vamos a dibujar los detalles de la simulación
             if símismo.predics_exps[exp]['Reproducción'].shape == símismo.predics_exps[exp]['Pobs'].shape:
@@ -608,10 +607,10 @@ class Red(Simulable):
                                     dir_img = os.path.join(directorio, det)
 
                                 # Generar el gráfico
-                                gráfico(matr_predic=matr_predic_prc,
-                                        título=título, etiq_y=det,
-                                        n_líneas=n_líneas, incert=incert,
-                                        mostrar=mostrar, directorio=dir_img)
+                                Arte.gráfico(matr_predic=matr_predic_prc,
+                                             título=título, etiq_y=det,
+                                             n_líneas=n_líneas, incert=incert,
+                                             mostrar=mostrar, directorio=dir_img)
 
                         # Ahora para la depredación
                         if not any([n_etp in x for x in símismo.ecs['Depredación']['Ecuación'].values()]):
@@ -658,10 +657,10 @@ class Red(Simulable):
                                         .format(**dic_título, org_víc=org_víc, etp_víc=etp_víc)
 
                                 # Generar el gráfico
-                                gráfico(matr_predic=matr_predic_prc_víc,
-                                        título=título, etiq_y='Depredación',
-                                        n_líneas=n_líneas, incert=incert,
-                                        mostrar=mostrar, directorio=dir_img)
+                                Arte.gráfico(matr_predic=matr_predic_prc_víc,
+                                             título=título, etiq_y='Depredación',
+                                             n_líneas=n_líneas, incert=incert,
+                                             mostrar=mostrar, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
         """
@@ -900,8 +899,8 @@ class Red(Simulable):
 
         for mod, í_etps in modifs.items():
 
-            # Una copia del
-            crec_etp = crec[:, :, :, í_etps]
+            # Una COPIA de la matriz de crecimiento para estas etapas
+            r = crec[:, :, :, í_etps]
 
             cf = coefs_mod[mod]  # type: dict
 
@@ -917,6 +916,8 @@ class Red(Simulable):
             else:
                 raise ValueError
 
+            crec[:, :, :, í_etps] = r
+
         # Calcular el crecimiento de la población
         for tp_ec, í_etps in tipos_ec.items():
 
@@ -928,19 +929,20 @@ class Red(Simulable):
             if tp_ec == 'Exponencial':
                 # Crecimiento exponencial
 
-                np.multiply(pobs_etps, r, out=crec_etp)
+                np.multiply(pobs_etps, crec_etp, out=crec_etp)
 
             elif tp_ec == 'Logístico':
                 # Crecimiento logístico.
 
-                np.multiply(r, pobs_etps * (1 - pobs_etps / cf['K']), out=crec_etp)  # Ecuación logística sencilla
+                # Ecuación logística sencilla
+                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / cf['K']), out=crec_etp)
 
             elif tp_ec == 'Logístico Presa':
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
                 k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga
-                np.multiply(r, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
+                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pobs_etps, out=crec_etp)
@@ -950,7 +952,7 @@ class Red(Simulable):
 
                 depred = símismo.predics['Depred'][..., í_etps, :]  # La depredación por esta etapa
                 k = np.nansum(np.multiply(depred, cf['K']), axis=3)  # Calcular la capacidad de carga
-                np.multiply(r, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
+                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pobs_etps, out=crec_etp)
@@ -1911,7 +1913,7 @@ class Red(Simulable):
 
         return dic_args
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas, dib_dists=False):
         """
         Ver la documentación de Coso.
 
@@ -1984,6 +1986,22 @@ class Red(Simulable):
                                                                comunes=comunes,
                                                                usar_especificados=usar_especificadas)
 
+                                # Dibujar la distribución, si necesario
+                                if dib_dists:
+                                    directorio_dib = os.path.join(símismo.proyecto, símismo.nombre,
+                                        'Gráficos simulación', 'Dists',
+                                        categ, subcateg, tipo_ec, parám)
+
+                                    directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
+
+                                    título = símismo.etapas[n_etp]['org'] + ', ' + símismo.etapas[n_etp]['nombre']
+
+                                    Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs
+                                                               and type(d_parám_etp[x]) is str],
+                                                        valores=matr_etp,
+                                                        título=título,
+                                                        archivo=directorio_dib)
+
                             else:
                                 # Si, al contrario, hay interacciones...
 
@@ -2009,19 +2027,40 @@ class Red(Simulable):
                                                 # se ataca la etapa no infectada correspondiente, pero NO puede caer
                                                 # víctima de otro (o del mismo) parasitoide que afecta la etapa
                                                 # original.
-                                                l_etps_víc = [n_etp_víc]
+                                                l_n_etps_víc = [n_etp_víc]
                                                 if n_etp_víc in símismo.fantasmas:
                                                     obj_org = símismo.organismos[símismo.etapas[n_etp]['org']]
                                                     if not isinstance(obj_org, Ins.Parasitoide):
-                                                        l_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
+                                                        l_n_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
-                                                for n in l_etps_víc:
+                                                for n in l_n_etps_víc:
                                                     matr_etp[:, n] = gen_vector_coefs(
                                                         dic_parám=d_parám_etp[org_víc][etp_víc],
                                                         calibs=calibs,
                                                         n_rep_parám=n_rep_parám,
                                                         comunes=comunes,
                                                         usar_especificados=usar_especificadas)
+
+                                                    # Dibujar la distribución, si necesario
+                                                    if dib_dists:
+                                                        directorio_dib = os.path.join(
+                                                            símismo.proyecto, símismo.nombre,
+                                                            'Gráficos simulación', 'Dists',
+                                                            categ, subcateg, tipo_ec, parám)
+
+                                                        directorio_dib = símismo._prep_directorio(
+                                                            directorio=directorio_dib)
+
+                                                        título = símismo.etapas[n_etp]['org'] + ', ' + \
+                                                                 símismo.etapas[n_etp]['nombre'] + \
+                                                                 ' _ ' + org_víc + ', ' + etp_víc
+
+                                                        Arte.graficar_dists(
+                                                            dists=[d for x, d in d_parám_etp.items() if x in calibs
+                                                                   and type(d_parám_etp[x]) is str],
+                                                            valores=matr_etp[:, n],
+                                                            título=título,
+                                                            archivo=directorio_dib)
 
                                     else:
                                         # Al momento, solamente es posible tener interacciones con las presas de la

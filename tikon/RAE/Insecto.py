@@ -194,7 +194,7 @@ class MetamCompleta(Insecto):
                                      Muertes={'Ecuación': 'Nada'},
                                      Edad={'Ecuación': 'Días'},
                                      Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                                     Reproducción={'Prob': 'Constante'},
+                                     Reproducción={'Prob': 'Normal'},
                                      Movimiento={}
                                      )
         else:
@@ -257,7 +257,7 @@ class MetamIncompleta(Insecto):
                                      Muertes={'Ecuación': 'Nada'},
                                      Edad={'Ecuación': 'Días'},
                                      Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                                     Reproducción={'Prob': 'Constante'},
+                                     Reproducción={'Prob': 'Normal'},
                                      Movimiento={}
                                      )
         else:
