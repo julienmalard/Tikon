@@ -480,19 +480,22 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
         # Primero, hay que asegurarse que el máximo y mínimo del rango no sean iguales
         if rango[0] == rango[1]:
-            raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores'
-                             'mínimos y máximos iguales')
+            raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores '
+                             'mínimos y máximos iguales.')
+
+        # Una idea de la escala del rango de incertidumbre
+        escala = rango[1] / rango[0]
 
         # Ahora, asignar una distribución según cada caso posible
         if mín == -np.inf:
-            if máx == np.inf:  # El caso (-np.inf, np.inf)
+            if máx == np.inf:  # El caso (-inf, +inf)
                 if cont:
                     mu = np.average(rango)
                     # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
                     sigma = ((rango[1]-rango[0]) / 2) / estad.norm.ppf((1-certidumbre)/2 + certidumbre)
                     dist = 'Normal~({}, {})'.format(mu, sigma)
                 else:
-                    raise ValueError('No se puede especificar a prioris con niveles de certidumbres inferiores a 100%'
+                    raise ValueError('No se puede especificar a prioris con niveles de certidumbres inferiores a 100% '
                                      'con parámetros discretos en el rango (-inf, +inf).')
 
             else:  # El caso (-np.inf, R)
@@ -501,7 +504,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                  'las ecuaciones.')
 
         else:
-            if máx == np.inf:  # El caso (R, np.inf)
+            if máx == np.inf:  # El caso [R, +inf)
                 if cont:
                     inic = np.array([1, 1])
 

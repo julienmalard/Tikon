@@ -99,6 +99,6 @@ for nombre, dist in sorted(dists.items()):
 if len(con_errores):
     print('Verificar:', con_errores)
 else:
-    print('¡Todas las distribuciones pasaron! Todas nuestras felicitaciones, en Tamil, para ti: வாழ்த்துக்கள்!')
+    print('¡Todas las distribuciones pasaron! Todas nuestras felicitaciones, en தமிழ், para ti: வாழ்த்துக்கள்!')
 
 # Arreglar: Errores con T, TNo, etc...
