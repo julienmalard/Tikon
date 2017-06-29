@@ -118,11 +118,11 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
 
         elif isinstance(traza, pymc.Stochastic) or isinstance(traza, pymc.Deterministic):
 
-            # Si es un variable de calibración activo, poner el variable sí mismo en la matriz
+            # Si es un variable de calibración activa, poner el variable sí mismo en la matriz
             nuevos_vals = [traza]
 
         else:
-            raise ValueError('Hay un error con la traza, que no puede ser de tipo %s' % type(traza))
+            raise ValueError('Hay un error con la traza, que no puede ser de tipo "%s".' % type(traza))
 
         # Añadir los datos de esta calibración a la lista de datos para la traza general.
         lista_trazas.append(nuevos_vals)
@@ -136,7 +136,7 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
     Esta función convierte texto a su distribución SciPy o PyMC correspondiente.
 
     :param texto: La distribución a convertir. Sus parámetros deben ser en el orden de especificación de parámetros
-      de la distribución SciPy correspondiente.
+    de la distribución SciPy correspondiente.
     :type texto: str
 
     :param usar_pymc: Si vamos a generar una distribución PyMC (en vez de una distribución de SciPy).
@@ -436,7 +436,7 @@ def límites_a_texto_apriori(límites, cont=True):
 def rango_a_texto_dist(rango, certidumbre, líms, cont):
     """
     Esta función genera distribuciones estadísticas (en formato texto) dado un rango de valores y la densidad de
-      probabilidad en este rango, además de las límites intrínsicas del parámetro.
+    probabilidad en este rango, además de las límites intrínsicas del parámetro.
 
     :param rango: Un rango de valores.
     :type rango: tuple

@@ -261,4 +261,11 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if archivo is None:
         dib.show()
     else:
+        inacceptables = [':', ';', '/', '\\']
+        for i in inacceptables:
+            título = título.replace(i, '_')
+
+        if archivo[-4:] != '.png':
+            archivo = os.path.join(archivo, título + '.png')
+
         dib.savefig(archivo)

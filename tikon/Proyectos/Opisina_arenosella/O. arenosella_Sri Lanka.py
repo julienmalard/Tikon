@@ -150,7 +150,7 @@ Red_coco.añadir_exp(Experimento_B,
                                                'pupa': ['Pupa']}}
                     )
 
-if True:
+if False:
     araña = Ins.Sencillo('Araña', proyecto=proyecto)
     for a_priori in a_prioris[araña.nombre]:
         araña.especificar_apriori(dibujar=dib_aprioris, **a_priori)
@@ -167,7 +167,7 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
 
 pprint(Red_coco.ver_coefs_no_espec())
 # Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10, opciones_dib=ops_dib)
+Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10, opciones_dib=ops_dib, dib_dists=True)
 
 input('¿Seguir?')
 Red_coco.calibrar(exper=Experimento_A, n_iter=1000, quema=0, extraer=1, dibujar=True)

@@ -416,7 +416,7 @@ class Simulable(Coso):
 
     def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
-                mostrar=True, opciones_dib=None):
+                mostrar=True, opciones_dib=None, dib_dists=True):
         """
         Esta función corre una simulación del Simulable.
 
@@ -480,7 +480,7 @@ class Simulable(Coso):
 
         # Llenar las matrices internas de coeficientes
         símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
-                              usar_especificadas=usar_especificadas)
+                              usar_especificadas=usar_especificadas, dib_dists=dib_dists)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
@@ -676,16 +676,16 @@ class Simulable(Coso):
 
     def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, usar_especificadas=False,
                 detalles=True,
-                dibujar=True, mostrar=False, opciones_dib=None):
+                dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
         :param exper: Los experimentos vinculados al objeto a usar para la calibración. exper=None lleva al uso de
-          todos los experimentos disponibles.
+        todos los experimentos disponibles.
         :type exper: list | str | Experimento | None
 
         :param calibs: Las calibraciones que hay que usar para la validación. Si calibs == None, se usará la
-          calibración activa, si hay; si no hay, se usará todas las calibraciones existentes.
+        calibración activa, si hay; si no hay, se usará todas las calibraciones existentes.
         :type calibs: list | str | None
 
         :param paso: El paso para la validación
@@ -725,7 +725,7 @@ class Simulable(Coso):
         símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
                         calibs=calibs, usar_especificadas=usar_especificadas, detalles=detalles,
                         dibujar=dibujar, mostrar=mostrar,
-                        opciones_dib=opciones_dib)
+                        opciones_dib=opciones_dib, dib_dists=dib_dists)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación()
@@ -748,10 +748,10 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
+    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas, dib_dists=False):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
-          Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
+        Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
           tienen la forma siguiente: eje 0 = repetición paramétrica, eje 1+ : dimensiones opcionales.
 
         :param n_rep_parám: El número de repeticiones paramétricas que incluir.
