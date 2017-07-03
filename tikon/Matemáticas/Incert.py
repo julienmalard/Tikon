@@ -3,9 +3,10 @@ from warnings import warn as avisar
 import numpy as np
 import pymc
 import scipy.stats as estad
-from scipy.optimize import minimize
+from scipy.optimize import minimize as minimizar
 
 import tikon.Matemáticas.Distribuciones as Ds
+from tikon import __email__ as correo
 
 """
 Este código contiene funciones para manejar datos de incertidumbre.
@@ -456,6 +457,9 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
     """
 
+    # La precisión que querremos de nuestras distribuciones aproximadas
+    límite_precisión = 0.0001
+
     # Leer los límites intrínsicos del parámetro
     mín = líms[0]
     máx = líms[1]
@@ -484,7 +488,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                              'mínimos y máximos iguales.')
 
         # Una idea de la escala del rango de incertidumbre
-        escala = rango[1] / rango[0]
+        escala_rango = rango[1] / rango[0]
 
         # Ahora, asignar una distribución según cada caso posible
         if mín == -np.inf:
@@ -506,47 +510,118 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
         else:
             if máx == np.inf:  # El caso [R, +inf)
                 if cont:
-                    inic = np.array([1, 1])
 
-                    # Primero hacemos una serie de transformaciones al rango, si necesario, para que se pueda
-                    # aproximar con una distribución gamma.
-                    escala = 1
-                    trasld = 0
+                    # Para hacer: quitar la línea siguiente que solamente es de prueba.
+                    rango = (110, 113); certidumbre = 0.95; mín = 3
 
-                    if rango[0] < 1:
-                        escala = 1 / rango[0]
+                    # Primero vamos a intentar crear una distribución gamma con la densidad especificada
+                    # (certidumbre) entre el rango especificado y 50% de la densidad no especificada de cada
+                    # lado del rango (así asegurándose que la densidad esté más o menos bien distribuida a través
+                    # del rango).
 
-                    dif = (rango[1] - rango[0]) * escala
-                    if dif < 3:
-                        escala *= 3 / dif
+                    área_cola = (1 - certidumbre) / 2  # La densidad que querremos de cada lado (cola) del rango
 
-                    rango_ajust = (rango[0] * escala, rango[1] * escala)
+                    # La función de optimización. Emplea un rango normalizado y toma como único argumento el
+                    # parámetro a de la distribución gamma; devuelve el ajuste de la distribución.
+                    def calc_ajust_gamma_1(x):
+                        # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
+                        # a la izquierda de este límite.
+                        mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
 
-                    if rango_ajust[0] > 1.5:
-                        trasld = rango_ajust[0] - 1.5
-                        rango_ajust = (rango_ajust[0] - trasld, rango_ajust[1] - trasld)
+                        # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
+                        # especificados).
+                        máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
 
-                    # Ahora, estimar los parámetros.
-                    opt = minimize(lambda x: abs((estad.gamma.cdf(rango_ajust[1], a=x[0], loc=mín, scale=x[1]) -
-                                                  estad.gamma.cdf(rango_ajust[0], a=x[0], loc=mín, scale=x[1])) -
-                                                 certidumbre), bounds=[(0, None), (0, None)],
-                                   x0=inic)
+                        # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
+                        # deseada.
+                        ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0]) - (1 - área_cola))
 
-                    # Ajustar los parámetros estimados
-                    paráms = np.array([opt.x[0], mín, opt.x[1]])
-                    paráms[1] += trasld / escala
-                    paráms[2] /= escala
+                        return ajust  # Devolver el ajuste del modelo.
 
-                    # Validar que todo esté bien y que el error en la densidad de la distribución sea menos de
-                    # 0.0001.
+                    # Hacer la optimización
+                    opt = minimizar(calc_ajust_gamma_1, x0=np.array([1]),
+                                    bounds=[(1, None)])
+
+                    # Calcular la escala
+                    escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0])
+
+                    # Calcular los parámetros
+                    paráms = [opt.x[0], mín, escala]
+
+                    # Validar la optimización
                     valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
-                                 estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])))
+                                 estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
+                                certidumbre)
 
-                    if abs(valid-certidumbre) > 0.0001:
-                        avisar('Error en la optimización de la distribución especificada. Esto es un error de'
-                               ' programación, así que mejor se queje al programador.')
+                    # Si validó bien, todo está bien.
+                    if valid < límite_precisión:
+                        dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
 
-                    dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
+                    else:
+                        # Si no validó bien, intentaremos otra cosa. Ahora vamos a permitir que el límite inferior
+                        # de la distribución gamma cambie un poco.
+                        # Esto puede ayudar en casos donde rango[1] - rango[0] << rango[0] - mín
+
+                        def calc_ajust_gamma_2(x):
+                            # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
+                            # a la izquierda de este límite.
+                            mín_ajust = estad.gamma.ppf(área_cola, a=x[0], loc=x[1])
+
+                            # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
+                            # especificados).
+                            máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
+
+                            # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
+                            # deseada.
+                            ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0], loc=x[1]) - (1 - área_cola))
+
+                            return ajust
+
+                        opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, 0]),
+                                        bounds=[(1, None), (mín, None)])
+
+                        escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
+
+                        paráms = [opt.x[0], opt.x[1] * escala + mín, escala]
+
+                        # Validar que todo esté bien.
+                        valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
+                                     estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
+                                    certidumbre)
+
+                        if valid < límite_precisión:
+                            # Si está bien, allí guardamos el resultado.
+                            dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
+
+                        else:
+                            # Si todavía logramos encontrar una buena distribución, reconocemos que no podemos hacer
+                            # milagros y abandonamos la condición que las dos colas deben tener el mismo área.
+
+                            # OTRA función de optimización...
+                            def calc_ajust_gamma_3(x):
+
+
+                                # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
+                                # a la izquierda de este límite.
+                                mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
+
+                                # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
+                                # especificados).
+                                máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
+
+                                # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
+                                # deseada.
+                                ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0]) - (1 - área_cola))
+
+                                return ajust  # Devolver el ajuste del modelo.
+
+
+                            # Si el error en la densidad de la distribución TODAVÍA queda superior al límite acceptable...
+                            if valid > límite_precisión:
+                                avisar('Error en la optimización de la distribución especificada. Esto es un error de'
+                                       ' programación, así que mejor se queje al programador. ({})'.format(correo))
+
+                            dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
 
                 else:
                     raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
@@ -557,18 +632,14 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                     # Una distribución normal truncada con límites especificados y mu en la mitad del rango
                     # especificado
-                    rango = (0.1, 0.9)
-                    certidumbre = 0.3
-                    mín = 0; máx = 1
-
                     mu = (rango[0]+rango[1])/2
-
-                    opt = minimize(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-mu)/x, b=(máx-mu)/x,
+                    opt = minimizar(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-mu)/x, b=(máx-mu)/x,
                                                                       loc=mu, scale=x) -
                                                   estad.truncnorm.cdf(rango[0], a=(mín-mu)/x, b=(máx-mu)/x,
                                                                       loc=mu, scale=x)) -
-                                                 certidumbre), bounds=[(1e-10, None)],
-                                   x0=np.array([0.2]),
+                                                 certidumbre),
+                                   # bounds=[(1e-10, None)],  # para hacer: activar este
+                                   x0=np.array([rango[1] - rango[0]]),
                                    method='Nelder-Mead')
 
                     paráms = np.array([mu, opt.x[0], (mín-mu)/opt.x[0], (máx-mu)/opt.x[0]])
@@ -581,12 +652,12 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                 - certidumbre)
 
                     # Si validó bien, guardar la distribución...
-                    if valid < 0.0001:
+                    if valid < límite_precisión:
                         dist = 'NormalTrunc~({}, {}, {}, {})'.format(paráms[2], paráms[3], paráms[0], paráms[1])
 
                     else:
                         # ... si no, intentar con una distribución beta.
-                        opt = minimize(
+                        opt = minimizar(
                             lambda x: abs((estad.beta.cdf(rango[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
                                            estad.beta.cdf(rango[0], a=x[0], b=x[1], loc=mín, scale=máx - mín)) -
                                           certidumbre), bounds=[(1e-10, None), (1e-10, None)],
@@ -599,10 +670,9 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                      certidumbre)
 
                         # Avizar si todavía no optimizó bien
-                        if valid > 0.0001:
+                        if valid > límite_precisión:
                             avisar('Error en la optimización de la distribución especificada. Esto es un error de '
-                                   'programación, así que mejor se queje al programador. '
-                                   '(julien.malard@mail.mcgill.ca)')
+                                   'programación, así que mejor se queje al programador. ({})'.format(correo))
 
                         dist = 'Beta~({}, {}, {}, {})'.format(paráms[0], paráms[1], paráms[2], paráms[3])
 
