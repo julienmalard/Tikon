@@ -293,9 +293,9 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 
         # Verificar que los límites del parámetro y de la distribución sean compatibles
         lím_igual = (((mín_dist == mín_parám == -np.inf) or
-                     (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
+                      (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
                      ((máx_dist == máx_parám == np.inf) or
-                     (not np.isinf(máx_dist) and not np.isinf(máx_parám))))
+                      (not np.isinf(máx_dist) and not np.isinf(máx_parám))))
 
         # Si son compatibles...
         if lím_igual:
@@ -325,7 +325,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
                     if nombre_dist == 'Uniforme' or nombre_dist == 'Beta':
                         restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
                     elif nombre_dist == 'NormalTrunc':
-                        restric = {'floc': (máx_parám + mín_parám)/2}
+                        restric = {'floc': (máx_parám + mín_parám) / 2}
                     else:
                         raise ValueError(nombre_dist)
 
@@ -426,10 +426,10 @@ def límites_a_texto_apriori(límites, cont=True):
                 dist = 'Degenerado~({})'.format(máx)
             else:
                 if cont:
-                    loc = máx-mín
+                    loc = máx - mín
                     dist = 'Uniforme~({}, {})'.format(mín, loc)
                 else:
-                    dist = 'UnifDiscr~({}, {})'.format(mín, mín+1)
+                    dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
 
     return dist
 
@@ -475,7 +475,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     if certidumbre == 1:
         # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
         if cont:
-            dist = 'Uniforme~({}, {})'.format(rango[0], (rango[1]-rango[0]))
+            dist = 'Uniforme~({}, {})'.format(rango[0], (rango[1] - rango[0]))
         else:
             dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1])
 
@@ -496,7 +496,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                 if cont:
                     mu = np.average(rango)
                     # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
-                    sigma = ((rango[1]-rango[0]) / 2) / estad.norm.ppf((1-certidumbre)/2 + certidumbre)
+                    sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - certidumbre) / 2 + certidumbre)
                     dist = 'Normal~({}, {})'.format(mu, sigma)
                 else:
                     raise ValueError('No se puede especificar a prioris con niveles de certidumbres inferiores a 100% '
@@ -510,9 +510,6 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
         else:
             if máx == np.inf:  # El caso [R, +inf)
                 if cont:
-
-                    # Para hacer: quitar la línea siguiente que solamente es de prueba.
-                    rango = (110, 113); certidumbre = 0.95; mín = 3
 
                     # Primero vamos a intentar crear una distribución gamma con la densidad especificada
                     # (certidumbre) entre el rango especificado y 50% de la densidad no especificada de cada
@@ -577,7 +574,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                             return ajust
 
-                        opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, 0]),
+                        opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, mín]),
                                         bounds=[(1, None), (mín, None)])
 
                         escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
@@ -595,32 +592,46 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                         else:
                             # Si todavía logramos encontrar una buena distribución, reconocemos que no podemos hacer
-                            # milagros y abandonamos la condición que las dos colas deben tener el mismo área.
+                            # milagros y abandonamos la condición que las dos colas deben tener el mismo área. Siempre
+                            # guardamos el mínimo de la función gamma en mín (el mínimo teorético del parámetro
+                            # especificado por el usuario).
+                            # Esto puede ayudar en casos donde rango[0] - mín << rango[1] - mín y certidumbre >> 0.
 
                             # OTRA función de optimización...
                             def calc_ajust_gamma_3(x):
+                                """
 
+                                :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la posición relativa
+                                del límite superior del rango de incertidumbre
+                                :type x: np.ndarray
+                                """
 
-                                # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
-                                # a la izquierda de este límite.
-                                mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
+                                máx_ajust = x[1] * (rango[1] - mín)
+                                mín_ajust = x[1] * (rango[0] - mín)
 
-                                # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
-                                # especificados).
-                                máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
+                                dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0])
 
-                                # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
-                                # deseada.
-                                ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0]) - (1 - área_cola))
+                                dens_líms = estad.gamma.cdf(máx_ajust, a=x[0]) - estad.gamma.cdf(mín_ajust, a=x[0])
 
-                                return ajust  # Devolver el ajuste del modelo.
+                                return abs(dens_líms - certidumbre) * 100 + abs(dens_sup - área_cola)
 
+                            opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 0.3]),
+                                            bounds=[(1, None), (0, None)])
 
-                            # Si el error en la densidad de la distribución TODAVÍA queda superior al límite acceptable...
+                            paráms = [opt.x[0], mín, 1/opt.x[1]]
+
+                            # Validar que todo esté bien.
+                            valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
+                                         estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
+                                        certidumbre)
+
+                            # Si el error en la densidad de la distribución TODAVÍA queda superior al límite
+                            # acceptable...
                             if valid > límite_precisión:
                                 avisar('Error en la optimización de la distribución especificada. Esto es un error de'
                                        ' programación, así que mejor se queje al programador. ({})'.format(correo))
 
+                            # Guardar la distribución de todo modo.
                             dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
 
                 else:
@@ -632,23 +643,23 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                     # Una distribución normal truncada con límites especificados y mu en la mitad del rango
                     # especificado
-                    mu = (rango[0]+rango[1])/2
-                    opt = minimizar(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín-mu)/x, b=(máx-mu)/x,
-                                                                      loc=mu, scale=x) -
-                                                  estad.truncnorm.cdf(rango[0], a=(mín-mu)/x, b=(máx-mu)/x,
-                                                                      loc=mu, scale=x)) -
-                                                 certidumbre),
-                                   # bounds=[(1e-10, None)],  # para hacer: activar este
-                                   x0=np.array([rango[1] - rango[0]]),
-                                   method='Nelder-Mead')
+                    mu = (rango[0] + rango[1]) / 2
+                    opt = minimizar(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín - mu) / x, b=(máx - mu) / x,
+                                                                       loc=mu, scale=x) -
+                                                   estad.truncnorm.cdf(rango[0], a=(mín - mu) / x, b=(máx - mu) / x,
+                                                                       loc=mu, scale=x)) -
+                                                  certidumbre),
+                                    # bounds=[(1e-10, None)],  # para hacer: activar este
+                                    x0=np.array([rango[1] - rango[0]]),
+                                    method='Nelder-Mead')
 
-                    paráms = np.array([mu, opt.x[0], (mín-mu)/opt.x[0], (máx-mu)/opt.x[0]])
+                    paráms = np.array([mu, opt.x[0], (mín - mu) / opt.x[0], (máx - mu) / opt.x[0]])
 
                     # Validar la optimización
                     valid = abs((estad.truncnorm.cdf(rango[1], loc=paráms[0], scale=paráms[1],
                                                      a=paráms[2], b=paráms[3]) -
                                  estad.truncnorm.cdf(rango[0], loc=paráms[0], scale=paráms[1],
-                                                     a=paráms[2], b=paráms[3],))
+                                                     a=paráms[2], b=paráms[3], ))
                                 - certidumbre)
 
                     # Si validó bien, guardar la distribución...
@@ -663,11 +674,11 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                           certidumbre), bounds=[(1e-10, None), (1e-10, None)],
                             x0=np.array([1e-10, 1e-10]))
 
-                        paráms = [opt.x[0], opt.x[1], mín, máx-mín]
+                        paráms = [opt.x[0], opt.x[1], mín, máx - mín]
 
                         valid = abs((estad.beta.cdf(rango[1], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín) -
                                      estad.beta.cdf(rango[0], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín)) -
-                                     certidumbre)
+                                    certidumbre)
 
                         # Avizar si todavía no optimizó bien
                         if valid > límite_precisión:
@@ -721,12 +732,12 @@ def validar(matr_predic, vector_obs):
     # Validar el intervalo de incertidumbre
     confianza = np.empty_like(vector_obs, dtype=float)
     for n in range(n_días):
-        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n])/100
-        confianza[n] = abs(0.5-perc) * 2
+        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n]) / 100
+        confianza[n] = abs(0.5 - perc) * 2
 
     confianza.sort()
 
-    percentiles = np.divide(np.arange(1, n_días+1), n_días)
+    percentiles = np.divide(np.arange(1, n_días + 1), n_días)
 
     r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
 
@@ -760,12 +771,12 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], paráms[1])
 
     elif tipo_dist == 'Chi2':
-        paráms_pymc = (paráms[0], )
+        paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
         transform_pymc['mult'] = paráms[2]
 
     elif tipo_dist == 'Exponencial':
-        paráms_pymc = (1 / paráms[1], )
+        paráms_pymc = (1 / paráms[1],)
         transform_pymc['sum'] = paráms[0]
 
     elif tipo_dist == 'WeibullExponencial':
@@ -779,7 +790,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], paráms[1])
 
     elif tipo_dist == 'MitadNormal':
-        paráms_pymc = (1 / paráms[1]**2, )
+        paráms_pymc = (1 / paráms[1] ** 2,)
         transform_pymc['sum'] = paráms[0]
 
     elif tipo_dist == 'GammaInversa':
@@ -793,7 +804,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[0], 1 / paráms[1])
 
     elif tipo_dist == 'LogNormal':
-        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0]**2))
+        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0] ** 2))
         transform_pymc['mult'] = paráms[2]
         transform_pymc['sum'] = paráms[1]
 
@@ -801,21 +812,21 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
 
     elif tipo_dist == 'Normal':
-        paráms_pymc = (paráms[0], 1 / paráms[1]**2)
+        paráms_pymc = (paráms[0], 1 / paráms[1] ** 2)
 
     elif tipo_dist == 'Pareto':
         paráms_pymc = (paráms[0], paráms[2])
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'T':
-        paráms_pymc = (paráms[0], )
+        paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
         transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
 
     elif tipo_dist == 'NormalTrunc':
         mu, sigma = paráms[2], paráms[3]
         mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        paráms_pymc = (1 / sigma**2, mu, mín * sigma + mu, máx * sigma + mu)
+        paráms_pymc = (1 / sigma ** 2, mu, mín * sigma + mu, máx * sigma + mu)
 
     elif tipo_dist == 'Uniforme':
         paráms_pymc = (paráms[0], paráms[1] + paráms[0])
@@ -825,7 +836,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['mult'] = paráms[2]
 
     elif tipo_dist == 'Bernoulli':
-        paráms_pymc = (paráms[0], )
+        paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'Binomial':
@@ -833,7 +844,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[2]
 
     elif tipo_dist == 'Geométrica':
-        paráms_pymc = (paráms[0], )
+        paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'Hypergeométrica':
@@ -845,7 +856,7 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['sum'] = paráms[2]
 
     elif tipo_dist == 'Poisson':
-        paráms_pymc = (paráms[0], )
+        paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
 
     elif tipo_dist == 'UnifDiscr':
