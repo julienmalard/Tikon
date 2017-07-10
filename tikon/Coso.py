@@ -616,7 +616,7 @@ class Simulable(Coso):
         # Avanzar la calibración.
         símismo.ModBayes.calib(rep=rep, quema=quema, extraer=extraer)
 
-    def guardar_calib(símismo, descrip, utilizador, contacto):
+    def guardar_calib(símismo, descrip, utilizador, contacto=''):
         """
         Esta función guarda una calibración existente para uso futuro.
 

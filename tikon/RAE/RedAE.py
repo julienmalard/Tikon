@@ -1705,7 +1705,7 @@ class Red(Simulable):
 
             # Convertir poblaciones a unidades de organismos por hectárea
             tamaño_superficies = símismo.info_exps['superficies'][nombre]
-            np.divide(predic['Pobs'], tamaño_superficies, out=predic['Pobs'])
+            np.divide(predic['Pobs'], tamaño_superficies, out=predic['Pobs'])  # Para hacer: ¿no borrar 'Pobs'?
 
             # La combinaciones de etapas necesarias para procesar los resultados.
             # Tiene el formato general: {exp: {{1: [3,4, etc.]}, etc...], ...}
@@ -1715,11 +1715,25 @@ class Red(Simulable):
             ubic_obs = símismo.info_exps['ubic_obs'][nombre]  # type: tuple
 
             # Combinar las etapas que lo necesitan
-            for i, fants in símismo.fantasmas.items():  # Combinaciones automáticas
-                índ_fant = list(fants.values())  # Los índices de las etapas fantasmas
-                predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., índ_fant, :], axis=3)
-            for i in combin_etps:  # Combinaciones basadas en los datos disponibles
-                predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., combin_etps[i], :], axis=3)
+            # Primero, combinaciones automáticas
+
+            # Agregamos etapas fantasmas a las etapas originales de los huéspedes
+            for i, fants in símismo.fantasmas.items():
+                índ_fants = list(fants.values())  # Los índices de las etapas fantasmas
+                predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., índ_fants, :], axis=-2)
+
+            # Agregamos etapas fantasmas a la etapa juvenil del parasitoide también
+            for ad, dic in símismo.parasitoides['adultos'].items():
+                índ_fants = dic['n_fants']  # Los índices de las etapas fantasmas
+
+                d_juvs = símismo.parasitoides['juvs']
+                índ_juv = [x for x in d_juvs if d_juvs[x] == ad][0]
+
+                predic['Pobs'][..., índ_juv, :] += np.sum(predic['Pobs'][..., índ_fants, :], axis=-2)
+
+            # Combinaciones basadas en los datos disponibles (combinaciones manuales)
+            for i in combin_etps:
+                predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., combin_etps[i], :], axis=-2)
 
             # Sacar únicamente las predicciones que corresponden con los datos observados disponibles
             vector_predics = np.concatenate((vector_predics,
