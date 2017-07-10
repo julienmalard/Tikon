@@ -88,10 +88,10 @@ class ModBayes(object):
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
-
         lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
                                          l_pm=lista_paráms, l_lms=lista_líms,
                                          aprioris=aprioris)
+
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
         for parám in lista_paráms:

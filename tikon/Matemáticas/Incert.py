@@ -835,9 +835,9 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
 
     elif tipo_dist == 'NormalTrunc':
-        mu, sigma = paráms[2], paráms[3]
+        mu = paráms[2]
         mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        paráms_pymc = (1 / sigma ** 2, mu, mín * sigma + mu, máx * sigma + mu)
+        paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
 
     elif tipo_dist == 'Uniforme':
         paráms_pymc = (paráms[0], paráms[1] + paráms[0])
