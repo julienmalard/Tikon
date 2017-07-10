@@ -11,9 +11,9 @@ import numpy as np
 import pymc
 
 from tikon.Controles import directorio_base, dir_proyectos
-from tikon.Experimentos import Experimento
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes
+from tikon.Matemáticas.Experimentos import Experimento
 
 
 class Coso(object):
@@ -136,7 +136,7 @@ class Coso(object):
             símismo.guardar_especificados()
 
         # Preparar el directorio
-        símismo._prep_directorio(proyecto)
+        proyecto = símismo._prep_directorio(proyecto)
 
         # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
         receta_prep = prep_json(símismo.receta)
@@ -183,7 +183,8 @@ class Coso(object):
             dic_lista_a_np(símismo.receta['coefs'])
 
     @staticmethod
-    def _estab_a_priori(dic_ecs, dic_parám, ubic_parám, rango, certidumbre, dibujar, inter=None):
+    def _estab_a_priori(dic_ecs, dic_parám, ubic_parám, rango, certidumbre, dibujar, inter=None,
+                        archivo=None, título=None):
         """
         Esta función implementa una distribución a priori en el diccionario especificado. Se llama desde la
         implementación local de especificar_apriori.
@@ -255,7 +256,7 @@ class Coso(object):
 
         # Si necesario, dibujar y mostrar la nueva distribución.
         if dibujar:
-            Arte.graficar_dists([texto_dist], rango=rango)
+            Arte.graficar_dists([texto_dist], rango=rango, título=título, archivo=archivo)
 
     def _sacar_coefs_interno(símismo):
         """
