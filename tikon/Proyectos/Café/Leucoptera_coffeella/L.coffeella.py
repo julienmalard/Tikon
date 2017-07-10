@@ -1,8 +1,6 @@
 import tikon.RAE.Insecto as Ins
-from tikon.Experimentos import Experimento
-from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
-from tikon.RAE.RedAE import Red
 import tikon.RAE.Planta as Plt
+from tikon.Matemáticas.Experimentos import Experimento
 
 # Opciones artísticas
 dib_aprioris = False

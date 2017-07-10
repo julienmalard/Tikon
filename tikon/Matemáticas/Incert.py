@@ -9,7 +9,7 @@ import tikon.Matemáticas.Distribuciones as Ds
 from tikon import __email__ as correo
 
 """
-Este código contiene funciones para manejar datos de incertidumbre.
+Este código contiene funciones para manejar datos y distribuciones de incertidumbre.
 """
 
 
@@ -598,27 +598,36 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                             # Esto puede ayudar en casos donde rango[0] - mín << rango[1] - mín y certidumbre >> 0.
 
                             # OTRA función de optimización...
+                            mx_ajust = 5  # 5 es un buen número para evitar problemas.
+
                             def calc_ajust_gamma_3(x):
                                 """
 
-                                :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la posición relativa
-                                del límite superior del rango de incertidumbre
+                                :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la escala de la
+                                distribución.
                                 :type x: np.ndarray
                                 """
 
-                                máx_ajust = x[1] * (rango[1] - mín)
-                                mín_ajust = x[1] * (rango[0] - mín)
+                                máx_ajust = mx_ajust  # El rango superior
 
-                                dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0])
+                                # El rango inferior proporcional
+                                mín_ajust = (rango[0] - mín) * máx_ajust / (rango[1] - mín)
 
-                                dens_líms = estad.gamma.cdf(máx_ajust, a=x[0]) - estad.gamma.cdf(mín_ajust, a=x[0])
+                                # La densidad de la distribución abajo del límite inferior del rango
+                                dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1])
 
+                                # La densidad adentro de los límites del rango
+                                dens_líms = estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1]) - \
+                                            estad.gamma.cdf(mín_ajust, a=x[0], scale=x[1])
+
+                                # Devolver una medida del ajuste de la distribución. Lo más importante sería la 
+                                # densidad adentro del rango, pero también la densidad en la cola superior.
                                 return abs(dens_líms - certidumbre) * 100 + abs(dens_sup - área_cola)
 
-                            opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 0.3]),
-                                            bounds=[(1, None), (0, None)])
+                            opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 1]),
+                                            bounds=[(1, None), (1e-10, None)])
 
-                            paráms = [opt.x[0], mín, 1/opt.x[1]]
+                            paráms = [opt.x[0], mín, (rango[1] - mín) / mx_ajust * opt.x[1]]
 
                             # Validar que todo esté bien.
                             valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
@@ -628,8 +637,9 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                             # Si el error en la densidad de la distribución TODAVÍA queda superior al límite
                             # acceptable...
                             if valid > límite_precisión:
-                                avisar('Error en la optimización de la distribución especificada. Esto es un error de'
-                                       ' programación, así que mejor se queje al programador. ({})'.format(correo))
+                                raise ValueError('Error en la optimización de la distribución especificada. '
+                                                 'Esto es un error de programación, así que mejor se queje al '
+                                                 'programador. ({})'.format(correo))
 
                             # Guardar la distribución de todo modo.
                             dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
@@ -682,8 +692,9 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                         # Avizar si todavía no optimizó bien
                         if valid > límite_precisión:
-                            avisar('Error en la optimización de la distribución especificada. Esto es un error de '
-                                   'programación, así que mejor se queje al programador. ({})'.format(correo))
+                            raise ValueError('Error en la optimización de la distribución especificada. Esto es un '
+                                             'error de programación, así que mejor se queje al '
+                                             'programador. ({})'.format(correo))
 
                         dist = 'Beta~({}, {}, {}, {})'.format(paráms[0], paráms[1], paráms[2], paráms[3])
 
