@@ -1,11 +1,28 @@
 import os
 import platform
-import sys
-from subprocess import run
-import urllib.request
 import shutil
-from setuptools import setup, find_packages
+import sys
+import urllib.request
+from subprocess import run
 from warnings import warn as avisar
+
+from setuptools import setup, find_packages
+
+"""
+Usuarios de Windows pueden tener problemas particularmente frustrantes para instalar los paquetes SciPy, NumPy, y
+PyMC que necesita Tiko'n. Por eso vamos a intentar ayudarlos un poco aquí. No funciona perfectamente y para todas
+las versiones de Windows, pero es mejor que nada.
+Lo mismo aplica para PyMC en Mac, pero no tengo ni idea cómo ayudarte allí.
+"""
+
+so = platform.system()
+bits = platform.architecture()[0][:2]
+
+directorio = os.path.split(os.path.realpath(__file__))[0]
+directorio_python = os.path.split(sys.executable)[0]
+directorio_móds = os.path.join(directorio, 'Módulos')
+
+versión_python = str(sys.version_info.major) + str(sys.version_info.minor)
 
 try:
     import numpy as np
@@ -27,40 +44,103 @@ try:
 except ImportError:
     pymc = None
 
-directorio = os.path.split(os.path.realpath(__file__))[0]
-
-directorio_móds = os.path.join(directorio, 'Módulos')
-
-if not os.path.exists(directorio_móds):
-    os.makedirs(directorio_móds)
-
-directorio_python = os.path.split(sys.executable)[0]
-
-versión_python = str(sys.version_info.major) + str(sys.version_info.minor)
-
 info_paquetes = {'numpy': {'versión': '1.11.3',
                            'formato_archivo': 'numpy-{versión}+mkl-cp{v_py}-cp{v_py}m-{sis}.whl',
-                           'id_dropbox': {'32': 'rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1',
-                                          '64': None}
+                           '35': {
+                               'Windows': {
+                                   '32': {'id_dropbox': None
+                                          },
+                                   '64': {'id_dropbox': None
+                                          }
+                               }
+                           },
+                           '36': {
+                               'Windows': {
+                                   '32': {'id_dropbox': 'rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1'
+                                          },
+                                   '64': {'id_dropbox': None
+                                          }
+                               }
+                           },
                            },
                  'scipy': {'versión': '0.18.1',
                            'formato_archivo': 'scipy-{versión}-cp{v_py}-none-{sis}.whl',
-                           'id_google': {'32': '0B8RjC9bwyAOwTEZCdWdMbDQ4VG8',
-                                         '64': None}
+                           '35': {
+                               'Windows': {
+                                   '32': {'id_google': None
+                                          },
+                                   '64': {'id_google': None
+                                          }
+                               }
+                           },
+                           '36': {
+                               'Windows': {
+                                   '32': {'id_google': '0B8RjC9bwyAOwTEZCdWdMbDQ4VG8'
+                                          },
+                                   '64': {'id_google': None
+                                          }
+                               }
+                           },
                            },
                  'matplotlib': {'versión': '2.0.0',
                                 'formato_archivo': 'matplotlib-{versión}-cp{v_py}-none-{sis}.whl',
-                                'id_google': {'32': '0B8RjC9bwyAOwRDlIU2x1YlY0U1U',
-                                              '64': None}
+                                '35': {
+                                    'Windows': {
+                                        '32': {'id_google': None
+                                               },
+                                        '64': {'id_google': None
+                                               }
+                                    }
+                                },
+                                '36': {
+                                    'Windows': {
+                                        '32': {'id_google': '0B8RjC9bwyAOwRDlIU2x1YlY0U1U'
+                                               },
+                                        '64': {'id_google': None
+                                               }
+                                    }
+                                },
                                 },
                  'pymc': {'versión': '2.3.6',
                           'formato_archivo': 'pymc-{versión}-cp{v_py}-none-{sis}.whl',
-                          'id_google': {'32': '0B8RjC9bwyAOwTXlFQjZVYWczUTA',
-                                        '64': None}
+                          '35': {
+                              'Windows': {
+                                  '32': {'id_google': None
+                                         },
+                                  '64': {'id_google': None
+                                         }
+                              }
                           },
+                          '36': {
+                              'Windows': {
+                                  '32': {'id_google': '0B8RjC9bwyAOwTXlFQjZVYWczUTA'
+                                         },
+                                  '64': {'id_google': None
+                                         }
+                              }
+                          },
+                          },
+                 'statsmodels': {
+                     'versión': '0.8.0',
+                     'formato_archivo': 'statsmodels-{versión}-cp{v_py}-cp{v_py}m-{sis}.whl',
+                     '35': {
+                         'Windows': {
+                             '32': {'id_dropbox': None
+                                    },
+                             '64': {'id_dropbox': None
+                                    }
+                         }
+                     },
+                     '36': {
+                         'Windows': {
+                             '32': {'id_dropbox': 'obcypgvwheghb78/statsmodels-0.8.0-cp36-cp36m-win32.whl?dl=0'
+                                    },
+                             '64': {'id_dropbox': None
+                                    }
+                         }
+                     },
                  }
-
-so = platform.system()
+                 }
 
 
 def _actualizar_pip():
@@ -69,7 +149,7 @@ def _actualizar_pip():
     run(comanda_pip)
 
 
-def _descargar_whl(nombre):
+def _descargar_whl(nombre, v_py, sis, b):
     print('Descargando paquete "{}"...'.format(nombre))
     llave = url = None
 
@@ -78,7 +158,7 @@ def _descargar_whl(nombre):
 
     for r, u in repositorios.items():
         try:
-            llave = info_paquetes[nombre][r][bits]  # type: str
+            llave = info_paquetes[nombre][v_py][sis][b][r]  # type: str
         except KeyError:
             pass
         if llave is not None:
@@ -87,22 +167,28 @@ def _descargar_whl(nombre):
 
     if url is None:
         avisar('No existe descarga para paquete {} en {} bits.'.format(nombre, bits))
+        return False
 
     nombre_archivo = info_paquetes[nombre]['formato_archivo']
     urllib.request.urlretrieve(url, os.path.join(directorio_móds, nombre_archivo))
+
+    return True
 
 
 def _instalar_whl(nombre):
     nombre_archivo = info_paquetes[nombre]['formato_archivo']
 
-    if not os.path.isfile(os.path.join(directorio_móds, nombre_archivo)):
-        _descargar_whl(nombre)
+    if os.path.isfile(os.path.join(directorio_móds, nombre_archivo)):
+        éxito = True
+    else:
+        éxito = _descargar_whl(nombre, v_py=versión_python, sis=sistema, b=bits)
 
-    print('Instalando paquete "{}"...'.format(nombre))
+    if éxito:
+        print('Instalando paquete "{}"...'.format(nombre))
 
-    comanda = '%s install %s' % (os.path.join(directorio_python, 'Scripts', 'pip'),
-                                 os.path.join(directorio_móds, nombre_archivo))
-    run(comanda)
+        comanda = '%s install %s' % (os.path.join(directorio_python, 'Scripts', 'pip'),
+                                     os.path.join(directorio_móds, nombre_archivo))
+        run(comanda)
 
 
 def instalar_requísitos():
@@ -123,6 +209,13 @@ def instalar_requísitos():
         lista_paquetes.append('pymc')
 
     if len(lista_paquetes):
+
+        if not os.path.exists(directorio_móds):
+            os.makedirs(directorio_móds)
+            dir_creado = True
+        else:
+            dir_creado = False
+
         # Actualizar Pip
         _actualizar_pip()
 
@@ -130,7 +223,8 @@ def instalar_requísitos():
         for paq in lista_paquetes:
             _instalar_whl(paq)
 
-        shutil.rmtree('Módulos')
+        if dir_creado:
+            shutil.rmtree('Módulos')
 
     # Verificar que todo esté bien:
     try:
@@ -157,7 +251,7 @@ def instalar_requísitos():
 
 
 if so == 'Windows':
-    bits = platform.architecture()[0][:2]
+
     sistema = 'win' + bits
 
     for paquete, dic_paq in info_paquetes.items():
@@ -166,6 +260,9 @@ if so == 'Windows':
 
     instalar_requísitos()
 
+"""
+Ahora cosas normales de instalación.
+"""
 
 with open('tikon/versión.txt') as archivo_versión:
     versión = archivo_versión.read().strip()
@@ -181,7 +278,7 @@ setup(
     author_email='julien.malard@mail.mcgill.ca',
     description='Modelos de redes agroecológicas',
     long_description='Tiko\'n es una herramienta para desarrollar modelos de agroecología (relaciones tróficas'
-                     'entre insectos, enfermedades, y plantas. Está escrito para permitir la integración de modelos'
+                     'entre insectos, enfermedades, y plantas). Está escrito para permitir la integración de modelos'
                      'de cultivos existentes.',
     requires=['pymc', 'numpy', 'matplotlib', 'scipy'],
     classifiers=[

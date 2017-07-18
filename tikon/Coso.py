@@ -831,8 +831,8 @@ class Simulable(Coso):
             """
             La implementación recursiva de la función.
 
-            :param objeto: El objeto Simulable a cual hay que sacar los coeficientes.
-            :type objeto: Simulable
+            :param objeto: El objeto Coso a cual hay que sacar los coeficientes.
+            :type objeto: Coso
 
             :return: Un tuple, como descrito en la documentación de la función arriba.
             :rtype: (list, list)
@@ -1245,7 +1245,7 @@ class Simulable(Coso):
 
         lista_dists = sacar_dists_calibs(símismo)
 
-        lista_dists.append((['Modelo', 'Precisión', ''], símismo.ModBayes.precisión))
+        lista_dists.append((['Modelo', 'error', ''], símismo.ModBayes.error))
 
         for ubic, dist in lista_dists:
 
