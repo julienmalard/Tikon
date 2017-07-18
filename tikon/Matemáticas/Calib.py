@@ -103,23 +103,35 @@ class ModBayes(object):
         # de generar.
         función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificadas=False, comunes=False)
 
-        # Para la varianza de la distribución normal, se emplea un tau no informativo, si es que exista tal cosa.
-        símismo.precisión = pymc.Uniform('precision', lower=0.0001, upper=1.0)
+        # Para la varianza de la distribución normal, se emplea un a priori no informativo, si es que exista tal cosa.
+        símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
-        # pasamos los argumentos necesarios, si aplican. Hay que incluir símismo.precisión en los argumentos
+        # pasamos los argumentos necesarios, si aplican. Hay que incluir el parámetro error en los argumentos
         # para que PyMC se dé cuenta de que la función simular() depiende de los otros parámetros y se tiene que
         # recalcular a cada ejecución del modelo.
         @pymc.deterministic(plot=False)
-        def simular(d=dic_argums, _=símismo.precisión):
+        def simular(d=dic_argums, _=símismo.error):
             return función(**d)
 
-        # Una distribución normal alrededor de las predicciones del modelo, conectado con las observaciones
+        # Ahora convertimos el error a tau
+        @pymc.deterministic
+        def tau(e=símismo.error, s=simular):
+            # Calcular sigma basado en el error y el valor simulado
+            m = np.array(e * np.maximum(50, s))
+
+            # Convertir sigma a tau
+            np.square(m, out=m)
+            np.divide(1, m, out=m)
+
+            return m
+
+        # Una distribución normal alrededor de las predicciones del modelo, conectada con las observaciones
         # correspondientes.
-        dist_obs = pymc.Normal('obs', mu=simular, tau=símismo.precisión, value=obs, observed=True)
+        dist_obs = pymc.Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({dist_obs, símismo.precisión, simular, *lista_paráms})
+        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *lista_paráms})
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -139,8 +151,10 @@ class ModBayes(object):
 
         """
 
-        # Llamar la función "sample" del objeto MCMC de PyMC
-        símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+        símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+
+        # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
+        símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=2)
 
     def guardar(símismo):
         """

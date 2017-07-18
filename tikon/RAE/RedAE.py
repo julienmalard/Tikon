@@ -1,7 +1,7 @@
 import math as mat
 import os
-from warnings import warn as avisar
 from copy import deepcopy as copiar
+from warnings import warn as avisar
 
 import numpy as np
 
@@ -9,8 +9,8 @@ from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
 from tikon.Matemáticas.Incert import validar, gen_vector_coefs
 from . import Insecto as Ins
-from .Organismo import Organismo
 from .Gen_organismos import generar_org
+from .Organismo import Organismo
 
 
 class Red(Simulable):
@@ -39,7 +39,7 @@ class Red(Simulable):
         :param organismos: Una lista de objetos o nombres de organismos para añadir a la red, o una instancia única
         de un tal objeto.
         :type organismos: list
-        
+
         """
 
         super().__init__(nombre=nombre, proyecto=proyecto)
@@ -219,6 +219,7 @@ class Red(Simulable):
         n = 0
 
         for nombre_org, org in sorted(símismo.organismos.items()):
+            # Para cada organismo en la red...
             símismo.núms_etapas[nombre_org] = {}
             for etp in org.etapas:
                 # Para cada etapa de cada organismo...
@@ -314,7 +315,7 @@ class Red(Simulable):
 
                         # Copiamos el diccionario de coeficientes, pero con referencias a los objetos de distrubuciones
                         # (Comparten los mismos variables).
-                        coefs = copiar_dic_refs(obj_org_hués.receta['coefs'][nombre_etp_hués])
+                        coefs = copiar_dic_coefs(obj_org_hués.receta['coefs'][nombre_etp_hués])
 
                         # Verificar si la etapa hospedera es la última de este organismo que puede estar infectada
                         if n_etp_hués <= len(l_d_etps_hués) - 1:
@@ -586,7 +587,7 @@ class Red(Simulable):
                                     .format(exp=exp, org=org, etp=etp)
                             else:
                                 n_etp_dib = n_etp
-                                título = '{exp}, "{org}", Etapa "{etp}"'\
+                                título = '{exp}, "{org}", Etapa "{etp}"' \
                                     .format(exp=exp, org=org, etp=etp)
 
                             # La matriz de predicciones
@@ -621,7 +622,7 @@ class Red(Simulable):
                         matr_predic = símismo.predics_exps[exp]['Depredación'][..., n_etp, :, :]
 
                         # Para cada parcela en las predicciones...
-                        for n_p in range(matr_predic.shape[0]):
+                        for n_p in range(matr_predic.shape[0]):  # type: str
 
                             # Las matrices de predicciones y observaciones, con una única parcela
                             matr_predic_prc = matr_predic[n_p, ...]
@@ -713,7 +714,7 @@ class Red(Simulable):
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
-        
+
         :param extrn: Un diccionario con datos externos
         :type extrn: dict
 
@@ -896,7 +897,6 @@ class Red(Simulable):
         coefs_ec = símismo.coefs_act_númzds['Crecimiento']['Ecuación']
         coefs_mod = símismo.coefs_act_númzds['Crecimiento']['Modif']
 
-
         for mod, í_etps in modifs.items():
 
             # Una COPIA de la matriz de crecimiento para estas etapas
@@ -1009,7 +1009,7 @@ class Red(Simulable):
 
             if tp_ed == 'Días':
                 # Edad calculada en días.
-                edad_extra[..., í_etps] = 1 
+                edad_extra[..., í_etps] = 1
 
             elif tp_ed == 'Días Grados':
                 # Edad calculada por días grados.
@@ -1198,7 +1198,7 @@ class Red(Simulable):
 
         :param paso:
         :type paso: int
-        
+
         :param trans:
         :type trans:
 
@@ -2003,8 +2003,8 @@ class Red(Simulable):
                                 # Dibujar la distribución, si necesario
                                 if dib_dists:
                                     directorio_dib = os.path.join(símismo.proyecto, símismo.nombre,
-                                        'Gráficos simulación', 'Dists',
-                                        categ, subcateg, tipo_ec, parám)
+                                                                  'Gráficos simulación', 'Dists',
+                                                                  categ, subcateg, tipo_ec, parám)
 
                                     directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
 
@@ -2239,7 +2239,7 @@ class Red(Simulable):
     def _sacar_coefs_no_espec(símismo):
         """
         Una Red no tiene coeficientes.
-         
+
         """
 
         return {}
@@ -2313,9 +2313,10 @@ class Red(Simulable):
         pobs = símismo.predics['Cohortes']['Pobs'][..., í_etps_coh]
 
         # Calcualar la probabilidad de transición.
+        dens_cum_eds = dists.cdf(edades)
         probs = np.divide(np.subtract(dists.cdf(edades + cambio_edad),
-                                      dists.cdf(edades)),
-                          np.subtract(1, dists.cdf(edades))
+                                      dens_cum_eds),
+                          np.subtract(1, dens_cum_eds)
                           )
 
         probs[np.isnan(probs)] = 1
@@ -2378,13 +2379,13 @@ class Red(Simulable):
         í_parc, í_estoc, í_parám, í_etps = dic_predic['Matrices']['í_ejes_cohs']
         # Las edades de los cohortes con las edades mínimas.
         tmñ = dic_predic['Matrices']['tmñ_para_cohs']  # El tamaño de los cohortes, sin el eje de día
-        eds_min = matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
+        eds_mín = matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
 
         # Las poblaciones que corresponden a estas edades mínimas.
         pobs_coresp_í = matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
 
         # Dónde no hay población existente, reinicializamos la edad.
-        eds_min = np.where(pobs_coresp_í == 0, [0], eds_min)
+        eds_mín = np.where(pobs_coresp_í == 0, [0], eds_mín)
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
         # cohorte si hay que combinarla con un cohorte existente).
@@ -2392,7 +2393,7 @@ class Red(Simulable):
         peso_ed_ya[np.isnan(peso_ed_ya)] = 0
 
         # Los edades promedios. Si no había necesidad de combinar cohortes, será la población del nuevo cohorte.
-        eds_prom = np.add(np.multiply(eds_min, peso_ed_ya), np.multiply(edad, np.subtract(1, peso_ed_ya)))
+        eds_prom = np.add(np.multiply(eds_mín, peso_ed_ya), np.multiply(edad, np.subtract(1, peso_ed_ya)))
 
         # Guardar las edades actualizadas en los índices apropiados
         matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps] = eds_prom.flatten()
@@ -2407,7 +2408,7 @@ class Red(Simulable):
         :param muertes: La matriz de muertes aleatorias a quitar del cohorte. Eje 0: Parcela,
         Eje 1: Repetición estocástica, Eje 2: Repetición paramétrica, Eje 3: Etapa.
         :type muertes: np.ndarray
-        
+
         :param í_don:
         :type í_don: np.ndarray
 
@@ -2617,19 +2618,20 @@ def probs_conj(matr, eje, pesos=1, máx=1):
     np.multiply(ajustados, pesos, out=matr)
 
 
+# No necesario ahora. Pero es un código muy bonito y elegante así que me da pena borrarlo y lo dejo por el momento.
 def copiar_dic_refs(d, c=None):
     """
     Esta función copia un diccionario pero deja las referencias a matrices y variables PyMC intactos. Esto permite
     dejar que etapas fantasmas de una víctima de parasitoide tengan los mismos variables que la etapa original y evita
     desdoblar variables en la calibración.
 
-    :param d:
+    :param d: El diccinario o la lista para copiar
     :type d: dict | list
 
     :param c: Para recursiones. No especificar al llamar la función.
     :type c: dict | list
 
-    :return: d_final
+    :return: El diccionario o la lista copiada
     :rtype: dict | list
     """
 
@@ -2660,5 +2662,45 @@ def copiar_dic_refs(d, c=None):
                 copiar_dic_refs(v, c=c[ll])
             else:
                 c[ll] = v
+
+    return c
+
+
+def copiar_dic_coefs(d, c=None):
+    """
+    Esta función copia un diccionario pero deja las referencias a matrices y variables PyMC intactos (no hace copia
+    del último diccionario anidado, sino una referencia a este). Esto permite dejar que etapas fantasmas de una víctima
+    de parasitoide tengan los mismos variables que la etapa original y evita desdoblar variables en la calibración.
+
+    :param d: El diccionario de coeficientes para copiar.
+    :type d: dict
+
+    :param c: Para recursiones. No especificar al llamar la función.
+    :type c: dict
+
+    :return: Una copia del diccionario con referencias a los últimos diccionarios anidados.
+    :rtype: dict
+    """
+
+    # Inicializar la copia del diccionario
+    if c is None:
+        c = {}
+
+    for ll, v in d.items():
+        # Para cada llave y valor del diccionario...
+
+        if type(v) is dict:
+            # Si es otro diccionario...
+
+            if any(type(x) is dict for x in v.values()):
+                # Si el diccionario contiene otros diccionarios, hacer una copia.
+                c[ll] = {}
+                copiar_dic_coefs(v, c=c[ll])
+            else:
+                # Si el diccionario no contiene otros diccionarios, poner una referencia.
+                c[ll] = v
+        else:
+            # Si no es un diccionario, seguro que hay que ponerle una referencia (y no una copia).
+            c[ll] = v
 
     return c

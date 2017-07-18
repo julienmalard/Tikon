@@ -71,7 +71,7 @@ class Experimento(object):
 
         # Asegurarse de que la columna de datos de tiempo existe
         if col_tiempo not in dic_datos:
-            raise ValueError('No se encontró la columna de tiempo en la base de datos.')
+            raise ValueError('No se encontró la columna de tiempo "{}" en la base de datos.'.format(col_tiempo))
 
         # Calcular la fecha inicial (objeto de fecha) y el vector numérico de las fechas
         fecha_inic_datos, vec_tiempos, vec_tiempos_únic = símismo.leer_fechas(dic_datos[col_tiempo])
