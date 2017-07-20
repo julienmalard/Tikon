@@ -13,10 +13,14 @@ Este código contiene funciones para manejar datos y distribuciones de incertidu
 """
 
 
+def gen_vecs_coefs(l_d_paráms, calibs, n_rep_parám, comunes, usar_especificadas):
+    pass
+
+
 def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificados):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
-      que queremos usar y el número de repeticiones que queremos.
+    que queremos usar y el número de repeticiones que queremos.
 
     :param dic_parám: Un diccionario de un parámetro con todas sus calibraciones
     :type dic_parám: dict
@@ -108,7 +112,7 @@ def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificad
             # Si la traza es en formato de texto...
 
             if comunes:
-                avisar('No se pudo guardar la correspondencia entre todas las calibraciones por presencia'
+                avisar('No se pudo guardar la correspondencia entre todas las calibraciones por presencia '
                        'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
 
             # Convertir el texto a distribución de SciPy
@@ -199,7 +203,7 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
 def dist_a_texto(dist):
     """
     Esta función toma una distribución de SciPy y devuelva una representación de texto en formato de Tiko'n para
-      la distribución.
+    la distribución.
 
     :param dist: La distribución.
     :type dist: estad.rv_frozen
@@ -255,7 +259,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
     mín_parám, máx_parám = límites
 
     # Un diccionario para guardar el mejor ajuste
-    mejor_ajuste = dict(dist=None, p=0)
+    mejor_ajuste = dict(dist=None, p=0.0)
 
     # Sacar las distribuciones del buen tipo (contínuas o discretas)
     if cont:
@@ -374,21 +378,21 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 def límites_a_texto_apriori(límites, cont=True):
     """
     Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
-      destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
-      distribuciones de los parámetros de ecuaciones.
+    destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
+    distribuciones de los parámetros de ecuaciones.
 
     :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
-      -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
-      (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
-      variable en las ecuaciones que lo utilisan.
+    -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
+    (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
+    variable en las ecuaciones que lo utilisan.
     :type límites: tuple
 
     :param cont: Determina si el variable es continuo o discreto
     :type cont: bool
 
     :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
-      cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
-      en distribución de scipy o de pymc donde necesario.
+    cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
+    en distribución de scipy o de pymc donde necesario.
     :rtype: str
     """
 
@@ -846,6 +850,9 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (paráms[1], paráms[0])
         transform_pymc['mult'] = paráms[2]
 
+    elif tipo_dist == 'Weibull':
+        raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
+
     elif tipo_dist == 'Bernoulli':
         paráms_pymc = (paráms[0],)
         transform_pymc['sum'] = paráms[1]
@@ -934,3 +941,75 @@ def numerizar(f, c=None):
         raise ValueError
 
     return c
+
+
+def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
+    """
+    Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
+    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
+    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
+    id_calib.
+    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
+
+    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
+    :type id_calib: str
+
+    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
+    parámetro.
+    :type l_pm: list
+
+    :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
+    :type l_lms: list
+
+    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
+    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
+    :type aprioris: list
+
+    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
+    :rtype: list
+
+    """
+
+    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
+    lista_dist = []
+
+    # Para cada parámetro en la lista...
+    for n, d_parám in enumerate(l_pm):
+
+        # El nombre para el variable PyMC
+        nombre = 'parám_%i' % n
+
+        # La lista de aprioris general.
+        calibs = aprioris
+
+        # La distribución pymc del a priori
+        dist_apriori = None
+
+        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
+        # convertir directamente en distribución PyMC.
+        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
+            dist_apriori = texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
+
+        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
+        if 'especificado' in d_parám:
+            dist_apriori = texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
+
+        elif dist_apriori is None:
+            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+
+            # Un vector numpy de la traza de datos para generar la distribución PyMC.
+            traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
+                                     comunes=False, usar_especificados=True)
+
+            # Generar la distribución PyMC
+            dist_apriori = ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
+                                        usar_pymc=True, nombre=nombre)[0]
+
+        # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
+        d_parám[id_calib] = dist_apriori
+
+        # Añadir una referencia al variable PyMC en la lista de distribuciones
+        lista_dist.append(dist_apriori)
+
+    # Devolver la lista de variables PyMC
+    return lista_dist

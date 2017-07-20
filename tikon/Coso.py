@@ -4,11 +4,13 @@ import json
 import os
 import random
 import time
-import warnings as avisar
+from warnings import warn as avisar
 from datetime import datetime as ft
 
 import numpy as np
 import pymc
+import SALib.analyze.sobol as sobol
+import SALib.sample.saltelli as saltelli
 
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
@@ -415,7 +417,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def simular(símismo, exper, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
+    def simular(símismo, exper, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
                 mostrar=True, opciones_dib=None, dib_dists=True):
         """
@@ -442,6 +444,9 @@ class Simulable(Coso):
         :param dibujar: Si hay que generar gráficos de los resultados.
         :type dibujar: bool
 
+        :param mostrar: Si hay que mostrar los gráficos de la simulación. No hace nada si dibujar == False.
+        :type mostrar: bool
+
         :param usar_especificadas: Si vamos a utilizar distribuciones a prioris especificadas por el usuario o no.
         :type usar_especificadas: bool
 
@@ -451,7 +456,19 @@ class Simulable(Coso):
         :param directorio_dib: El directorio en el cuál guardar los dibujos de los resultados, si aplica.
         :type directorio_dib: str
 
+        :param detalles: Para unos Simulables, especifica si hay que guardar resultados rápidos o detallados.
+        :type detalles: bool
+
+        :param dibujar: Si hay que generar gráficos de los resultados.
+        :type dibujar: bool
+
+        :param dib_dists: Si hay que dibujar las distribuciones utilizadas para la simulación.
+        :type dib_dists: bool
+
         """
+
+        # Validar el nombre de la simulaión
+        nombre = símismo._gen_nombre_simul(nombre=nombre)
 
         # Cambiar no opciones de dibujo a un diccionario vacío
         if opciones_dib is None:
@@ -541,19 +558,7 @@ class Simulable(Coso):
         símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
-        # Si se especificó un nombre para la calibración, asegurarse de que no existe en la lista de calibraciones
-        # existentes
-        if nombre is not None and nombre in símismo.receta['Calibraciones']:
-            raise ValueError('Nombre de calibración ya existe en el objeto. Escoger otro nombre y volver a intentar.')
-
-        # Si no se especificó nombre para la calibración, generar un número de identificación aleatorio.
-        if nombre is None:
-            nombre = int(random.random() * 1e10)
-
-            # Evitar el caso muy improbable que el código aleatorio ya exista
-            while nombre in símismo.receta['Calibraciones']:
-                nombre = int(random.random() * 1e10)
-        nombre = str(nombre)
+        nombre = símismo._gen_nombre_simul(nombre=nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
         lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
@@ -675,7 +680,8 @@ class Simulable(Coso):
 
         símismo._actualizar_vínculos_exps()
 
-    def validar(símismo, exper, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100, usar_especificadas=False,
+    def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100,
+                usar_especificadas=False,
                 detalles=True,
                 dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
         """
@@ -698,6 +704,9 @@ class Simulable(Coso):
         :param n_rep_estoc: El número de repeticiones estocásticas.
         :type n_rep_estoc: int
 
+        :param detalles: Para unos Simulables, especifica si hay que guardar resultados rápidos o detallados.
+        :type detalles: bool
+
         :param dibujar: Si hay que generar gráficos de los resultados.
         :type dibujar: bool
 
@@ -706,6 +715,15 @@ class Simulable(Coso):
 
         :param opciones_dib: Argumentos opcionales para pasar a la función de dibujo de resultados.
         :type opciones_dib: dict
+
+        :param mostrar: Si hay que mostrar los gráficos generados
+        :type mostrar: bool
+
+        :param dib_dists: Si hay que dibujar las distribuciones utilizadas para la simulación.
+        :type dib_dists: bool
+
+        :param dib_dists: Si hay que dibujar las distribuciones utilizadas para la simulación.
+        :type dib_dists: bool
 
         :return: Un diccionario con los resultados de la validación.
         :rtype: dict
@@ -723,13 +741,58 @@ class Simulable(Coso):
                 calibs = símismo.ModBayes.id
 
         # Simular los experimentos
-        símismo.simular(exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
+        símismo.simular(nombre=nombre, exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
                         calibs=calibs, usar_especificadas=usar_especificadas, detalles=detalles,
                         dibujar=dibujar, mostrar=mostrar,
                         opciones_dib=opciones_dib, dib_dists=dib_dists)
 
         # Procesar los datos de la validación
         return símismo._procesar_validación()
+
+    def sensibilidad(símismo, método, exper, n, por_dist_ingr=0.95, calibs=None, detalles=False,
+                     calc_2_orden_sobol=False, dibujar=False):
+        # Para hacer: crear esta sección
+
+        # Poner los experimentos en la forma correcta:
+        exper = símismo._prep_lista_exper(exper=exper)
+
+        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
+
+        n_paráms = len(lista_paráms)
+
+        lista_dists = Incert.trazas_a_aprioris()
+
+        colas = ((1 - por_dist_ingr) / 2, 0.5 + por_dist_ingr / 2)
+        lista_líms_efec = [[x.cdf(colas[0]), x.cdf(colas[1])] for x in lista_dists]
+
+        problema = {
+            'num_vars': n_paráms,
+            'names': [str(x) for x in range(n_paráms)],
+            'bounds': lista_líms_efec
+        }
+
+        if método == 'Sobol':
+
+            vals_paráms = saltelli.sample(problema, n, calc_second_order=calc_2_orden_sobol)
+
+            símismo.aplicar_paráms(vals_paráms)
+
+            símismo.simular(exper=exper, usar_especificadas=True)
+
+            resultado = copiar.deepcopy(símismo.predics_exps)
+
+            for exp in símismo.exps:
+                pass
+
+                res_día = sobol.analyze(problema, símismo.predics_exps)
+
+        else:
+            raise ValueError
+
+        if dibujar:
+            pass
+
+        return resultado
 
     def dibujar(símismo, mostrar=True, directorio=None, exper=None, **kwargs):
         """
@@ -807,6 +870,9 @@ class Simulable(Coso):
         :param i: El número de este incremento en la simulación
         :type i: int
 
+        :param detalles: Si hay que hacer la simulación con resultaodos detallados o rápidos.
+        :type detalles: bool
+
         :param extrn: Un diccionario de valores externos al modelo, si necesario
         :type extrn: dict
 
@@ -819,10 +885,10 @@ class Simulable(Coso):
 
         """
         Esta función devuelve una lista de todos los coeficientes de un Simulable y de sus objetos de manera
-          recursiva, tanto como una lista, en el mismo orden, de los límites de dichos coeficientes.
+        recursiva, tanto como una lista, en el mismo orden, de los límites de dichos coeficientes.
 
         :return: Un tuple conteniendo una lista de todos los coeficientes de interés para la calibración y una lista
-          de sus límites.
+        de sus límites.
         :rtype: (list, list)
 
         """
@@ -1005,7 +1071,7 @@ class Simulable(Coso):
         """
         Procesa las predicciones de simulación de experimentos (predics_exps) del modelo y genera una matriz numpy
           unidimensional de las predicciones. Se debe implementar para cada subclase de Simulable.
-
+a
         :return: Un vector numpy de las predicciones del modelo.
         :rtype: np.ndarray
         """
@@ -1299,11 +1365,41 @@ class Simulable(Coso):
 
     def _sacar_coefs_no_espec(símismo):
         """
-        Esta funciónn se deja a las subclases de Simulable para implementar.
-         
+        Esta función devuelve un diccionario de los coeficientes que no tienen distribuciones a priori especificadas.
+        Se deja a las subclases de Simulable para implementar.
+
+        :return: Un diccionario con los coeficientes que no tienen distribuciones a prioris especificadas.
+        :rtype: dict
         """
 
         raise NotImplementedError
+
+    def _gen_nombre_simul(símismo, nombre):
+        """
+        Esta función valida un nombre de simulación y, si nombre=None, genera un nombre aleatorio válido.
+
+        :param nombre: El nombre propuesto para la simulación.
+        :type nombre: str
+
+        :return: El nombre validado.
+        :rtype: str
+        """
+
+        # Si se especificó un nombre para la calibración, asegurarse de que no existe en la lista de calibraciones
+        # existentes
+        if nombre is not None and nombre in símismo.receta['Calibraciones']:
+            avisar('Nombre de calibración ya existe en el objeto. Tomaremos un nombre aleatorio.')
+            nombre = None
+
+        # Si no se especificó nombre para la calibración, generar un número de identificación aleatorio.
+        if nombre is None:
+            nombre = int(random.random() * 1e10)
+
+            # Evitar el caso muy improbable que el código aleatorio ya existe
+            while nombre in símismo.receta['Calibraciones']:
+                nombre = int(random.random() * 1e10)
+
+        return str(nombre)
 
 
 def dic_lista_a_np(d):
