@@ -216,8 +216,7 @@ class Coso(object):
 
         # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
         if certidumbre > 1:
-            avisar.warn('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
-                        'porcentaje.')
+            avisar('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un porcentaje.')
             certidumbre /= 100
 
         # Asegurarse de que "certidumbre" esté entre 0 y 1
@@ -496,14 +495,20 @@ class Simulable(Coso):
         lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
 
+        # Generar los vectores de coeficientes
+        Incert.gen_vecs_coefs(l_d_paráms=lista_paráms, calibs=lista_calibs, n_rep_parám=n_rep_parám,
+                              comunes=(calibs == 'Comunes'), usar_especificadas=usar_especificadas)
+
         # Llenar las matrices internas de coeficientes
-        símismo._llenar_coefs(n_rep_parám=n_rep_parám, calibs=lista_calibs, comunes=(calibs == 'Comunes'),
-                              usar_especificadas=usar_especificadas, dib_dists=dib_dists)
+        símismo._llenar_coefs(id_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
                                                    tiempo_final=tiempo_final, detalles=detalles)
         símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, vectorizar_preds=False)
+
+        # Borrar los vectores de coeficientes temporarios
+        símismo.borrar_calib(id=nombre)
 
         # Si hay que dibujar, dibujar
         if dibujar:
@@ -585,7 +590,7 @@ class Simulable(Coso):
         símismo.ModBayes = ModBayes(función=símismo._simul_exps,
                                     dic_argums=dic_argums,
                                     obs=obs,
-                                    lista_paráms=lista_paráms,
+                                    lista_d_paráms=lista_paráms,
                                     aprioris=lista_aprioris,
                                     lista_líms=lista_líms,
                                     id_calib=nombre,
@@ -749,9 +754,12 @@ class Simulable(Coso):
         # Procesar los datos de la validación
         return símismo._procesar_validación()
 
-    def sensibilidad(símismo, método, exper, n, por_dist_ingr=0.95, calibs=None, detalles=False,
+    def sensibilidad(símismo, nombre, exper, n, por_dist_ingr=0.95, calibs=None, detalles=False,
                      calc_2_orden_sobol=False, dibujar=False):
         # Para hacer: crear esta sección
+
+        #
+        nombre = símismo._gen_nombre_simul(nombre=nombre)
 
         # Poner los experimentos en la forma correcta:
         exper = símismo._prep_lista_exper(exper=exper)
@@ -812,7 +820,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas, dib_dists=False):
+    def _llenar_coefs(símismo, id_simul, n_rep_parám, dib_dists, calibs=None):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
         Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
@@ -1401,6 +1409,16 @@ a
 
         return str(nombre)
 
+    def borrar_calib(símismo, id):
+        """
+
+        :param id:
+        :type id: str
+
+        """
+
+        borrar_dist(d=símismo.receta['coefs'], nombre=id)
+
 
 def dic_lista_a_np(d):
     """
@@ -1507,7 +1525,7 @@ def borrar_dist(d, nombre):
         elif type(v) is str:
 
             # Si la distribución lleva el nombre especificado...
-            if ll == nombre:
+            if ll == str(nombre):
                 # ...borrar la distribución
                 d.pop(ll)
 

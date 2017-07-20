@@ -14,7 +14,9 @@ Este código contiene funciones para manejar datos y distribuciones de incertidu
 
 
 def gen_vecs_coefs(l_d_paráms, calibs, n_rep_parám, comunes, usar_especificadas):
-    pass
+    # Asegurarse que calibs sea una lista
+    if type(calibs) is str:
+        calibs = [calibs]
 
 
 def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificados):
