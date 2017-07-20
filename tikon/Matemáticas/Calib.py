@@ -1,7 +1,7 @@
 import numpy as np
 import pymc
 
-from tikon.Matemáticas.Incert import trazas_a_aprioris
+from tikon.Matemáticas.Incert import trazas_a_aprioris, gen_vecs_coefs
 
 
 class ModBayes(object):
@@ -14,7 +14,8 @@ class ModBayes(object):
 
     """
 
-    def __init__(símismo, función, dic_argums, obs, lista_paráms, aprioris, lista_líms, id_calib, función_llenar_coefs):
+    def __init__(símismo, función, dic_argums, obs, lista_d_paráms, aprioris, lista_líms, id_calib,
+                 función_llenar_coefs):
         """
         Al iniciarse, un Modelo hace el siguiente:
 
@@ -57,8 +58,8 @@ class ModBayes(object):
         observaciones.
         :type obs: np.ndarray
 
-        :param lista_paráms: El diccionario de los parámetros para calibrar.
-        :type lista_paráms: list
+        :param lista_d_paráms: El diccionario de los parámetros para calibrar.
+        :type lista_d_paráms: list
 
         :param aprioris: La lista de los códigos de las calibraciones anteriores a incluir para aproximar las
         distribuciones a priori de los parámetros.
@@ -82,26 +83,24 @@ class ModBayes(object):
         # Guardar una conexión a la lista de parámetros y crear un número de identificación único para esta
         # calibración.
 
-        símismo.lista_parám = lista_paráms
+        símismo.lista_parám = lista_d_paráms
         símismo.id = id_calib
 
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
-        lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
-                                         l_pm=lista_paráms, l_lms=lista_líms,
-                                         aprioris=aprioris)
+        l_var_pymc = trazas_a_aprioris(id_calib=símismo.id,
+                                       l_pm=lista_d_paráms, l_lms=lista_líms,
+                                       aprioris=aprioris)
 
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
-        for parám in lista_paráms:
+        for parám in l_var_pymc:
             if isinstance(parám, pymc.Deterministic):
-                lista_paráms.append(min(parám.extended_parents))
+                l_var_pymc.append(min(parám.extended_parents))
 
-        # Llenamos las matrices de coeficientes con los variables PyMC recién creados. Ponemos "usar_especificadas" =
-        # False para evitar que distribuciones especificadas tomen el lugar de las distribuciones de PyMC que acabamos
-        # de generar.
-        función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificadas=False, comunes=False)
+        # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
+        función_llenar_coefs(id_simul=id_calib, n_rep_parám=1, dib_dists=False)
 
         # Para la varianza de la distribución normal, se emplea un a priori no informativo, si es que exista tal cosa.
         símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
@@ -131,7 +130,7 @@ class ModBayes(object):
         dist_obs = pymc.Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *lista_paráms})
+        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *l_var_pymc})
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -158,7 +157,7 @@ class ModBayes(object):
         # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
 
-    def guardar(símismo):
+    def guardar(símismo, nombre=None):
         """
         Esta función guarda las trazas de los parámetros generadas por la calibración en el diccionario del parámetro
         como una nueva calibración.
@@ -168,9 +167,20 @@ class ModBayes(object):
         # Asegurarse de que el nombre de la calibración sea en el formato de texto
         id_calib = str(símismo.id)
 
-        for d_parám in símismo.lista_parám:
+        # Si no se especificó nombre, se empleará el mismo nombre que el id de la calibración.
+        if nombre is None:
+            nombre = símismo.id
+        else:
+            símismo.id = nombre
 
-            # Para cada parámetro en la lista, convertir el variable PyMC en un vector numpy de sus trazas.
-            d_parám[id_calib] = d_parám[id_calib].trace(chain=None)[:]
+        for d_parám in símismo.lista_parám:  # type: dict
 
+            # Para cada parámetro en la lista, convertir el variable PyMC en un vector numpy de sus trazas, y
+            # cambiar el nombre
+            vec_np = d_parám[id_calib].trace(chain=None)[:]
 
+            # Quitar el nombre inicial
+            d_parám.pop(id_calib)
+
+            # Guardar bajo el nuevo nombre
+            d_parám[nombre] = vec_np

@@ -1929,7 +1929,7 @@ class Red(Simulable):
 
         return dic_args
 
-    def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas, dib_dists=False):
+    def _llenar_coefs(símismo, id_simul, n_rep_parám, dib_dists, calibs=None):
         """
         Ver la documentación de Coso.
 
@@ -1940,12 +1940,12 @@ class Red(Simulable):
 
         """
 
+        #
+        if calibs is None:
+            calibs = []
+
         # El número de etapas en la Red
         n_etapas = len(símismo.etapas)
-
-        # Asegurar que calibs es una lista
-        if type(calibs) is str:
-            calibs = [calibs]
 
         # Vaciar los coeficientes existentes.
         símismo.coefs_act.clear()
@@ -1997,10 +1997,7 @@ class Red(Simulable):
                             if d_parám['inter'] is None:
                                 # Generar la matríz de valores para este parámetro de una vez
 
-                                matr_etp[:] = gen_vector_coefs(dic_parám=d_parám_etp, calibs=calibs,
-                                                               n_rep_parám=n_rep_parám,
-                                                               comunes=comunes,
-                                                               usar_especificados=usar_especificadas)
+                                matr_etp[:] = d_parám_etp[id_simul]
 
                                 # Dibujar la distribución, si necesario
                                 if dib_dists:
@@ -2050,12 +2047,7 @@ class Red(Simulable):
                                                         l_n_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
                                                 for n in l_n_etps_víc:
-                                                    matr_etp[:, n] = gen_vector_coefs(
-                                                        dic_parám=d_parám_etp[org_víc][etp_víc],
-                                                        calibs=calibs,
-                                                        n_rep_parám=n_rep_parám,
-                                                        comunes=comunes,
-                                                        usar_especificados=usar_especificadas)
+                                                    matr_etp[:, n] = d_parám_etp[org_víc][etp_víc][id_simul]
 
                                                     # Dibujar la distribución, si necesario
                                                     if dib_dists:
