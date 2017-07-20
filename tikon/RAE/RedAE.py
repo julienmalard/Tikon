@@ -1423,7 +1423,7 @@ class Red(Simulable):
     def _sacar_vecs_preds_obs(símismo, exp):
         """
         Esta función crea un diccionario con vectores/matrices de predicciones y de observaciones. Es muy útil para
-          generar gráficos de una validación y para generar índices de ajustes de modelos desagregados por componente.
+        generar gráficos de una validación y para generar índices de ajustes de modelos desagregados por componente.
 
         :param exp: El nombre del experimento para cual hay que sacar los vectores.
         :type exp: str
@@ -1438,6 +1438,8 @@ class Red(Simulable):
         :rtype: dict
 
         """
+
+        # para hacer: combinar partes con procesar_predics_calib()
 
         # El diccionario para guardar los vectores de predicciones y de observaciones
         dic_vecs = {}
