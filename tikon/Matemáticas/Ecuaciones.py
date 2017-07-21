@@ -926,7 +926,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
                 # el número de identificación '0'.
                 if 'inter' not in v.keys() or v['inter'] is None:
                     # Si no hay interacciones, es muy fácil
-                    d[ll]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                    d[ll]['0'] = Incert.límites_a_texto_dist(v['límites'])
 
                 else:
                     # Si hay interacciones, hay que repetir el parámetro para cada interacción.
@@ -939,7 +939,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
                             d[ll][i] = {}
 
                             # Llenar el nuevo diccionario con su distribución no informativa
-                            d[ll][i]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                            d[ll][i]['0'] = Incert.límites_a_texto_dist(v['límites'])
                     else:
                         # Si no se especificarion, pasar
                         pass

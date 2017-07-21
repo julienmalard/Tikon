@@ -467,7 +467,7 @@ class Simulable(Coso):
         """
 
         # Validar el nombre de la simulaión
-        nombre = símismo._gen_nombre_simul(nombre=nombre)
+        nombre = símismo._valid_nombre_simul(nombre=nombre)
 
         # Cambiar no opciones de dibujo a un diccionario vacío
         if opciones_dib is None:
@@ -563,7 +563,7 @@ class Simulable(Coso):
         símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
-        nombre = símismo._gen_nombre_simul(nombre=nombre)
+        nombre = símismo._valid_nombre_simul(nombre=nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
         lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
@@ -754,40 +754,49 @@ class Simulable(Coso):
         # Procesar los datos de la validación
         return símismo._procesar_validación()
 
-    def sensibilidad(símismo, nombre, exper, n, por_dist_ingr=0.95, calibs=None, detalles=False,
+    def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None, detalles=False,
                      calc_2_orden_sobol=False, dibujar=False):
         # Para hacer: crear esta sección
 
-        #
-        nombre = símismo._gen_nombre_simul(nombre=nombre)
+        # Validar el nombre de la simulación para esta corrida
+        nombre = símismo._valid_nombre_simul(nombre=nombre)
 
-        # Poner los experimentos en la forma correcta:
+        # Poner los experimentos en la forma correcta
         exper = símismo._prep_lista_exper(exper=exper)
 
+        # Lista de diccionarios de parámetros y de sus límites teoréticos
         lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
+        n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
 
-        n_paráms = len(lista_paráms)
+        lista_dists = Incert.trazas_a_dists()
 
-        lista_dists = Incert.trazas_a_aprioris()
+        # Basado en las distribuciones de los parámetros, establecer los límites para el análisis de sensibilidad
+        lista_líms_efec = Incert.dists_a_líms(l_dists=lista_dists, por_dist_ingr=por_dist_ingr)
 
-        colas = ((1 - por_dist_ingr) / 2, 0.5 + por_dist_ingr / 2)
-        lista_líms_efec = [[x.cdf(colas[0]), x.cdf(colas[1])] for x in lista_dists]
-
+        # Definir los parámetros del análisis en el formato que le gusta al paquete SALib.
         problema = {
-            'num_vars': n_paráms,
-            'names': [str(x) for x in range(n_paráms)],
-            'bounds': lista_líms_efec
+            'num_vars': n_paráms,  # El número de parámetros
+            'names': [str(x) for x in range(n_paráms)],  # Nombres numéricos muy sencillos
+            'bounds': lista_líms_efec  # La lista de los límites de los parámetros para el analisis de sensibilidad
         }
 
+        # Finalmente, hacer el análisis de sensibilidad.
         if método == 'Sobol':
 
+            # Calcular cuáles valores de parámetros tenemos que poner para el análisis Sobol
             vals_paráms = saltelli.sample(problema, n, calc_second_order=calc_2_orden_sobol)
 
-            símismo.aplicar_paráms(vals_paráms)
+            # Aplicar estas matrices de parámetros a los diccionarios de coeficientes
+            for n, vals in enumerate(vals_paráms):
+                lista_paráms[n][nombre] = vals
 
-            símismo.simular(exper=exper, usar_especificadas=True)
+            # El número de repeticiones paramétricas
+            n_rep_parám = len(vals_paráms[0])
 
-            resultado = copiar.deepcopy(símismo.predics_exps)
+            # Para hacer: asegurarse que se guarde el orden de los valores de los variables
+            símismo.simular(exper=exper, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
+                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+
 
             for exp in símismo.exps:
                 pass
@@ -799,6 +808,9 @@ class Simulable(Coso):
 
         if dibujar:
             pass
+
+        # Borrar las distribuciones de
+        símismo.borrar_calib(id=nombre)
 
         return resultado
 
@@ -1382,7 +1394,7 @@ a
 
         raise NotImplementedError
 
-    def _gen_nombre_simul(símismo, nombre):
+    def _valid_nombre_simul(símismo, nombre):
         """
         Esta función valida un nombre de simulación y, si nombre=None, genera un nombre aleatorio válido.
 
