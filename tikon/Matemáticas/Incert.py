@@ -19,6 +19,78 @@ def gen_vecs_coefs(l_d_paráms, calibs, n_rep_parám, comunes, usar_especificada
         calibs = [calibs]
 
 
+def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
+    """
+    Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
+    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
+    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
+    id_calib.
+    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
+
+    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
+    :type id_calib: str
+
+    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
+    parámetro.
+    :type l_pm: list
+
+    :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
+    :type l_lms: list
+
+    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
+    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
+    :type aprioris: list
+
+    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
+    :rtype: list
+
+    """
+
+    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
+    lista_dist = []
+
+    # Para cada parámetro en la lista...
+    for n, d_parám in enumerate(l_pm):
+
+        # El nombre para el variable PyMC
+        nombre = 'parám_%i' % n
+
+        # La lista de aprioris general.
+        calibs = aprioris
+
+        # La distribución pymc del a priori
+        dist_apriori = None
+
+        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
+        # convertir directamente en distribución PyMC.
+        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
+            dist_apriori = texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
+
+        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
+        if 'especificado' in d_parám:
+            dist_apriori = texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
+
+        elif dist_apriori is None:
+            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+
+            # Un vector numpy de la traza de datos para generar la distribución PyMC.
+            traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
+                                     comunes=False, usar_especificados=True)
+
+            # Generar la distribución PyMC
+            dist_apriori = ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
+                                        usar_pymc=True, nombre=nombre)[0]
+
+        # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
+        d_parám[id_calib] = dist_apriori
+
+        # Añadir una referencia al variable PyMC en la lista de distribuciones
+        lista_dist.append(dist_apriori)
+
+    # Devolver la lista de variables PyMC
+    return lista_dist
+
+
 def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificados):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
@@ -153,7 +225,7 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
     :type nombre: str
 
     :return: Una distribución o SciPy, o PyMC.
-    :rtype: estad.Stochasic | pymc.Stochastic
+    :rtype: estad.rv_frozen | pymc.Stochastic
     """
 
     # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
@@ -223,221 +295,6 @@ def dist_a_texto(dist):
     texto_dist = '%s~(%s)' % (nombre_dist, str(args))
 
     return texto_dist
-
-
-def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist=None):
-    """
-    Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
-    distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros.
-
-    :param datos: Un vector de valores del parámetro
-    :type datos: np.ndarray
-
-    :param cont: Determina si la distribución es contínua (en vez de discreta)
-    :type cont: bool
-
-    :param usar_pymc: Determina si queremos una distribución de tipo PyMC (en vez de SciPy)
-    :type usar_pymc: bool
-
-    :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
-    :type límites: tuple
-
-    :param nombre: El nombre del variable, si vamos a generar un variable de PyMC
-    :type nombre: str
-
-    :param lista_dist: Una lista de los nombres de distribuciones a considerar. dist=None las considera todas.
-    :type lista_dist: list
-
-    :return: Distribución PyMC o de Scipyy su ajuste (p)
-    :rtype: (pymc.Stochastic | estad.rv_frozen, float)
-
-    """
-
-    # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
-    if usar_pymc and nombre is None:
-        raise ValueError('Se debe especificar un nombre para el variable si quieres una distribución de PyMC.')
-
-    # Separar el mínimo y el máximo de la distribución
-    mín_parám, máx_parám = límites
-
-    # Un diccionario para guardar el mejor ajuste
-    mejor_ajuste = dict(dist=None, p=0.0)
-
-    # Sacar las distribuciones del buen tipo (contínuas o discretas)
-    if cont:
-        categ_dist = 'cont'
-    else:
-        categ_dist = 'discr'
-
-    dists_potenciales = [x for x in Ds.dists if Ds.dists[x]['tipo'] == categ_dist]
-
-    if lista_dist is not None:
-        dists_potenciales = [x for x in dists_potenciales if x in lista_dist]
-
-    # Si queremos generar una distribución PyMC, guardar únicamente las distribuciones con objeto de PyMC disponible
-    # (y lo mismo para SciPy).
-    if usar_pymc is True:
-        dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['pymc'] is not None]
-    else:
-        dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['scipy'] is not None]
-
-    # Verificar que todavia queden distribuciones para considerar.
-    if len(dists_potenciales) == 0:
-        raise ValueError('Ninguna de las distribuciones especificadas es apropiada para el tipo de distribución.')
-
-    # Para cada distribución potencial para representar a nuestros datos...
-    for nombre_dist in dists_potenciales:
-
-        # El diccionario de la distribución
-        dic_dist = Ds.dists[nombre_dist]
-
-        # El tipo de distribución (nombre SciPy)
-        nombre_scipy = dic_dist['scipy'].name
-
-        # El máximo y el mínimo de la distribución
-        mín_dist, máx_dist = dic_dist['límites']
-
-        # Verificar que los límites del parámetro y de la distribución sean compatibles
-        lím_igual = (((mín_dist == mín_parám == -np.inf) or
-                      (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
-                     ((máx_dist == máx_parám == np.inf) or
-                      (not np.isinf(máx_dist) and not np.isinf(máx_parám))))
-
-        # Si son compatibles...
-        if lím_igual:
-
-            # Restringimos las posibilidades para las distribuciones a ajustar, si necesario
-            if np.isinf(mín_parám):
-
-                if np.isinf(máx_parám):
-                    # Para el caso de un parámetro sín límites teoréticos (-inf, inf), no hay restricciones en la
-                    # distribución.
-                    restric = {}
-
-                else:
-                    # TIKON (por culpa de SciPy), no puede tomar distribuciones en (-inf, R].
-                    raise ValueError('Tikon no puede tomar distribuciones en el intervalo (-inf, R]. Hay que '
-                                     'cambiar tus ecuaciones para usar un variable en el intervalo [R, inf). '
-                                     'Disculpas. Pero de verdad es la culpa del módulo SciPy.')
-            else:
-
-                if np.isinf(máx_parám):
-                    # En el caso [R, inf), limitamos el valor inferior de la distribución al límite inferior del
-                    # parámetro
-                    restric = {'floc': mín_parám}
-
-                else:
-                    # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
-                    if nombre_dist == 'Uniforme' or nombre_dist == 'Beta':
-                        restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
-                    elif nombre_dist == 'NormalTrunc':
-                        restric = {'floc': (máx_parám + mín_parám) / 2}
-                    else:
-                        raise ValueError(nombre_dist)
-
-            # Ajustar los parámetros de la distribución SciPy para caber con los datos.
-            if nombre_dist == 'Uniforme':
-                # Para distribuciones uniformes, no hay nada que calibrar.
-                args = tuple(restric.values())
-            else:
-                args = dic_dist['scipy'].fit(datos, **restric)
-
-            # Medir el ajuste de la distribución
-            p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
-
-            # Si el ajuste es mejor que el mejor ajuste anterior...
-            if p >= mejor_ajuste['p']:
-
-                # Guardarlo
-                mejor_ajuste['p'] = p
-
-                # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
-                if usar_pymc:
-                    # Convertir los argumentos a formato PyMC
-                    args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
-
-                    # Y crear la distribución.
-                    dist = dic_dist['pymc'](nombre, *args_pymc)
-
-                    if transform['sum'] != 0:
-                        dist = dist + transform['sum']
-                    if transform['mult'] != 1:
-                        dist = dist * transform['mult']
-                    mejor_ajuste['dist'] = dist
-
-                else:
-
-                    mejor_ajuste['dist'] = dic_dist['scipy'](*args)
-
-    # Si no logramos un buen aujste, avisar al usuario.
-    if mejor_ajuste['p'] <= 0.10:
-        avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
-
-    # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
-    return mejor_ajuste['dist'], mejor_ajuste['p']
-
-
-def límites_a_texto_apriori(límites, cont=True):
-    """
-    Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
-    destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
-    distribuciones de los parámetros de ecuaciones.
-
-    :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
-    -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
-    (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
-    variable en las ecuaciones que lo utilisan.
-    :type límites: tuple
-
-    :param cont: Determina si el variable es continuo o discreto
-    :type cont: bool
-
-    :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
-    cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
-    en distribución de scipy o de pymc donde necesario.
-    :rtype: str
-    """
-
-    # Sacar el mínimo y máximo de los límites.
-    mín = límites[0]
-    máx = límites[1]
-
-    # Verificar que máx > mín
-    if máx <= mín:
-        raise ValueError('El valor máximo debe ser superior al valor máximo.')
-
-    # Pasar a través de todos los casos posibles
-    if mín == -np.inf:
-        if máx == np.inf:  # El caso (-np.inf, np.inf)
-            if cont:
-                dist = 'Normal~(0, 1e10)'
-            else:
-                dist = 'UnifDiscr~(1e-10, 1e10)'
-
-        else:  # El caso (-np.inf, R)
-            raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
-                             'crear un variable en el intervalo (R, inf) y utilisar su valor negativo en las '
-                             'ecuaciones.')
-
-    else:
-        if máx == np.inf:  # El caso (R, np.inf)
-            if cont:
-                dist = 'Exponencial~({}, 1e10)'.format(mín)
-            else:
-                loc = mín - 1  # Para incluir mín en los valores posibles de la distribución.
-                dist = 'Geométrica~(1e-8, {})'.format(loc)
-
-        else:  # El caso (R, R)
-            if máx == mín:
-                dist = 'Degenerado~({})'.format(máx)
-            else:
-                if cont:
-                    loc = máx - mín
-                    dist = 'Uniforme~({}, {})'.format(mín, loc)
-                else:
-                    dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
-
-    return dist
 
 
 def rango_a_texto_dist(rango, certidumbre, líms, cont):
@@ -626,7 +483,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                                 dens_líms = estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1]) - \
                                             estad.gamma.cdf(mín_ajust, a=x[0], scale=x[1])
 
-                                # Devolver una medida del ajuste de la distribución. Lo más importante sería la 
+                                # Devolver una medida del ajuste de la distribución. Lo más importante sería la
                                 # densidad adentro del rango, pero también la densidad en la cola superior.
                                 return abs(dens_líms - certidumbre) * 100 + abs(dens_sup - área_cola)
 
@@ -711,54 +568,264 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     return dist
 
 
-def validar(matr_predic, vector_obs):
+def límites_a_texto_dist(límites, cont=True):
     """
-    Esta función valida una matriz de predicciones de un variable según los valores observados correspondientes.
+    Esta función toma un "tuple" de límites para un parámetro de una función y devuelve una descripción de una
+    destribución a priori no informativa (espero) para los límites dados. Se usa en la inicialización de las
+    distribuciones de los parámetros de ecuaciones.
 
-    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástica, eje 1 = incertidumbre
-      paramétrica, eje 2 = día.
-    :type matr_predic: np.ndarray
+    :param límites: Las límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
+    -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf). No se pueden especificar límites en el rango
+    (-np.inf, R), donde R es un número real. En ese caso, usar las límites (R, np.inf) y tomar el negativo del
+    variable en las ecuaciones que lo utilisan.
+    :type límites: tuple
 
-    :param vector_obs: El vector de las observaciones. Eje 0 = día.
-    :type vector_obs: np.ndarray
+    :param cont: Determina si el variable es continuo o discreto
+    :type cont: bool
 
-    :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
-    exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
-    :rtype: (float, float, float)
+    :return: Descripción de la destribución no informativa que conforme a las límites especificadas. Devuelve una
+    cadena de carácteres, que facilita guardar las distribuciones de los parámetros. Otras funciones la convertirán
+    en distribución de scipy o de pymc donde necesario.
+    :rtype: str
     """
 
-    # Quitar observaciones que faltan
-    matr_predic = matr_predic[:, :, ~np.isnan(vector_obs)]
-    vector_obs = vector_obs[~np.isnan(vector_obs)]
+    # Sacar el mínimo y máximo de los límites.
+    mín = límites[0]
+    máx = límites[1]
 
-    # El número de días de predicciones y observaciones
-    n_rep_estoc, n_rep_parám, n_días = matr_predic.shape
+    # Verificar que máx > mín
+    if máx <= mín:
+        raise ValueError('El valor máximo debe ser superior al valor máximo.')
 
-    # Combinar los dos ejes de incertidumbre (repeticiones estocásticas y paramétricas)
-    matr_predic = matr_predic.reshape((n_rep_estoc * n_rep_parám, n_días))
+    # Pasar a través de todos los casos posibles
+    if mín == -np.inf:
+        if máx == np.inf:  # El caso (-np.inf, np.inf)
+            if cont:
+                dist = 'Normal~(0, 1e10)'
+            else:
+                dist = 'UnifDiscr~(1e-10, 1e10)'
 
-    # Calcular el promedio de todas las repeticiones de predicciones
-    vector_predic = matr_predic.mean(axis=0)
+        else:  # El caso (-np.inf, R)
+            raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). Puedes'
+                             'crear un variable en el intervalo (R, inf) y utilisar su valor negativo en las '
+                             'ecuaciones.')
 
-    # Calcular R cuadrado
-    r2 = estad.linregress(vector_predic, vector_obs)[2] ** 2
+    else:
+        if máx == np.inf:  # El caso (R, np.inf)
+            if cont:
+                dist = 'Exponencial~({}, 1e10)'.format(mín)
+            else:
+                loc = mín - 1  # Para incluir mín en los valores posibles de la distribución.
+                dist = 'Geométrica~(1e-8, {})'.format(loc)
 
-    # Raíz cuadrada normalizada del error promedio
-    rcnep = np.divide(np.sqrt(np.square(vector_predic - vector_obs).mean()), np.mean(vector_obs))
+        else:  # El caso (R, R)
+            if máx == mín:
+                dist = 'Degenerado~({})'.format(máx)
+            else:
+                if cont:
+                    loc = máx - mín
+                    dist = 'Uniforme~({}, {})'.format(mín, loc)
+                else:
+                    dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
 
-    # Validar el intervalo de incertidumbre
-    confianza = np.empty_like(vector_obs, dtype=float)
-    for n in range(n_días):
-        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n]) / 100
-        confianza[n] = abs(0.5 - perc) * 2
+    return dist
 
-    confianza.sort()
 
-    percentiles = np.divide(np.arange(1, n_días + 1), n_días)
+def dists_a_líms(l_dists, por_dist_ingr):
+    """
+    Esta función genera límites de densidad para cada distribución en una lista de distribuciones.
 
-    r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
+    :param l_dists: Una lista de las distribuciones
+    :type l_dists: list[estad.rv_frozen | np.ndarray]
 
-    return r2, rcnep, r2_percentiles
+    :param por_dist_ingr: La fracción de la densidad de la distribución a dejar afuera de los límites
+    :type por_dist_ingr: float
+
+    :return: Una lista de los límites, con cada límite sí mismo en formato de lista
+    :rtype: list[list[float]]
+    """
+
+    # Asegurarse que la lista de distribuciones sea una lista
+    if type(l_dists) is not list:
+        l_dists = [l_dists]
+
+    # Las superficies de las colas que hay que dejar afuera del rango de los límites
+    colas = ((1 - por_dist_ingr) / 2, 0.5 + por_dist_ingr / 2)
+
+    # Inicializar la lista de límites
+    l_líms = []
+
+    for dist in l_dists:
+        # Para cada distribución...
+
+        # Calcular los porcentiles según el tipo de distribución
+        if isinstance(dist, estad.rv_frozen):
+            # Para distribuciones SciPy...
+            l_líms.append([dist.cdf(colas[0]), dist.cdf(colas[1])])
+        elif isinstance(dist, np.ndarray):
+            # Para distribuciones en formato de matriz NumPy...
+            l_líms.append([np.percentile(dist, colas[0] * 100, np.percentile(dist, colas[1] * 100))])
+        elif isinstance(dist, str):
+            # Para distribuciones en formato de texto...
+            d_sp = texto_a_dist(dist)  # Convertir a SciPy
+            l_líms.append([d_sp.cdf(colas[0]), d_sp.cdf(colas[1])])  # Calcular los límites
+        else:
+            # Si no reconocimos el tipo de la distribución, hay un error.
+            raise ValueError('Tipo de distribución "{}" no reconocido.'.format(type(dist)))
+
+    return l_líms
+
+
+def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist=None):
+    """
+    Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
+    distribución, escoge la distribución de Scipy o PyMC la más apropriada y ajusta sus parámetros.
+
+    :param datos: Un vector de valores del parámetro
+    :type datos: np.ndarray
+
+    :param cont: Determina si la distribución es contínua (en vez de discreta)
+    :type cont: bool
+
+    :param usar_pymc: Determina si queremos una distribución de tipo PyMC (en vez de SciPy)
+    :type usar_pymc: bool
+
+    :param límites: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
+    :type límites: tuple
+
+    :param nombre: El nombre del variable, si vamos a generar un variable de PyMC
+    :type nombre: str
+
+    :param lista_dist: Una lista de los nombres de distribuciones a considerar. dist=None las considera todas.
+    :type lista_dist: list
+
+    :return: Distribución PyMC o de Scipyy su ajuste (p)
+    :rtype: (pymc.Stochastic | estad.rv_frozen, float)
+
+    """
+
+    # Asegurarse de que, si queremos una distribución pymc, también se especificó un nombre para el variable.
+    if usar_pymc and nombre is None:
+        raise ValueError('Se debe especificar un nombre para el variable si quieres una distribución de PyMC.')
+
+    # Separar el mínimo y el máximo de la distribución
+    mín_parám, máx_parám = límites
+
+    # Un diccionario para guardar el mejor ajuste
+    mejor_ajuste = dict(dist=None, p=0.0)
+
+    # Sacar las distribuciones del buen tipo (contínuas o discretas)
+    if cont:
+        categ_dist = 'cont'
+    else:
+        categ_dist = 'discr'
+
+    dists_potenciales = [x for x in Ds.dists if Ds.dists[x]['tipo'] == categ_dist]
+
+    if lista_dist is not None:
+        dists_potenciales = [x for x in dists_potenciales if x in lista_dist]
+
+    # Si queremos generar una distribución PyMC, guardar únicamente las distribuciones con objeto de PyMC disponible
+    # (y lo mismo para SciPy).
+    if usar_pymc is True:
+        dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['pymc'] is not None]
+    else:
+        dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['scipy'] is not None]
+
+    # Verificar que todavia queden distribuciones para considerar.
+    if len(dists_potenciales) == 0:
+        raise ValueError('Ninguna de las distribuciones especificadas es apropiada para el tipo de distribución.')
+
+    # Para cada distribución potencial para representar a nuestros datos...
+    for nombre_dist in dists_potenciales:
+
+        # El diccionario de la distribución
+        dic_dist = Ds.dists[nombre_dist]
+
+        # El tipo de distribución (nombre SciPy)
+        nombre_scipy = dic_dist['scipy'].name
+
+        # El máximo y el mínimo de la distribución
+        mín_dist, máx_dist = dic_dist['límites']
+
+        # Verificar que los límites del parámetro y de la distribución sean compatibles
+        lím_igual = (((mín_dist == mín_parám == -np.inf) or
+                      (not np.isinf(mín_dist) and not np.isinf(mín_parám))) and
+                     ((máx_dist == máx_parám == np.inf) or
+                      (not np.isinf(máx_dist) and not np.isinf(máx_parám))))
+
+        # Si son compatibles...
+        if lím_igual:
+
+            # Restringimos las posibilidades para las distribuciones a ajustar, si necesario
+            if np.isinf(mín_parám):
+
+                if np.isinf(máx_parám):
+                    # Para el caso de un parámetro sín límites teoréticos (-inf, inf), no hay restricciones en la
+                    # distribución.
+                    restric = {}
+
+                else:
+                    # TIKON (por culpa de SciPy), no puede tomar distribuciones en (-inf, R].
+                    raise ValueError('Tikon no puede tomar distribuciones en el intervalo (-inf, R]. Hay que '
+                                     'cambiar tus ecuaciones para usar un variable en el intervalo [R, inf). '
+                                     'Disculpas. Pero de verdad es la culpa del módulo SciPy.')
+            else:
+
+                if np.isinf(máx_parám):
+                    # En el caso [R, inf), limitamos el valor inferior de la distribución al límite inferior del
+                    # parámetro
+                    restric = {'floc': mín_parám}
+
+                else:
+                    # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
+                    if nombre_dist == 'Uniforme' or nombre_dist == 'Beta':
+                        restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
+                    elif nombre_dist == 'NormalTrunc':
+                        restric = {'floc': (máx_parám + mín_parám) / 2}
+                    else:
+                        raise ValueError(nombre_dist)
+
+            # Ajustar los parámetros de la distribución SciPy para caber con los datos.
+            if nombre_dist == 'Uniforme':
+                # Para distribuciones uniformes, no hay nada que calibrar.
+                args = tuple(restric.values())
+            else:
+                args = dic_dist['scipy'].fit(datos, **restric)
+
+            # Medir el ajuste de la distribución
+            p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
+
+            # Si el ajuste es mejor que el mejor ajuste anterior...
+            if p >= mejor_ajuste['p']:
+
+                # Guardarlo
+                mejor_ajuste['p'] = p
+
+                # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
+                if usar_pymc:
+                    # Convertir los argumentos a formato PyMC
+                    args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+
+                    # Y crear la distribución.
+                    dist = dic_dist['pymc'](nombre, *args_pymc)
+
+                    if transform['sum'] != 0:
+                        dist = dist + transform['sum']
+                    if transform['mult'] != 1:
+                        dist = dist * transform['mult']
+                    mejor_ajuste['dist'] = dist
+
+                else:
+
+                    mejor_ajuste['dist'] = dic_dist['scipy'](*args)
+
+    # Si no logramos un buen aujste, avisar al usuario.
+    if mejor_ajuste['p'] <= 0.10:
+        avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
+
+    # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
+    return mejor_ajuste['dist'], mejor_ajuste['p']
 
 
 def paráms_scipy_a_pymc(tipo_dist, paráms):
@@ -945,73 +1012,51 @@ def numerizar(f, c=None):
     return c
 
 
-def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
+def validar_matr_pred(matr_predic, vector_obs):
     """
-    Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
-    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
-    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
-    id_calib.
-    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
+    Esta función valida una matriz de predicciones de un variable según los valores observados correspondientes.
 
-    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
-    :type id_calib: str
+    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástica, eje 1 = incertidumbre
+      paramétrica, eje 2 = día.
+    :type matr_predic: np.ndarray
 
-    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
-    parámetro.
-    :type l_pm: list
+    :param vector_obs: El vector de las observaciones. Eje 0 = día.
+    :type vector_obs: np.ndarray
 
-    :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
-    :type l_lms: list
-
-    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
-    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
-    :type aprioris: list
-
-    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
-    :rtype: list
-
+    :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
+    exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
+    :rtype: (float, float, float)
     """
 
-    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
-    lista_dist = []
+    # Quitar observaciones que faltan
+    matr_predic = matr_predic[:, :, ~np.isnan(vector_obs)]
+    vector_obs = vector_obs[~np.isnan(vector_obs)]
 
-    # Para cada parámetro en la lista...
-    for n, d_parám in enumerate(l_pm):
+    # El número de días de predicciones y observaciones
+    n_rep_estoc, n_rep_parám, n_días = matr_predic.shape
 
-        # El nombre para el variable PyMC
-        nombre = 'parám_%i' % n
+    # Combinar los dos ejes de incertidumbre (repeticiones estocásticas y paramétricas)
+    matr_predic = matr_predic.reshape((n_rep_estoc * n_rep_parám, n_días))
 
-        # La lista de aprioris general.
-        calibs = aprioris
+    # Calcular el promedio de todas las repeticiones de predicciones
+    vector_predic = matr_predic.mean(axis=0)
 
-        # La distribución pymc del a priori
-        dist_apriori = None
+    # Calcular R cuadrado
+    r2 = estad.linregress(vector_predic, vector_obs)[2] ** 2
 
-        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
-        # convertir directamente en distribución PyMC.
-        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
-            dist_apriori = texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
+    # Raíz cuadrada normalizada del error promedio
+    rcnep = np.divide(np.sqrt(np.square(vector_predic - vector_obs).mean()), np.mean(vector_obs))
 
-        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
-        if 'especificado' in d_parám:
-            dist_apriori = texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
+    # Validar el intervalo de incertidumbre
+    confianza = np.empty_like(vector_obs, dtype=float)
+    for n in range(n_días):
+        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n]) / 100
+        confianza[n] = abs(0.5 - perc) * 2
 
-        elif dist_apriori is None:
-            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+    confianza.sort()
 
-            # Un vector numpy de la traza de datos para generar la distribución PyMC.
-            traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
-                                     comunes=False, usar_especificados=True)
+    percentiles = np.divide(np.arange(1, n_días + 1), n_días)
 
-            # Generar la distribución PyMC
-            dist_apriori = ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
-                                        usar_pymc=True, nombre=nombre)[0]
+    r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
 
-        # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
-        d_parám[id_calib] = dist_apriori
-
-        # Añadir una referencia al variable PyMC en la lista de distribuciones
-        lista_dist.append(dist_apriori)
-
-    # Devolver la lista de variables PyMC
-    return lista_dist
+    return r2, rcnep, r2_percentiles

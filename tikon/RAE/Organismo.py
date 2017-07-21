@@ -2,7 +2,7 @@ import os
 
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
-from tikon.Matemáticas.Incert import límites_a_texto_apriori
+from tikon.Matemáticas.Incert import límites_a_texto_dist
 
 
 class Organismo(Coso):
@@ -278,7 +278,7 @@ class Organismo(Coso):
                                     if e_víc not in dic[víctima.nombre]:
                                         # Si ya no existía una entrada para esta etapa, generar un a priori no
                                         # informativo
-                                        no_informativo = límites_a_texto_apriori(límites=límites)
+                                        no_informativo = límites_a_texto_dist(límites=límites)
                                         dic[víctima.nombre][e_víc] = {'0': no_informativo}
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen

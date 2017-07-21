@@ -7,7 +7,7 @@ import numpy as np
 
 from tikon.Coso import Simulable
 from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
-from tikon.Matemáticas.Incert import validar, gen_vector_coefs
+from tikon.Matemáticas.Incert import validar_matr_pred
 from . import Insecto as Ins
 from .Gen_organismos import generar_org
 from .Organismo import Organismo
@@ -1407,8 +1407,8 @@ class Red(Simulable):
                         for n_p, parc in enumerate(símismo.info_exps['parcelas'][exp]):
                             matr_predic = d['preds'][n_p, ...]
                             vector_obs = d['obs'][n_p, ...]
-                            valids_detalles[exp][org][etp][parc] = validar(matr_predic=matr_predic,
-                                                                           vector_obs=vector_obs)
+                            valids_detalles[exp][org][etp][parc] = validar_matr_pred(matr_predic=matr_predic,
+                                                                                     vector_obs=vector_obs)
                             if matr_preds_total is None:
                                 matr_preds_total = matr_predic
                                 vector_obs_total = vector_obs
@@ -1416,7 +1416,7 @@ class Red(Simulable):
                                 matr_preds_total = np.append(matr_preds_total, matr_predic, axis=-1)
                                 vector_obs_total = np.append(vector_obs_total, vector_obs, axis=-1)
 
-        valid = validar(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
+        valid = validar_matr_pred(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
 
         return valid, valids_detalles
 
