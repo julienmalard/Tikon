@@ -1,11 +1,11 @@
 from warnings import warn as avisar
 
-import Matemáticas.Distribuciones as Ds
 import matplotlib.pyplot as dib
 import numpy as np
 import pymc
 import scipy.stats as estad
 
+import tikon.Matemáticas.Distribuciones as Ds
 import tikon.Matemáticas.Incert as Inc
 
 """
@@ -20,7 +20,10 @@ dibujar = False
 
 con_errores = []
 
-for nombre, dist in sorted(Ds.dists.items()):
+# dists = Ds.dists.items()
+dists = {'NormalTrunc': Ds.dists['NormalTrunc']}
+
+for nombre, dist in sorted(dists.items()):
 
     if dist['tipo'] != 'cont':
         continue
@@ -33,7 +36,7 @@ for nombre, dist in sorted(Ds.dists.items()):
         if máx == np.inf:
             núms = estad.norm.rvs(10, 20, size=100)
         else:
-            avisar('No se pudo comprobar la distribución %s' % nombre)
+            avisar('No se pudo comprobar la distribución "%s".' % nombre)
             continue
 
     else:
@@ -77,7 +80,7 @@ for nombre, dist in sorted(Ds.dists.items()):
         dib.title(nombre)
         dib.show()
 
-    error = 0
+    error = 0.0
     for n, i in enumerate(scipy_de_pymc.args):
         if i == 0:
             e = i - dist_scipy.args[n]
@@ -85,8 +88,8 @@ for nombre, dist in sorted(Ds.dists.items()):
             e = (i - dist_scipy.args[n]) / dist_scipy.args[n]
         error = max(error, abs(e))
 
-    if error >= 0.05:
-        mensaje = '¡¡¡!!!'
+    if error >= 0.025:
+        mensaje = '¡¡¡Panica!!! Hay un gran error terrible.'
         con_errores.append(nombre)
     else:
         mensaje = 'Todo bien.'
@@ -96,6 +99,6 @@ for nombre, dist in sorted(Ds.dists.items()):
 if len(con_errores):
     print('Verificar:', con_errores)
 else:
-    print('¡Todas las distribuciones pasaron!')
+    print('¡Todas las distribuciones pasaron! Todas nuestras felicitaciones, en தமிழ், para ti: வாழ்த்துக்கள்!')
 
 # Arreglar: Errores con T, TNo, etc...
