@@ -1,1 +1,1 @@
-from . import Organismo, Enfermedades, Insecto, Planta, RedAE
+from . import Organismo, Enfermedad, Insecto, Planta, RedAE

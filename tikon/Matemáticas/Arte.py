@@ -45,11 +45,19 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     :param todas_líneas: Si hay que mostrar todas las líneas de las repeticiones o no.
     :type todas_líneas: bool
 
+    :param n_líneas:
+    :type n_líneas: int
+
     :param mostrar: Si hay que mostrar el gráfico de inmediato, o solo guardarlo.
     :type mostrar: bool
 
     :param directorio: El archivo donde guardar el gráfico
     :type directorio: str
+
+    Parameters
+    ----------
+    n_líneas
+    n_líneas
 
     """
 
