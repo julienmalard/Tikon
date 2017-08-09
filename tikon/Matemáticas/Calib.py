@@ -1,7 +1,7 @@
 import numpy as np
 import pymc
 
-import tikon.Matemáticas.Incert as Incert
+from tikon.Matemáticas.Incert import trazas_a_aprioris
 
 
 class ModBayes(object):
@@ -88,10 +88,10 @@ class ModBayes(object):
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
-
         lista_paráms = trazas_a_aprioris(id_calib=símismo.id,
                                          l_pm=lista_paráms, l_lms=lista_líms,
                                          aprioris=aprioris)
+
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
         for parám in lista_paráms:
@@ -103,23 +103,35 @@ class ModBayes(object):
         # de generar.
         función_llenar_coefs(n_rep_parám=1, calibs=id_calib, usar_especificadas=False, comunes=False)
 
-        # Para la varianza de la distribución normal, se emplea un tau no informativo, si es que exista tal cosa.
-        símismo.precisión = pymc.Uniform('precision', lower=0.0001, upper=1.0)
+        # Para la varianza de la distribución normal, se emplea un a priori no informativo, si es que exista tal cosa.
+        símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
-        # pasamos los argumentos necesarios, si aplican. Hay que incluir símismo.precisión en los argumentos
+        # pasamos los argumentos necesarios, si aplican. Hay que incluir el parámetro error en los argumentos
         # para que PyMC se dé cuenta de que la función simular() depiende de los otros parámetros y se tiene que
         # recalcular a cada ejecución del modelo.
         @pymc.deterministic(plot=False)
-        def simular(d=dic_argums, _=símismo.precisión):
+        def simular(d=dic_argums, _=símismo.error):
             return función(**d)
 
-        # Una distribución normal alrededor de las predicciones del modelo, conectado con las observaciones
+        # Ahora convertimos el error a tau
+        @pymc.deterministic
+        def tau(e=símismo.error, s=simular):
+            # Calcular sigma basado en el error y el valor simulado
+            m = np.array(e * np.maximum(50, s))
+
+            # Convertir sigma a tau
+            np.square(m, out=m)
+            np.divide(1, m, out=m)
+
+            return m
+
+        # Una distribución normal alrededor de las predicciones del modelo, conectada con las observaciones
         # correspondientes.
-        dist_obs = pymc.Normal('obs', mu=simular, tau=símismo.precisión, value=obs, observed=True)
+        dist_obs = pymc.Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({dist_obs, símismo.precisión, simular, *lista_paráms})
+        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *lista_paráms})
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -139,7 +151,11 @@ class ModBayes(object):
 
         """
 
-        # Llamar la función "sample" del objeto MCMC de PyMC
+        # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
+        # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
+        símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+
+        # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
 
     def guardar(símismo):
@@ -158,73 +174,3 @@ class ModBayes(object):
             d_parám[id_calib] = d_parám[id_calib].trace(chain=None)[:]
 
 
-def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
-    """
-    Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
-    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
-    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
-    id_calib.
-    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
-
-    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
-    :type id_calib: str
-
-    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
-    parámetro.
-    :type l_pm: list
-
-    :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
-    :type l_lms: list
-
-    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
-    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
-    :type aprioris: list
-
-    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
-    :rtype: list
-
-    """
-
-    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
-    lista_dist = []
-
-    # Para cada parámetro en la lista...
-    for n, d_parám in enumerate(l_pm):
-
-        # El nombre para el variable PyMC
-        nombre = 'parám_%i' % n
-
-        # La lista de aprioris general.
-        calibs = aprioris
-
-        # La distribución pymc del a priori
-        dist_apriori = None
-
-        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
-        # convertir directamente en distribución PyMC.
-        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
-            dist_apriori = Incert.texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
-
-        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
-        if 'especificado' in d_parám:
-            dist_apriori = Incert.texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
-
-        elif dist_apriori is None:
-            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
-
-            # Un vector numpy de la traza de datos para generar la distribución PyMC.
-            traza = Incert.gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
-                                            comunes=False, usar_especificados=True)
-
-            # Generar la distribución PyMC
-            dist_apriori = Incert.ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
-                                               usar_pymc=True, nombre=nombre)[0]
-
-        # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
-        d_parám[id_calib] = dist_apriori
-
-        # Añadir una referencia al variable PyMC en la lista de distribuciones
-        lista_dist.append(dist_apriori)
-
-    # Devolver la lista de variables PyMC
-    return lista_dist

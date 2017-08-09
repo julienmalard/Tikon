@@ -1,13 +1,13 @@
 from pprint import pprint
 
 import tikon.RAE.Insecto as Ins
-from tikon.Experimentos import Experimento
+import tikon.RAE.Planta as Plt
+from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
-import tikon.RAE.Planta as Plt
 
 # Opciones artísticas
-dib_aprioris = False
+dib_aprioris = True
 ops_dib = {'n_líneas': 5}
 
 # Empezamos las cosas serias ahora
@@ -166,11 +166,12 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
         pass
 
 pprint(Red_coco.ver_coefs_no_espec())
-# Red_coco.validar(Experimento_A)
-Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10, opciones_dib=ops_dib, dib_dists=True)
+
+Red_coco.calibrar(exper=Experimento_A, n_iter=10000, quema=1000, extraer=10, dibujar=True)
+# Red_coco.validar(Experimento_A, n_rep_parám=10, n_rep_estoc=10, opciones_dib=ops_dib, dib_dists=True)
 
 input('¿Seguir?')
-Red_coco.calibrar(exper=Experimento_A, n_iter=1000, quema=0, extraer=1, dibujar=True)
+
 Red_coco.validar(Experimento_B, n_rep_parám=10, n_rep_estoc=10)
 
 Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoides) para O. arenosella en coco, '

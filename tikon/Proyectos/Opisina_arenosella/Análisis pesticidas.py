@@ -1,15 +1,16 @@
-from tikon.NuevaParcela import Parcela
 from tikon.Cultivo.NuevoCultivo import Cultivo
-from tikon.RAE.RedAE import Red
 from tikon.Manejo.Aplicación import Insecticida
+from tikon.Paisaje.NuevaParcela import Parcela
+from tikon.RAE.RedAE import Red
 
+proyecto = 'Opisina_arenosella'
 
-red_cocos = Red(nombre='Campos coco sencillo', proyecto='Opisina_arenosella')
+red_cocos = Red(nombre='Campos coco sencillo', proyecto=proyecto)
 cocos = Cultivo('Coco')
 
 parc = Parcela(nombre='Control', cultivo=cocos, red=red_cocos)
 
-insecticida = Insecticida('90%')
+insecticida = Insecticida('90%', proyecto=proyecto)
 insecticida.estab_mortalidad(.90)
 
 parc.aplicar(insecticida, día=[25, 50])
@@ -17,7 +18,7 @@ parc.simular()
 
 parc.limpiar_aplicaciones()
 
-específico = Insecticida('Específico')
+específico = Insecticida('Específico', proyecto=proyecto)
 específico.estab_mortalidad('Plagas', 0.90)
 
 parc.aplicar(específico, día=[25, 50])

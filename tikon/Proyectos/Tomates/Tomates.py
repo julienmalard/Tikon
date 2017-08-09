@@ -1,7 +1,7 @@
 from tikon.Cultivo.NuevoCultivo import Cultivo
-from tikon.RAE.RedAE import Red
 from tikon.Manejo.Aplicación import Insecticida
-from tikon.NuevaParcela import Parcela
+from tikon.Paisaje.NuevaParcela import Parcela
+from tikon.RAE.RedAE import Red
 
 tomates = Cultivo('Tomate_var1', fuente='')
 

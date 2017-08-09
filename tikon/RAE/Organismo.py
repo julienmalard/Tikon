@@ -1,3 +1,5 @@
+import os
+
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
 from tikon.Matemáticas.Incert import límites_a_texto_apriori
@@ -467,9 +469,19 @@ class Organismo(Coso):
             # Ahora, para cada tipo de interacción identificado...
             for inter in l_inter:
 
-                # ...establecer la distribución a priori
+                # Preparar los parámetros de dibujo, si necesario
+                if dibujar:
+                    archivo = os.path.join(símismo.proyecto, símismo.nombre, 'A prioris', *ubic_parám)
+                    archivo = símismo._prep_directorio(archivo)
+                    archivo_final = os.path.join(archivo, etp + '.png')
+                    título = 'En ({}, {}), {}%'.format(round(rango[0], 3), round(rango[1], 3), certidumbre * 100)
+                else:
+                    archivo_final = título = None
+
+                # ...y finalmente establecer la distribución a priori
                 símismo._estab_a_priori(dic_ecs=dic_ecs, dic_parám=dic_parám, ubic_parám=ubic_parám,
-                                        rango=rango, certidumbre=certidumbre, inter=inter, dibujar=dibujar)
+                                        rango=rango, certidumbre=certidumbre, inter=inter, dibujar=dibujar,
+                                        archivo=archivo_final, título=título)
 
     def _sacar_coefs_interno(símismo):
         """

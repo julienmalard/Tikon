@@ -4,7 +4,7 @@ import numpy as np
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
     Laplace, Logistic, Lognormal, Normal, Pareto, Uniform, Bernoulli, \
-    Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform, TruncatedNormal
+    Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform, TruncatedNormal, Weibull
 
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.
 dists = {'Alpha': {'scipy': estad.alpha,
@@ -14,7 +14,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                    },
          'Anglit': {'scipy': estad.anglit,
                     'pymc': None,
-                    'límites': (-mat.pi/4, mat.pi/4),
+                    'límites': (-mat.pi / 4, mat.pi / 4),
                     'tipo': 'cont'
                     },
          'Arcsen': {'scipy': estad.arcsine,
@@ -454,11 +454,11 @@ dists = {'Alpha': {'scipy': estad.alpha,
                   'límites': (0, np.inf),
                   'tipo': 'cont'
                   },
-         'WeibullMínimo': {'scipy': estad.weibull_min,
-                           'pymc': None,
-                           'límites': (0, np.inf),
-                           'tipo': 'cont'
-                           },
+         'Weibull': {'scipy': estad.weibull_min,
+                     'pymc': Weibull,
+                     'límites': (0, np.inf),
+                     'tipo': 'cont'
+                     },
          'WeibullMáximo': {'scipy': estad.weibull_max,
                            'pymc': None,
                            'límites': (0, np.inf),
@@ -466,7 +466,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                            },
          'CauchyEnvuelto': {'scipy': estad.wrapcauchy,
                             'pymc': None,
-                            'límites': (0, 2*mat.pi),
+                            'límites': (0, 2 * mat.pi),
                             'tipo': 'cont'
                             },
 
