@@ -4,7 +4,7 @@ import numpy as np
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
     Laplace, Logistic, Lognormal, Normal, Pareto, Uniform, Bernoulli, \
-    Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform
+    Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform, TruncatedNormal
 
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.
 dists = {'Alpha': {'scipy': estad.alpha,
@@ -420,13 +420,11 @@ dists = {'Alpha': {'scipy': estad.alpha,
                               'tipo': 'cont'
                               },
 
-         # Desactivada por falta de posibilidad de fijar sus límites para la optimización.
-         #
-         # 'NormalTrunc': {'scipy': estad.truncnorm,
-         #                 'pymc': TruncatedNormal,
-         #                 'límites': (0, 1),
-         #                 'tipo': 'cont'
-         #                 },
+         'NormalTrunc': {'scipy': estad.truncnorm,
+                         'pymc': TruncatedNormal,
+                         'límites': (0, 1),
+                         'tipo': 'cont'
+                         },
 
          'TukeyLambda': {'scipy': estad.tukeylambda,
                          'pymc': None,

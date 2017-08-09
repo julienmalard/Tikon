@@ -6,6 +6,7 @@ from pkg_resources import resource_filename
 
 
 __author__ = 'Julien Malard'
+__email__ = 'julien.malard@mail.mcgill.ca'
 
 with open(resource_filename('tikon', 'versión.txt')) as archivo_versión:
     versión = archivo_versión.read().strip()
@@ -19,14 +20,24 @@ with open(archivo_ctrls, 'r', encoding='utf8') as d:
     dic_ctrls = json.load(d)
 
 dirs_modelos = dic_ctrls['dirs_mods_cult']
+dirs_auto = {
+    'DSSAT': "C:\\DSSAT46",
+}
+mods_faltan = []
 
-if not os.path.exists(dirs_modelos['DSSAT']):
-    dir_auto = "C:\\DSSAT46"
-    if os.path.exists(dir_auto):
-        dirs_modelos['DSSAT'] = dir_auto
+for mod in dirs_modelos:
+    if not os.path.exists(dirs_modelos[mod]):
 
-        with open(archivo_ctrls, 'w', encoding='utf8') as d:
-            json.dump(dirs_modelos, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+        if mod in dirs_auto and os.path.exists(dirs_auto[mod]):
+            dirs_modelos[mod] = dirs_auto[mod]
 
-    else:
-        avisar('Directorio DSSAT no encontrado. No se pueden usar modelos de DSSAT en esta sesión de Tiko\'n.')
+            with open(archivo_ctrls, 'w', encoding='utf8') as d:
+                json.dump(dirs_modelos, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+
+        else:
+            mods_faltan.append(mod)
+
+if len(mods_faltan):
+    avisar('Directorios no encontrados para los modelos de cultivo %s. '
+           'No se pueden usar estos modelos de cultivos en esta sesión de Tiko\'n.' % ', '.join(mods_faltan)
+           )
