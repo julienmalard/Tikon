@@ -43,10 +43,11 @@ Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Caf
                proyecto=proyecto)
 
 Red_café.añadir_exp(El_Encanto,
-                    corresp={'L. coffeella': {'juvenil': ['Juvenil'],
-                                              'huevo': ['Huevo'],
-                                              'pupa': ['Pupa'],
-                                              'adulto': ['Adulto']},
+                    corresp={'L. coffeella': {'juvenil': ['Juvenil']
+#                                              'huevo': ['Huevo'],
+#                                              'pupa': ['Pupa'],
+#                                              'adulto': ['Adulto']
+                                                },
                              'Parasitoide larvas': {'juvenil': ['Para_larva']}}
                     )
 
@@ -62,4 +63,4 @@ from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
 
-Red_café.validar(El_Encanto, n_rep_parám=1, n_rep_estoc=1)
+Red_café.validar(El_Encanto, n_rep_parám=10, n_rep_estoc=10)
