@@ -938,7 +938,7 @@ class Red(Simulable):
                 np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / cf['K']), out=crec_etp)
 
             elif tp_ec == 'Logístico Presa':
-                # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
+                # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa  indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
                 k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga
@@ -1244,7 +1244,7 @@ class Red(Simulable):
         # Quitar los organismos que transicionaron
         np.subtract(pobs, trans, out=pobs)
 
-        # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
+        # Si no eran adultos muriéndose por viejez, añadirlos a la próxima etapa
         orden_recip = símismo.orden['trans']
         nuevos = np.zeros_like(trans)
 
@@ -1354,7 +1354,7 @@ class Red(Simulable):
         # Una población que crece (misma etapa)
         símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
 
-        # Muertes por el ambiente
+        # Muertes por el medioambiente
         símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
 
         # Calcular cambios de edades
@@ -2329,7 +2329,7 @@ class Red(Simulable):
         # Aplicar el cambio de edad.
         símismo.predics['Cohortes']['Edades'][..., í_etps_coh] += cambio_edad
 
-        # Si hay que quitar las etapas que transicionario, hacerlo aquí.
+        # Si hay que quitar las etapas que transicionaron, hacerlo aquí.
         if quitar:
             símismo.predics['Cohortes']['Pobs'][..., í_etps_coh] -= n_cambian
 
