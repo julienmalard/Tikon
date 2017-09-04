@@ -216,8 +216,8 @@ class Coso(object):
 
         # Si "certidumbre" se especificó como un porcentaje, cambiarlo a una fracción.
         if certidumbre > 1:
-            avisar.warn('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
-                        'porcentaje.')
+            avisar('El parámetro "certidumbre" se especificó a un valor superior a 1. Lo tomaremos como un '
+                   'porcentaje.')
             certidumbre /= 100
 
         # Asegurarse de que "certidumbre" esté entre 0 y 1
@@ -425,6 +425,9 @@ class Simulable(Coso):
 
         :param exper: Los experimentos para incluir en la simulación.
         :type exper: list | str | Experimento | None
+
+        :param nombre: El nombre de la simulación
+        :type nombre: str
 
         :param paso: El paso de tiempo para la simulación
         :type paso: int
