@@ -1,10 +1,9 @@
 from pprint import pprint
 
 import tikon.RAE.Insecto as Ins
-import tikon.RAE.Planta as Plt
+from tikon.Proyectos.Opisina_arenosella.Red_Opisina import Red_coco, Red_coco_araña
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
-from tikon.RAE.RedAE import Red
 
 # Opciones artísticas
 dib_aprioris = True
@@ -12,7 +11,7 @@ ops_dib = {'n_líneas': 5}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
-Coco = Plt.Hojas('Coco', proyecto=proyecto)
+Coco = Red_coco.organismos['Coco']
 Coco.estimar_densidad(rango=(38000e6, 42000e6), certidumbre=0.95)
 
 """
@@ -90,7 +89,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
 Red_coco_senc.guardar()
 """
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
-Araña = Ins.Sencillo('Araña', proyecto=proyecto)
+Araña = Red_coco_araña.organismos['Araña']
 """
 Araña.secome(O_arenosella_senc)
 Araña.secome(Parasitoide_senc)
@@ -115,20 +114,12 @@ Red_coco_senc.guardar()
 """
 
 # Intentemos algo más interesante ahora.
-O_arenosella = Ins.MetamCompleta('O. arenosella', proyecto=proyecto, njuvenil=5)
+O_arenosella = Red_coco.organismos['O. arenosella']
 
-Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas', proyecto=proyecto)
+Parasitoide_larvas = Red_coco.organismos['Parasitoide larvas']
 
-Parasitoides_pupa = Ins.Parasitoide('Parasitoide pupas', proyecto=proyecto)
+Parasitoides_pupa = Red_coco.organismos['Parasitoide pupas']
 
-O_arenosella.secome(Coco, etps_depred='juvenil')
-
-Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
-
-Parasitoides_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
-
-Red_coco = Red(nombre='Coco completa', organismos=[O_arenosella, Parasitoide_larvas, Parasitoides_pupa, Coco],
-               proyecto=proyecto)
 
 Red_coco.añadir_exp(Experimento_A,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
