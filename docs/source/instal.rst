@@ -23,7 +23,7 @@ Si tienes un Mac, no tengo ni idea cómo funciona y parece que es bastante más 
 
 Instalación de Python
 ^^^^^^^^^^^^^^^^^^^^^
-Primer que todo, hay que instalar Python. Puedes descargar la versión la más recién de aquí (https://www.python.org/downloads).
+Primer que todo, hay que instalar Python. Puedes descargar la versión la más recién de `aquí <(https://www.python.org/downloads)>`_.
 Mejor descarges la versión 3.6 de 32 bits, porque así Tiko'n te podrá ayudar un poco con la instalación de los paquetes
 adicionales necesarios.
 
