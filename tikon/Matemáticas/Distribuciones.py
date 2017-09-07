@@ -6,6 +6,7 @@ from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, 
     Laplace, Logistic, Lognormal, Normal, Pareto, Uniform, Bernoulli, \
     Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform, TruncatedNormal, Weibull
 
+
 # Un diccionario de las distribuciones y de sus objetos de SciPy y de PyMC correspondientes.
 dists = {'Alpha': {'scipy': estad.alpha,
                    'pymc': None,
@@ -62,7 +63,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                     'límites': (-mat.pi, mat.pi),
                     'tipo': 'cont'
                     },
-         'Degenerado': {'scipy': None,
+         'Degenerada': {'scipy': None,
                         'pymc': Degenerate,
                         'límites': None,
                         'tipo': 'cont'},
