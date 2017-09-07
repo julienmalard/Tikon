@@ -44,7 +44,7 @@ try:
 except ImportError:
     pymc = None
 
-info_paquetes = {'numpy': {'versión': '1.11.3',
+info_paquetes = {'numpy': {'versión': '1.13.1',
                            'formato_archivo': 'numpy-{versión}+mkl-cp{v_py}-cp{v_py}m-{sis}.whl',
                            '35': {
                                'Windows': {
@@ -56,14 +56,14 @@ info_paquetes = {'numpy': {'versión': '1.11.3',
                            },
                            '36': {
                                'Windows': {
-                                   '32': {'id_dropbox': 'rmsmiu1ivpnvizd/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl?dl=1'
+                                   '32': {'id_dropbox': 'y66rav81q0i9gtu/numpy-1.11.3%2Bmkl-cp36-cp36m-win32.whl'
                                           },
                                    '64': {'id_dropbox': None
                                           }
                                }
                            },
                            },
-                 'scipy': {'versión': '0.18.1',
+                 'scipy': {'versión': '0.19.1',
                            'formato_archivo': 'scipy-{versión}-cp{v_py}-none-{sis}.whl',
                            '35': {
                                'Windows': {
@@ -75,7 +75,7 @@ info_paquetes = {'numpy': {'versión': '1.11.3',
                            },
                            '36': {
                                'Windows': {
-                                   '32': {'id_google': '0B8RjC9bwyAOwTEZCdWdMbDQ4VG8'
+                                   '32': {'id_dropbox': '46vls88hkpohki8/scipy-0.19.1-cp36-cp36m-win32.whl'
                                           },
                                    '64': {'id_google': None
                                           }
@@ -133,7 +133,7 @@ info_paquetes = {'numpy': {'versión': '1.11.3',
                      },
                      '36': {
                          'Windows': {
-                             '32': {'id_dropbox': 'obcypgvwheghb78/statsmodels-0.8.0-cp36-cp36m-win32.whl?dl=0'
+                             '32': {'id_dropbox': 'obcypgvwheghb78/statsmodels-0.8.0-cp36-cp36m-win32.whl'
                                     },
                              '64': {'id_dropbox': None
                                     }
@@ -154,7 +154,7 @@ def _descargar_whl(nombre, v_py, sis, b):
     llave = url = None
 
     repositorios = {'id_google': 'https://drive.google.com/uc?export=download&id={}',
-                    'id_dropbox': 'https://www.dropbox.com/s/{}'}
+                    'id_dropbox': 'https://www.dropbox.com/s/{}?dl=1'}
 
     for r, u in repositorios.items():
         try:
@@ -181,7 +181,7 @@ def _instalar_whl(nombre):
     if os.path.isfile(os.path.join(directorio_móds, nombre_archivo)):
         éxito = True
     else:
-        éxito = _descargar_whl(nombre, v_py=versión_python, sis=sistema, b=bits)
+        éxito = _descargar_whl(nombre, v_py=versión_python, sis=so, b=bits)
 
     if éxito:
         print('Instalando paquete "{}"...'.format(nombre))
