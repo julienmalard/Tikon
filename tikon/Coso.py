@@ -388,7 +388,7 @@ class Coso(object):
 class Simulable(Coso):
     """
     Una subclase de Coso para objetos que se pueden simular y calibrar. (Por ejemplo, una Red AgroEcológica o una
-      Parcela, pero NO un Insecto.
+    Parcela, pero NO un Insecto.
     """
 
     def __init__(símismo, nombre, proyecto):
@@ -498,7 +498,7 @@ class Simulable(Coso):
             opciones_dib = {}
 
         if directorio_dib is None:
-            directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, 'Gráficos simulación')
+            directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, nombre, 'Gráficos simulación')
 
         directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
 
@@ -711,7 +711,7 @@ class Simulable(Coso):
 
         símismo._actualizar_vínculos_exps()
 
-    def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=100, n_rep_estoc=100,
+    def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=50, n_rep_estoc=50,
                 usar_especificadas=False,
                 detalles=True,
                 dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
