@@ -522,11 +522,11 @@ class Simulable(Coso):
 
         # Generar los vectores de coeficientes
         if gen_dists:
-            Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs, formato='Simul',
+            Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs, formato='valid',
                                   comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
 
         # Llenar las matrices internas de coeficientes
-        símismo._llenar_coefs(id_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
+        símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
@@ -833,7 +833,6 @@ class Simulable(Coso):
                             dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False,
                             gen_dists=False)
 
-
             for exp in símismo.exps:
                 pass
 
@@ -868,7 +867,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, id_simul, n_rep_parám, dib_dists, calibs=None):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, calibs=None):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
         Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
@@ -1230,7 +1229,7 @@ a
                     # más tarde.)
                     try:
                         conj_calibs.remove('especificado')
-                    except ValueError:
+                    except KeyError:
                         pass
 
                 if calibs == 'Correspondientes':
@@ -1474,10 +1473,10 @@ a
 def dic_lista_a_np(d):
     """
     Esta función recursiva toma las listas numéricas contenidas en un diccionario de estructura arbitraria y las
-      convierte en matrices numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
-      Una nota importante: esta función puede tomar diccionarios de estructura arbitraria, pero no convertirá
-      exitosamente diccionarios que contienen listas que a su turno contienen otras listas para convertir a matrices
-      numpy. No hay problema con listas compuestas representando matrices multidimensionales.
+    convierte en matrices numpy. Cambia el diccionario in situ, así que no devuelve ningún valor.
+    Una nota importante: esta función puede tomar diccionarios de estructura arbitraria, pero no convertirá
+    exitosamente diccionarios que contienen listas que a su turno contienen otras listas para convertir a matrices
+    numpy. No hay problema con listas compuestas representando matrices multidimensionales.
 
     :param d: El diccionario para convertir
     :type d: dict
@@ -1566,7 +1565,8 @@ def borrar_dist(d, nombre):
     """
 
     # Para cada itema (llave, valor) del diccionario
-    for ll, v in d.items():
+    for ll in list(d):
+        v = d[ll]
 
         if type(v) is dict:
 

@@ -485,7 +485,7 @@ class Red(Simulable):
 
         :type mostrar: bool
         :type directorio: str
-        :type exper: list
+        :type exper: list[str]
 
         :param todas_líneas: Si queremos incluir las líneas de cada repetición individual en el gráfico.
         :type todas_líneas: bool
@@ -1420,6 +1420,11 @@ class Red(Simulable):
 
         return valid, valids_detalles
 
+    def _procesar_simul(símismo):
+        for exp in símismo.predics_exps:
+            pass
+
+
     def _sacar_vecs_preds_obs(símismo, exp):
         """
         Esta función crea un diccionario con vectores/matrices de predicciones y de observaciones. Es muy útil para
@@ -1929,7 +1934,7 @@ class Red(Simulable):
 
         return dic_args
 
-    def _llenar_coefs(símismo, id_simul, n_rep_parám, dib_dists, calibs=None):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, calibs=None, dib_dists=False):
         """
         Ver la documentación de Coso.
 
@@ -1997,11 +2002,11 @@ class Red(Simulable):
                             if d_parám['inter'] is None:
                                 # Generar la matríz de valores para este parámetro de una vez
 
-                                matr_etp[:] = d_parám_etp[id_simul]
+                                matr_etp[:] = d_parám_etp[nombre_simul]
 
                                 # Dibujar la distribución, si necesario
                                 if dib_dists:
-                                    directorio_dib = os.path.join(símismo.proyecto, símismo.nombre,
+                                    directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, nombre_simul,
                                                                   'Gráficos simulación', 'Dists',
                                                                   categ, subcateg, tipo_ec, parám)
 
@@ -2047,12 +2052,12 @@ class Red(Simulable):
                                                         l_n_etps_víc += list(símismo.fantasmas[n_etp_víc].values())
 
                                                 for n in l_n_etps_víc:
-                                                    matr_etp[:, n] = d_parám_etp[org_víc][etp_víc][id_simul]
+                                                    matr_etp[:, n] = d_parám_etp[org_víc][etp_víc][nombre_simul]
 
                                                     # Dibujar la distribución, si necesario
                                                     if dib_dists:
                                                         directorio_dib = os.path.join(
-                                                            símismo.proyecto, símismo.nombre,
+                                                            símismo.proyecto, símismo.nombre, nombre_simul,
                                                             'Gráficos simulación', 'Dists',
                                                             categ, subcateg, tipo_ec, parám)
 
