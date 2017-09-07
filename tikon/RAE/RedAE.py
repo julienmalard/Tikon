@@ -1935,8 +1935,8 @@ class Red(Simulable):
 
         :type n_rep_parám: int
         :type calibs: list | str
-        :type comunes: bool
-        :type usar_especificadas: bool
+        :type dib_dists: bool
+        :type calibs: list
 
         """
 

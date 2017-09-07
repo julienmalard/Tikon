@@ -1,7 +1,7 @@
 import numpy as np
 import pymc
 
-from tikon.Matemáticas.Incert import trazas_a_aprioris, gen_vecs_coefs
+from tikon.Matemáticas.Incert import trazas_a_dists
 
 
 class ModBayes(object):
@@ -89,9 +89,8 @@ class ModBayes(object):
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
-        l_var_pymc = trazas_a_aprioris(id_calib=símismo.id,
-                                       l_pm=lista_d_paráms, l_lms=lista_líms,
-                                       aprioris=aprioris)
+        l_var_pymc = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
+                                    l_trazas=aprioris, formato='calib', comunes=False)
 
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
@@ -106,15 +105,15 @@ class ModBayes(object):
         símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
-        # pasamos los argumentos necesarios, si aplican. Hay que incluir el parámetro error en los argumentos
-        # para que PyMC se dé cuenta de que la función simular() depiende de los otros parámetros y se tiene que
-        # recalcular a cada ejecución del modelo.
-        @pymc.deterministic(plot=False)
-        def simular(d=dic_argums, _=símismo.error):
+        # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
+        # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
+        # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+        @pymc.deterministic(trace=False)
+        def simular(d=dic_argums, _=l_var_pymc):
             return función(**d)
 
         # Ahora convertimos el error a tau
-        @pymc.deterministic
+        @pymc.deterministic(trace=False)
         def tau(e=símismo.error, s=simular):
             # Calcular sigma basado en el error y el valor simulado
             m = np.array(e * np.maximum(50, s))
@@ -130,7 +129,7 @@ class ModBayes(object):
         dist_obs = pymc.Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *l_var_pymc})
+        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *l_var_pymc}, db='sqlite', dbname=símismo.id)
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -152,10 +151,12 @@ class ModBayes(object):
 
         # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
         # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
-        símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+        # símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
 
         # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+
+        símismo.MCMC.db.close()
 
     def guardar(símismo, nombre=None):
         """
@@ -166,6 +167,10 @@ class ModBayes(object):
 
         # Asegurarse de que el nombre de la calibración sea en el formato de texto
         id_calib = str(símismo.id)
+
+        # Reabrir la base de datos SQLite
+        bd = pymc.database.sqlite.load(id_calib)
+        bd.connect_model(símismo.MCMC)
 
         # Si no se especificó nombre, se empleará el mismo nombre que el id de la calibración.
         if nombre is None:
@@ -184,3 +189,6 @@ class ModBayes(object):
 
             # Guardar bajo el nuevo nombre
             d_parám[nombre] = vec_np
+
+        # Cerrar la base de datos de nuevo
+        símismo.MCMC.db.close()

@@ -79,6 +79,32 @@ class Coso(object):
         """
         raise NotImplementedError
 
+    def borrar_calib(símismo, id_calib, recursivo=True):
+        """
+        Esta función borra una calibración de la receta del Coso.
+
+        :param id_calib: El nombre de la calibración que hay que borrar.
+        :type id_calib: str
+
+        :param recursivo: Si también borramos lo mismo en los otros Cosos asociados con este.
+        :type recursivo: bool
+
+        """
+
+        # Borramos la distribución de la receta de coeficientes
+        borrar_dist(d=símismo.receta['coefs'], nombre=id_calib)
+
+        # Tambien borramos el nombre de la calibracion del diccionario de calibraciones, si es que existe allí.
+        try:
+            símismo.receta['Calibraciones'].pop(id_calib)
+        except KeyError:
+            pass
+
+        # Si es una limpieza recursiva, limpiamos todos los objetos vinculados de manera recursiva también.
+        if recursivo:
+            for coso in símismo.objetos:
+                coso.limpiar_especificados(recursivo=recursivo)
+
     def limpiar_especificados(símismo, recursivo=True):
         """
         Esta función limpia (borra) todas las distribuciones especificadas para este Coso.
@@ -87,12 +113,7 @@ class Coso(object):
         :type recursivo: bool
 
         """
-        borrar_dist(símismo.receta['coefs'], nombre='especificado')
-
-        # Si es una limpieza recursiva, limpiamos todos los objetos vinculados de manera recursiva también.
-        if recursivo:
-            for coso in símismo.objetos:
-                coso.limpiar_especificados(recursivo=recursivo)
+        símismo.borrar_calib(id_calib='especificado', recursivo=recursivo)
 
     def guardar_especificados(símismo, nombre_dist='dist_especificada'):
         """
@@ -418,12 +439,15 @@ class Simulable(Coso):
 
     def simular(símismo, exper, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
-                mostrar=True, opciones_dib=None, dib_dists=True):
+                mostrar=True, opciones_dib=None, dib_dists=True, gen_dists=True):
         """
         Esta función corre una simulación del Simulable.
 
         :param exper: Los experimentos para incluir en la simulación.
         :type exper: list | str | Experimento | None
+
+        :param nombre: El nombre de la simulación.
+        :type nombre: str
 
         :param paso: El paso de tiempo para la simulación
         :type paso: int
@@ -493,11 +517,13 @@ class Simulable(Coso):
 
         # Preparar la lista de parámetros de interés
         lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
-        lista_calibs = símismo._filtrar_calibs(calibs=calibs, lista_paráms=lista_paráms)
+        lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
+                                               usar_especificadas=usar_especificadas)
 
         # Generar los vectores de coeficientes
-        Incert.gen_vecs_coefs(l_d_paráms=lista_paráms, calibs=lista_calibs, n_rep_parám=n_rep_parám,
-                              comunes=(calibs == 'Comunes'), usar_especificadas=usar_especificadas)
+        if gen_dists:
+            Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs, formato='Simul',
+                                  comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
 
         # Llenar las matrices internas de coeficientes
         símismo._llenar_coefs(id_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
@@ -508,7 +534,7 @@ class Simulable(Coso):
         símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, vectorizar_preds=False)
 
         # Borrar los vectores de coeficientes temporarios
-        símismo.borrar_calib(id=nombre)
+        símismo.borrar_calib(id_calib=nombre)
 
         # Si hay que dibujar, dibujar
         if dibujar:
@@ -571,7 +597,7 @@ class Simulable(Coso):
         # 3. Filtrar coeficientes por calib
         if aprioris is None:
             aprioris = ['0']
-        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, lista_paráms=lista_paráms)
+        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
@@ -696,6 +722,9 @@ class Simulable(Coso):
         todos los experimentos disponibles.
         :type exper: list | str | Experimento | None
 
+        :param nombre: El nombre de la validación.
+        :type nombre: str
+
         :param calibs: Las calibraciones que hay que usar para la validación. Si calibs == None, se usará la
         calibración activa, si hay; si no hay, se usará todas las calibraciones existentes.
         :type calibs: list | str | None
@@ -754,8 +783,8 @@ class Simulable(Coso):
         # Procesar los datos de la validación
         return símismo._procesar_validación()
 
-    def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None, detalles=False,
-                     calc_2_orden_sobol=False, dibujar=False):
+    def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None,
+                     detalles=False, usar_especificadas=True, calc_2_orden_sobol=False, dibujar=False):
         # Para hacer: crear esta sección
 
         # Validar el nombre de la simulación para esta corrida
@@ -768,7 +797,11 @@ class Simulable(Coso):
         lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
         n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
 
-        lista_dists = Incert.trazas_a_dists()
+        lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
+                                               usar_especificadas=usar_especificadas)
+
+        lista_dists = Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs,
+                                            formato='sensib', comunes=False, l_lms=lista_líms)
 
         # Basado en las distribuciones de los parámetros, establecer los límites para el análisis de sensibilidad
         lista_líms_efec = Incert.dists_a_líms(l_dists=lista_dists, por_dist_ingr=por_dist_ingr)
@@ -793,9 +826,12 @@ class Simulable(Coso):
             # El número de repeticiones paramétricas
             n_rep_parám = len(vals_paráms[0])
 
-            # Para hacer: asegurarse que se guarde el orden de los valores de los variables
-            símismo.simular(exper=exper, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+            # Hay que poner usar_especificadas=False aquí para evitar que distribuciones especificadas tomen el
+            # lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True asegurar que se
+            # guarde el orden de los valores de los variables tales como especificados por SALib.
+            símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
+                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False,
+                            gen_dists=False)
 
 
             for exp in símismo.exps:
@@ -810,7 +846,7 @@ class Simulable(Coso):
             pass
 
         # Borrar las distribuciones de
-        símismo.borrar_calib(id=nombre)
+        símismo.borrar_calib(id_calib=nombre)
 
         return resultado
 
@@ -845,12 +881,6 @@ class Simulable(Coso):
           incluir.
         :type calibs: list | str
 
-        :param comunes: Si queremos guardar las correspondencias de la distribución multidimensional entre
-          parámetros calibrados en la misma calibración.
-        :type comunes: bool
-
-        :param usar_especificadas: Si vamos a utilizar las distribuciones especificadas manualmente por el usuario o no.
-        :type usar_especificadas: bool
 
         """
 
@@ -1135,13 +1165,11 @@ a
         # Devolver exper
         return exper
 
-    def _filtrar_calibs(símismo, calibs, lista_paráms):
+    def _filtrar_calibs(símismo, calibs, l_paráms, usar_especificadas):
         """
         Esta función, dado una lista de diccionarios de calibraciones de parámetros y una especificación de cuales
         calibraciones guardar, genera un lista de los nombre de las calibraciones que hay que incluir.
         Se usa para preparar simulaciones, calibraciones y validaciones.
-        Notar que distribuciones a priori especificadas por el usuario para una calibración se aplican más tarde, en
-        el objeto ModBayes sí mismo.
 
         :param calibs: Una indicación de cuales calibraciones utilizar.
           Puede ser un número o texto con el nombre/id de la calibración deseada.
@@ -1155,11 +1183,12 @@ a
 
         :type calibs: str | float | list
 
-        :param lista_paráms: Una lista de los diccionarios de los parámetros a considerar.
-        :type lista_paráms: list
+        :param l_paráms: Una lista de los diccionarios de los parámetros a considerar.
+        :type l_paráms: list
 
-        :return: Una lista de las calibraciones que hay que utilizar.
-        :rtype: list
+        :return: Una lista de las calibraciones que hay que utilizar. Cada elemento de esta lista es una lista sî
+        mismo de las calibraciones que aplican a cada parâmetro, en el mismo orden que `l_paráms`.
+        :rtype: list[list[str]]
 
         """
 
@@ -1168,7 +1197,7 @@ a
         if type(calibs) is str and calibs not in ['Todos', 'Comunes', 'Correspondientes']:
             # Si calibs es el nombre de una calibración (y no un nombre especial)...
 
-            # Convertirlo en fecha
+            # Convertirlo en lista
             calibs = [calibs]
 
         # Si calibs es una lista...
@@ -1192,17 +1221,17 @@ a
                 conj_calibs = set()
 
                 # Para cada parámetro...
-                for parám in lista_paráms:
+                for parám in l_paráms:
 
                     # Agregamos el código de sus calibraciones
                     conj_calibs = conj_calibs.union(parám)
 
-                    # Quitamos distribuciones especificadas manualmente
-                    if __name__ == '__main__':
-                        try:
-                            conj_calibs.remove('especificado')
-                        except KeyError:
-                            pass
+                    # Quitamos distribuciones especificadas manualmente (si usar_especificadas==True, se aplicarán
+                    # más tarde.)
+                    try:
+                        conj_calibs.remove('especificado')
+                    except ValueError:
+                        pass
 
                 if calibs == 'Correspondientes':
                     # Si querremos únicamente los que corresponden con este objeto Simulable..
@@ -1213,10 +1242,10 @@ a
                 # Tomamos todas las calibraciones en común entre los parámetros.
 
                 # Hacemos un conjunto de calibraciones con las calibraciones del primer parámetro.
-                conj_calibs = set(lista_paráms[0])
+                conj_calibs = set(l_paráms[0])
 
                 # Para cada otro parámetro en la lista...
-                for parám in lista_paráms[1:]:
+                for parám in l_paráms[1:]:
 
                     # Para cada calibración en nuestro conjunto...
                     for id_calib in conj_calibs:
@@ -1250,10 +1279,30 @@ a
             # Si no quedamos con ninguna calibración, usemos la distribución a priori no informativa. Igual sería
             # mejor avisarle al usuario.
             conj_calibs = {'0'}
-            avisar.warn('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
+            avisar('Usando la distribución a priori no informativa por falta de calibraciones anteriores.')
 
-        # Devolver el conjunto de calibraciones.
-        return list(conj_calibs)
+        # Ahora, generamos una lista de calibraciones para utilizar para cada parámetro
+        l_calibs_por_parám = []
+
+        for d_p in l_paráms:
+            # Para cada parámetro en la lista...
+
+            if usar_especificadas and 'especificado' in d_p:
+                # Si podemos y queremos usar especificados, aplicarlos aquí
+                calibs_p = ['especificado']
+            else:
+                # Sino, aplicar todas las calibraciones deseadas que también están en el diccionario del parámetro
+                calibs_p = [x for x in conj_calibs if x in d_p]
+
+            # Asegurarse que no tenemos lista vacía (justo en caso)
+            if len(calibs_p) == 0:
+                calibs_p = ['0']
+
+            # Agregar el diccionario del parámetro
+            l_calibs_por_parám.append(calibs_p)
+
+        # Devolver la lista de calibraciones por parámetro.
+        return l_calibs_por_parám
 
     def dibujar_calib(símismo):
         """
@@ -1420,16 +1469,6 @@ a
                 nombre = int(random.random() * 1e10)
 
         return str(nombre)
-
-    def borrar_calib(símismo, id):
-        """
-
-        :param id:
-        :type id: str
-
-        """
-
-        borrar_dist(d=símismo.receta['coefs'], nombre=id)
 
 
 def dic_lista_a_np(d):

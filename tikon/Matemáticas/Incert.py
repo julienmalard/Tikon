@@ -2,212 +2,294 @@ from warnings import warn as avisar
 
 import numpy as np
 import pymc
+
 import scipy.stats as estad
 from scipy.optimize import minimize as minimizar
 
 import tikon.Matemáticas.Distribuciones as Ds
 from tikon import __email__ as correo
 
+try:
+    import pymc3 as pm3
+except ImportError:
+    pm3 = None
+
 """
 Este código contiene funciones para manejar datos y distribuciones de incertidumbre.
 """
 
 
-def gen_vecs_coefs(l_d_paráms, calibs, n_rep_parám, comunes, usar_especificadas):
-    # Asegurarse que calibs sea una lista
-    if type(calibs) is str:
-        calibs = [calibs]
-
-
-def trazas_a_aprioris(id_calib, l_pm, l_lms, aprioris):
+def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_rep_parám=None):
     """
     Esta función toma una lista de diccionarios de parámetros y una lista correspondiente de los límites de dichos
-    parámetros y genera las distribuciones apriori PyMC para los parámetros. Devuelve una lista de los variables
-    PyMC, y también guarda estos variables en los diccionarios de los parámetros bajo la llave especificada en
-    id_calib.
-    Esta función siempre toma distribuciones especificadas en primera prioridad, donde existan.
+    parámetros y genera las distribuciones apriori en formato PyMC, SciPy o NumPy para los parámetros. Devuelve una
+    lista de las distribuciones, y también guarda estos variables en los diccionarios de los parámetros bajo la llave
+    especificada en id_calib.
 
-    :param id_calib: El nombre de la calibración (para guardar el variable PyMC en el diccionario de cada parámetro).
-    :type id_calib: str
+    :param id_simul: El nombre de la calibración (para guardar la distribución en el diccionario de cada parámetro).
+    :type id_simul: str
 
-    :param l_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
+    :param l_d_pm: La lista de los diccionarios de los parámetros. Cada diccionario tiene las calibraciones de su
     parámetro.
-    :type l_pm: list
+    :type l_d_pm: list
 
     :param l_lms: Una lista de los límites de los parámetros, en el mismo orden que l_pm.
     :type l_lms: list
 
-    :param aprioris: Una lista de cuales distribuciones incluir en la calibración. Cada elemento en la lista
-    es una lista de los nombres de las calibraciones para usar para el parámetro correspondiente en l_pm.
-    :type aprioris: list
+    :param l_trazas: Una lista de cuales trazas incluir. Cada elemento en la lista es una lista de los nombres de las
+    calibraciones (trazas) para usar para el parámetro correspondiente en l_pm.
+    :type l_trazas: list
 
-    :return: Una lista de los variables PyMC generados, en el mismo orden que l_pm.
+    :param formato: El formato de la lista para devolver. Puede se "simul" (NumPy), "calib" (SciPy), o "sensib"
+    (SciPy/NumPy).
+    :type formato: str
+
+    :param comunes: Si hay que intentar guardar la correspondencia multivarial entre distribuciones generadas por la
+    misma calibración
+    :type comunes: bool
+
+    :param n_rep_parám: El número de repeticiones paramétricas. Solamente útil, de verdad, para `formato` = "simul".
+    :type n_rep_parám: int
+
+    :return: Una lista de las distribuciones generadas, en el mismo orden que l_pm.
     :rtype: list
 
     """
 
-    # La lista para guardar las distribuciones de PyMC, en el mismo orden que la lista de parámetros
+    # Poner el formato en minúsculas para evitar errores estúpidos
+    formato = formato.lower()
+
+    if n_rep_parám is None:
+        if formato == 'simul':
+            raise ValueError('Se debe especificar el número de repeticiones paramétricas para generar las '
+                             'distribuciones NumPy para una simulación.')
+        else:
+            n_rep_parám = 1000
+
+    if l_lms is None and formato == 'calib':
+        raise ValueError('Hay que especificar los límites teoréticos de las distribuciones para generar a prioris'
+                         'PyMC para una calibración.')
+
+    # La lista para guardar las distribuciones generadas, en el mismo orden que la lista de parámetros
     lista_dist = []
 
+    # Generar la lista de los índices para cada traza de cada parámetro
+    l_í_trazas = gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám=n_rep_parám, comunes=comunes)
+
     # Para cada parámetro en la lista...
-    for n, d_parám in enumerate(l_pm):
+    for n, d_parám in enumerate(l_d_pm):
 
-        # El nombre para el variable PyMC
-        nombre = 'parám_%i' % n
+        # Una lista de todas las calibraciones aplicables a este parámetro que tienen formato de texto
+        trzs_texto = [t for t in l_trazas[n] if t in d_parám and type(d_parám[t]) is str]
 
-        # La lista de aprioris general.
-        calibs = aprioris
+        if len(trzs_texto) == 1:
+            # Si solamente tenemos una distribución aplicable y esta está en formato de texto...
 
-        # La distribución pymc del a priori
-        dist_apriori = None
+            if formato == 'calib':
+                # Si querremos generar distribuciones para una calibración, generar un variable PyMC directamente.
 
-        # Si solo hay una calibración para aplicar y está en formato de distribución, intentar y ver si no se puede
-        # convertir directamente en distribución PyMC.
-        if len(calibs) == 1 and type(d_parám[calibs[0]] is str):
-            dist_apriori = texto_a_dist(texto=d_parám[calibs[0]], usar_pymc=True, nombre=nombre)
+                # El nombre para el variable PyMC
+                nombre_pymc = 'parám_%i' % n
 
-        # Si el usuario especificó una distribución a priori, la tomamos en vez de las aprioris generales.
-        if 'especificado' in d_parám:
-            dist_apriori = texto_a_dist(texto=d_parám['especificado'], usar_pymc=True, nombre=nombre)
+                # Convertir el texto directamente en distribución
+                dist = texto_a_dist(texto=d_parám[trzs_texto[0]], usar_pymc=True, nombre=nombre_pymc)
 
-        elif dist_apriori is None:
-            # Si todavía no tenemos nuestra distribución a priori, generarla por aproximación.
+            elif formato == 'valid':
+                # Si querremos una distribución para una validación, generar una traza en NumPy
 
-            # Un vector numpy de la traza de datos para generar la distribución PyMC.
-            traza = gen_vector_coefs(dic_parám=d_parám, calibs=calibs, n_rep_parám=200,
-                                     comunes=False, usar_especificados=True)
+                # La distribución SciPy
+                var_sp = texto_a_dist(texto=d_parám[trzs_texto[0]], usar_pymc=False)
 
-            # Generar la distribución PyMC
-            dist_apriori = ajustar_dist(datos=traza, límites=l_lms[n], cont=True,
-                                        usar_pymc=True, nombre=nombre)[0]
+                # Convertir en matriz NumPy
+                dist = var_sp.rvs(n_rep_parám)
 
-        # Guardar el variable PyMC en el diccionario de calibraciones del parámetro
-        d_parám[id_calib] = dist_apriori
+            elif formato == 'sensib':
+                # Si querremos una distribución para una análisis de sensibilidad, devolver la distribución SciPy
+                dist = texto_a_dist(texto=d_parám[trzs_texto[0]], usar_pymc=False)
 
-        # Añadir una referencia al variable PyMC en la lista de distribuciones
-        lista_dist.append(dist_apriori)
+            else:
+                raise ValueError
+
+        else:
+            # Si tenemos más que una calibración aplicable o esta está en formato de matriz...
+
+            if formato == 'calib':
+                # El nombre para el variable PyMC
+                nombre_pymc = 'parám_%i' % n
+
+                # Un vector numpy de la traza de datos para generar la distribución PyMC.
+                vec_np = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
+
+                # Generar la distribución PyMC
+                dist = ajustar_dist(datos=vec_np, límites=l_lms[n], cont=True, usar_pymc=True, nombre=nombre_pymc)[0]
+
+            elif formato == 'valid':
+                # En el caso de validación, simplemente querremos una distribución NumPy
+                dist = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
+            elif formato == 'sensib':
+                # En el caso de análisis de incertidumbre, querremos una distribución NumPy también
+                dist = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
+
+        # Guardar la distribución en el diccionario de calibraciones del parámetro
+        d_parám[id_simul] = dist
+
+        # Añadir una referencia a la distribución en la lista de distribuciones
+        lista_dist.append(dist)
 
     # Devolver la lista de variables PyMC
     return lista_dist
 
 
-def gen_vector_coefs(dic_parám, calibs, n_rep_parám, comunes, usar_especificados):
+def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
+    """
+    Esta función genera índices de trazas para cada parámetro en una lista de diccionarios de parámetros, tomando
+    en cuenta la lista de trazas (calibraciones) que aplican a cada parámetro.
+
+    :param l_d_pm:
+    :type l_d_pm: list[dict]
+
+    :param l_trazas:
+    :type l_trazas: list[list[str]]
+
+    :param n_rep_parám: El número de índices que querremos.
+    :type n_rep_parám: int
+
+    :param comunes:
+    :type comunes: bool
+
+    :return:
+    :rtype: list[dict[np.ndarray]]
+    """
+
+    # Primero, una función que calcula índices de trazas para un diccionario de parámetro.
+    def calc_índs(d_trza, l_trza):
+        """
+        Calcula los índices para un diccionario de parámetro.
+        :param d_trza: El diccionario de calibraciones del parámetro
+        :type d_trza: dict[str | np.ndarray | pymc.Stochastic | pymc.Deterministic]
+
+        :param l_trza: La lista de distribuciones del parámetro que queremos utilizar
+        :type l_trza: list[str]
+
+        :return: Los índices para cada traza (calibración) de este parámetro, en formato de diccionario.
+        :rtype: dict[np.ndarray]
+        """
+
+        # Calcular el número de repeticiones paramétricas por calibración. Produce una lista, en el mismo orden
+        # que calibs, del número de repeticiones para cada calibración.
+        n_calibs = len(l_trza)
+        rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
+
+        # Calcular el número que repeticiones que no se dividieron igualmente entre las calibraciones...
+        resto = n_rep_parám % n_calibs
+
+        # ...y añadirlas la principio de la lista de calibraciones.
+        rep_per_calib[:resto] += 1
+
+        # El diccionario para guardar los índices
+        d_índs = {}
+
+        for i, nombre_trz in enumerate(l_trza):
+            # Para cada traza en el diccionario...
+
+            # La distribución
+            dist = d_trza[nombre_trz]
+
+            if isinstance(dist, str):
+                # Si la distribución está en formato de texto...
+
+                # Solamente guardar el número de repeticiones para esta distribución (índices no tienen sentido).
+                d_índs[nombre_trz] = rep_per_calib[i]
+
+            elif isinstance(dist, np.ndarray):
+                # Si la distribución está en formato de matriz NumPy...
+
+                # Verificar si la matriz NumPy tiene el tamaño suficiente para el número de repeticiones que querremos
+                tamaño_máx = dist.shape[0]
+                if tamaño_máx < rep_per_calib[i]:
+                    avisar('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
+                    devolv = True
+                else:
+                    devolv = False
+
+                # Escoger los índices de manera aleatoria
+                d_índs[nombre_trz] = np.random.choice(range(tamaño_máx), size=rep_per_calib[i], replace=devolv)
+
+            elif isinstance(dist, pymc.Stochastic) or isinstance(dist, pymc.Deterministic):
+                # ..y si es un variable de calibración activa, poner el variable sí mismo en la matriz
+                d_índs[nombre_trz] = None
+
+        return d_índs
+
+    # Primero, tomamos el caso donde estamos usando distribuciones comunes entre parámetros.
+    if comunes:
+
+        # Antes que todo, verificar que los nombres de todas las trazas estén iguales para todos los parámetros.
+        # Dado las otras funciones en Tiko'n, no deberia de ser posible tener error aquí. Pero mejor verificar,
+        # justo en caso.
+        if any(set(x) != set(l_trazas[0]) for x in l_trazas):
+            raise ValueError('¡Gran error terrible de programación! Panica primero y depués llama al programador. '
+                             '({})'.format(correo))
+
+        # Avisarle al usuario si no será posible de guardar la correspondencia entre todos los parámetos
+        if any(type(l_d_pm[0][x]) is str for x in l_trazas):
+            avisar('No se podrá guardar la correspondencia entre todas las calibraciones por presencia '
+                   'de distribuciones SciPy. La correspondencia sí se guardará para las otras calibraciones.')
+
+        dic_índs = calc_índs(d_trza=l_d_pm[0], l_trza=l_trazas[0])
+
+        l_í_trazas = [dic_índs] * len(l_d_pm)
+
+    else:
+        # Ahora, si no trabajamos con distribuciones comunes...
+        l_í_trazas = [calc_índs(d_trza=d_p, l_trza=l_trazas[i]) for i, d_p in enumerate(l_d_pm)]
+
+    return l_í_trazas
+
+
+def gen_vector_coefs(d_parám, í_trazas):
     """
     Esta función genera una matríz de valores posibles para un coeficiente, dado los nombres de las calibraciones
     que queremos usar y el número de repeticiones que queremos.
 
-    :param dic_parám: Un diccionario de un parámetro con todas sus calibraciones
-    :type dic_parám: dict
+    :param d_parám: Un diccionario de un parámetro con todas sus calibraciones
+    :type d_parám: dict
 
-    :param calibs: Cuáles calibraciones hay que incluir
-    :type calibs: list
-
-    :param n_rep_parám: El número de repeticiones paramétricas que queremos en nuestra simulación.
-    :type n_rep_parám: int
-
-    :param comunes: Si queremos que haya correspondencia entre los datos elegidos de cada parámetro.
-    :type comunes: bool
-
-    :param usar_especificados: Si queremos usar las distribuciones especificadas manualmente por el usuario.
-    :type usar_especificados:
+    :param í_trazas: Un diccionario de los índices a incluir para cada traza. Para trazas en formato de texto,
+    únicamente especifica el número de muestras que queremos de la distribución.
+    :type í_trazas: dict[int | np.ndarray]
 
     :return: Una matriz unidimensional con los valores del parámetro.
     :rtype: np.ndarray
 
     """
 
-    # Hacer una lista con únicamente las calibraciones que estén presentes y en la lista de calibraciones acceptables,
-    # y en el diccionario del parámetro
-    if usar_especificados and 'especificado' in dic_parám:
-        calibs_usables = ['especificado']
-    else:
-        calibs_usables = [x for x in dic_parám if x in calibs]
-        if len(calibs_usables) == 0:
-            avisar('Algunos parámetros no tienen las calibraciones especificadas y usarán su distribuciones a prioris '
-                   'en vez.')
-            calibs_usables = ['0']
+    # Un vector vacío para las trazas
+    vector = []
 
-    # La lista para guardar las partes de las trazas de cada calibración que queremos incluir en la traza final
-    lista_trazas = []
+    for trz, índs in í_trazas.items():
+        # Para cada pareja de traza y de índices..
 
-    # El número de calibraciones en la lista de calibraciones usables
-    n_calibs = len(calibs_usables)
+        if isinstance(d_parám[trz], np.ndarray):
+            # Si está en formato NumPy, generar el vector de valores basado en los índices
+            vector.append(d_parám[trz][índs])
 
-    # Calcular el número de repeticiones paramétricas por calibración. Produce una lista, en el mismo orden que calibs,
-    # del número de repeticiones para cada calibración.
-    rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
+        elif isinstance(d_parám[trz], str):
+            # Si está en formato texto, generar las trazas del tamaño especificado en "índs" por medio de una
+            # distribución SciPy
+            dist_sp = texto_a_dist(d_parám[trz], usar_pymc=False)
+            vector.append(dist_sp.rvs(size=índs))
 
-    # Calcular el número que repeticiones que no se dividieron igualmente entre las calibraciones...
-    resto = n_rep_parám % n_calibs
-    # ...y añadirlas la principio de la lista de calibraciones.
-    rep_per_calib[:resto] += 1
-
-    if comunes:
-        tamaño_mín = np.min([len(x) for x in dic_parám])
-        if tamaño_mín < np.max(rep_per_calib):
-            devolv_común = True
-        else:
-            devolv_común = False
-        ubic_datos = np.random.choice(range(tamaño_mín), size=np.max(rep_per_calib), replace=devolv_común)
-    else:
-        ubic_datos = None
-
-    # Para cada calibración en la lista...
-    for n_id, id_calib in enumerate(calibs_usables):
-
-        # Sacar su traza (o distribución) del diccionario del parámetro.
-        traza = dic_parám[id_calib]
-
-        # Si la traza es una matriz numpy...
-        if type(traza) is np.ndarray:
-
-            # Verificamos si necesitamos más repeticiones de esta traza que tiene de datos disponibles.
-            if rep_per_calib[n_id] > len(dic_parám[id_calib]):
-
-                # Si es el caso que la traza tiene menos datos que las repeticiones que queremos...
-                avisar('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
-
-                # Vamos a tener que repetir datos
-                devolver = True
-
-            else:
-                # Si no, mejor así
-                devolver = False
-
-            # Tomar, al hazar, datos de la traza. Si estamos usando calibraciones comunes para todos los parámetros,
-            # usar la ubicación de los datos predeterminada.
-            if comunes:
-                ubic_datos_cort = ubic_datos[:rep_per_calib[n_id]]
-                nuevos_vals = traza[ubic_datos_cort]
-            else:
-                nuevos_vals = np.random.choice(traza, size=rep_per_calib[n_id], replace=devolver)
-
-        elif type(traza) is str:
-            # Si la traza es en formato de texto...
-
-            if comunes:
-                avisar('No se pudo guardar la correspondencia entre todas las calibraciones por presencia '
-                       'de distribuciones SciPy. La correspondencia sí se guardo para las otras calibraciones.')
-
-            # Convertir el texto a distribución de SciPy
-            dist_sp = texto_a_dist(traza)
-
-            # Sacar los datos necesarios de la distribución SciPy
-            nuevos_vals = dist_sp.rvs(rep_per_calib[n_id])
-
-        elif isinstance(traza, pymc.Stochastic) or isinstance(traza, pymc.Deterministic):
-
-            # Si es un variable de calibración activa, poner el variable sí mismo en la matriz
-            nuevos_vals = [traza]
+        elif isinstance(d_parám[trz], pymc.Stochastic) or isinstance(d_parám[trz], pymc.Deterministic):
+            # Variables de calibraciones activas (PyMC) se agregan directamente
+            vector.append(d_parám[trz])
 
         else:
-            raise ValueError('Hay un error con la traza, que no puede ser de tipo "%s".' % type(traza))
+            # Si la traza era de otro tipo, tenemos un error.
+            raise TypeError('Hay un error con la traza, que no puede ser de tipo "{}".'.format(type(d_parám[trz])))
 
-        # Añadir los datos de esta calibración a la lista de datos para la traza general.
-        lista_trazas.append(nuevos_vals)
-
-    # Combinar las trazas de cada calibración en una única matriz numpy unidimensional.
-    return np.concatenate(lista_trazas)
+    # Combinar las trazas de cada calibración en una única matriz NumPy unidimensional.
+    return np.concatenate(vector)
 
 
 def texto_a_dist(texto, usar_pymc=False, nombre=None):
@@ -351,7 +433,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                              'mínimos y máximos iguales.')
 
         # Una idea de la escala del rango de incertidumbre
-        escala_rango = rango[1] / rango[0]
+        escala_rango = rango[1] / rango[0]  # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
 
         # Ahora, asignar una distribución según cada caso posible
         if mín == -np.inf:
@@ -381,9 +463,19 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                     área_cola = (1 - certidumbre) / 2  # La densidad que querremos de cada lado (cola) del rango
 
-                    # La función de optimización. Emplea un rango normalizado y toma como único argumento el
-                    # parámetro a de la distribución gamma; devuelve el ajuste de la distribución.
+                    # La función de optimización.
                     def calc_ajust_gamma_1(x):
+                        """
+                        Emplea un rango normalizado y toma como único argumento el parámetro a de la distribución
+                        gamma; devuelve el ajuste de la distribución.
+
+                        :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a
+                        :type x: np.ndarray
+
+                        :return: El ajust del modelo
+                        :rtype: float
+                        """
+
                         # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
                         # a la izquierda de este límite.
                         mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
@@ -423,6 +515,16 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
                         # Esto puede ayudar en casos donde rango[1] - rango[0] << rango[0] - mín
 
                         def calc_ajust_gamma_2(x):
+                            """
+                            Emplea un rango normalizado; devuelve el ajuste de la distribución.
+
+                            :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a, x[1] = loc.
+                            :type x: np.ndarray
+
+                            :return: El ajust del modelo
+                            :rtype: float
+                            """
+
                             # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
                             # a la izquierda de este límite.
                             mín_ajust = estad.gamma.ppf(área_cola, a=x[0], loc=x[1])
@@ -465,10 +567,16 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
 
                             def calc_ajust_gamma_3(x):
                                 """
+                                Emplea un rango normalizado y toma como único argumento el parámetro a de la
+                                distribución gamma; devuelve el ajuste de la distribución.
 
                                 :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la escala de la
                                 distribución.
                                 :type x: np.ndarray
+
+                                :return: El ajust del modelo
+                                :rtype: float
+
                                 """
 
                                 máx_ajust = mx_ajust  # El rango superior
@@ -1060,3 +1168,150 @@ def validar_matr_pred(matr_predic, vector_obs):
     r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
 
     return r2, rcnep, r2_percentiles
+
+
+# Para hacer: implementar pymc3
+def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
+    if pm3 is None:  # Para hacer: quitar esto después de migrar a PyMC 3
+        raise ImportError(
+            'PyMC 3 (pymc3) no está instalado en esta máquina. Deberías de instalarlo un día. De verdad que'
+            'es muy chévere.')
+
+    transform_pymc = {'mult': 1, 'sum': 0}
+
+    if tipo_dist == 'Beta':
+        dist_pm3 = pm3.Beta()
+
+    elif tipo_dist == 'Cauchy':
+        paráms_pymc = (paráms[0], paráms[1])
+        dist_pm3 = pm3.Cauchy()
+
+    elif tipo_dist == 'Chi2':
+        paráms_pymc = (paráms[0],)
+        transform_pymc['sum'] = paráms[1]
+        transform_pymc['mult'] = paráms[2]
+        dist_pm3 = pm3.ChiSquared()
+
+    elif tipo_dist == 'Exponencial':
+        paráms_pymc = (1 / paráms[1],)
+        transform_pymc['sum'] = paráms[0]
+        dist_pm3 = pm3.Exponential()
+
+    elif tipo_dist == 'WeibullExponencial':
+        paráms_pymc = (paráms[0], paráms[1], paráms[2], paráms[3])
+        dist_pm3 = NotImplemented
+
+    elif tipo_dist == 'Gamma':
+        paráms_pymc = (paráms[0], 1 / paráms[2])
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Gamma()
+
+    elif tipo_dist == 'MitadCauchy':
+        paráms_pymc = (paráms[0], paráms[1])
+        dist_pm3 = pm3.HalfCauchy()
+
+    elif tipo_dist == 'MitadNormal':
+        paráms_pymc = (1 / paráms[1] ** 2,)
+        transform_pymc['sum'] = paráms[0]
+        dist_pm3 = pm3.HalfNormal()
+
+    elif tipo_dist == 'GammaInversa':
+        paráms_pymc = (paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.InverseGamma()
+
+    elif tipo_dist == 'Laplace':
+        paráms_pymc = (paráms[0], 1 / paráms[1])
+        dist_pm3 = pm3.Laplace()
+
+    elif tipo_dist == 'Logística':
+        paráms_pymc = (paráms[0], 1 / paráms[1])
+        dist_pm3 = NotImplemented
+
+    elif tipo_dist == 'LogNormal':
+        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0] ** 2))
+        transform_pymc['mult'] = paráms[2]
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Lognormal()
+
+    elif tipo_dist == 'TNoCentral':
+        paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
+        dist_pm3 = NotImplemented
+
+    elif tipo_dist == 'Normal':
+        paráms_pymc = (paráms[0], 1 / paráms[1] ** 2)
+        dist_pm3 = pm3.Normal()
+
+    elif tipo_dist == 'Pareto':
+        paráms_pymc = (paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Pareto()
+
+    elif tipo_dist == 'T':
+        paráms_pymc = (paráms[0],)
+        transform_pymc['sum'] = paráms[1]
+        transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
+        dist_pm3 = pm3.StudentT()
+
+    elif tipo_dist == 'NormalTrunc':
+        mu = paráms[2]
+        mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
+        paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
+        dist_pm3 = pm3.Bound(pm3.Normal)
+
+    elif tipo_dist == 'Uniforme':
+        paráms_pymc = (paráms[0], paráms[1] + paráms[0])
+        dist_pm3 = pm3.Uniform()
+
+    elif tipo_dist == 'VonMises':
+        paráms_pymc = (paráms[1], paráms[0])
+        transform_pymc['mult'] = paráms[2]
+        dist_pm3 = pm3.VonMises()
+
+    elif tipo_dist == 'Weibull':
+        dist_pm3 = pm3.Weibull()
+        raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
+
+    elif tipo_dist == 'Bernoulli':
+        paráms_pymc = (paráms[0],)
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Bernoulli()
+
+    elif tipo_dist == 'Binomial':
+        paráms_pymc = (paráms[0], paráms[1])
+        transform_pymc['sum'] = paráms[2]
+        dist_pm3 = pm3.Binomial()
+
+    elif tipo_dist == 'Geométrica':
+        paráms_pymc = (paráms[0],)
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Geometric()
+
+    elif tipo_dist == 'Hypergeométrica':
+        paráms_pymc = (paráms[1], paráms[0], paráms[2])
+        transform_pymc['sum'] = paráms[3]
+        dist_pm3 = NotImplemented
+
+    elif tipo_dist == 'BinomialNegativo':
+        paráms_pymc = (paráms[1], paráms[0])
+        transform_pymc['sum'] = paráms[2]
+        dist_pm3 = pm3.NegativeBinomial()
+
+    elif tipo_dist == 'Poisson':
+        paráms_pymc = (paráms[0],)
+        transform_pymc['sum'] = paráms[1]
+        dist_pm3 = pm3.Poisson()
+
+    elif tipo_dist == 'UnifDiscr':
+        paráms_pymc = (paráms[0], paráms[1] - 1)
+        dist_pm3 = pm3.DiscreteUniform()
+
+    else:
+        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC 3.' %
+                         tipo_dist)
+
+    return dist_pm3
+
+
+def anal_sens():
+    pass
