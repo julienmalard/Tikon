@@ -99,7 +99,7 @@ class ModBayes(object):
                 l_var_pymc.append(min(parám.extended_parents))
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
-        función_llenar_coefs(id_simul=id_calib, n_rep_parám=1, dib_dists=False)
+        función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
 
         # Para la varianza de la distribución normal, se emplea un a priori no informativo, si es que exista tal cosa.
         símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
