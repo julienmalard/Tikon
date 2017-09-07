@@ -156,8 +156,6 @@ class ModBayes(object):
         # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
 
-        símismo.MCMC.db.close()
-
     def guardar(símismo, nombre=None):
         """
         Esta función guarda las trazas de los parámetros generadas por la calibración en el diccionario del parámetro
