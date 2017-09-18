@@ -14,7 +14,7 @@ class ModBayes(object):
 
     """
 
-    def __init__(símismo, función, dic_argums, obs, lista_d_paráms, aprioris, lista_líms, id_calib,
+    def __init__(símismo, función, dic_argums, d_obs, lista_d_paráms, aprioris, lista_líms, id_calib,
                  función_llenar_coefs):
         """
         Al iniciarse, un Modelo hace el siguiente:
@@ -56,7 +56,7 @@ class ModBayes(object):
         :param obs: Una matriz numpy unidimensional con las observaciones. 'función' debe devolver  una matriz
         unidimensional con las predicciones calculadas por el modelo, en el mismo orden, correspondiendo a estas
         observaciones.
-        :type obs: np.ndarray
+        :type d_obs: dict[np.ndarray]
 
         :param lista_d_paráms: El diccionario de los parámetros para calibrar.
         :type lista_d_paráms: list
@@ -89,47 +89,50 @@ class ModBayes(object):
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
-        l_var_pymc = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
+        l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
                                     l_trazas=aprioris, formato='calib', comunes=False)
 
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
-        for parám in l_var_pymc:
+        for parám in l_var_paráms:
             if isinstance(parám, pymc.Deterministic):
-                l_var_pymc.append(min(parám.extended_parents))
+                l_var_paráms.append(min(parám.extended_parents))
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
         función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
-
-        # Para la varianza de la distribución normal, se emplea un a priori no informativo, si es que exista tal cosa.
-        símismo.error = pymc.Uniform('error', lower=0.0001, upper=10.0)
 
         # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
         # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
         # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
         # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
         @pymc.deterministic(trace=False)
-        def simular(d=dic_argums, _=l_var_pymc):
+        def simul(d=dic_argums, _=l_var_paráms):
             return función(**d)
 
-        # Ahora convertimos el error a tau
-        @pymc.deterministic(trace=False)
-        def tau(e=símismo.error, s=simular):
-            # Calcular sigma basado en el error y el valor simulado
-            m = np.array(e * np.maximum(50, s))
+        # Ahora, las observaciones
+        l_var_obs = []  # Una lista para los variables de observación
+        for tipo, m_obs in d_obs.items():
+            # Para cada tipo (distribución) de observación y su matriz de observaciones correspondiente...
 
-            # Convertir sigma a tau
-            np.square(m, out=m)
-            np.divide(1, m, out=m)
+            # ... crear la distribución apropiada en PyMC
+            if tipo == 'Gamma':
+                # Si las observaciones siguen una distribución Gamma...
 
-            return m
+                # Crear el variable PyMC
+                var_obs = pymc.Gamma('obs_'.format(tipo), alpha=simul['Gamma']['alpha'], beta=simul['Gamma']['beta'],
+                                     value=m_obs, observed=True, trace=False)
 
-        # Una distribución normal alrededor de las predicciones del modelo, conectada con las observaciones
-        # correspondientes.
-        dist_obs = pymc.Normal('obs', mu=simular, tau=tau, value=obs, observed=True)
+                # ...y agregarlo a la lista de variables de observación
+                l_var_obs.append(var_obs)
+
+            elif tipo == 'Normal':
+                # Si tenemos distribución normal de las observaciones...
+                var_obs = pymc.Normal('obs_'.format(tipo), mu=simul['Normal']['mu'], tau=simul['Normal']['tau'],
+                                      value=m_obs, observed=True, trace=False)
+                l_var_obs.append(var_obs)
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({dist_obs, símismo.error, tau, simular, *l_var_pymc}, db='sqlite', dbname=símismo.id)
+        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id)
 
     def calib(símismo, rep, quema, extraer):
         """

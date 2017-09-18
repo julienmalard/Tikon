@@ -601,6 +601,11 @@ class Organismo(Coso):
         # Para cada etapa del organismo...
         for etp in símismo.etapas:
             for categ in sorted(Ec.ecs_orgs):
+
+                # No contar a prioris de errores que faltan
+                if categ == 'Error':
+                    continue
+
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
                     tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
                     dic_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec]
@@ -646,6 +651,11 @@ class Organismo(Coso):
         :type etp: str
 
         """
+
+        # Implementar error estocástico normal si no ha sido especificado ya.
+        if 'Error' not in ecs:
+            ecs['Error'] = {}
+            ecs['Error']['Dist'] = 'Normal'
 
         # Para cada categoría de ecuaciones...
         for categ, d_categ in símismo.dic_info_ecs.items():
