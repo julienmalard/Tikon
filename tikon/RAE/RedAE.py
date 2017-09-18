@@ -1768,7 +1768,7 @@ class Red(Simulable):
             # Agregar la lista de nombres de parcelas, en el orden que aparecen en las matrices de observaciones:
             símismo.info_exps['parcelas'][nombre_exp] = obj_exp.datos['Organismos']['parcelas']
 
-    def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, detalles):
+    def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         """
 
         :return:
@@ -1781,6 +1781,8 @@ class Red(Simulable):
         # El número de etapas se toma de la Red sí misma
         n_etps = len(símismo.etapas)
 
+        n_cohs = len(símismo.índices_cohortes)
+
         # Para cada experimento...
         for exp in exper:
 
@@ -1790,12 +1792,13 @@ class Red(Simulable):
             except KeyError:
                 raise ValueError('El experimento "{}" no está vinculado con esta Red.'.format(exp))
 
-            n_cohs = len(símismo.índices_cohortes)
-            n_parc =
-            n_pasos =
+
+            n_parc = obj_exp.n_parc(tipo=símismo.ext)
+            tamaño_parcelas = obj_exp.tamaño_parcelas(tipo=símismo.ext)
+            n_pasos_exp = n_pasos[exp]
 
             dic_predics = símismo._gen_dic_matr_predic(
-                n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, n_etps=n_etps, n_pasos=n_pasos,
+                n_parc=n_parc, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, n_etps=n_etps, n_pasos=n_pasos_exp,
                 n_cohs=n_cohs, detalles=detalles
             )
 
@@ -1811,7 +1814,6 @@ class Red(Simulable):
                 matr_obs_inic = obj_exp.datos['Organismos']['obs'][nombre_col][:, 0]
 
                 # Convertir a unidades de organismos por parcela
-                # Para hacer: URGENTE: esto debe arreglarse en Experimento directamente
                 np.multiply(matr_obs_inic, tamaño_parcelas, out=matr_obs_inic)
 
                 # Asegurarse que tenemos números enteros.
@@ -1942,7 +1944,7 @@ class Red(Simulable):
 
             dic_simul['matrs_valid'][exp] = matrs_valid = {}
 
-            matrs_valid =
+
 
         dic_simul['d_l_í_valid'] =
 
@@ -1952,53 +1954,12 @@ class Red(Simulable):
         dic_simul = símismo.dic_simul
 
         n_obs =
-        d_calib = dic_simul['d_calib'] = {
-            'Normal': np.zeros(n_obs)
-        }
+
+        dic_simul['d_calib']['Normal'] = np.zeros(n_obs)
+        d_calib = dic_simul['d_calib']
 
         dic_simul['d_l_í_calib']
 
-
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, paso, tiempo_final, detalles):
-        """
-        Ver la documentación de `Simulable`.
-
-        :type exper: list[str]
-        :type n_rep_estoc: int
-        :type n_rep_paráms: int
-        :type tiempo_final: dict | None
-        :rtype: dict
-
-        """
-
-        dic_args = dict(datos_inic={},
-                        n_pasos={},
-                        extrn={})
-
-
-
-        # Para cada experimento...
-        for exp in exper:
-
-            obj_exp = símismo.exps[exp]
-
-            # Calculamos el número de parcelas en el experimento
-            n_parc = obj_exp.n_parc(tipo='RedAE')
-
-            # La superficie de cada parcela (en ha)
-            tamaño_parcelas = obj_exp.tamaño_parcelas(tipo='RedAE')
-
-            #
-            if tiempo_final is None:
-                tiempo_final = obj_exp.tiempo_final(tipo='RedAE')
-            n_pasos = mat.ceil(tiempo_final[exp] / paso)
-
-
-            # También guardamos el número de pasos y las superficies de las parcelas.
-            dic_args['n_pasos'][exp] = n_pasos
-            dic_args['extrn'][exp] = {'superficies': tamaño_parcelas}
-
-        return dic_args
 
     def _llenar_coefs(símismo, nombre_simul, n_rep_parám, calibs=None, dib_dists=False):
         """
