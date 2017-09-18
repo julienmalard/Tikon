@@ -89,7 +89,7 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
                 # Si querremos generar distribuciones para una calibración, generar un variable PyMC directamente.
 
                 # El nombre para el variable PyMC
-                nombre_pymc = 'parám_%i' % n
+                nombre_pymc = 'parám_{}'.format(n)
 
                 # Convertir el texto directamente en distribución
                 dist = texto_a_dist(texto=d_parám[trzs_texto[0]], usar_pymc=True, nombre=nombre_pymc)
@@ -127,7 +127,7 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
                 # En el caso de validación, simplemente querremos una distribución NumPy
                 dist = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
             elif formato == 'sensib':
-                # En el caso de análisis de incertidumbre, querremos una distribución NumPy también
+                # En el caso de análisis de sensibilidad, querremos una distribución NumPy también
                 dist = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
 
         # Guardar la distribución en el diccionario de calibraciones del parámetro
@@ -165,6 +165,7 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
     def calc_índs(d_trza, l_trza):
         """
         Calcula los índices para un diccionario de parámetro.
+
         :param d_trza: El diccionario de calibraciones del parámetro
         :type d_trza: dict[str | np.ndarray | pymc.Stochastic | pymc.Deterministic]
 
@@ -212,8 +213,16 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
                 else:
                     devolv = False
 
-                # Escoger los índices de manera aleatoria
-                d_índs[nombre_trz] = np.random.choice(range(tamaño_máx), size=rep_per_calib[i], replace=devolv)
+                # Escoger los índices...
+                if tamaño_máx == rep_per_calib[i]:
+                    # ...en órden original, si estamos tomando la traza entiera (ni más, ni menos). Esto queda
+                    # bien importante para no mezclar el orden de las trazas para un análisis de sensibilidad,
+                    # donde los valores de los parámetros se determinan por un algoritmo externo.
+                    índs = np.arange(tamaño_máx)
+                else:
+                    # ...sino, de manera aleatoria.
+                    índs = np.random.choice(range(tamaño_máx), size=rep_per_calib[i], replace=devolv)
+                d_índs[nombre_trz] = índs
 
             elif isinstance(dist, pymc.Stochastic) or isinstance(dist, pymc.Deterministic):
                 # ..y si es un variable de calibración activa, poner el variable sí mismo en la matriz
@@ -1167,46 +1176,45 @@ def validar_matr_pred(matr_predic, vector_obs):
 
     r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
 
-    return r2, rcnep, r2_percentiles
+    return {'r2': r2, 'rcnep': rcnep, 'r2_percentiles': r2_percentiles}
 
 
 # Para hacer: implementar pymc3
 def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
     if pm3 is None:  # Para hacer: quitar esto después de migrar a PyMC 3
         raise ImportError(
-            'PyMC 3 (pymc3) no está instalado en esta máquina. Deberías de instalarlo un día. De verdad que'
+            'PyMC 3 (pymc3) no está instalado en esta máquina.\nDeberías de instalarlo un día. De verdad que'
             'es muy chévere.')
 
     transform_pymc = {'mult': 1, 'sum': 0}
 
+    try:
+        clase_dist = Ds.obt_dist(dist=tipo_dist, tipo='pymc3')
+    except ValueError as e:
+        raise ValueError('La distribución "{}" no parece existir en Tiko\'n al momento.'.format(tipo_dist))
+
     if tipo_dist == 'Beta':
-        dist_pm3 = pm3.Beta()
+        dist_pm3 = clase_dist(alpha=paráms['a'], beta=paráms['b'])
+        transform_pymc['mult'] = paráms['scale']
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Cauchy':
-        paráms_pymc = (paráms[0], paráms[1])
-        dist_pm3 = pm3.Cauchy()
+        dist_pm3 = clase_dist(alpha=paráms['a'], beta=paráms['scale'])
 
     elif tipo_dist == 'Chi2':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        transform_pymc['mult'] = paráms[2]
-        dist_pm3 = pm3.ChiSquared()
+        dist_pm3 = clase_dist(nu=paráms['df'])
+        transform_pymc['mult'] = paráms['scale']
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Exponencial':
-        paráms_pymc = (1 / paráms[1],)
-        transform_pymc['sum'] = paráms[0]
-        dist_pm3 = pm3.Exponential()
-
-    elif tipo_dist == 'WeibullExponencial':
-        paráms_pymc = (paráms[0], paráms[1], paráms[2], paráms[3])
-        dist_pm3 = NotImplemented
+        dist_pm3 = clase_dist(lam=1/paráms['scale'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Gamma':
-        paráms_pymc = (paráms[0], 1 / paráms[2])
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Gamma()
+        dist_pm3 = clase_dist(alpha=paráms['alpha'], beta=1/paráms['scale'])
+        transform_pymc['sum'] = paráms['loc']
 
-    elif tipo_dist == 'MitadCauchy':
+    elif tipo_dist == 'MitadCauchy':  # para hacer: trabajar desde aquí
         paráms_pymc = (paráms[0], paráms[1])
         dist_pm3 = pm3.HalfCauchy()
 

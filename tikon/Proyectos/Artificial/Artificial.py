@@ -92,7 +92,9 @@ def _gen_a_prioris(vals, prec):
             etp = dic['etapa']
             u_p = dic['ubic_parám']
 
-            a_pr_orgnl = next(d_a for d_a in a_prioris[org] if d_a['etapa'] == etp and d_a['ubic_parám'] == u_p)
+            a_pr_orgnl = next((d_a for d_a in a_prioris[org] if d_a['etapa'] == etp and d_a['ubic_parám'] == u_p), None)
+            if a_pr_orgnl is None:
+                continue
             rango = a_pr_orgnl['rango']
             dim_rango = rango[1] - rango[0]
 
@@ -162,7 +164,7 @@ Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1']
 
 # Generar una simulación con UNA repetición paramétrica (y estocástica)
 Red_coco.simular(exper=Exper, nombre='Datos artificiales', n_rep_parám=1, n_rep_estoc=1,
-                 mostrar=False, detalles=False)
+                 mostrar=False, detalles=False, usar_especificadas=True)
 
 # Extraer las predicciones de la simulación y copiarlas a un nuevo Experimento
 Exper_artificial = _simul_a_exp(Red_coco)
@@ -186,7 +188,8 @@ pprint(valid_perfecta)
 for p in range(100, 0, -10):
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
-    Red_coco.calibrar(nombre='Calib con prec. {}'.format(p), quema=0, n_iter=5000, dibujar=True)
+    Red_coco.calibrar(nombre='Calib con prec. {}'.format(p), exper=Exper_artificial,
+                      quema=0, n_iter=5, dibujar=True)
     Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     valid = Red_coco.validar(nombre='Valid con calib prec. {}'.format(p), exper=Exper_artificial,

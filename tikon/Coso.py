@@ -92,7 +92,7 @@ class Coso(object):
         """
 
         # Borramos la distribución de la receta de coeficientes
-        borrar_dist(d=símismo.receta['coefs'], nombre=id_calib)
+        símismo._borrar_dist(d=símismo.receta['coefs'], nombre=id_calib)
 
         # Tambien borramos el nombre de la calibracion del diccionario de calibraciones, si es que existe allí.
         try:
@@ -126,7 +126,7 @@ class Coso(object):
         """
 
         # Cambiar el nombre de las distribuciones especificadas en el diccionario de coeficientes.
-        renombrar_dist(símismo.receta['coefs'], nombre_ant='especificado', nombre_nuevo=nombre_dist)
+        símismo._renombrar_dist(símismo.receta['coefs'], nombre_ant='especificado', nombre_nuevo=nombre_dist)
 
     def guardar(símismo, proyecto=None, especificados=False, iterativo=True):
         """
@@ -162,11 +162,10 @@ class Coso(object):
         proyecto = símismo._prep_directorio(proyecto)
 
         # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
-        receta_prep = prep_json(símismo.receta)
+        receta_prep = símismo._prep_coefs_json(símismo.receta)
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
-        with io.open(proyecto, 'w', encoding='utf8') as d:
-            json.dump(receta_prep, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+        guardar_json(dic=receta_prep, archivo=proyecto)
 
         # Si se especificó así, guardar todos los objetos vinculados con este objeto también.
         if iterativo:
@@ -204,6 +203,93 @@ class Coso(object):
 
             # Convertir listas a matrices numpy en las ecuaciones (coeficientes)
             dic_lista_a_np(símismo.receta['coefs'])
+
+    def ver_coefs_no_espec(símismo):
+        """
+
+        :return:
+        :rtype: dict
+
+        """
+
+        sin_especif = {símismo.nombre: símismo._sacar_coefs_no_espec()}
+
+        for obj in símismo.objetos:
+            sin_especif[obj.nombre] = obj.ver_coefs_no_espec()
+
+        return sin_especif
+
+    def _sacar_coefs_interno(símismo):
+        """
+        Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
+        Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+        :rtype: list
+
+        """
+
+        raise NotImplementedError
+
+    def _sacar_líms_coefs_interno(símismo):
+        """
+        Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
+        calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
+
+        :return: Un tuple, conteniendo:
+          1. Una lista de diccionarios de coeficientes, con el formato siguiente:
+           [ {calib1: distribución o [lista de valores],
+              calib2: ibid,
+              ...},
+              {coeficiente 2...},
+              ...
+           ]
+
+           2. Una lista de los límites de los coeficientes, en el mismo orden que (1.)
+        :rtype: (list, list)
+
+        """
+
+        raise NotImplementedError
+
+    def _prep_directorio(símismo, directorio):
+        """
+        Esta función prepara una dirección de directorio.
+
+        :param directorio: 
+        :type directorio: str
+
+        :return: 
+        :rtype: str
+
+        """
+
+        if directorio[0] == '.':
+            directorio = os.path.join(símismo.proyecto, directorio[1:])
+
+        if not os.path.splitdrive(directorio)[0]:
+            directorio = os.path.join(dir_proyectos, directorio)
+
+        if not os.path.exists(directorio):
+            os.makedirs(directorio)
+
+        return directorio
+
+    def _sacar_coefs_no_espec(símismo):
+        """
+        
+        :return: 
+        :rtype: dict
+        
+        """
+
+        raise NotImplementedError
 
     @staticmethod
     def _estab_a_priori(dic_ecs, dic_parám, ubic_parám, rango, certidumbre, dibujar, inter=None,
@@ -280,93 +366,6 @@ class Coso(object):
         if dibujar:
             Arte.graficar_dists([texto_dist], rango=rango, título=título, archivo=archivo)
 
-    def _sacar_coefs_interno(símismo):
-        """
-        Esta función genera una lista de los coeficientes propios al objeto de interés para la calibración actual.
-        Se debe implementar para cada Coso (objeto) que tiene coeficientes.
-
-        :return: Una lista de diccionarios de coeficientes, con el formato siguiente:
-           [ {calib1: distribución o [lista de valores],
-              calib2: ibid,
-              ...},
-              {coeficiente 2...},
-              ...
-           ]
-        :rtype: list
-
-        """
-
-        raise NotImplementedError
-
-    def _sacar_líms_coefs_interno(símismo):
-        """
-        Esta función genera una lista de las límites de los coeficientes propios al objeto de interés para la
-        calibración actual. Se debe implementar para cada Coso (objeto) que tiene coeficientes.
-
-        :return: Un tuple, conteniendo:
-          1. Una lista de diccionarios de coeficientes, con el formato siguiente:
-           [ {calib1: distribución o [lista de valores],
-              calib2: ibid,
-              ...},
-              {coeficiente 2...},
-              ...
-           ]
-
-           2. Una lista de los límites de los coeficientes, en el mismo orden que (1.)
-        :rtype: (list, list)
-
-        """
-
-        raise NotImplementedError
-
-    def _prep_directorio(símismo, directorio):
-        """
-        Esta función prepara una dirección de directorio.
-
-        :param directorio: 
-        :type directorio: str
-
-        :return: 
-        :rtype: str
-
-        """
-
-        if directorio[0] == '.':
-            directorio = os.path.join(símismo.proyecto, directorio[1:])
-
-        if not os.path.splitdrive(directorio)[0]:
-            directorio = os.path.join(dir_proyectos, directorio)
-
-        if not os.path.exists(directorio):
-            os.makedirs(directorio)
-
-        return directorio
-
-    def _sacar_coefs_no_espec(símismo):
-        """
-        
-        :return: 
-        :rtype: dict
-        
-        """
-
-        raise NotImplementedError
-
-    def ver_coefs_no_espec(símismo):
-        """
-
-        :return: 
-        :rtype: dict
-        
-        """
-
-        sin_especif = {símismo.nombre: símismo._sacar_coefs_no_espec()}
-
-        for obj in símismo.objetos:
-            sin_especif[obj.nombre] = obj.ver_coefs_no_espec()
-
-        return sin_especif
-
     @classmethod
     def generar_aprioris(cls, directorio=None):
         """
@@ -380,6 +379,262 @@ class Coso(object):
 
         # Para hacer: completar
         raise NotImplemented
+
+    @classmethod
+    def _borrar_dist(cls, d, nombre):
+        """
+        Esta función borra todas las distribuciones con un nombre específico en un diccionario de coeficientes.
+
+        :param d: El diccionario de coeficientes.
+        :type d: dict
+
+        :param nombre: El nombre de la distribución.
+        :type nombre: str
+
+        """
+
+        # Para cada itema (llave, valor) del diccionario
+        for ll in list(d):
+            v = d[ll]
+
+            if type(v) is dict:
+
+                # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+                cls._borrar_dist(v, nombre=nombre)
+
+            elif type(v) is str:
+
+                # Si la distribución lleva el nombre especificado...
+                if ll == str(nombre):
+                    # ...borrar la distribución
+                    d.pop(ll)
+
+    @classmethod
+    def _renombrar_dist(cls, d, nombre_ant, nombre_nuevo):
+        """
+        Esta función cambia el nombre de una distribución en un diccionario de coeficientes.
+
+        :param d: El diccionario de coeficientes.
+        :type d: dict
+
+        :param nombre_ant: El nombre actual de la distribución.
+        :type nombre_ant: str
+
+        :param nombre_nuevo: El nuevo nombre de la distribución.
+        :type nombre_nuevo: str
+
+        """
+
+        # Para cada itema (llave, valor) del diccionario
+        for ll, v in d.items():
+
+            if type(v) is dict:
+
+                # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+                cls._renombrar_dist(v, nombre_ant=nombre_ant, nombre_nuevo=nombre_nuevo)
+
+            elif type(v) is str:
+
+                # Cambiar el nombre de la llave
+                if ll == nombre_ant:
+                    # Crear una llave con el nuevo nombre
+                    d[nombre_nuevo] = d[ll]
+
+                    # Quitar el viejo nombre
+                    d.pop(ll)
+
+    @classmethod
+    def _prep_coefs_json(cls, d, d_egr=None):
+        """
+        Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
+        de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
+        quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
+        no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
+        pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
+
+        :param d: El diccionario para convertir
+        :type d: dict
+
+        :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
+        se llama esta función)
+        :type: dict
+
+        """
+
+        if d_egr is None:
+            d_egr = {}
+
+        # Para cada itema (llave, valor) del diccionario
+        for ll, v in d.items():
+            if type(v) is dict:
+                d_egr[ll] = v.copy()
+            else:
+                d_egr[ll] = v
+
+            if type(v) is dict:
+
+                # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+                cls._prep_coefs_json(v, d_egr=d_egr[ll])
+
+            elif type(v) is str:
+
+                # Quitar distribuciones a priori especificadas por el usuario.
+                if ll == 'especificado':
+                    d_egr.pop(ll)
+
+            elif type(v) is np.ndarray:
+
+                # Transformar matrices numpy a texto
+                d_egr[ll] = v.tolist()
+
+            elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+
+                # Si el itema es un variable de PyMC, borrarlo
+                d_egr.pop(ll)
+
+        return d_egr
+
+    @classmethod
+    def generar_aprioris(cls):
+        """
+        Esta función generar a prioris para una clase dada de Coso basado en las calibraciones existentes de todas las
+        otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
+        clase lo puedan acceder.
+
+        """
+
+        lista_objs = []
+
+        # Sacar la lista de los objetos de este tipo en Proyectos
+        for raíz, dirs, archivos in os.walk(dir_proyectos, topdown=False):
+            for nombre in archivos:
+                ext = os.path.splitext(nombre)[1]
+                if ext == cls.ext:
+                    lista_objs.append(cls(fuente=nombre))
+
+        dic_aprioris = cls._apriori_de_existente(lista_objs=lista_objs, clase_objs=cls)
+
+        archivo = os.path.join(directorio_base, 'A prioris', cls.__name__, '.apr')
+        guardar_json(dic=dic_aprioris, archivo=archivo)
+
+    @staticmethod
+    def _apriori_de_existente(lista_objs, clase_objs):
+        """
+        Esta función genera valores a prioris de un objeto existente.
+
+        :param lista_objs:
+        :type lista_objs: list[Coso]
+
+        :param clase_objs:
+        :type clase_objs: type | Coso
+
+        """
+
+        dic_info_ecs = clase_objs.dic_info_ecs
+
+        # Unas funciones útiles:
+        # 1) Una función para generar un diccionario vacío con la misma estructura que el diccionario de ecuaciones
+        def gen_dic_vacío(d, d_copia=None):
+            if d_copia is None:
+                d_copia = []
+
+            for ll, v in d.items():
+                if 'límites' not in d:
+                    d_copia[ll] = {}
+                    gen_dic_vacío(v, d_copia=d_copia[ll])
+                else:
+                    d_copia[ll] = []
+
+            return d_copia
+
+        # 2) Una función para copiar las trazas de un diccionario de coeficientes de un objeto
+        def sacar_trazas(d_fuente, d_final):
+            """
+
+            :param d_fuente:
+            :type d_fuente: dict
+
+            :param d_final:
+            :type d_final: dict
+
+            """
+
+            def iter_sacar_trazas(d, l=None):
+                """
+
+                :param d:
+                :type d: dict
+
+                :param l:
+                :type l: list
+
+                :return:
+                :rtype: list
+
+                """
+
+                if l is None:
+                    l = []
+
+                for val in d.values():
+                    if type(val) is dict:
+                        iter_sacar_trazas(val, l=l)
+                    elif type(val) is np.ndarray:
+                        np.append(l, val)
+                    else:
+                        pass
+                return l
+
+            for ll, v in d_final.items():
+
+                if type(v) is dict:
+                    sacar_trazas(d_fuente=d_fuente[ll], d_final=v)
+                elif type(v) is list:
+                    nuevas_trazas = iter_sacar_trazas(d_fuente[ll])
+                    d_final[ll].append(nuevas_trazas)
+
+        # 3) Una función para generar aprioris desde trazas
+        def gen_aprioris(d, d_ecs):
+            """
+
+            :param d:
+            :type d: dict
+
+            :param d_ecs:
+            :type d_ecs: dict
+
+            """
+
+            for ll, v in d.items():
+                if type(v) is dict:
+                    gen_aprioris(v, d_ecs=d_ecs[ll])
+
+                elif type(v) is list:
+                    datos = np.concatenate(v)
+                    try:
+                        cont = d_ecs['cont']
+                    except KeyError:
+                        cont = True
+
+                    líms = d_ecs['límites']
+
+                    dist = Incert.ajustar_dist(datos=datos, cont=cont, límites=líms, usar_pymc=False)[0]
+                    d[ll] = Incert.dist_a_texto(dist)
+
+        # Generar un diccionario para guardar los a prioris
+        dic_aprioris = gen_dic_vacío(dic_info_ecs)
+
+        # Asegurarse que todos los objetos sean de la clase especificada.
+        if not all([x.ext == clase_objs for x in lista_objs]):
+            raise ValueError
+
+        # Agregar el a priori de cada objeto a la lista para cada parámetro
+        for obj in lista_objs:
+            d_coefs = obj.receta['coefs']
+            sacar_trazas(d_fuente=d_coefs, d_final=dic_aprioris)
+
+        # Convertir trazas a distribuciones en formato texto
+        gen_aprioris(d=dic_aprioris, d_ecs=dic_info_ecs)
 
     def __str__(símismo):
         return símismo.nombre
@@ -421,8 +676,16 @@ class Simulable(Coso):
         símismo.coefs_act = {}
         símismo.coefs_act_númzds = {}
 
-        # Predicciones del modelo correspondiendo a los Experimentos asociados (para calibración y validación)
-        símismo.predics_exps = {}
+        #
+        símismo.dic_simul = {
+            'd_predics_exps': {},
+            'd_l_í_valid': {},
+            'matrs_valid': {},
+            'd_l_m_valid': {},
+            'd_l_m_predics': {},
+            'd_l_í_calib': {},
+            'd_calib': {}
+        }
 
         # Predicciones de datos (para simulaciones normales)
         símismo.predics = {}
@@ -437,9 +700,30 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
+    def incrementar(símismo, paso, i, detalles, extrn):
+        """
+        Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
+
+        :param paso: El paso con cual incrementar el modelo
+        :type paso: int
+
+        :param i: El número de este incremento en la simulación
+        :type i: int
+
+        :param detalles: Si hay que hacer la simulación con resultaodos detallados o rápidos.
+        :type detalles: bool
+
+        :param extrn: Un diccionario de valores externos al modelo, si necesario
+        :type extrn: dict
+
+        """
+
+        # Dejamos la implementación del incremento del modelo a las subclases individuales.
+        raise NotImplementedError
+
     def simular(símismo, exper, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
-                mostrar=True, opciones_dib=None, dib_dists=True, gen_dists=True):
+                mostrar=True, opciones_dib=None, dib_dists=True):
         """
         Esta función corre una simulación del Simulable.
 
@@ -516,22 +800,22 @@ class Simulable(Coso):
                 tiempo_final[exp.nombre] = t_final
 
         # Preparar la lista de parámetros de interés
-        lista_paráms = símismo._gen_lista_coefs_interés_todo()[0]
+        lista_paráms = símismo._gen_lista_coefs_interés_todos()[0]
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
                                                usar_especificadas=usar_especificadas)
 
-        # Generar los vectores de coeficientes
-        if gen_dists:
-            Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs, formato='valid',
-                                  comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
+        # Generar los vectores de coeficientes. Si es una simulación de análisis de sensibilidad, no tendrá impacto,
+        # porque no cambiará el orden de los vectores de valores de parámetros ya establecido.
+        Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs, formato='valid',
+                              comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
 
         # Llenar las matrices internas de coeficientes
         símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám,
-                                                   tiempo_final=tiempo_final, detalles=detalles)
-        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, vectorizar_preds=False)
+                                                   paso=paso, tiempo_final=tiempo_final, detalles=detalles)
+        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles)
 
         # Borrar los vectores de coeficientes temporarios
         símismo.borrar_calib(id_calib=nombre)
@@ -592,7 +876,7 @@ class Simulable(Coso):
         nombre = símismo._valid_nombre_simul(nombre=nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
-        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
+        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todos()
 
         # 3. Filtrar coeficientes por calib
         if aprioris is None:
@@ -601,21 +885,21 @@ class Simulable(Coso):
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
-        exper = símismo._prep_lista_exper(exper=exper)
+        exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
 
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1, tiempo_final=None,
-                                                   detalles=False)
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, n_rep_paráms=1, n_rep_estoc=1,
+                                                   paso=paso, tiempo_final=None,detalles=False)
         dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
         dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...
         dic_argums['vectorizar_preds'] = True  # ...pero sí tenemos que vectorizar las predicciones.
 
         # 5. Generar el vector numpy de observaciones para los experimentos
-        obs = símismo._prep_obs_exper(exper=exper)
+        d_obs = símismo._prep_obs_exper(exper=exper)
 
         # 6. Creamos el modelo ModBayes de calibración, lo cual genera variables PyMC
         símismo.ModBayes = ModBayes(función=símismo._simul_exps,
                                     dic_argums=dic_argums,
-                                    obs=obs,
+                                    d_obs=d_obs,
                                     lista_d_paráms=lista_paráms,
                                     aprioris=lista_aprioris,
                                     lista_líms=lista_líms,
@@ -713,7 +997,7 @@ class Simulable(Coso):
 
     def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=50, n_rep_estoc=50,
                 usar_especificadas=False,
-                detalles=True,
+                detalles=True, guardar=False,
                 dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
@@ -763,9 +1047,6 @@ class Simulable(Coso):
         :rtype: dict
         """
 
-        # Actualizar
-        símismo.actualizar()
-
         # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
         # contrario tomamos el conjunto de todas las calibraciones anteriores.
         if calibs is None:
@@ -781,7 +1062,17 @@ class Simulable(Coso):
                         opciones_dib=opciones_dib, dib_dists=dib_dists)
 
         # Procesar los datos de la validación
-        return símismo._procesar_validación()
+        valid = símismo._procesar_valid()
+
+        if guardar:
+            direc = os.path.join(símismo.proyecto, símismo.nombre, nombre)
+            direc = símismo._prep_directorio(directorio=direc)
+            archivo = os.path.join(direc, 'valid.json')
+
+            with io.open(archivo, 'w', encoding='utf8') as d:
+                json.dump(valid, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+
+        return valid
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None,
                      detalles=False, usar_especificadas=True, calc_2_orden_sobol=False, dibujar=False):
@@ -794,7 +1085,7 @@ class Simulable(Coso):
         exper = símismo._prep_lista_exper(exper=exper)
 
         # Lista de diccionarios de parámetros y de sus límites teoréticos
-        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todo()
+        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todos()
         n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
 
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
@@ -830,8 +1121,7 @@ class Simulable(Coso):
             # lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True asegurar que se
             # guarde el orden de los valores de los variables tales como especificados por SALib.
             símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False,
-                            gen_dists=False)
+                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
 
             for exp in símismo.exps:
                 pass
@@ -909,28 +1199,7 @@ class Simulable(Coso):
         for i in range(1, n_pasos):
             símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
 
-    def incrementar(símismo, paso, i, detalles, extrn):
-        """
-        Esta función incrementa el modelo por un paso. Se tiene que implementar en cada subclase de Simulable.
-        
-        :param paso: El paso con cual incrementar el modelo
-        :type paso: int
-
-        :param i: El número de este incremento en la simulación
-        :type i: int
-
-        :param detalles: Si hay que hacer la simulación con resultaodos detallados o rápidos.
-        :type detalles: bool
-
-        :param extrn: Un diccionario de valores externos al modelo, si necesario
-        :type extrn: dict
-
-        """
-
-        # Dejamos la implementación del incremento del modelo a las subclases individuales.
-        raise NotImplementedError
-
-    def _gen_lista_coefs_interés_todo(símismo):
+    def _gen_lista_coefs_interés_todos(símismo):
 
         """
         Esta función devuelve una lista de todos los coeficientes de un Simulable y de sus objetos de manera
@@ -1018,23 +1287,25 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _prep_obs_exper(símismo, exper):
+    def _prep_obs_calib(símismo, exper):
         """
         Prepara un vector numpy de las obsevaciones de los experimentos.
 
         :param exper: Una lista de los nombres de los experimentos que vamos a incluir para esta calibración.
-        :type exper: list
+        :type exper: list[str]
 
-        :return: Un vector, en orden reproducible, de las observaciones de los experimentos.
-        :rtype: np.ndarray
+        :return: Un dictionario, donde las llaves son los nombres de las distribuciones que tomarán las predicciones
+        del modelo. Cada valor del diccionario es un vector, en orden reproducible, de las observaciones de los
+        experimentos que corresponden con la distribución apropriada.
+        :rtype: dict[np.ndarray]
         """
 
         raise NotImplementedError
 
-    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, tiempo_final, detalles):
+    def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, paso, tiempo_final, detalles):
         """
         Prepara un diccionaro de los argumentos para simul_exps. El diccionario debe de tener la forma elaborada
-          abajo. Se implementa para cada subclase de Simulable.
+        abajo. Se implementa para cada subclase de Simulable.
 
         :param exper: Una lista de los nombres de los experimentos para incluir
         :type exper: list
@@ -1051,7 +1322,7 @@ class Simulable(Coso):
 
         :return: Un diccionario del formato siguiente:
            {
-            datos_inic: {},
+            dic_predics_exps: {},
             n_pasos: {},
             extrn: {}
             }
@@ -1062,15 +1333,63 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _simul_exps(símismo, datos_inic, paso, n_pasos, extrn, detalles, vectorizar_preds):
+    def _prep_dic_simul(símismo, exper, n_rep_estoc, n_rep_paráms, paso, detalles, tipo):
+        """
+
+        :param exper:
+        :type exper:
+        :param n_rep_estoc:
+        :type n_rep_estoc:
+        :param n_rep_paráms:
+        :type n_rep_paráms:
+        :param paso:
+        :type paso:
+        :param tiempo_final:
+        :type tiempo_final:
+        :param detalles:
+        :type detalles:
+        :param tipo:
+        :type tipo:
+        :return:
+        :rtype:
+        """
+
+
+        dic_simul = símismo.dic_simul
+        for ll in dic_simul:
+            dic_simul[ll].clear()
+
+        símismo._gen_dic_predics_exps( exper=exper, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
+                                       paso=paso, detalles=detalles)
+
+        if tipo == 'valid' or tipo == 'calib':
+            símismo._gen_dics_valid()
+
+            dic_simul['d_l_m_valid'] = dic_a_lista(símismo.dic_simul['matrs_valid'])
+            dic_simul['d_l_m_predics'] = dic_a_lista(símismo.dic_simul['predics_exps'])
+
+        if tipo == 'calib':
+            símismo._gen_dics_calib()
+
+    def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, detalles):
+        raise NotImplementedError
+
+    def _gen_dics_valid(símismo):
+        raise NotImplementedError
+
+    def _gen_dics_calib(símismo):
+        raise NotImplementedError
+
+    def _simul_exps(símismo, dic_predics_exps, paso, n_pasos, extrn, detalles, devolver_calib):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
           correspondiendo a los valores observados, y eso en el mismo orden.
         Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
           simular como llaves.
 
-        :param datos_inic: Un diccionario de los datos iniciales para la simulación de cada experimento.
-        :type datos_inic: dict
+        :param dic_predics_exps: Un diccionario de las matrices, incluyendo datos iniciales, para la simulación de
+        cada experimento.
+        :type dic_predics_exps: dict
 
         :param paso: El paso para la simulación
         :type paso: int
@@ -1081,53 +1400,83 @@ class Simulable(Coso):
         :param extrn: Un diccionario de valores externas a pasar a la simulación, si aplica.
         :type extrn: dict
 
-        :param vectorizar_preds: Si es necesario generar un vector de las predicciones (solamente se genera para
-        calibraciones, no para validaciones).
-        :type vectorizar_preds: bool
+        :param devolver_calib: (solamente se genera para calibraciones, no para validaciones).
+        :type devolver_calib: bool
 
-        :return: Matriz unidimensional Numpy de las predicciones del modelo correspondiendo a los valores observados.
-        :rtype: np.ndarray
+        :return:
+        :rtype: None | dict[dict[np.ndarray]]
 
         """
 
         # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
         # datos iniciales para las próximas).
-        símismo.predics_exps = copiar.deepcopy(datos_inic)
+        símismo.predics_exps = copiar.deepcopy(dic_predics_exps)
 
         # Para cada experimento...
-        for exp in datos_inic:
+        for exp in dic_predics_exps:
             # Apuntar el diccionario de predicciones del Simulable al diccionario apropiado en símismo.predics_exps.
-            símismo.predics = símismo.predics_exps[exp]
+            símismo.predics = símismo.dic_simul['d_predics_exps'][exp]
 
             # Simular el modelo
             antes = time.time()
             símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp])
             print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
-        if not vectorizar_preds:
-            return
+        # Procesar los egresos de la simulación.
+        antes = time.time()
+        símismo._procesar_simul()
+        dif_p_s = time.time() - antes
 
-        else:
+        if devolver_calib:
             # Convertir los diccionarios de predicciones en un vector numpy.
             antes = time.time()
-            vector_predics = símismo._procesar_predics_calib()
-            print('Procesando predicciones: ', time.time() - antes)
+            símismo._procesar_valid()
+            dif_p_v = time.time() - antes
+            antes = time.time()
+            símismo._procesar_calib()
+            dif_p_c = time.time() - antes
+            print('Procesando predicciones: \n\tSimul: {}\n\tValid: {}\n\tCalib: {}\n\tTotal: {}'
+                  .format(dif_p_s, dif_p_v, dif_p_c, dif_p_s + dif_p_v + dif_p_c))
 
-            # Devolver el vector de predicciones.
-            return vector_predics
+            # Devolver las predicciones.
+            return símismo.dic_simul['d_calib']
 
-    def _procesar_predics_calib(símismo):
+    def _procesar_simul(símismo):
         """
-        Procesa las predicciones de simulación de experimentos (predics_exps) del modelo y genera una matriz numpy
-          unidimensional de las predicciones. Se debe implementar para cada subclase de Simulable.
-a
-        :return: Un vector numpy de las predicciones del modelo.
-        :rtype: np.ndarray
+        Esta función procesa las predicciones del modelo después de una simulación, si necesario.
         """
 
         raise NotImplementedError
 
-    def _procesar_validación(símismo):
+    def _procesar_valid(símismo):
+        """
+        Esta función procesa las predicciones de un modelo para usarlas en una validación (o también calibración).
+        Por ejemplo, interpola las predicciones para coincidir con las fechas de las observaciones, etc. Todo se guarda
+        en los diccionarios símismo.matrs_simul['d_l_matrs_valid'] y ['matrs_valid'].
+        """
+
+        d_l_m_predics = símismo.dic_simul['d_l_m_predics']
+        d_l_m_valid = símismo.dic_simul['d_l_m_valid']
+        info = símismo.dic_simul['d_l_í_valid']
+
+        for t_dist, l_matr in d_l_m_valid.items():
+            for i, m_v in enumerate(l_matr):
+                # Días que corresponden exactamente
+                días_v, días_p = info[t_dist][i]['exactos']
+                if len(días_v):
+                    m_p = d_l_m_predics[t_dist][i]
+                    m_v[..., días_v] = m_p[..., días_p]
+
+                # Días que hay que interpolar
+                días_v, días_p = info[i]['interpol']
+                if len(días_v):
+                    # Pienso que este sería más rápido.
+                    m_v[..., días_v] = días_p[1]  # El valor superior
+                    m_v[..., días_v] -= días_p[0]  # La diferencia...
+                    m_v[..., días_v] *= días_p[2]  # ...Multiplicada por la distancia relativa...
+                    m_v[..., días_v] += días_p[0]  # ...Agragada al valor inferior
+
+    def _analizar_valid(símismo):
         """
         Esta función procesa los resultados de la validación del modelo.
 
@@ -1136,6 +1485,36 @@ a
         """
 
         raise NotImplementedError
+
+    def _procesar_calib(símismo):
+        """
+        Procesa las predicciones de simulación de experimentos del modelo.
+
+        :return: Un diccionario de las predicciones.
+        :rtype: dict[dict[np.ndarray]]
+        """
+
+        símismo._procesar_valid()
+
+        d_l_m_valid = símismo.dic_simul['d_l_m_valid']
+        d_calib = símismo.dic_simul['d_calib']
+        d_índs = símismo.dic_simul['d_l_índ_calib']
+
+        for t_dist, l_matr_v in d_l_m_valid.items():
+            d_dist = d_calib[t_dist]
+
+            for i, m in enumerate(l_matr_v):
+                r = d_índs[t_dist][i]['rango']
+                índs = d_índs[t_dist][i]['índs']
+                if t_dist == 'Normal':
+                    d_dist['mu'][r[0]:r[1]] = np.mean(m[..., índs], axis=-1)
+                    d_dist['sigma'][r[0]:r[1]] = np.std(m[..., índs], axis=-1)
+
+                elif t_dist == 'Gamma':
+                    raise NotImplementedError  # para hacer
+                else:
+                    raise ValueError
+
 
     def _prep_lista_exper(símismo, exper):
         """
@@ -1501,261 +1880,16 @@ def dic_lista_a_np(d):
                 pass
 
 
-def prep_json(d, d_egr=None):
+def guardar_json(dic, archivo):
     """
-    Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
-    de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
-    quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
-    no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
-    pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
+    Esta función guarda un diccionario con carácteres internacionales en formato JSON.
 
-    :param d: El diccionario para convertir
-    :type d: dict
-
-    :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
-    se llama esta función)
-    :type: dict
+    :param dic: El diccionario para guardar.
+    :type dic: dict
+    :param archivo: El archivo.
+    :type archivo: str
 
     """
 
-    if d_egr is None:
-        d_egr = {}
-
-    # Para cada itema (llave, valor) del diccionario
-    for ll, v in d.items():
-        if type(v) is dict:
-            d_egr[ll] = v.copy()
-        else:
-            d_egr[ll] = v
-
-        if type(v) is dict:
-
-            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-            prep_json(v, d_egr=d_egr[ll])
-
-        elif type(v) is str:
-
-            # Quitar distribuciones a priori especificadas por el usuario.
-            if ll == 'especificado':
-                d_egr.pop(ll)
-
-        elif type(v) is np.ndarray:
-
-            # Transformar matrices numpy a texto
-            d_egr[ll] = v.tolist()
-
-        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
-
-            # Si el itema es un variable de PyMC, borrarlo
-            d_egr.pop(ll)
-
-    return d_egr
-
-
-def borrar_dist(d, nombre):
-    """
-    Esta función borra todas las distribuciones con un nombre específico en un diccionario de coeficientes.
-
-    :param d: El diccionario de coeficientes.
-    :type d: dict
-
-    :param nombre: El nombre de la distribución.
-    :type nombre: str
-
-    """
-
-    # Para cada itema (llave, valor) del diccionario
-    for ll in list(d):
-        v = d[ll]
-
-        if type(v) is dict:
-
-            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-            borrar_dist(v, nombre=nombre)
-
-        elif type(v) is str:
-
-            # Si la distribución lleva el nombre especificado...
-            if ll == str(nombre):
-                # ...borrar la distribución
-                d.pop(ll)
-
-
-def renombrar_dist(d, nombre_ant, nombre_nuevo):
-    """
-    Esta función cambia el nombre de una distribución en un diccionario de coeficientes.
-
-    :param d: El diccionario de coeficientes.
-    :type d: dict
-
-    :param nombre_ant: El nombre actual de la distribución.
-    :type nombre_ant: str
-
-    :param nombre_nuevo: El nuevo nombre de la distribución.
-    :type nombre_nuevo: str
-
-    """
-
-    # Para cada itema (llave, valor) del diccionario
-    for ll, v in d.items():
-
-        if type(v) is dict:
-
-            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-            renombrar_dist(v, nombre_ant=nombre_ant, nombre_nuevo=nombre_nuevo)
-
-        elif type(v) is str:
-
-            # Cambiar el nombre de la llave
-            if ll == nombre_ant:
-                # Crear una llave con el nuevo nombre
-                d[nombre_nuevo] = d[ll]
-
-                # Quitar el viejo nombre
-                d.pop(ll)
-
-
-def generar_aprioris(clase):
-    """
-    Esta función generar a prioris para una clase dada de Coso basado en las calibraciones existentes de todas las
-    otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
-    clase lo puedan acceder.
-
-    :param clase: La clase para cuál hay que establecer a prioris. Debe ser Coso o una subclase suya.
-    :type clase: type(Coso)
-
-    """
-
-    lista_objs = []
-
-    # Sacar la lista de los objetos de este tipo en Proyectos
-    for raíz, dirs, archivos in os.walk(dir_proyectos, topdown=False):
-        for nombre in archivos:
-            ext = os.path.splitext(nombre)[1]
-            if ext == clase.ext:
-                lista_objs.append(clase(fuente=nombre))
-
-    dic_aprioris = apriori_de_existente(lista_objs=lista_objs, clase_objs=clase)
-
-    archivo = os.path.join(directorio_base, 'A prioris', clase.__name__, '.apr')
     with open(archivo, 'w', encoding='utf8') as d:
-        json.dump(dic_aprioris, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
-
-
-def apriori_de_existente(lista_objs, clase_objs):
-    """
-    Esta función generar valores a prioris de un objeto existente.
-
-    :param lista_objs:
-    :type lista_objs: list[Coso]
-
-    :param clase_objs:
-    :type clase_objs: type | Coso
-
-    """
-
-    dic_info_ecs = clase_objs.dic_info_ecs
-
-    # Unas funciones útiles:
-    # 1) Una función para generar un diccionario vacío con la misma estructura que el diccionario de ecuaciones
-    def gen_dic_vacío(d, d_copia=None):
-        if d_copia is None:
-            d_copia = []
-
-        for ll, v in d.items():
-            if 'límites' not in d:
-                d_copia[ll] = {}
-                gen_dic_vacío(v, d_copia=d_copia[ll])
-            else:
-                d_copia[ll] = []
-
-        return d_copia
-
-    # 2) Una función para copiar las trazas de un diccionario de coeficientes de un objeto
-    def sacar_trazas(d_fuente, d_final):
-        """
-
-        :param d_fuente:
-        :type d_fuente: dict
-
-        :param d_final:
-        :type d_final: dict
-
-        """
-
-        def iter_sacar_trazas(d, l=None):
-            """
-
-            :param d:
-            :type d: dict
-
-            :param l:
-            :type l: list
-
-            :return:
-            :rtype: list
-
-            """
-
-            if l is None:
-                l = []
-
-            for val in d.values():
-                if type(val) is dict:
-                    iter_sacar_trazas(val, l=l)
-                elif type(val) is np.ndarray:
-                    np.append(l, val)
-                else:
-                    pass
-            return l
-
-        for ll, v in d_final.items():
-
-            if type(v) is dict:
-                sacar_trazas(d_fuente=d_fuente[ll], d_final=v)
-            elif type(v) is list:
-                nuevas_trazas = iter_sacar_trazas(d_fuente[ll])
-                d_final[ll].append(nuevas_trazas)
-
-    # 3) Una función para generar aprioris desde trazas
-    def gen_aprioris(d, d_ecs):
-        """
-
-        :param d:
-        :type d: dict
-
-        :param d_ecs:
-        :type d_ecs: dict
-
-        """
-
-        for ll, v in d.items():
-            if type(v) is dict:
-                gen_aprioris(v, d_ecs=d_ecs[ll])
-
-            elif type(v) is list:
-                datos = np.concatenate(v)
-                try:
-                    cont = d_ecs['cont']
-                except KeyError:
-                    cont = True
-
-                líms = d_ecs['límites']
-
-                dist = Incert.ajustar_dist(datos=datos, cont=cont, límites=líms, usar_pymc=False)[0]
-                d[ll] = Incert.dist_a_texto(dist)
-
-    # Generar un diccionario para guardar los a prioris
-    dic_aprioris = gen_dic_vacío(dic_info_ecs)
-
-    # Asegurarse que todos los objetos sean de la clase especificada.
-    if not all([x.ext == clase_objs for x in lista_objs]):
-        raise ValueError
-
-    # Agregar el a priori de cada objeto a la lista para cada parámetro
-    for obj in lista_objs:
-        d_coefs = obj.receta['coefs']
-        sacar_trazas(d_fuente=d_coefs, d_final=dic_aprioris)
-
-    # Convertir trazas a distribuciones en formato texto
-    gen_aprioris(d=dic_aprioris, d_ecs=dic_info_ecs)
+        json.dump(dic, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
