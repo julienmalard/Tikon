@@ -53,10 +53,8 @@ class ModBayes(object):
         pasar, poner un diccionario vacío, {}.
         :type dic_argums: dict
 
-        :param obs: Una matriz numpy unidimensional con las observaciones. 'función' debe devolver  una matriz
-        unidimensional con las predicciones calculadas por el modelo, en el mismo orden, correspondiendo a estas
-        observaciones.
-        :type d_obs: dict[np.ndarray]
+        :param obs:
+        :type d_obs: dict[dict[np.ndarray]]
 
         :param lista_d_paráms: El diccionario de los parámetros para calibrar.
         :type lista_d_paráms: list

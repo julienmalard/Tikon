@@ -26,9 +26,6 @@ class Paisaje(Simulable):
     def dibujar(símismo, mostrar=True, archivo=None, exper=None):
         raise NotImplementedError  # Para hacer
 
-    def _procesar_valid(símismo):
-        raise NotImplementedError  # Para hacer
-
     def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms):
         raise NotImplementedError  # Para hacer
 

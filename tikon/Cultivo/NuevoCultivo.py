@@ -79,9 +79,6 @@ class Cultivo(Simulable):
     def _llenar_coefs(símismo, n_rep_parám, calibs, comunes, usar_especificadas):
         raise NotImplementedError  # Para hacer
 
-    def _procesar_valid(símismo):
-        raise NotImplementedError  # Para hacer
-
     def _prep_args_simul_exps(símismo, exper, n_rep_estoc, n_rep_paráms, **kwargs):
         raise NotImplementedError  # Para hacer
 

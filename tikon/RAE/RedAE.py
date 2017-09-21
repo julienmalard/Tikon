@@ -5,9 +5,9 @@ from warnings import warn as avisar
 
 import numpy as np
 
-from tikon.Coso import Simulable
-from tikon.Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
-from tikon.Matemáticas.Incert import validar_matr_pred
+from ..Coso import Simulable, dic_a_lista
+from ..Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
+from ..Matemáticas.Incert import validar_matr_pred
 from . import Insecto as Ins
 from .Gen_organismos import generar_org
 from .Organismo import Organismo
@@ -1447,6 +1447,9 @@ class Red(Simulable):
             for i in combin_etps:
                 predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., combin_etps[i], :], axis=-2)
 
+    def _prep_obs_calib(símismo, exper):
+        pass
+
     def _analizar_valid(símismo):
         """
         Ver documentación de Simulable.
@@ -1516,6 +1519,7 @@ class Red(Simulable):
         """
 
         # para hacer: combinar partes con procesar_predics_calib()
+        # para hacer: quitar esta función
 
         # El diccionario para guardar los vectores de predicciones y de observaciones
         dic_vecs = {}
@@ -1937,29 +1941,127 @@ class Red(Simulable):
             # Guardar el diccionario creado bajo el nombre de su experimento correspondiente.
             d_predics_exps[exp] = dic_predics
 
-    def _gen_dics_valid(símismo, exper):
-        dic_simul = símismo.dic_simul
+    def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
+
+        # Simplificar el código
+        d_obs = símismo.dic_simul['d_obs_valid']  # El diccionario de matrices de observaciones para la validación
+        d_valid = símismo.dic_simul['matrs_valid']  # El diciconario de matrices de la validación
+        d_preds_v = {}  # El diccionario de matrices de simulación que vinculados con observaciones
+
+        # La lista de egresos potencialmente incluidos como observaciones
+        l_egresos = ['Pobs', 'Crecimiento', 'Reproducción', 'Transiciones', 'Muertes']
+
+        # Diccionario temporario para organizar los índices
+        d_índs = {}
 
         for exp in exper:
+            # Para cada experimento...
 
-            dic_simul['matrs_valid'][exp] = matrs_valid = {}
+            obj_exp = símismo.exps[exp]  # El objeto del Experimento
+            n_parc = obj_exp.n_parc(tipo=símismo.ext)  # El número de parcelas
 
+            for egr in l_egresos:
+                # Para cada egreso posible...
 
+                if egr in símismo.info_exps[exp]:
+                    # Si el egreso ha sido observado en el experimento...
 
-        dic_simul['d_l_í_valid'] =
+                    # Asegurarse que el nombre del experimento existe en los diccionarios necesarios
+                    for d in [d_obs, d_valid, d_preds_v, d_índs]:
+                        if exp not in d:
+                            d[exp] = {}
 
+                    datos = obj_exp.datos[egr]  # El diccionario de datos del Experimento
+                    días = datos['días']  # Los días con estas observaciones
+                    n_días = len(días)  # El número de días con observaciones
+                    n_etps = len(símismo.etapas)  # El número de etapas en la Red
 
-    def _gen_dics_calib(símismo):
+                    # Crear una matriz de NaN para las observaciones
+                    d_obs[exp][egr] = matr_obs = np.empty((n_parc, n_etps, n_días))
+                    matr_obs[:] = np.nan
 
-        dic_simul = símismo.dic_simul
+                    # Llenar la matriz de observaciones
+                    parc = datos['parc']  # Los índices de las parcelas
+                    etps = símismo.info_exps[exp]['etps_interés']  # Los índices de las etapas
+                    vals = datos['datos']  # Los valores  # arreglarme: combinar etapas
+                    matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día
 
-        n_obs =
+                    # Guardar el diccionario correspondiente de las predicciones en el diccionario de predicciones
+                    # con vículos a la validación.
+                    d_preds_v[exp][egr] = símismo.dic_simul['d_predics_exps'][exp][egr]
 
-        dic_simul['d_calib']['Normal'] = np.zeros(n_obs)
-        d_calib = dic_simul['d_calib']
+                    # Crear la matriz vacía para los datos de validación
+                    d_valid[exp][egr] = np.empty((n_parc, n_etps, n_rep_estoc, n_rep_parám, n_días))
 
-        dic_simul['d_l_í_calib']
+                    # Los índices para convertir de matriz de predicción a matriz de validación
+                    días_ex = [d for d in días if d % paso == 0]
+                    días_inter = [d for d in días if d % paso != 0]
 
+                    í_p_ex = [d // paso for d in días_ex]  # Índices exactos (en la matriz pred)
+                    í_v_ex = [días.index(d) for d in días_ex]  # Índices exactos (en la matriz valid)
+                    í_v_ínt = [i for i in range(n_días) if i not in í_v_ex]  # Índices para interpolar (matriz valid)
+                    í_p_ínt_0 = [mat.floor(d / paso) for d in días_inter]  # Índices interpol inferiores (matr pred)
+                    í_p_ínt_1 = [mat.ceil(d / paso) for d in días_inter]  # Índices interpol superiores (matr pred)
+                    pesos = [(d % paso) / paso for d in días_inter]  # La distancia de la interpolación
+
+                    índs = {'exactos': (í_v_ex, í_p_ex),
+                            'interpol': (í_v_ínt, í_p_ínt_0, í_p_ínt_1, pesos)}
+                    d_índs[exp][egr] = índs
+
+        # Linearizar los diccionarios de validación y de predicciones vinculadas.
+        símismo.dic_simul['d_l_m_valid'] = {'Normal': dic_a_lista(d_valid)}
+        símismo.dic_simul['d_l_m_predics_v'] = {'Normal': dic_a_lista(d_preds_v)}
+        símismo.dic_simul['d_l_í_valid'] = {'Normal': dic_a_lista(d_índs, ll_f='exactos')}
+
+    def _gen_dics_calib(símismo, exper):
+
+        # El diccionario de observaciones para la validación...
+        l_obs_v = dic_a_lista(símismo.dic_simul['d_obs_valid'])
+
+        # ... y para la calibración
+        d_obs_c = símismo.dic_simul['d_obs_calib']
+
+        # El diccionario de índices para la calibración (lo llenaremos aquí)
+        d_índs_calib = símismo.dic_simul['d_l_í_calib']
+
+        # El número de observaciones válidas cumulativas (empezar en 0)
+        n_obs_cumul = 0
+
+        for m in l_obs_v:
+            # Para cada matriz de observaciones de validación...
+
+            # El número de observaciones válidas (no NaN)
+            válidos = ~np.isnan(m)
+            n_obs = np.sum(válidos)
+
+            # Los índices de las parcelas, etapas y días con observaciones válidas
+            parc, etps, días = np.argwhere(válidos)
+
+            # El diccionario con los índices y el rango en la matriz de predicciones
+            d_info = {'índs': (parc, etps, días), 'rango': [n_obs_cumul, n_obs_cumul + n_obs]}
+            d_índs_calib.append(d_info)  # Agregar el diccionario de índices
+
+            # Guardar cuenta del número de observaciones hasta ahora
+            n_obs_cumul += n_obs
+
+        # El diccionario vacío para guardar predicciones
+        símismo.dic_simul['d_calib']['Normal'] = {
+            'mu': np.empty(n_obs_cumul),
+            'sigma': np.empty(n_obs_cumul)
+        }
+
+        # El diccionario de observaciones para la calibración
+        d_obs_c['Normal'] = np.empty(n_obs_cumul)
+
+        # Guardar las observaciones en su lugar correspondiente en el vector de observaciones para calibraciones
+        for i, m in enumerate(l_obs_v):
+            # Para cada observación...
+
+            parc, etps, días = d_índs_calib[i]['índs']  # Los índices de valores válidos
+            r = d_índs_calib[i]['rango']  # El rango en el vector de obs para calibraciones
+
+            # Guardar los valores
+            d_obs_c['Normal'][r[0]:r[1]] = m[parc, etps, días]
 
     def _llenar_coefs(símismo, nombre_simul, n_rep_parám, calibs=None, dib_dists=False):
         """
@@ -2107,31 +2209,6 @@ class Red(Simulable):
                                         # etapa. Si un día alguien quiere incluir más tipos de interacciones (como, por
                                         # ejemplo, interacciones entre competidores), se tendrían que añadir aquí.
                                         raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
-
-    def _prep_obs_exper(símismo, exper):
-        """
-        Ver la documentación de Simulable.
-
-        :type exper: list
-        :rtype: np.ndarray
-
-        """
-
-        lista_obs = []
-
-        # Para cada experimento, en orden...
-        for exp in sorted(exper):
-
-            # Para cada observación de organismos de este experimento para cual tenemos datos, en orden...
-            for nombre_col in símismo.info_exps['nombres_cols'][exp]:
-                # Sacar los datos del Experimento
-                datos_etp = símismo.exps[exp]['Exp'].datos['Organismos']['obs'][nombre_col]
-
-                # Guardar los datos aplastados en una única dimensión de matriz numpy (esto combina las dimensiones
-                # de parcela (eje 0) y de tiempo (eje 1). También quitamos valores no disponibles (NaN).
-                lista_obs.append(datos_etp[~np.isnan(datos_etp)].ravel())
-
-        return np.concatenate(lista_obs)
 
     def especificar_apriori(símismo, **kwargs):
         """

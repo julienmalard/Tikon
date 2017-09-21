@@ -683,7 +683,9 @@ class Simulable(Coso):
             'd_l_í_valid': {},
             'matrs_valid': {},
             'd_l_m_valid': {},
-            'd_l_m_predics': {},
+            'd_l_m_predics_v': {},
+            'd_obs_valid': {},
+            'd_obs_calib': {},
             'd_l_í_calib': {},
             'd_calib': {},
             'copia_d_calib': {}
@@ -898,8 +900,8 @@ class Simulable(Coso):
         símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
                                 n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
 
-        # 5. Generar el vector numpy de observaciones para los experimentos
-        d_obs = símismo._prep_obs_calib(exper=exper)
+        # 5. Conectar a las observaciones
+        d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
 
         # 6. Creamos el modelo ModBayes de calibración, lo cual genera variables PyMC
         símismo.ModBayes = ModBayes(función=símismo._simul_exps,
@@ -1066,15 +1068,15 @@ class Simulable(Coso):
                         opciones_dib=opciones_dib, dib_dists=dib_dists, valid=True)
 
         # Procesar los datos de la validación
-        valid = símismo._procesar_valid()
+        símismo._procesar_valid()
+        valid = símismo._analizar_valid()
 
         if guardar:
             direc = os.path.join(símismo.proyecto, símismo.nombre, nombre)
             direc = símismo._prep_directorio(directorio=direc)
             archivo = os.path.join(direc, 'valid.json')
 
-            with io.open(archivo, 'w', encoding='utf8') as d:
-                json.dump(valid, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+            guardar_json(dic=valid, archivo=archivo)
 
         return valid
 
@@ -1383,21 +1385,19 @@ class Simulable(Coso):
         símismo.dic_simul['copia_d_predics_exps'] = copiar.deepcopy(símismo.dic_simul['d_predics_exps'])
 
         if tipo == 'valid' or tipo == 'calib':
-            símismo._gen_dics_valid()
-
-            dic_simul['d_l_m_valid'] = dic_a_lista(símismo.dic_simul['matrs_valid'])
-            dic_simul['d_l_m_predics'] = dic_a_lista(símismo.dic_simul['predics_exps'])
+            símismo._gen_dics_valid(exper=exper, paso=paso, n_pasos=n_pasos,
+                                    n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms)
 
         if tipo == 'calib':
-            símismo._gen_dics_calib()
+            símismo._gen_dics_calib(exper=exper)
 
     def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         raise NotImplementedError
 
-    def _gen_dics_valid(símismo):
+    def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
         raise NotImplementedError
 
-    def _gen_dics_calib(símismo):
+    def _gen_dics_calib(símismo, exper):
         raise NotImplementedError
 
     def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib):
@@ -1485,7 +1485,7 @@ class Simulable(Coso):
                 # Días que corresponden exactamente
                 días_v, días_p = info[t_dist][i]['exactos']
                 if len(días_v):
-                    m_p = d_l_m_predics[t_dist][i]
+                    m_p = d_l_m_predics[t_dist][i]  # arreglarme
                     m_v[..., días_v] = m_p[..., días_p]
 
                 # Días que hay que interpolar
@@ -1515,8 +1515,6 @@ class Simulable(Coso):
         :rtype: dict[dict[np.ndarray]]
         """
 
-        símismo._procesar_valid()
-
         d_l_m_valid = símismo.dic_simul['d_l_m_valid']
         d_calib = símismo.dic_simul['d_calib']
         d_índs = símismo.dic_simul['d_l_índ_calib']
@@ -1526,10 +1524,10 @@ class Simulable(Coso):
 
             for i, m in enumerate(l_matr_v):
                 r = d_índs[t_dist][i]['rango']
-                índs = d_índs[t_dist][i]['índs']
+                parc, etps, días = d_índs[t_dist][i]['índs']
                 if t_dist == 'Normal':
-                    d_dist['mu'][r[0]:r[1]] = np.mean(m[..., índs], axis=-1)
-                    d_dist['sigma'][r[0]:r[1]] = np.std(m[..., índs], axis=-1)
+                    d_dist['mu'][r[0]:r[1]] = np.mean(m[parc, :, 0, etps, días], axis=1)
+                    d_dist['sigma'][r[0]:r[1]] = np.std(m[parc, :, 0, etps, días], axis=1)
 
                 elif t_dist == 'Gamma':
                     raise NotImplementedError  # para hacer
@@ -1915,13 +1913,15 @@ def guardar_json(dic, archivo):
         json.dump(dic, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
 
-def dic_a_lista(d, li=None):
+def dic_a_lista(d, li=None, ll_f=None):
     """
 
     :param d:
     :type d: dict
     :param li:
     :type li: list
+    :param ll_f:
+    :type ll_f: str
     :return:
     :rtype: list
     """
@@ -1930,8 +1930,8 @@ def dic_a_lista(d, li=None):
         li = []
 
     for ll, v in d.items():
-        if isinstance(v, dict):
-            dic_a_lista(v, li=li)
+        if isinstance(v, dict) and ll_f not in v:
+            dic_a_lista(v, li=li, ll_f=ll_f)
         else:
             li.append(v)
 
