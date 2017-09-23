@@ -679,7 +679,7 @@ class Simulable(Coso):
 
         #
         símismo.dic_simul = {
-            'd_predics_exps': {},
+            'd_predics_exps': {},  # NUNCA recrear este diccionario. Lo puedes borrar con .clear() en vez.
             'd_l_í_valid': {},
             'matrs_valid': {},
             'd_l_m_valid': {},
@@ -690,6 +690,7 @@ class Simulable(Coso):
             'd_calib': {},
             'copia_d_calib': {}
         }
+        símismo.predics_exps = símismo.dic_simul['d_predics_exps']  # Simplificación del código
 
         # Predicciones de datos (para simulaciones normales)
         símismo.predics = {}
@@ -1289,21 +1290,6 @@ class Simulable(Coso):
         Esta función agrega un Experimento a un Simulable y conecta las predicciones futuras del Simulable con
           los datos contenidos en el Experimento.
 
-        """
-
-        raise NotImplementedError
-
-    def _prep_obs_calib(símismo, exper):
-        """
-        Prepara un vector numpy de las obsevaciones de los experimentos.
-
-        :param exper: Una lista de los nombres de los experimentos que vamos a incluir para esta calibración.
-        :type exper: list[str]
-
-        :return: Un dictionario, donde las llaves son los nombres de las distribuciones que tomarán las predicciones
-        del modelo. Cada valor del diccionario es un vector, en orden reproducible, de las observaciones de los
-        experimentos que corresponden con la distribución apropriada.
-        :rtype: dict[np.ndarray]
         """
 
         raise NotImplementedError

@@ -38,7 +38,7 @@ class Red(Simulable):
 
         :param organismos: Una lista de objetos o nombres de organismos para añadir a la red, o una instancia única
         de un tal objeto.
-        :type organismos: list[Organismo] | Organismo
+        :type organismos: list[Organismo]
 
         """
 
@@ -97,7 +97,7 @@ class Red(Simulable):
             organismos = [organismos]
 
         if organismos is not None:
-            for org in organismos:
+            for org in organismos:  # type: Organismo
                 símismo.añadir_org(org)
 
     def añadir_org(símismo, organismo):
@@ -487,9 +487,6 @@ class Red(Simulable):
         :type directorio: str
         :type exper: list[str]
 
-        :param todas_líneas: Si queremos incluir las líneas de cada repetición individual en el gráfico.
-        :type todas_líneas: bool
-
         :param incert: El tipo de incertidumbre que querremos incluir en el gráfico.
         :type incert: str
 
@@ -507,7 +504,7 @@ class Red(Simulable):
             exper = [exper]
 
         # Para cada experimento...
-        for exp in exper:
+        for exp in exper:  # type: str
             dic_título['exp'] = exp
 
             dic_preds_obs_pobs = símismo._sacar_vecs_preds_obs(exp=exp)
@@ -1447,9 +1444,6 @@ class Red(Simulable):
             for i in combin_etps:
                 predic['Pobs'][..., i, :] += np.sum(predic['Pobs'][..., combin_etps[i], :], axis=-2)
 
-    def _prep_obs_calib(símismo, exper):
-        pass
-
     def _analizar_valid(símismo):
         """
         Ver documentación de Simulable.
@@ -1459,45 +1453,65 @@ class Red(Simulable):
         :rtype: dict
 
         """
-        # arreglarme
-
-        valids_detalles = {}
 
         matr_preds_total = None
         vector_obs_total = None
 
-        # Para cada experimento simulado, en orden...
-        for exp, predic in sorted(símismo.predics_exps.items()):
+        # El diccionario de validación por etapa
+        valids_detalles = {}
+
+        # El diccionario de observaciones en formato validación
+        d_obs_valid = símismo.dic_simul['d_obs_valid']
+
+        # El diccionario de matrices de validación
+        d_matrs_valid = símismo.dic_simul['matrs_valid']
+
+        n_etps = len(símismo.etapas)
+
+        # Para cada experimento...
+        for exp, d_obs_exp in d_obs_valid.items():
+
             valids_detalles[exp] = {}
 
-            dic_pred_obs = símismo._sacar_vecs_preds_obs(exp=exp)
+            for egr, matr in d_obs_exp.items():
+                n_parc = d_obs_exp[egr].shape()
 
-            for org, d_org in dic_pred_obs.items():
+                for n_p in range(n_parc):
 
-                valids_detalles[exp][org] = {}
+                    parc = símismo.info_exps[exp]['parcelas'][n_p]
 
-                for etp, d_etp in d_org.items():
-                    valids_detalles[exp][org][etp] = {}
-                    d = dic_pred_obs[org][etp]
+                    for n_etp in range(n_etps):
 
-                    if d['obs'] is not None:
+                        vec_obs = matr[n_p, n_etp, :]  # Eje 2 = día
 
-                        for n_p, parc in enumerate(símismo.info_exps['parcelas'][exp]):
-                            matr_predic = d['preds'][n_p, ...]
-                            vector_obs = d['obs'][n_p, ...]
-                            valids_detalles[exp][org][etp][parc] = validar_matr_pred(
-                                matr_predic=matr_predic,
-                                vector_obs=vector_obs)
-                            if matr_preds_total is None:
-                                matr_preds_total = matr_predic
-                                vector_obs_total = vector_obs
-                            else:
-                                matr_preds_total = np.append(matr_preds_total, matr_predic, axis=-1)
-                                vector_obs_total = np.append(vector_obs_total, vector_obs, axis=-1)
+                        if np.sum(~np.isnan(vec_obs)) == 0:
+                            continue
+
+                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
+
+                        org = símismo.etapas[n_etp]['org']
+                        etp = símismo.etapas[n_etp]['nombre']
+
+                        if org not in valids_detalles[exp]:
+                            valids_detalles[exp][org] = {}
+
+                        valids_detalles[exp][org][etp] = {}
+
+                        valids_detalles[exp][org][etp][parc] = validar_matr_pred(
+                            matr_predic=matr_preds,
+                            vector_obs=vec_obs
+                        )
+
+                        if matr_preds_total is None:
+                            matr_preds_total = matr_preds
+                            vector_obs_total = vec_obs
+                        else:
+                            matr_preds_total = np.append(matr_preds_total, matr_preds, axis=-1)
+                            vector_obs_total = np.append(vector_obs_total, vec_obs, axis=-1)
 
         valid = validar_matr_pred(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
 
-        return valid, valids_detalles
+        return {'Valid': valid, 'Valid detallades': valids_detalles}
 
     def _sacar_vecs_preds_obs(símismo, exp):
         """
@@ -1983,8 +1997,12 @@ class Red(Simulable):
                     # Llenar la matriz de observaciones
                     parc = datos['parc']  # Los índices de las parcelas
                     etps = símismo.info_exps[exp]['etps_interés']  # Los índices de las etapas
-                    vals = datos['datos']  # Los valores  # arreglarme: combinar etapas
+                    vals = datos['datos']  # Los valores
                     matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día
+
+                    # Combinar datos de etapas en las observaciones, si necesario.
+                    for e, l_c in símismo.info_exps[exp]['combin_etapas'].items():  # arreglarme: ¿combin_etapas?
+                        matr_obs[:, e, :] += np.sum(matr_obs[:, l_c, :], axis=1)
 
                     # Guardar el diccionario correspondiente de las predicciones en el diccionario de predicciones
                     # con vículos a la validación.
