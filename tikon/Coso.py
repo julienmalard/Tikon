@@ -1516,7 +1516,7 @@ class Simulable(Coso):
                     d_dist['sigma'][r[0]:r[1]] = np.std(m[parc, :, 0, etps, días], axis=1)
 
                 elif t_dist == 'Gamma':
-                    raise NotImplementedError  # para hacer
+                    raise ValueError  # para hacer
                 else:
                     raise ValueError
 
