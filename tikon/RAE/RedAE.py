@@ -1555,26 +1555,30 @@ class Red(Simulable):
 
         """
 
-        # Para hacer: arreglar mucho de este
 
+
+        # Borrar los datos anteriores, en caso que existían simulaciones anteriores
         for categ_info in símismo.info_exps.values():
             categ_info.clear()
 
         # Para cada experimento que está vinculado con la Red...
-        for nombre_exp, d in símismo.exps.items():
+        for exp, d in símismo.exps.items():
 
             # El objeto y diccionario de correspondencias del experimento
             obj_exp = d['Exp']
             corresp = d['Corresp'].copy()  # Hacer una copia, en caso que tengamos que quitarle unos organismos
 
+            # Crear las llaves para este experimento en el diccionario de formatos de la Red, y simplificar el código.
+            etps_interés = símismo.info_exps['etps_interés'][exp] = {}
+            nombres_cols = símismo.info_exps['nombres_cols'][exp] = {}
+            combin_etps = símismo.info_exps['combin_etps'][exp] = {}
+            combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp] = {}
+            egrs = símismo.info_exps['egrs'][exp] = {}
+
             # Guardar el tamaño de las parcelas
-            n_parc = len(obj_exp.datos['Parcelas'])
-            if n_parc > 0:
-                # Para hacer para poder incluir especificaciones de características de parcelas en Experimento
-                raise NotImplementedError
-            else:
-                avisar('Tamaño de parcelas no especificado. Se supondrá un tamaño de 1 ha.')
-                símismo.info_exps['superficies'][nombre_exp] = np.ones(1)
+            n_parc = obj_exp.n_parc(tipo=símismo.ext)
+            superficies = obj_exp.superficies(tipo=símismo.ext)
+            símismo.info_exps['superficies'][exp] = superficies
 
             # Verificar que los nombres de organismos y etapas estén correctos
             for org in list(corresp):
@@ -1582,23 +1586,18 @@ class Red(Simulable):
                 if org not in símismo.receta['estr']['Organismos']:
                     # Si el organismo no existe en la Red, avisar el usuario y borrarlo del diccionario de
                     # correspondencias
-                    avisar('El organismo "%s" no existe en la red. '
-                           'Se excluirá del experimento %s.' % (org, nombre_exp))
+                    avisar('El organismo "{}" no existe en la red. Se excluirá del experimento "{}".'.format(org, exp))
                     corresp.pop(org)
 
                 for etp in list(d_org):
                     if etp not in símismo.núms_etapas[org]:
                         # Si la etapa no existe para el organismo, avisar el usuario y borrarla del diccionario de
                         # correspondencias
-                        avisar('Organismo "%s" no tiene etapa "%s". Se excluirá del experimento %s.' %
-                               (org, etp, nombre_exp))
+                        avisar('Organismo "{}" no tiene etapa "{}". Se excluirá del experimento "{}".'
+                               .format(org, etp, exp))
                         d_org.pop(etp)
 
-            # Crear las llaves para este experimento en el diccionario de formatos de la Red, y simplificar el código.
-            símismo.info_exps['etps_interés'][nombre_exp] = None
-            símismo.info_exps['ubic_obs'][nombre_exp] = ()
-            l_nombres_cols = símismo.info_exps['nombres_cols'][nombre_exp] = []
-            d_comunes = símismo.info_exps['combin_etps'][nombre_exp] = {}
+            # Para hacer: arreglar mucho de este
 
             l_etps_interés = []
 
@@ -1728,7 +1727,7 @@ class Red(Simulable):
                 # Para cada etapa de interés...
 
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos el eje 1.
-                nombre_col = símismo.info_exps['nombres_cols'][exp][i]
+                nombre_col = símismo.info_exps['nombres_cols'][exp]['Pobs'][i]
                 matr_obs_inic = obj_exp.obt_datos('Pobs')[nombre_col][:, 0]
 
                 # Asegurarse que tenemos números enteros.
