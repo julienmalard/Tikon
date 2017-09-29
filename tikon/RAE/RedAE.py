@@ -90,7 +90,7 @@ class Red(Simulable):
         # Un diccionario para guardar información específica a cada experimento asociado para poder procesar
         # las predicciones de la red en función a cada experimento.
         símismo.info_exps = {'etps_interés': {}, 'combin_etps': {}, 'combin_etps_obs': {}, 'parcelas': {},
-                             'superficies': {}}
+                             'superficies': {}, 'egrs': {}}
 
         # La lista de egresos potencialmente incluidos como observaciones
         símismo.l_egresos = ['Pobs', 'Crecimiento', 'Reproducción', 'Transiciones', 'Muertes']
@@ -1545,8 +1545,7 @@ class Red(Simulable):
         Esta función llenará el diccionario símismo.info_exps, lo cuál contiene la información necesaria para
           conectar las predicciones de una Red con los datos observados en un Experimento. Este diccionario tiene
           cuatro partes:
-            1. 'nombres_cols': Una lista de los nombres de las columnas de datos del Experimento, en orden.
-            2. 'etps_interés': Una lista de los números de las etapas en la Red que corresponden as nombres_cols
+            2. 'etps_interés': Una lista de los números de las etapas en la Red que corresponden
             3. 'combin_etps': Un diccionario de las etapas cuyas predicciones hay que combinar. Tiene la forma
                 general {n_etp: [n otras etapas], n_etp2: [], etc.},
                 donde las llaves del diccionario son números enteros, no texto.
@@ -1554,8 +1553,6 @@ class Red(Simulable):
                 observaciones para cada día y cada etapa. Para hacer: cada parcela.
 
         """
-
-
 
         # Borrar los datos anteriores, en caso que existían simulaciones anteriores
         for categ_info in símismo.info_exps.values():
@@ -1566,121 +1563,102 @@ class Red(Simulable):
 
             # El objeto y diccionario de correspondencias del experimento
             obj_exp = d['Exp']
-            corresp = d['Corresp'].copy()  # Hacer una copia, en caso que tengamos que quitarle unos organismos
+            d_corresp = d['Corresp'].copy()  # Hacer una copia, en caso que tengamos que quitarle unos organismos
 
             # Crear las llaves para este experimento en el diccionario de formatos de la Red, y simplificar el código.
             etps_interés = símismo.info_exps['etps_interés'][exp] = {}
-            nombres_cols = símismo.info_exps['nombres_cols'][exp] = {}
             combin_etps = símismo.info_exps['combin_etps'][exp] = {}
             combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp] = {}
-            egrs = símismo.info_exps['egrs'][exp] = {}
-
-            # Guardar el tamaño de las parcelas
-            n_parc = obj_exp.n_parc(tipo=símismo.ext)
-            superficies = obj_exp.superficies(tipo=símismo.ext)
-            símismo.info_exps['superficies'][exp] = superficies
-
-            # Verificar que los nombres de organismos y etapas estén correctos
-            for org in list(corresp):
-                d_org = corresp[org]
-                if org not in símismo.receta['estr']['Organismos']:
-                    # Si el organismo no existe en la Red, avisar el usuario y borrarlo del diccionario de
-                    # correspondencias
-                    avisar('El organismo "{}" no existe en la red. Se excluirá del experimento "{}".'.format(org, exp))
-                    corresp.pop(org)
-
-                for etp in list(d_org):
-                    if etp not in símismo.núms_etapas[org]:
-                        # Si la etapa no existe para el organismo, avisar el usuario y borrarla del diccionario de
-                        # correspondencias
-                        avisar('Organismo "{}" no tiene etapa "{}". Se excluirá del experimento "{}".'
-                               .format(org, etp, exp))
-                        d_org.pop(etp)
-
-            # Para hacer: arreglar mucho de este
-
-            l_etps_interés = []
-
-            # Para guardar las ubicaciones de las observaciones:
-            ubic_obs_días = np.array([], dtype=int)
-            ubic_obs_etps = np.array([], dtype=int)
-            ubic_obs_parc = np.array([], dtype=int)
-
-            # Para cada organismo en el diccionario de correspondencias, en orden...
-            for org, d_org in sorted(corresp.items()):
-
-                # Para cada etapa del organismo en el diccionario de correspondencias, en orden...
-                for etp, d_etp in sorted(d_org.items()):
-
-                    l_cols = corresp[org][etp]  # La lista de columna(s) de datos correspondiendo a esta etapa
-
-                    # Asegurar el formato correcto
-                    if type(l_cols) is not list:
-                        l_cols = [l_cols]
-
-                    # Si hay más que una columna de la base de datos correspondiendo a la etapa, hay que sumarlos. Este
-                    # código no hará ninguna transformación a los datos o el nombre de la columna en el caso que
-                    # solamente haya una columna de datos correspondiento a la etapa.
-
-                    # El nombre de la nueva columna sumada (en el caso donde l_cols tiene una sola columna, no cambia
-                    # nada)
-                    nombre_col = '&'.join(str(x) for x in sorted(l_cols))
-
-                    # Hacer la suma (otra vez, no hace nada si l_cols solamente tiene una columna).
-                    suma = np.sum([obj_exp.datos['Organismos']['obs'][x] for x in l_cols], axis=0)
-
-                    # Guardar la nueva columna en el Experimento
-                    obj_exp.datos['Organismos']['obs'][nombre_col] = suma
-
-                    # El número de la etapa en la Red
-                    n_etp = símismo.núms_etapas[org][etp]
-
-                    # Verificar ahora para etapas cuyas predicciones hay que combinar
-                    if nombre_col in l_nombres_cols:
-                        # Si ya había otra etapa con estos mismo datos...
-
-                        # Buscar el número de la otra etapa
-                        n_otra_etp = l_etps_interés[l_nombres_cols.index(nombre_col)]
-
-                        # Si es la primera vez que la otra etapa se desdoble, agregar su número como llave al
-                        # diccionario.
-                        if n_otra_etp not in d_comunes:
-                            d_comunes[n_otra_etp] = []
-
-                        # Agregar el número de esta etapa a la lista.
-                        d_comunes[n_otra_etp].append(n_etp)
-
-                    else:
-                        # Si la columna ya no se utilizó para otra etapa...
-
-                        # Guardar el nombre de la columna de interés, tanto como el número de la etapa
-                        l_nombres_cols.append(nombre_col)
-                        l_etps_interés.append(n_etp)
-
-                        # Guardar las ubicaciones, en la matriz de predicciones, correspondiendo a las observaciones
-                        obs_etp = obj_exp.datos['Organismos']['obs'][nombre_col]
-
-                        for n_p in range(obs_etp.shape[0]):
-                            obs_etp_parc = obs_etp[n_p, :]
-
-                            # Días con observaciones
-                            días_con_obs = obj_exp.datos['Organismos']['tiempo'][~np.isnan(obs_etp_parc.ravel())]
-                            ubic_obs_días = np.concatenate((ubic_obs_días, días_con_obs))
-
-                            # Guardar una matriz de forma correspondiente con el número de la etapa:
-                            etps_con_obs = np.full(shape=len(días_con_obs), fill_value=n_etp, dtype=int)
-                            ubic_obs_etps = np.concatenate((ubic_obs_etps, etps_con_obs))
-
-                            # Y una matriz con los las parcelas con observaciones
-                            parc_con_obs = np.full(shape=len(días_con_obs), fill_value=n_p, dtype=int)
-                            ubic_obs_parc = np.concatenate((ubic_obs_parc, parc_con_obs))
-
-            # Convertir a matrices numpy
-            símismo.info_exps['etps_interés'][nombre_exp] = np.array(l_etps_interés)
-            símismo.info_exps['ubic_obs'][nombre_exp] = (ubic_obs_parc, ubic_obs_etps, ubic_obs_días)
+            egrs = símismo.info_exps['egrs'][exp] = []
 
             # Agregar la lista de nombres de parcelas, en el orden que aparecen en las matrices de observaciones:
-            símismo.info_exps['parcelas'][nombre_exp] = obj_exp.datos['Organismos']['parcelas']
+            símismo.info_exps['parcelas'][exp] = obj_exp.obt_parcelas(tipo=símismo.ext)
+
+            for egr in símismo.l_egresos:
+                if obj_exp.obt_datos(egr) is None:
+                    continue
+                else:
+                    egrs.append(egr)
+
+            # Para cada tipo de correspondencia (poblaciones, muertes, etc...)
+            for egr, corresp in d_corresp:
+
+                # Crear diccionarios apropiados y simplificar el código
+                etps_interés_egr = etps_interés[egr] = []
+                combin_etps_egr = combin_etps[egr] = {}
+                combin_etps_obs_egr = combin_etps_obs[egr] = []
+
+                # Guardar el tamaño de las parcelas
+                n_parc = obj_exp.n_parc(tipo=símismo.ext)
+                superficies = obj_exp.superficies(tipo=símismo.ext)
+                símismo.info_exps['superficies'][exp] = superficies
+
+                # Verificar que los nombres de organismos y etapas estén correctos
+                for org in corresp:
+                    d_org = corresp[org]
+                    if org not in símismo.receta['estr']['Organismos']:
+                        # Si el organismo no existe en la Red, avisar el usuario y borrarlo del diccionario de
+                        # correspondencias
+                        avisar('El organismo "{}" no existe en la red "{}". Se excluirá del experimento "{}".'
+                               .format(org, símismo.nombre, exp))
+                        corresp.pop(org)
+
+                    for etp in list(d_org):
+                        if etp not in símismo.núms_etapas[org]:
+                            # Si la etapa no existe para el organismo, avisar el usuario y borrarla del diccionario de
+                            # correspondencias
+                            avisar('Organismo "{}" no tiene etapa "{}". Se excluirá del experimento "{}".'
+                                   .format(org, etp, exp))
+                            d_org.pop(etp)
+
+
+                l_cols_cum = []
+
+                # Para cada organismo en el diccionario de correspondencias...
+                for org, d_org in corresp.items():
+
+                    # Para cada etapa del organismo en el diccionario de correspondenciasn...
+                    for etp, d_etp in d_org.items():
+
+                        # La lista de columna(s) de datos correspondiendo a esta etapa
+                        l_cols = d_etp
+
+                        # Asegurar el formato correcto
+                        if type(l_cols) is not list:
+                            l_cols = [l_cols]
+                        l_cols.sort()  # Para poder ver si esta combinación de columnas ya existía (abajo)
+
+                        # El número de la etapa en la Red
+                        n_etp = símismo.núms_etapas[org][etp]
+
+                        # Guardar la lista de observaciones que hay que combinar, si aplica
+                        if len(l_cols) > 1:
+                            # Si hay más que una columna de datos para esta etapa...
+
+                            # Guardar la lista
+                            combin_etps_egr[n_etp] = l_cols
+
+                        # Verificar ahora para etapas cuyas predicciones hay que combinar
+                        if l_cols in l_cols_cum:
+                            # Si ya había otra etapa con estos mismo datos...
+
+                            # Buscar el número de la otra etapa
+                            n_otra_etp = etps_interés_egr[l_cols_cum.index(l_cols)]
+
+                            # Si es la primera vez que la otra etapa se desdoble, agregar su número como llave al
+                            # diccionario.
+                            if n_otra_etp not in combin_etps_egr:
+                                combin_etps_egr[n_otra_etp] = []
+
+                            # Agregar el número de esta etapa a la lista.
+                            combin_etps_egr[n_otra_etp].append(n_etp)
+
+                        else:
+                            # Si la columna (o combinación de columnas) no se utilizó todavía para otra etapa...
+
+                            # Guardar el nombre de la columna de interés, tanto como el número de la etapa
+                            l_cols_cum.append(l_cols)
+                            etps_interés_egr.append(n_etp)
 
     def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         """
@@ -1706,7 +1684,7 @@ class Red(Simulable):
             except KeyError:
                 raise ValueError('El experimento "{}" no está vinculado con esta Red.'.format(exp))
 
-
+            # El número de parcelas y de pasos del Experimento
             n_parc = obj_exp.n_parc(tipo=símismo.ext)
             n_pasos_exp = n_pasos[exp]
 
@@ -1721,14 +1699,25 @@ class Red(Simulable):
 
             # Una lista de las poblaciones iniciales ajustadas (tomando en cuenta columnas de datos compartidas)
             l_pobs_inic = [None] * len(símismo.etapas)
-            combin_etps = símismo.info_exps['combin_etps'][exp]
+            combin_etps = símismo.info_exps['combin_etps'][exp]['Pobs']
 
-            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+            for n_etp, i in símismo.info_exps['etps_interés'][exp]['Pobs'].items():  # type: int
                 # Para cada etapa de interés...
 
-                # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = tiempo. Quitamos el eje 1.
-                nombre_col = símismo.info_exps['nombres_cols'][exp]['Pobs'][i]
-                matr_obs_inic = obj_exp.obt_datos('Pobs')[nombre_col][:, 0]
+                # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = etapa, eje 2 = tiempo.
+                # Quitamos el eje 1. "i" es el número de la etapa en la matriz de observaciones.
+                matr_obs_inic = obj_exp.obt_datos('Pobs')['datos'][:, i, 0]
+
+                # Si hay múltiples columnas de observaciones para esta etapa...
+                combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp][n_etp]
+                if n_etp in combin_etps_obs:
+
+                    # Para cada otra columna que hay que combinar con esta...
+                    for col_otra in combin_etps_obs[n_etp]:
+
+                        # Sumar las observaciones.
+                        datos_otra = obj_exp.obt_datos('Pobs')['datos'][:, col_otra, 0]
+                        np.sum(matr_obs_inic, datos_otra, out=matr_obs_inic)
 
                 # Asegurarse que tenemos números enteros.
                 matr_obs_inic = matr_obs_inic.astype(int)
@@ -1755,7 +1744,7 @@ class Red(Simulable):
                         l_pobs_inic[n] = np.add(div, np.less(j, resto))
 
             # Ahora, podemos llenar la poblaciones iniciales en la matriz de poblaciones
-            for i, n_etp in enumerate(símismo.info_exps['etps_interés'][exp]):  # type: int
+            for n_etp, i in símismo.info_exps['etps_interés'][exp]['Pobs'].items():  # type: int
                 # Para cada etapa de interés...
 
                 # La matriz de poblaciones
@@ -1870,8 +1859,8 @@ class Red(Simulable):
             for egr in símismo.l_egresos:
                 # Para cada egreso posible...
 
-                if egr in símismo.info_exps[exp]:
-                    # Si el egreso ha sido observado en el experimento...
+                if egr in símismo.info_exps['egrs'][exp]:
+                    # Si el egreso ha sido observado en el Experimento...
 
                     # Asegurarse que el nombre del experimento existe en los diccionarios necesarios
                     for d in [d_obs, d_valid, d_preds_v, d_índs]:
@@ -1889,13 +1878,15 @@ class Red(Simulable):
 
                     # Llenar la matriz de observaciones
                     parc = datos['parc']  # Los índices de las parcelas
-                    etps = símismo.info_exps[exp]['etps_interés']  # Los índices de las etapas
-                    vals = datos['datos']  # Los valores  para hacer: arreglar
-                    matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día
+                    etps = símismo.info_exps['etps_interés'][exp][egr].keys()  # Los índices de las etapas (en RAE)
+                    etps_bd = símismo.info_exps['etps_interés'][exp][egr].values()  # Los índices de etps en Exper
+                    vals = datos['datos'][:, etps_bd, :]  # Los valores. Eje 0 = parc, 1 = etp, 2 = día
+                    matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día. Excluimos días sin datos obs.
 
                     # Combinar datos de etapas en las observaciones, si necesario.
-                    for e, l_c in símismo.info_exps[exp]['combin_etps_obs'].items():
-                        matr_obs[:, e, :] += np.sum(matr_obs[:, l_c, :], axis=1)
+                    for e, l_c in símismo.info_exps['combin_etps_obs'][exp][egr].items():
+                        vals = datos['datos'][:, l_c, :]
+                        matr_obs[:, e, :] += np.sum(vals, axis=1)
 
                     # Guardar el diccionario correspondiente de las predicciones en el diccionario de predicciones
                     # con vículos a la validación.
