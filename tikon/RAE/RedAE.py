@@ -1575,23 +1575,32 @@ class Red(Simulable):
             símismo.info_exps['parcelas'][exp] = obj_exp.obt_parcelas(tipo=símismo.ext)
 
             for egr in símismo.l_egresos:
-                if obj_exp.obt_datos(egr) is None:
-                    continue
-                else:
+                # Para cada tipo de egreso posible...
+
+                # Ver si hay observaciones de este egreso en el experimento actual
+                if obj_exp.obt_datos(egr) is not None:
+                    # Si hay datos, hacemos una notita para después
                     egrs.append(egr)
 
             # Para cada tipo de correspondencia (poblaciones, muertes, etc...)
             for egr, corresp in d_corresp:
 
+                # Verificar si este tipo de egreso tiene observaciones disponibles en este experimento
+                if egr not in egrs:
+                    # Si no hay datos, mejor pasamos al próximo tipo de egreso de una vez
+                    continue
+
                 # Crear diccionarios apropiados y simplificar el código
-                etps_interés_egr = etps_interés[egr] = []
+                etps_interés_egr = etps_interés[egr] = {}
                 combin_etps_egr = combin_etps[egr] = {}
                 combin_etps_obs_egr = combin_etps_obs[egr] = []
 
                 # Guardar el tamaño de las parcelas
-                n_parc = obj_exp.n_parc(tipo=símismo.ext)
                 superficies = obj_exp.superficies(tipo=símismo.ext)
                 símismo.info_exps['superficies'][exp] = superficies
+
+                # Una lista, en orden, de los nombres de las columnas en la base de datos
+                nombres_cols = obj_exp.obt_datos(egr)['cols']
 
                 # Verificar que los nombres de organismos y etapas estén correctos
                 for org in corresp:
@@ -1611,13 +1620,14 @@ class Red(Simulable):
                                    .format(org, etp, exp))
                             d_org.pop(etp)
 
-
+                # Para guardar cuenta de combinaciones de columnas de datos.
                 l_cols_cum = []
+                l_etps_cum = []
 
                 # Para cada organismo en el diccionario de correspondencias...
                 for org, d_org in corresp.items():
 
-                    # Para cada etapa del organismo en el diccionario de correspondenciasn...
+                    # Para cada etapa del organismo en el diccionario de correspondencias...
                     for etp, d_etp in d_org.items():
 
                         # La lista de columna(s) de datos correspondiendo a esta etapa
@@ -1635,15 +1645,15 @@ class Red(Simulable):
                         if len(l_cols) > 1:
                             # Si hay más que una columna de datos para esta etapa...
 
-                            # Guardar la lista
-                            combin_etps_egr[n_etp] = l_cols
+                            # Guardar la lista de índices de columnas que hay que combinar
+                            combin_etps_obs_egr[n_etp] = [nombres_cols.index(c) for c in l_cols]
 
                         # Verificar ahora para etapas cuyas predicciones hay que combinar
                         if l_cols in l_cols_cum:
                             # Si ya había otra etapa con estos mismo datos...
 
                             # Buscar el número de la otra etapa
-                            n_otra_etp = etps_interés_egr[l_cols_cum.index(l_cols)]
+                            n_otra_etp = l_etps_cum[l_cols_cum.index(l_cols)]
 
                             # Si es la primera vez que la otra etapa se desdoble, agregar su número como llave al
                             # diccionario.
@@ -1658,7 +1668,8 @@ class Red(Simulable):
 
                             # Guardar el nombre de la columna de interés, tanto como el número de la etapa
                             l_cols_cum.append(l_cols)
-                            etps_interés_egr.append(n_etp)
+                            l_etps_cum.append(n_etp)
+                            etps_interés_egr[n_etp] = nombres_cols.index(l_cols[0])  # El número de la columna en Exper
 
     def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         """

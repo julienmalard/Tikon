@@ -1511,12 +1511,11 @@ class Simulable(Coso):
             for i, m in enumerate(l_matr_v):
                 r = d_índs[t_dist][i]['rango']
                 parc, etps, días = d_índs[t_dist][i]['índs']
+
                 if t_dist == 'Normal':
                     d_dist['mu'][r[0]:r[1]] = np.mean(m[parc, :, 0, etps, días], axis=1)
                     d_dist['sigma'][r[0]:r[1]] = np.std(m[parc, :, 0, etps, días], axis=1)
 
-                elif t_dist == 'Gamma':
-                    raise ValueError  # para hacer
                 else:
                     raise ValueError
 

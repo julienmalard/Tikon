@@ -36,6 +36,37 @@ class Experimento(object):
 
         símismo.proyecto = proyecto
 
+    def obt_datos(símismo, egr):
+
+        dt_rae = símismo.datos['RAE']
+
+        dic_egr = {
+            'días': dt_rae[egr]['días'],
+            'datos': dt_rae[egr]['matr'],
+            'parcela': dt_rae[egr]['l_parc'],
+            'cols': dt_rae[egr]['l_nombres'],
+        }
+
+        return dic_egr if len(dic_egr['días']) else None
+
+    def obt_parcelas(símismo):
+        pass
+
+    def superficies(símismo):
+        pass
+
+    def agregar_pobs(símismo):
+        pass
+
+    def agregar_muertes(símismo):
+        pass
+
+    def agregar_reprs(símismo):
+        pass
+
+    def agregar_trans_hacía(símismo):
+        pass
+
     def agregar_orgs(símismo, archivo, col_tiempo, factor=1, col_parcela=None, fecha_ref=None):
         """
         Esta función establece la base de datos para las observaciones de organismos en el campo.
