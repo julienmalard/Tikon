@@ -1,6 +1,8 @@
 import csv
 import datetime as ft
 import os
+from warnings import warn as avisar
+import csv
 
 import numpy as np
 
@@ -25,14 +27,22 @@ class Experimento(object):
         símismo.fecha_ref = None
 
         # El diccionario de los datos. Tiene una sub-categoría para cada clase de datos.
-        símismo.datos = {'Organismos': {'tiempo': None,
-                                        'obs': {},
-                                        'parcelas': []
-                                        },
-                         'Cultivos': {'tiempo': None},  # Para hacer: Llenar este.
-                         'Aplicaciones': {'tiempo': None},  # Para hacer también
-                         'Parcelas': {}  # Para hacer también
-                         }
+        dic_datos_rae = dict(días=None, cols=None, datos=None, parc=None)
+        símismo.datos = {
+            'RAE': {'Pobs': dic_datos_rae.copy(),
+                    'Muertes': dic_datos_rae.copy(),
+                    'Transiciones': dic_datos_rae.copy(),
+                    'Crecimiento': dic_datos_rae.copy(),
+                    'Reproducción': dic_datos_rae.copy()
+                    },
+            'Parcelas': {'Nombres': [],
+                         'Superficies': None,
+                         'Polígonos': None
+                         },
+            'Cultivos': {},  # Para hacer: Llenar este.
+            'Aplicaciones': {}  # Para hacer también
+
+        }
 
         símismo.proyecto = proyecto
 
@@ -42,30 +52,148 @@ class Experimento(object):
 
         dic_egr = {
             'días': dt_rae[egr]['días'],
-            'datos': dt_rae[egr]['matr'],
-            'parcela': dt_rae[egr]['l_parc'],
-            'cols': dt_rae[egr]['l_nombres'],
+            'datos': dt_rae[egr]['datos'],
+            'parcela': dt_rae[egr]['parc'],
+            'cols': dt_rae[egr]['cols'],
         }
 
-        return dic_egr if len(dic_egr['días']) else None
+        return dic_egr if dic_egr['días'] is not None else None
 
-    def obt_parcelas(símismo):
-        pass
+    def obt_parcelas(símismo, tipo):
+        s_parcelas = set()
+        if tipo == '.red':
+            for dic in símismo.datos['RAE'].values():
+                if dic['parc'] is not None:
+                    s_parcelas.update(s_parcelas)
 
-    def superficies(símismo):
-        pass
+        return s_parcelas
 
-    def agregar_pobs(símismo):
-        pass
+    def obt_info_parcelas(símismo, parc):
 
-    def agregar_muertes(símismo):
-        pass
+        if not isinstance(parc, list):
+            parc = [parc]
 
-    def agregar_reprs(símismo):
-        pass
+        parc = [str(x) for x in parc]
 
-    def agregar_trans_hacía(símismo):
-        pass
+        nombres = símismo.datos['Parcelas']['Nombres']  # type: list
+        superficies = símismo.datos['Parcelas']['Superficies']  # type: list
+        polígonos = símismo.datos['Parcelas']['Polígonos']  # type: list
+
+        dic_info = {}
+        for p in parc:
+            if p not in nombres:
+                avisar('Parcela "{}" no tiene datos en experimento "{}".'.format(p, símismo.nombre))
+                continue
+            índ_p = nombres.index(p)
+            dic_info[p] = {
+                'Superficie': superficies[índ_p] if superficies is not None else None,
+                'Polígonos': polígonos[índ_p] if superficies is not None else None
+            }
+
+        return dic_info
+
+    def superficies(símismo, parc):
+
+        n_parc = len(parc)
+        if n_parc == 0:
+            return
+
+        superficies = np.empty(n_parc)
+
+        nombres = símismo.datos['Parcelas']['Nombres']  # type: list
+        for i, p in enumerate(parc):
+            try:
+                índ_p = nombres.index(p)
+                superficies[i] = símismo.datos['Parcelas']['Superficies'][índ_p]
+            except ValueError:
+                avisar('Tamaño de parcela no especificado para parcela "{}". Se supondrá un tamaño de 1 ha.'
+                       .format(p))
+                superficies[i] = 1
+
+        return superficies
+
+    def agregar_pobs(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        símismo._agregar_datos_rae(archivo=archivo, tipo_egr='Pobs',
+                                   col_tiempo=col_tiempo, col_parc=col_parc, cols_etps=cols_etps,
+                                   factor=factor, cód_na=cód_na)
+
+    def agregar_muertes(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        símismo._agregar_datos_rae(archivo=archivo, tipo_egr='Muertes',
+                                   col_tiempo=col_tiempo, col_parc=col_parc, cols_etps=cols_etps,
+                                   factor=factor, cód_na=cód_na)
+
+    def agregar_reprs(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        símismo._agregar_datos_rae(archivo=archivo, tipo_egr='Reproducción',
+                                   col_tiempo=col_tiempo, col_parc=col_parc, cols_etps=cols_etps,
+                                   factor=factor, cód_na=cód_na)
+
+    def agregar_trans_hacía(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        símismo._agregar_datos_rae(archivo=archivo, tipo_egr='Transiciones',
+                                   col_tiempo=col_tiempo, col_parc=col_parc, cols_etps=cols_etps,
+                                   factor=factor, cód_na=cód_na)
+
+    def agregar_crec(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        símismo._agregar_datos_rae(archivo=archivo, tipo_egr='Crecimiento',
+                                   col_tiempo=col_tiempo, col_parc=col_parc, cols_etps=cols_etps,
+                                   factor=factor, cód_na=cód_na)
+
+    def agregar_parcelas(símismo, archivo):
+        pass  # Para hacer
+
+    def _agregar_datos_rae(símismo, archivo, tipo_egr,
+                           col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
+        bd = gen_bd(archivo)
+
+        # Procesar los nombre de columnas
+        nombres_cols = bd.sacar_cols()
+        if col_tiempo not in nombres_cols:
+            raise ValueError
+        if col_parc is not None and col_parc not in nombres_cols:
+            raise ValueError
+        if cols_etps is None:
+            cols_etps = nombres_cols.copy()
+            cols_etps.remove(col_tiempo)
+            if col_parc is not None:
+                cols_etps.remove(col_parc)
+        else:
+            if not isinstance(cols_etps, list):
+                cols_etps = [cols_etps]
+            for c in cols_etps:
+                if c not in nombres_cols:
+                    raise ValueError
+
+        n_obs = bd.n_obs
+
+        if col_parc is not None:
+            v_parc = bd.obt_datos_tx(cols=col_parc)
+        else:
+            v_parc = np.ones(n_obs)
+        parc_únicas = np.unique(v_parc)
+        n_parc = parc_únicas.shape[0]
+
+        v_días = bd.obt_días(col=col_tiempo)
+        días_únicos = np.unique(v_días)
+        n_días = días_únicos.shape[0]
+
+        n_etps = len(cols_etps)
+
+        m_obs = bd.obt_datos(cols=cols_etps)  # Eje 0: col, eje 1: día/parcela
+        np.multiply(m_obs, factor, out=m_obs)
+
+        if cód_na is not None:
+            m_obs[m_obs == cód_na] = np.nan
+
+        matr_obs = np.empty((n_parc, n_etps, n_días))
+        matr_obs[:] = np.nan
+
+        for c in range(m_obs.shape[0]):
+            matr_obs[v_parc, [c] * n_obs, v_días] = m_obs[c, :]
+
+        dic_datos = símismo.datos['RAE'][tipo_egr]
+        dic_datos['cols'] = cols_etps
+        dic_datos['días'] = días_únicos
+        dic_datos['datos'] = matr_obs
+        dic_datos['parc'] = parc_únicas
 
     def agregar_orgs(símismo, archivo, col_tiempo, factor=1, col_parcela=None, fecha_ref=None):
         """
@@ -174,9 +302,6 @@ class Experimento(object):
         pass  # Para hacer
 
     def agregar_aplicaciones(símismo, archivo):
-        pass  # Para hacer
-
-    def agregar_parcelas(símismo, archivo):
         pass  # Para hacer
 
     def mover_fechas(símismo, dif, no_cambiar):
@@ -351,3 +476,146 @@ class Experimento(object):
                 vector_únicas = np.array(lista_fechas, dtype=int)
 
         return fecha_inic_datos, vector_fechas, vector_únicas
+
+
+def gen_bd(archivo):
+    """
+
+    :param archivo:
+    :type archivo: str
+    :return:
+    :rtype: BD
+    """
+    ext = os.path.splitext(archivo)[1]
+    if ext == '.txt' or ext == '.csv':
+        return BDtexto(archivo)
+    elif ext == '.sql':
+        return BDsql(archivo)
+    else:
+        raise ValueError
+
+
+class BD(object):
+    def __init__(símismo, archivo):
+        símismo.archivo = archivo
+
+        if not os.path.isfile(archivo):
+            raise FileNotFoundError
+
+        símismo.n_obs = símismo.calc_n_obs()
+
+    def sacar_cols(símismo):
+        """
+
+        :return:
+        :rtype: list[str]
+        """
+        raise NotImplementedError
+
+    def obt_datos(símismo, cols):
+        """
+
+        :param cols:
+        :type cols: list[str] | str
+        :return:
+        :rtype: np.ndarray
+        """
+        raise NotImplementedError
+
+    def obt_datos_tx(símismo, cols):
+        """
+
+        :param cols:
+        :type cols: list[str] | str
+        :return:
+        :rtype: list
+        """
+        raise NotImplementedError
+
+    def obt_días(símismo, col):
+        """
+
+        :param col:
+        :type col: str
+        :return:
+        :rtype: np.ndarray
+        """
+        raise NotImplementedError
+
+    def calc_n_obs(símismo):
+        """
+
+        :return:
+        :rtype: int
+        """
+        raise NotImplementedError
+
+
+class BDtexto(BD):
+    def obt_días(símismo, col):
+        pass
+
+    def calc_n_obs(símismo):
+        with open(símismo.archivo) as d:
+            n_filas = sum(1 for f in d if len(f)) - 1  # Sustrayemos la primera fila
+
+        return n_filas
+
+    def obt_datos(símismo, cols):
+        if not isinstance(cols, list):
+            cols = [cols]
+
+        m_datos = np.empty((len(cols), símismo.n_obs))
+
+        with open(símismo.archivo) as d:
+            lector = csv.DictReader(d)
+            for n_f, f in enumerate(lector):
+                m_datos[:, n_f] = [float(f[c]) if f[c] != '' else np.nan for c in cols]
+
+        if len(cols) == 1:
+            m_datos = m_datos[0]
+
+        return m_datos
+
+    def obt_datos_tx(símismo, cols):
+        if not isinstance(cols, list):
+            cols = [cols]
+
+        l_datos = [['']*len(cols)]*símismo.n_obs
+
+        with open(símismo.archivo) as d:
+            lector = csv.DictReader(d)
+            for n_f, f in enumerate(lector):
+                for i_c, c in enumerate(cols):
+                    l_datos[i_c][n_f] = [f[c] for c in cols]
+
+        if len(cols) == 1:
+            l_datos = l_datos[0]
+
+        return l_datos
+
+    def sacar_cols(símismo):
+
+        with open(símismo.archivo) as d:
+            lector = csv.reader(d)
+
+            nombres_cols = next(lector)
+
+        return nombres_cols
+
+
+class BDsql(BD):
+    def calc_n_obs(símismo):
+        pass
+
+    def obt_días(símismo, col):
+        pass
+
+    def obt_datos(símismo, cols):
+        pass
+
+    def obt_datos_tx(símismo, cols):
+        pass
+
+    def sacar_cols(símismo):
+        pass
