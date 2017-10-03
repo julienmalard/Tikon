@@ -1572,13 +1572,16 @@ class Red(Simulable):
             egrs = símismo.info_exps['egrs'][exp] = []
 
             # Agregar la lista de nombres de parcelas, en el orden que aparecen en las matrices de observaciones:
-            símismo.info_exps['parcelas'][exp] = obj_exp.obt_parcelas(tipo=símismo.ext)
+            parc = símismo.info_exps['parcelas'][exp] = obj_exp.obt_parcelas(tipo=símismo.ext)
+
+            # Guardar el tamaño de las parcelas
+            símismo.info_exps['superficies'][exp] = obj_exp.superficies(parc)
 
             for egr in símismo.l_egresos:
                 # Para cada tipo de egreso posible...
 
                 # Ver si hay observaciones de este egreso en el experimento actual
-                if obj_exp.obt_datos(egr) is not None:
+                if obj_exp.obt_datos_rae(egr) is not None:
                     # Si hay datos, hacemos una notita para después
                     egrs.append(egr)
 
@@ -1595,12 +1598,8 @@ class Red(Simulable):
                 combin_etps_egr = combin_etps[egr] = {}
                 combin_etps_obs_egr = combin_etps_obs[egr] = []
 
-                # Guardar el tamaño de las parcelas
-                superficies = obj_exp.superficies(tipo=símismo.ext)
-                símismo.info_exps['superficies'][exp] = superficies
-
                 # Una lista, en orden, de los nombres de las columnas en la base de datos
-                nombres_cols = obj_exp.obt_datos(egr)['cols']
+                nombres_cols = obj_exp.obt_datos_rae(egr)['cols']
 
                 # Verificar que los nombres de organismos y etapas estén correctos
                 for org in corresp:
@@ -1717,7 +1716,7 @@ class Red(Simulable):
 
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = etapa, eje 2 = tiempo.
                 # Quitamos el eje 1. "i" es el número de la etapa en la matriz de observaciones.
-                matr_obs_inic = obj_exp.obt_datos('Pobs')['datos'][:, i, 0]
+                matr_obs_inic = obj_exp.obt_datos_rae('Pobs')['datos'][:, i, 0]
 
                 # Si hay múltiples columnas de observaciones para esta etapa...
                 combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp][n_etp]
@@ -1727,7 +1726,7 @@ class Red(Simulable):
                     for col_otra in combin_etps_obs[n_etp]:
 
                         # Sumar las observaciones.
-                        datos_otra = obj_exp.obt_datos('Pobs')['datos'][:, col_otra, 0]
+                        datos_otra = obj_exp.obt_datos_rae('Pobs')['datos'][:, col_otra, 0]
                         np.sum(matr_obs_inic, datos_otra, out=matr_obs_inic)
 
                 # Asegurarse que tenemos números enteros.
@@ -1878,7 +1877,7 @@ class Red(Simulable):
                         if exp not in d:
                             d[exp] = {}
 
-                    datos = obj_exp.obt_datos(egr)  # El diccionario de datos del Experimento
+                    datos = obj_exp.obt_datos_rae(egr)  # El diccionario de datos del Experimento
                     días = datos['días']  # Los días con estas observaciones
                     n_días = len(días)  # El número de días con observaciones
                     n_etps = len(símismo.etapas)  # El número de etapas en la Red

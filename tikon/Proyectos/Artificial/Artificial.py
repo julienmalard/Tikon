@@ -152,7 +152,7 @@ Coco.estimar_densidad(rango=(38000e6, 42000e6), certidumbre=0.95)
 
 # Por el momento, tenemos que conectar con un experimento aunque no lo usemos. Para hacer: Esto tendrá que cambiar
 Exper = Experimento(nombre='Sitio A', proyecto=Red_coco.proyecto)
-Exper.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429 / 500)
+Exper.agregar_pobs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429 / 500)
 Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
                                                       'juvenil_2': ['Estado 2'],
                                                       'juvenil_3': ['Estado 3'],
