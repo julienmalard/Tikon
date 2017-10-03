@@ -1469,19 +1469,19 @@ class Simulable(Coso):
         for t_dist, l_matr in d_l_m_valid.items():
             for i, m_v in enumerate(l_matr):
                 # Días que corresponden exactamente
-                días_v, días_p = info[t_dist][i]['exactos']
-                if len(días_v):
-                    m_p = d_l_m_predics[t_dist][i]  # arreglarme
-                    m_v[..., días_v] = m_p[..., días_p]
+                días_v_e, días_p_e = info[t_dist][i]['exactos']
+                if len(días_v_e):
+                    m_p = d_l_m_predics[t_dist][i]
+                    m_v[..., días_v_e] = m_p[..., días_p_e]
 
                 # Días que hay que interpolar
-                días_v, días_p = info[i]['interpol']
-                if len(días_v):
+                días_v_i, días_p_i = info[i]['interpol']
+                if len(días_v_i):
                     # Pienso que este sería más rápido.
-                    m_v[..., días_v] = días_p[1]  # El valor superior
-                    m_v[..., días_v] -= días_p[0]  # La diferencia...
-                    m_v[..., días_v] *= días_p[2]  # ...Multiplicada por la distancia relativa...
-                    m_v[..., días_v] += días_p[0]  # ...Agragada al valor inferior
+                    m_v[..., días_v_i] = días_p_i[1]  # El valor superior
+                    m_v[..., días_v_i] -= días_p_i[0]  # La diferencia...
+                    m_v[..., días_v_i] *= días_p_i[2]  # ...Multiplicada por la distancia relativa...
+                    m_v[..., días_v_i] += días_p_i[0]  # ...Agragada al valor inferior
 
     def _analizar_valid(símismo):
         """
