@@ -7,7 +7,9 @@ from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
 dib_aprioris = False
-dib_valid_perf = True
+dib_valid_perf = False
+dib_simul = False
+dib_dists = False
 proyecto = 'Artificial'
 
 
@@ -164,7 +166,8 @@ Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1']
 
 # Generar una simulación con UNA repetición paramétrica (y estocástica)
 Red_coco.simular(exper=Exper, nombre='Datos artificiales', n_rep_parám=1, n_rep_estoc=1,
-                 mostrar=False, detalles=False, usar_especificadas=True)
+                 mostrar=False, detalles=False, usar_especificadas=True, dib_dists=dib_dists,
+                 dibujar=dib_simul)
 
 # Extraer las predicciones de la simulación y copiarlas a un nuevo Experimento
 Exper_artificial = _simul_a_exp(Red_coco)
