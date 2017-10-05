@@ -31,10 +31,10 @@ Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc,
 Red_coco_senc.guardar()
 """
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
-Experimento_A.agregar_orgs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429/500)
+Experimento_A.agregar_pobs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429/500)
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
-Experimento_B.agregar_orgs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429/500)
+Experimento_B.agregar_pobs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429/500)
 """
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},

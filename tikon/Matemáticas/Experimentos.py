@@ -51,27 +51,54 @@ class Experimento(object):
 
         símismo.proyecto = proyecto
 
-    def obt_datos_rae(símismo, egr):
+    def obt_datos_rae(símismo, egr, por_parcela=False):
         """
         Saca datos de Red AgroEcológica.
 
         :param egr: El tipo de egreso de interés.
         :type egr: str
 
+        :param por_parcela: Si querremos datos en unidades de indivíduos (o eventos) por parcela (y no por ha).
+        :type por_parcela: bool
+
         :return: El diccionario de datos
         :rtype: dict
         """
 
+        # El diccionario de interés
         dt_rae = símismo.datos['RAE']
 
+        # El diccionario que vamos a devolver
         dic_egr = {
             'días': dt_rae[egr]['días'],
             'datos': dt_rae[egr]['datos'],
-            'parcela': dt_rae[egr]['parc'],
+            'parc': dt_rae[egr]['parc'],
             'cols': dt_rae[egr]['cols'],
         }
 
-        return dic_egr if dic_egr['días'] is not None else None
+        # Si encontramos datos...
+        if dic_egr['días'] is not None:
+
+            # Si hay que generar datos por parcela (y no por hectárea)...
+            if por_parcela:
+                # Simplificar el código
+                datos = dic_egr['datos']  # type: np.ndarray
+                parc = dic_egr['parc'].tolist()    # type: str
+
+                # Calcular superficies
+                superficies = símismo.superficies(parc=parc)
+
+                # Convertir a individuos por parcela
+                np.multiply(datos, superficies, out=datos)
+
+                # No hay nano-zorros en este mundo
+                dic_egr['datos'] = datos.astype(int)
+        else:
+            # Si no encontramos datos, bueno, pués no encontramos datos.
+            dic_egr = None
+
+        # Si encontramos algo, devolvémoslo
+        return dic_egr
 
     def obt_parcelas(símismo, tipo):
         """
@@ -88,9 +115,11 @@ class Experimento(object):
         if tipo == '.red':
             for dic in símismo.datos['RAE'].values():
                 if dic['parc'] is not None:
-                    c_parcelas.update(c_parcelas)
+                    c_parcelas.update(dic['parc'].tolist())
+        else:
+            raise ValueError
 
-        return c_parcelas
+        return sorted(c_parcelas)
 
     def obt_info_parcelas(símismo, parc):
         """
@@ -176,6 +205,18 @@ class Experimento(object):
 
         # Devolver el vector de superficies.
         return superficies
+
+    def tiempo_final(símismo, tipo):
+
+        if tipo == '.red':
+            t_final = 0
+            for dic in símismo.datos['RAE'].values():  # type: dict[np.ndarray]
+                if dic['días'] is not None:
+                    t_final = np.max(dic['días'], t_final)
+        else:
+            raise ValueError
+
+        return t_final
 
     def agregar_pobs(símismo, archivo, col_tiempo, col_parc=None, cols_etps=None, factor=1, cód_na=None):
         """
@@ -433,10 +474,10 @@ class Experimento(object):
             if not isinstance(cols_etps, list):
                 cols_etps = [cols_etps]
 
-        for c in cols_etps:
-            # Asegurarse que las columnas de interés existen.
-            if c not in nombres_cols:
-                raise ValueError
+            for c in cols_etps:
+                # Asegurarse que las columnas de interés existen, si las especificó el usuario
+                if c not in nombres_cols:
+                    raise ValueError
 
         # El número de observaciones (filas) en la base de datos.
         n_obs = bd.n_obs
@@ -446,8 +487,9 @@ class Experimento(object):
             v_parc = bd.obt_datos_tx(cols=col_parc)
         else:
             # Si no se especificaron parcelas, nombrar la única parcela "1".
-            v_parc = np.ones(10, dtype=int).astype(str)
-        parc_únicas = np.unique(v_parc)  # Nombres de arcelas únicos
+            v_parc = np.ones(n_obs, dtype=int).astype(str)
+        parc_únicas = np.unique(v_parc)  # Nombres de parcelas únicos, en orden alfabético
+        v_í_parc = np.array([np.argwhere(parc_únicas==x)[0][0] for x in v_parc])
 
         # La fecha inicial y el vector de días relativos a la fecha inicial.
         fecha_inic, v_días = bd.obt_días(col=col_tiempo)
@@ -455,6 +497,7 @@ class Experimento(object):
         # Actualizar las fechas del Experimento, si necesario.
         símismo.actualizar_fechas(nueva_fecha_inic=fecha_inic, días=v_días)
         días_únicos = np.unique(v_días)  # Vector de días únicos
+        v_í_días = np.array([np.argwhere(días_únicos==x)[0][0] for x in v_días])
 
         # El número de parcelas, días y etapas únicas.
         n_parc = parc_únicas.shape[0]
@@ -475,7 +518,7 @@ class Experimento(object):
 
         # Llenar la matriz de datos
         for í_c in range(m_obs_bd.shape[0]):  # Para cada número de columna...
-            matr_obs[v_parc, [í_c] * n_obs, v_días] = m_obs_bd[í_c, :]
+            matr_obs[v_í_parc, [í_c] * n_obs, v_í_días] = m_obs_bd[í_c, :]
 
         # Llenar el diccionario de datos con todo lo que acabamos de calcular.
         dic_datos = símismo.datos['RAE'][tipo_egr]
@@ -512,11 +555,11 @@ class Experimento(object):
         :type días: np.ndarray
         """
 
-        # El cambio de fecha para los nuevos datos
-        cambio_nuevos = 0
-
         # Si las fechas de la base de datos tienen una fecha inicial
         if nueva_fecha_inic is not None:
+
+            # El cambio de fecha para los nuevos datos
+            cambio_nuevos = 0
 
             if símismo.fecha_ref is None:
                 # Si no había fecha de referencia para este experimento...
@@ -540,8 +583,8 @@ class Experimento(object):
                     # Si era anterior a la nueva fecha, guardar la fecha existente y ajustar los nuevos datos:
                     cambio_nuevos = dif
 
-        if días is not None:
-            np.add(cambio_nuevos, días, out=días)
+            if días is not None:
+                np.add(cambio_nuevos, días, out=días)
 
     def mover_fechas(símismo, dif):
         """
@@ -813,13 +856,13 @@ class BDtexto(BD):
         if not isinstance(cols, list):
             cols = [cols]
 
-        l_datos = [['']*len(cols)]*símismo.n_obs
+        l_datos = [['']*símismo.n_obs]*len(cols)
 
         with open(símismo.archivo) as d:
             lector = csv.DictReader(d)
             for n_f, f in enumerate(lector):
                 for i_c, c in enumerate(cols):
-                    l_datos[i_c][n_f] = [f[c] for c in cols]
+                    l_datos[i_c][n_f] = f[c]
 
         if len(cols) == 1:
             l_datos = l_datos[0]

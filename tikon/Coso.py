@@ -1130,10 +1130,16 @@ class Simulable(Coso):
             símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
                             dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
 
-            for exp in símismo.exps:
-                pass
+            for exp in exper:
 
-                res_día = sobol.analyze(problema, símismo.predics_exps)
+                l_matrs_pred = []  # para hacer
+                resultado = {}
+                l_resultado = []
+
+                for m in l_matrs_pred:
+
+                    res_día = sobol.analyze(problema, v_pred)
+                    l_resultado[í_m][d, :] = res_día
 
         else:
             raise ValueError
@@ -1322,14 +1328,15 @@ class Simulable(Coso):
         # Para cada experimento...
         for exp in exper:
 
-            obj_exp = símismo.exps[exp]
+            obj_exp = símismo.exps[exp]['Exp']
 
             # La superficie de cada parcela (en ha)
-            tamaño_parcelas = obj_exp.tamaño_parcelas(tipo=símismo.ext)
+            parc = obj_exp.obt_parcelas(tipo=símismo.ext)
+            tamaño_parcelas = obj_exp.superficies(parc=parc)
 
-            #
+            # Determinar el tiempo final, si es necesario
             if tiempo_final is None:
-                tiempo_final = obj_exp.tiempo_final(tipo=símismo.ext)
+                tiempo_final = {exp: obj_exp.tiempo_final(tipo=símismo.ext)}
             n_pasos = mat.ceil(tiempo_final[exp] / paso)
 
             # También guardamos el número de pasos y las superficies de las parcelas.
@@ -1941,4 +1948,4 @@ def llenar_copia_dic_matr(d_f, d_r):
         elif isinstance(v, np.ndarray):
             d_r[ll][:] = v
         else:
-            raise TypeError
+            pass

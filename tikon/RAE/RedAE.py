@@ -494,6 +494,7 @@ class Red(Simulable):
         :type incert: str
 
         """
+        # Para hacer: arreglar
 
         # El diccionario de información a poner en el título del gráfico
         dic_título = {'exp': None, 'prc': None, 'org': None, 'etp': None}
@@ -1412,14 +1413,14 @@ class Red(Simulable):
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Ruido aleatorio
-        símismo._calc_ruido(pobs=pobs)
+        símismo._calc_ruido(pobs=pobs, paso=paso)
 
     def _procesar_simul(símismo):
         """
         Ver la documentación de `Simulable`.
         """
 
-        for exp, predic in símismo.dic_simul['predics_exps'].items():
+        for exp, predic in símismo.dic_simul['d_predics_exps'].items():
             # Para cada experimento...
 
             # El tamaño de las parcelas
@@ -1441,7 +1442,7 @@ class Red(Simulable):
                     índ_fants = dic['n_fants']  # Los índices de las etapas fantasmas
 
                     d_juvs = símismo.parasitoides['juvs']
-                    índ_juv = [x for x in d_juvs if d_juvs[x] == ad][0]
+                    índ_juv = next(x for x in d_juvs if d_juvs[x] == ad)
 
                     predic[egr][..., índ_juv, :] += np.sum(predic[egr][..., índ_fants, :], axis=-2)
 
@@ -1538,6 +1539,64 @@ class Red(Simulable):
 
         return []
 
+    def añadir_exp(símismo, experimento, corresp=None, corresp_pobs=None, corresp_crec=None, corresp_repr=None,
+                   corresp_trans=None, corresp_muertes=None):
+        """
+        Esta función permite conectar un Experimento con una Red, especificando diccionarios de correspondencia para
+        cada tipo de egreso posible. No es necesario especificar todas las correspondencias, sino únicamente las
+        que aplican a este Experimento. Si todos los tipos de egresos tienen los mismos nombres de columnas en el
+        Experimento, se puede usar el parámetro general `corresp` para aplicar las mismas correspondencias a todos.
+
+        :param experimento:
+        :type experimento: Experimento
+
+        :param corresp: El valor automático para correspondencias.
+        :type corresp: dict
+
+        :param corresp_pobs: Correspondencias para observaciones de población.
+        :type corresp_pobs: dict
+
+        :param corresp_crec: Correspondencias para observaciones de crecimiento.
+        :type corresp_crec: dict
+
+        :param corresp_repr: Correspondencias para observaciones de reproducción.
+        :type corresp_repr: dict
+
+        :param corresp_trans: Correspondencias para observaciones de transiciones.
+        :type corresp_trans: dict
+
+        :param corresp_muertes: Correspondencias para observaciones de muertes.
+        :type corresp_muertes: dict
+        """
+
+        # El diccionario de valores modificadas
+        corresp_mod = {}
+
+        # Conversión de parámetros a llaves de diccionarios entendidas por Tiko'n
+        conv_corresps = {'Pobs': corresp_pobs, 'Crecimiento': corresp_crec, 'Reproducción': corresp_repr,
+                         'Transiciones': corresp_trans, 'Muertes': corresp_muertes}
+
+        # Llenar diccionarios de correspondencia que faltan
+        for ll, cor in conv_corresps.items():
+            # Para cada posibilidad de diccionario de correspondencia...
+
+            if cor is not None:
+                # Si se especificó ya, guardarlo así.
+                corresp_mod[ll] = cor
+
+            else:
+                # Si no se especificó, verificar si podemos usar el valor automático.
+                if corresp is not None:
+                    corresp_mod[ll] = corresp
+
+        # Asegurarse que haya al menos un diccionario de correspondencia.
+        if all(x is None for x in corresp_mod.values()):
+            raise ValueError('Hay que especificar al menos un diccionario de correspondencia para conectar'
+                             'un Experimento a la Red.')
+
+        # Llamar la misma función de la clase pariente superior, pero ya con el diccionario modificado.
+        super().añadir_exp(experimento=experimento, corresp=corresp_mod)
+
     def _actualizar_vínculos_exps(símismo):
         """
         Ver la documentación de Simulable.
@@ -1586,7 +1645,7 @@ class Red(Simulable):
                     egrs.append(egr)
 
             # Para cada tipo de correspondencia (poblaciones, muertes, etc...)
-            for egr, corresp in d_corresp:
+            for egr, corresp in d_corresp.items():
 
                 # Verificar si este tipo de egreso tiene observaciones disponibles en este experimento
                 if egr not in egrs:
@@ -1695,7 +1754,7 @@ class Red(Simulable):
                 raise ValueError('El experimento "{}" no está vinculado con esta Red.'.format(exp))
 
             # El número de parcelas y de pasos del Experimento
-            n_parc = obj_exp.n_parc(tipo=símismo.ext)
+            n_parc = len(obj_exp.obt_parcelas(tipo=símismo.ext))
             n_pasos_exp = n_pasos[exp]
 
             # Generamos el diccionario de predicciones en función de esta simulación
@@ -1716,21 +1775,18 @@ class Red(Simulable):
 
                 # La matriz de datos iniciales para una etapa. Eje 0 = parcela, eje 1 = etapa, eje 2 = tiempo.
                 # Quitamos el eje 1. "i" es el número de la etapa en la matriz de observaciones.
-                matr_obs_inic = obj_exp.obt_datos_rae('Pobs')['datos'][:, i, 0]
+                matr_obs_inic = obj_exp.obt_datos_rae('Pobs', por_parcela=True)['datos'][:, i, 0]
 
                 # Si hay múltiples columnas de observaciones para esta etapa...
-                combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp][n_etp]
+                combin_etps_obs = símismo.info_exps['combin_etps_obs'][exp]
                 if n_etp in combin_etps_obs:
 
                     # Para cada otra columna que hay que combinar con esta...
                     for col_otra in combin_etps_obs[n_etp]:
 
                         # Sumar las observaciones.
-                        datos_otra = obj_exp.obt_datos_rae('Pobs')['datos'][:, col_otra, 0]
+                        datos_otra = obj_exp.obt_datos_rae('Pobs', por_parcela=True)['datos'][:, col_otra, 0]
                         np.sum(matr_obs_inic, datos_otra, out=matr_obs_inic)
-
-                # Asegurarse que tenemos números enteros.
-                matr_obs_inic = matr_obs_inic.astype(int)
 
                 # Ajustar para etapas compartidas
                 if n_etp not in combin_etps:
@@ -1877,7 +1933,9 @@ class Red(Simulable):
                         if exp not in d:
                             d[exp] = {}
 
-                    datos = obj_exp.obt_datos_rae(egr)  # El diccionario de datos del Experimento
+                    # El diccionario de datos del Experimento. Los tomamos en unidades de observaciones por ha, porque
+                    # así se reportarán los resultados de la simulación.
+                    datos = obj_exp.obt_datos_rae(egr, por_parcela=False)
                     días = datos['días']  # Los días con estas observaciones
                     n_días = len(días)  # El número de días con observaciones
                     n_etps = len(símismo.etapas)  # El número de etapas en la Red
