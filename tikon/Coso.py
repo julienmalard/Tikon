@@ -678,15 +678,19 @@ class Simulable(Coso):
         símismo.coefs_act_númzds = {}
 
         #
+        # NUNCA recrear este diccionario. Lo puedes borrar con .clear() en vez.
         símismo.dic_simul = {
-            'd_predics_exps': {},  # NUNCA recrear este diccionario. Lo puedes borrar con .clear() en vez.
+            'd_predics_exps': {},
             'd_l_í_valid': {},
             'matrs_valid': {},
             'd_l_m_valid': {},
             'd_l_m_predics_v': {},
             'd_obs_valid': {},
             'd_obs_calib': {},
+            'l_m_obs_todas': [],
             'd_l_í_calib': {},
+            'l_m_preds_todas': [],
+            'l_ubics_m_preds': [],
             'd_calib': {},
             'copia_d_calib': {}
         }
@@ -1083,7 +1087,6 @@ class Simulable(Coso):
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None,
                      detalles=False, usar_especificadas=True, calc_2_orden_sobol=False, dibujar=False):
-        # Para hacer: crear esta sección
 
         # Validar el nombre de la simulación para esta corrida
         nombre = símismo._valid_nombre_simul(nombre=nombre)
@@ -1111,6 +1114,9 @@ class Simulable(Coso):
             'bounds': lista_líms_efec  # La lista de los límites de los parámetros para el analisis de sensibilidad
         }
 
+        # La matriz de resultados de análisis de sensibilidad para devolver
+        resultado = {}
+
         # Finalmente, hacer el análisis de sensibilidad.
         if método == 'Sobol':
 
@@ -1130,16 +1136,17 @@ class Simulable(Coso):
             símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
                             dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
 
-            for exp in exper:
+            # Para hacer: crear esta sección
 
-                l_matrs_pred = []  # para hacer
-                resultado = {}
-                l_resultado = []
+            l_matrs_pred = símismo.dic_simul['l_m_preds_todas']
+            llaves_a_dic(llvs=símismo.dic_simul['l_ubics_m_preds'], d=resultado)
+            l_resultado = dic_a_lista(resultado)
 
-                for m in l_matrs_pred:
 
-                    res_día = sobol.analyze(problema, v_pred)
-                    l_resultado[í_m][d, :] = res_día
+            for m in l_matrs_pred:
+
+                res_día = sobol.analyze(problema, v_pred)
+                l_resultado[í_m][d, :] = res_día
 
         else:
             raise ValueError
@@ -1905,29 +1912,40 @@ def guardar_json(dic, archivo):
         json.dump(dic, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
 
-def dic_a_lista(d, li=None, ll_f=None):
+def dic_a_lista(d, l=None, ll_f=None, l_u=None, u=None):
     """
 
     :param d:
     :type d: dict
-    :param li:
-    :type li: list
+    :param l:
+    :type l: list
     :param ll_f:
     :type ll_f: str
+    :param l_u: Si hay de devolver una lista de la ubicación de cada itema en la lista
+    :type l_u: list
     :return:
     :rtype: list
     """
 
-    if li is None:
-        li = []
+    if l is None:
+        l = []
+
+    if l_u is not None and u is None:
+        u = []
 
     for ll, v in d.items():
         if isinstance(v, dict) and ll_f not in v:
-            dic_a_lista(v, li=li, ll_f=ll_f)
+            if l_u is not None:
+                u.append(ll)
+            dic_a_lista(v, l=l, ll_f=ll_f, l_u=l_u, u=u)
         else:
-            li.append(v)
+            l.append(v)
+            if l_u is not None:
+                u.append(ll)
+                l_u.append(u.copy())
+                u.pop(-1)
 
-    return li
+    return l
 
 
 def llenar_copia_dic_matr(d_f, d_r):

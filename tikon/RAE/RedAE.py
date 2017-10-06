@@ -496,10 +496,6 @@ class Red(Simulable):
 
         """
 
-        l_m_preds = []  # Para hacer: desde aquí...
-        l_ubic_m_preds = []
-        l_m_obs = []  # para hacer: ... hasta aquí
-
         # Si no se especificó experimento, tomar todos los experimentos de la validación o calibración la más recién.
         if exper is None:
             exper = list(símismo.predics_exps.keys())
@@ -508,9 +504,9 @@ class Red(Simulable):
         if type(exper) is str:
             exper = [exper]
 
-        l_m_preds = []
-        l_ubic_m_preds = []
-        l_m_obs = []
+        l_m_preds = símismo.dic_simul['l_m_preds_todas']
+        l_ubic_m_preds = símismo.dic_simul['l_ubics_m_preds']
+        l_m_obs = símismo.dic_simul['l_m_obs_todas']
 
         for i, m in enumerate(l_m_preds):  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, [4: etp víctima], -1: día
             n_parc = m.shape[0]
@@ -1837,6 +1833,18 @@ class Red(Simulable):
             # Guardar el diccionario creado bajo el nombre de su experimento correspondiente.
             d_predics_exps[exp] = dic_predics
 
+        # Ahora, listas e información de matrices de predicciones (para gráficos y análises de sensibilidad).
+
+        # Diccionario de predicciones excluyendo matrices temporarias y de información, etc.
+        if detalles:
+            d_preds = {x: {e: d_x[e] for e in símismo.l_egresos} for x, d_x in d_predics_exps.items()}
+        else:
+            d_preds = {x: {'Pobs': d_x['Pobds']} for x, d_x in d_predics_exps.items()}
+
+        # Generamos la lista de matrices de predicciones. Las ubicaciones se guardar automáticamente.
+        l_preds = dic_a_lista(d=d_preds, u=símismo.dic_simul['l_ubics_m_preds'])
+        símismo.dic_simul['l_m_preds_todas'].update(l_preds)  # Guardar la lista de matrices
+
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
 
         # Simplificar el código
@@ -1913,6 +1921,14 @@ class Red(Simulable):
         símismo.dic_simul['d_l_m_valid'] = {'Normal': dic_a_lista(d_valid)}
         símismo.dic_simul['d_l_m_predics_v'] = {'Normal': dic_a_lista(d_preds_v)}
         símismo.dic_simul['d_l_í_valid'] = {'Normal': dic_a_lista(d_índs, ll_f='exactos')}
+
+        # Crear la lista completa de matrices de observaciones, para gráficos y análisis de sensibilidad
+        l_m_preds_v = dic_a_lista(d_preds_v)
+        l_m_obs_v = dic_a_lista(d_obs)
+        l_m_preds_todas = símismo.dic_simul['l_m_preds_todas']
+        l_m_obs_todas = [l_m_obs_v[l_m_preds_v.index(m)] if m in l_m_preds_v else None
+                         for í, m in enumerate(l_m_preds_todas)]
+        símismo.dic_simul['l_m_obs_todas'].update(l_m_obs_todas)
 
     def _gen_dics_calib(símismo, exper):
 
