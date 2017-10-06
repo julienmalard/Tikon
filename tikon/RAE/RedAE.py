@@ -15,7 +15,7 @@ from .Organismo import Organismo
 
 class Red(Simulable):
     """
-    Una Red representa una red agroecológica. Trae varios Organismos juntos para interactuar. Aquí se implementan
+    Una Red representa una red agroecológica. Trae varios `Organismos` juntos para interactuar. Aquí se implementan
     los cálculos de todas las ecuaciones controlando las dinámicas de poblaciones de los organismos, tanto como las
     interacciones entre ellos. Una red tiene la propiedad interesante de poder tomar datos iniciales para varias
     parcelas al mismo tiempo y de simular las dinámicas de cada parcela simultáneamente por el uso de matrices.
@@ -484,20 +484,21 @@ class Red(Simulable):
 
     def dibujar(símismo, mostrar=True, directorio=None, exper=None, n_líneas=0, incert='componentes'):
         """
-        Ver la documentación de Simulable.
+        Ver la documentación de `Simulable`.
 
         :type mostrar: bool
         :type directorio: str
+        :type n_líneas: int
         :type exper: list[str]
 
         :param incert: El tipo de incertidumbre que querremos incluir en el gráfico.
         :type incert: str
 
         """
-        # Para hacer: arreglar
 
-        # El diccionario de información a poner en el título del gráfico
-        dic_título = {'exp': None, 'prc': None, 'org': None, 'etp': None}
+        l_m_preds = []  # Para hacer: desde aquí...
+        l_ubic_m_preds = []
+        l_m_obs = []  # para hacer: ... hasta aquí
 
         # Si no se especificó experimento, tomar todos los experimentos de la validación o calibración la más recién.
         if exper is None:
@@ -507,162 +508,92 @@ class Red(Simulable):
         if type(exper) is str:
             exper = [exper]
 
-        # Para cada experimento...
-        for exp in exper:  # type: str
-            dic_título['exp'] = exp
+        l_m_preds = []
+        l_ubic_m_preds = []
+        l_m_obs = []
 
-            dic_preds_obs_pobs = símismo._sacar_vecs_preds_obs(exp=exp)
+        for i, m in enumerate(l_m_preds):  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, [4: etp víctima], -1: día
+            n_parc = m.shape[0]
+            n_etp = len(símismo.etapas)
+            ubic = l_ubic_m_preds[i]  # Lista de exper, egreso
+            exp = ubic[0]
+            egr = ubic[1]
 
-            # Primero, vamos a dibujar las poblaciones
+            # Saltar experimentos que no nos interesan
+            if exp not in exper:
+                continue
 
-            # Para cada organismo en la red...
-            for org, d_org in dic_preds_obs_pobs.items():
-                dic_título['org'] = org
+            # El archivo para guardar el imagen
+            dir_img = os.path.join(directorio, *ubic)
 
-                # Para cada etapa de este organismo...
-                for etp in d_org:
-                    dic_título['etp'] = etp
+            for i_parc in range(n_parc):
+                prc = símismo.info_exps['parcelas'][exp][i_parc]
+                for i_etp, d_etp in range(n_etp):
 
-                    # El vector de observaciones y la matriz de predicciones para poblaciones.
-                    # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: día
-                    matr_predic = dic_preds_obs_pobs[org][etp]['preds']
-                    vector_obs = dic_preds_obs_pobs[org][etp]['obs']  # Eje 0: parcela, eje 2: día
+                    etp = d_etp['nombre']
+                    org = d_etp['org']
 
-                    # Para cada parcela en las predicciones...
-                    for n_p in range(matr_predic.shape[0]):
+                    if len(m.shape) == 4:
+                        # Si no es una matriz de depredación...
 
-                        # Las matrices de predicciones y observaciones de poblaciones, con una única parcela
-                        matr_predic_prc = matr_predic[n_p, :, :]
-                        if vector_obs is None:
-                            vector_obs_prc = None
+                        if l_m_obs[i] is None:
+                            vec_obs = None
                         else:
-                            vector_obs_prc = vector_obs[n_p, :]
+                            vec_obs = l_m_obs[i][n_parc, n_etp, :]
 
-                        # El archivo para guardar el imagen
-                        dir_img = os.path.join(directorio, 'Pobs')
+                        matr_pred = m[n_parc, :, :, n_etp, :]
 
                         # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
-                        if len(símismo.info_exps['parcelas'][exp]) > 1:
-                            prc = símismo.info_exps['parcelas'][exp][n_p]
-                            título = '{exp}, Parcela {prc}, {org}, etapa {etp}'.format(**dic_título, prc=prc)
+                        if egr == 'Transiciones':
+                            op = 'Recip- '
+                        elif egr == 'Reproducción':
+                            op = 'Desde- '
                         else:
-                            título = '{exp}, {org}, etapa {etp}'.format(**dic_título)
+                            op = ''
+                        if n_parc > 1:
+                            título = 'Parcela "{prc}", {op}"{org}", etapa "{etp}"'\
+                                .format(prc=prc, op=op, org=org, etp=etp)
+                        else:
+                            título = '{op}{org}, etapa "{etp}"'.format(op=op, org=org, etp=etp)
 
-                            # Generar el gráfico
-                        Arte.gráfico(matr_predic=matr_predic_prc, vector_obs=vector_obs_prc,
-                                     título=título, etiq_y='Población',
+                        Arte.gráfico(matr_predic=matr_pred, vector_obs=vec_obs,
+                                     título=título, etiq_y=egr,
                                      n_líneas=n_líneas, incert=incert,
                                      mostrar=mostrar, directorio=dir_img)
+                    else:
+                        # Si es una matriz de depredación...
 
-            # Ahora, vamos a dibujar los detalles de la simulación
-            if símismo.predics_exps[exp]['Reproducción'].shape == símismo.predics_exps[exp]['Pobs'].shape:
+                        presas = [símismo.núms_etapas[o][e]
+                                  for o, d_e in símismo.etapas[n_etp]['conf']['presa'].items()
+                                  for e in d_e]
+                        huéspedes = [símismo.núms_etapas[o][e]
+                                     for o, d_e in símismo.etapas[n_etp]['conf']['huésped'].items()
+                                     for e in d_e['entra']]
+                        víctimas = presas + huéspedes
 
-                # Para cada organismo en la Red...
-                for org, d_org in dic_preds_obs_pobs.items():
-                    dic_título['org'] = org
+                        for n_etp_víc in víctimas:  # type: int
 
-                    # Para cada etapa de este organismo...
-                    for etp in d_org:
-                        dic_título['etp'] = etp
-
-                        n_etp = símismo.núms_etapas[org][etp]  # type: int
-
-                        # Para cada tipo de detalles...
-                        for det in ['Crecimiento', 'Muertes', 'Transiciones', 'Reproducción']:
-
-                            # Seguir si la etapa no tiene este tipo de cálculos
-                            if not any([n_etp in x
-                                        for s_c in símismo.ecs[det].values()
-                                        for x in s_c.values()]):
-                                continue
-
-                            if det == 'Reproducción':
-                                n_etp_dib = símismo.orden['repr'][n_etp]  # type: int
-                                org_r = símismo.etapas[n_etp_dib]['org']
-                                etp_r = símismo.etapas[n_etp_dib]['nombre']
-                                título = '{exp}, Recip- "{org}", "{etp}"' \
-                                    .format(exp=exp, org=org_r, etp=etp_r)
-                            elif det == 'Transiciones':
-                                n_etp_dib = n_etp
-                                título = '{exp}, Desde- "{org}", "{etp}"' \
-                                    .format(exp=exp, org=org, etp=etp)
-                            else:
-                                n_etp_dib = n_etp
-                                título = '{exp}, "{org}", Etapa "{etp}"' \
-                                    .format(exp=exp, org=org, etp=etp)
+                            etp_víc = símismo.etapas[n_etp_víc]['nombre']
+                            org_víc = símismo.etapas[n_etp_víc]['org']
 
                             # La matriz de predicciones
-                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 4: día
-                            matr_predic = símismo.predics_exps[exp][det][..., n_etp_dib, :]
+                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 4: etp víctima, 5: día
+                            matr_pred = m[n_parc, ..., n_etp, n_etp_víc, :]  # Eje 0: estoc, 1: parám, 2: día
 
-                            # Para cada parcela en las predicciones...
-                            for n_p in range(matr_predic.shape[0]):
+                            if n_parc > 1:
+                                título = 'Parcela "{prc}", {org}, etapa "{etp}" ' \
+                                         'atacando a "{org_víc}", etapa "{etp_víc}"'\
+                                    .format(prc=prc, org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
+                            else:
+                                título = '{org}, etapa "{etp}" ' \
+                                         'atacando a "{org_víc}", etapa "{etp_víc}"'\
+                                    .format(org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
 
-                                # Las matrices de predicciones y observaciones, con una única parcela
-                                matr_predic_prc = matr_predic[n_p, ...]
-
-                                # El archivo para guardar la imagen. Incluir el nombre de la parcela, si necesario:
-                                if len(símismo.info_exps['parcelas'][exp]) > 1:
-                                    prc = símismo.info_exps['parcelas'][exp][n_p]
-                                    dir_img = os.path.join(directorio, prc, det)
-                                else:
-                                    dir_img = os.path.join(directorio, det)
-
-                                # Generar el gráfico
-                                Arte.gráfico(matr_predic=matr_predic_prc,
-                                             título=título, etiq_y=det,
-                                             n_líneas=n_líneas, incert=incert,
-                                             mostrar=mostrar, directorio=dir_img)
-
-                        # Ahora para la depredación
-                        if not any([n_etp in x for x in símismo.ecs['Depredación']['Ecuación'].values()]):
-                            continue
-
-                        # La matriz de predicciones
-                        # Eje 0: parcela, 1: rep estoc, 2: rep parám, 4: etp víctima, 5: día
-                        matr_predic = símismo.predics_exps[exp]['Depredación'][..., n_etp, :, :]
-
-                        # Para cada parcela en las predicciones...
-                        for n_p in range(matr_predic.shape[0]):  # type: str
-
-                            # Las matrices de predicciones y observaciones, con una única parcela
-                            matr_predic_prc = matr_predic[n_p, ...]
-
-                            # El archivo para guardar la imagen
-                            dir_img = os.path.join(directorio, 'Depredación')
-
-                            presas = [símismo.núms_etapas[o][e]
-                                      for o, d_e in símismo.etapas[n_etp]['conf']['presa'].items()
-                                      for e in d_e]
-                            huéspedes = [símismo.núms_etapas[o][e]
-                                         for o, d_e in símismo.etapas[n_etp]['conf']['huésped'].items()
-                                         for e in d_e['entra']]
-                            víctimas = presas + huéspedes
-
-                            for n_etp_víc in víctimas:  # type: int
-
-                                etp_víc = símismo.etapas[n_etp_víc]['nombre']
-                                org_víc = símismo.etapas[n_etp_víc]['org']
-
-                                dic_título['víc'] = etp_víc
-
-                                matr_predic_prc_víc = matr_predic_prc[..., n_etp_víc, :]
-
-                                # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
-                                if len(símismo.info_exps['parcelas'][exp]) > 1:
-                                    prc = símismo.info_exps['parcelas'][exp][n_p]
-                                    título = '{exp}, Parcela {prc}, ' \
-                                             '{org}, {etp} atacando a {org_víc}, etapa {etp_víc}'. \
-                                        format(**dic_título, prc=prc, org_víc=org_víc, etp_víc=etp_víc)
-                                else:
-                                    título = '{exp}, {org}, {etp} atacando a {org_víc}, etapa {etp_víc}' \
-                                        .format(**dic_título, org_víc=org_víc, etp_víc=etp_víc)
-
-                                # Generar el gráfico
-                                Arte.gráfico(matr_predic=matr_predic_prc_víc,
-                                             título=título, etiq_y='Depredación',
-                                             n_líneas=n_líneas, incert=incert,
-                                             mostrar=mostrar, directorio=dir_img)
+                            # Generar el gráfico
+                            Arte.gráfico(matr_predic=matr_pred,
+                                         título=título, etiq_y='Depredación',
+                                         n_líneas=n_líneas, incert=incert,
+                                         mostrar=mostrar, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
         """
