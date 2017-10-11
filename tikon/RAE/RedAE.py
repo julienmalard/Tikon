@@ -11,7 +11,7 @@ from ..Matemáticas.Incert import validar_matr_pred
 from . import Insecto as Ins
 from .Gen_organismos import generar_org
 from .Organismo import Organismo
-
+from datetime import datetime as ft
 
 class Red(Simulable):
     """
@@ -1318,29 +1318,54 @@ class Red(Simulable):
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
         # Una especie que mata a otra.
+        antes_0 = ft.now()
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
+        t_depred = ft.now()-antes_0
 
         # Una población que crece (misma etapa)
+        antes = ft.now()
         símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
+        t_crec = ft.now()-antes
 
         # Muertes por el ambiente
+        antes = ft.now()
         símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
+        t_muertes = ft.now()-antes
 
         # Calcular cambios de edades
+        antes = ft.now()
         símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
+        t_edad = ft.now()-antes
 
         # Una etapa que cambia a otra, o que se muere por su edad.
+        antes = ft.now()
         símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
+        t_trans = ft.now()-antes
 
         # Una etapa que se reproduce para producir más de otra etapa
+        antes = ft.now()
         símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
+        t_reprod = ft.now()-antes
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Ruido aleatorio
+        antes = ft.now()
         símismo._calc_ruido(pobs=pobs, paso=paso)
+        fin = ft.now()
+        t_ruido = fin-antes
+
+        if True:
+            print('Tiempo total: {}'.format(fin-antes))
+            print('\tDepred:\t{}'.format(t_depred))
+            print('\tCrec:\t{}'.format(t_crec))
+            print('\tMrtes:\t{}'.format(t_muertes))
+            print('\tEdad:\t{}'.format(t_edad))
+            print('\tTrans:\t{}'.format(t_trans))
+            print('\tReprod:\t{}'.format(t_reprod))
+            print('\tRuido:\t{}'.format(t_ruido))
 
     def _procesar_simul(símismo):
         """
@@ -1927,7 +1952,13 @@ class Red(Simulable):
         l_m_preds_v = dic_a_lista(d_preds_v)
         l_m_obs_v = dic_a_lista(d_obs)
         l_m_preds_todas = símismo.dic_simul['l_m_preds_todas']
-        l_m_obs_todas = [l_m_obs_v[l_m_preds_v.index(m)] if m in l_m_preds_v else None
+
+        def temp(m, l):
+            try:
+                return l.index(m)
+            except ValueError:
+                return None
+        l_m_obs_todas = [l_m_obs_v[temp(m, l_m_preds_v)] if temp(m, l_m_preds_v) is not None else None
                          for í, m in enumerate(l_m_preds_todas)]
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
 
