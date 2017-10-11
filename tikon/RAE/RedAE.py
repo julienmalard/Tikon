@@ -1412,11 +1412,11 @@ class Red(Simulable):
             valids_detalles[exp] = {}
 
             for egr, matr in d_obs_exp.items():
-                n_parc = d_obs_exp[egr].shape()
+                n_parc = d_obs_exp[egr].shape[0]
 
                 for n_p in range(n_parc):
 
-                    parc = símismo.info_exps[exp]['parcelas'][n_p]
+                    parc = símismo.info_exps['parcelas'][exp][n_p]
 
                     for n_etp in range(n_etps):
 
@@ -1425,7 +1425,7 @@ class Red(Simulable):
                         if np.sum(~np.isnan(vec_obs)) == 0:
                             continue
 
-                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
+                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp, :]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
 
                         org = símismo.etapas[n_etp]['org']
                         etp = símismo.etapas[n_etp]['nombre']
@@ -1582,7 +1582,7 @@ class Red(Simulable):
                 # Crear diccionarios apropiados y simplificar el código
                 etps_interés_egr = etps_interés[egr] = {}
                 combin_etps_egr = combin_etps[egr] = {}
-                combin_etps_obs_egr = combin_etps_obs[egr] = []
+                combin_etps_obs_egr = combin_etps_obs[egr] = {}
 
                 # Una lista, en orden, de los nombres de las columnas en la base de datos
                 nombres_cols = obj_exp.obt_datos_rae(egr)['cols']
@@ -1839,11 +1839,11 @@ class Red(Simulable):
         if detalles:
             d_preds = {x: {e: d_x[e] for e in símismo.l_egresos} for x, d_x in d_predics_exps.items()}
         else:
-            d_preds = {x: {'Pobs': d_x['Pobds']} for x, d_x in d_predics_exps.items()}
+            d_preds = {x: {'Pobs': d_x['Pobs']} for x, d_x in d_predics_exps.items()}
 
-        # Generamos la lista de matrices de predicciones. Las ubicaciones se guardar automáticamente.
-        l_preds = dic_a_lista(d=d_preds, u=símismo.dic_simul['l_ubics_m_preds'])
-        símismo.dic_simul['l_m_preds_todas'].update(l_preds)  # Guardar la lista de matrices
+        # Generamos la lista de matrices de predicciones. Las ubicaciones se guardan automáticamente.
+        l_preds = símismo.dic_simul['l_m_preds_todas']
+        dic_a_lista(d=d_preds, l=l_preds, u=símismo.dic_simul['l_ubics_m_preds'])
 
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
 
@@ -1858,8 +1858,9 @@ class Red(Simulable):
         for exp in exper:
             # Para cada experimento...
 
-            obj_exp = símismo.exps[exp]  # El objeto del Experimento
-            n_parc = obj_exp.n_parc(tipo=símismo.ext)  # El número de parcelas
+            obj_exp = símismo.exps[exp]['Exp']  # El objeto del Experimento
+            nombres_parc = obj_exp.obt_parcelas(tipo=símismo.ext)
+            n_parc = len(nombres_parc)  # El número de parcelas
 
             for egr in símismo.l_egresos:
                 # Para cada egreso posible...
@@ -1884,9 +1885,9 @@ class Red(Simulable):
                     matr_obs[:] = np.nan
 
                     # Llenar la matriz de observaciones
-                    parc = datos['parc']  # Los índices de las parcelas
-                    etps = símismo.info_exps['etps_interés'][exp][egr].keys()  # Los índices de las etapas (en RAE)
-                    etps_bd = símismo.info_exps['etps_interés'][exp][egr].values()  # Los índices de etps en Exper
+                    parc = [nombres_parc.index(x) for x in datos['parc']]  # Los índices de las parcelas
+                    etps = list(símismo.info_exps['etps_interés'][exp][egr].keys())  # Los índices de las etapas en RAE
+                    etps_bd = list(símismo.info_exps['etps_interés'][exp][egr].values())  # Los índices de etps en Exper
                     vals = datos['datos'][:, etps_bd, :]  # Los valores. Eje 0 = parc, 1 = etp, 2 = día
                     matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día. Excluimos días sin datos obs.
 
@@ -1900,14 +1901,14 @@ class Red(Simulable):
                     d_preds_v[exp][egr] = símismo.dic_simul['d_predics_exps'][exp][egr]
 
                     # Crear la matriz vacía para los datos de validación
-                    d_valid[exp][egr] = np.empty((n_parc, n_etps, n_rep_estoc, n_rep_parám, n_días))
+                    d_valid[exp][egr] = np.empty((n_parc, n_rep_estoc, n_rep_parám, n_etps, n_días))
 
                     # Los índices para convertir de matriz de predicción a matriz de validación
                     días_ex = [d for d in días if d % paso == 0]
                     días_inter = [d for d in días if d % paso != 0]
 
                     í_p_ex = [d // paso for d in días_ex]  # Índices exactos (en la matriz pred)
-                    í_v_ex = [días.index(d) for d in días_ex]  # Índices exactos (en la matriz valid)
+                    í_v_ex = [np.where(días == d)[0][0] for d in días_ex]  # Índices exactos (en la matriz valid)
                     í_v_ínt = [i for i in range(n_días) if i not in í_v_ex]  # Índices para interpolar (matriz valid)
                     í_p_ínt_0 = [mat.floor(d / paso) for d in días_inter]  # Índices interpol inferiores (matr pred)
                     í_p_ínt_1 = [mat.ceil(d / paso) for d in días_inter]  # Índices interpol superiores (matr pred)
@@ -1928,7 +1929,7 @@ class Red(Simulable):
         l_m_preds_todas = símismo.dic_simul['l_m_preds_todas']
         l_m_obs_todas = [l_m_obs_v[l_m_preds_v.index(m)] if m in l_m_preds_v else None
                          for í, m in enumerate(l_m_preds_todas)]
-        símismo.dic_simul['l_m_obs_todas'].update(l_m_obs_todas)
+        símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
 
     def _gen_dics_calib(símismo, exper):
 
@@ -1940,6 +1941,7 @@ class Red(Simulable):
 
         # El diccionario de índices para la calibración (lo llenaremos aquí)
         d_índs_calib = símismo.dic_simul['d_l_í_calib']
+        d_índs_calib['Normal'] = []
 
         # El número de observaciones válidas cumulativas (empezar en 0)
         n_obs_cumul = 0
@@ -1952,11 +1954,11 @@ class Red(Simulable):
             n_obs = np.sum(válidos)
 
             # Los índices de las parcelas, etapas y días con observaciones válidas
-            parc, etps, días = np.argwhere(válidos)
+            parc, etps, días = np.where(válidos)
 
             # El diccionario con los índices y el rango en la matriz de predicciones
             d_info = {'índs': (parc, etps, días), 'rango': [n_obs_cumul, n_obs_cumul + n_obs]}
-            d_índs_calib.append(d_info)  # Agregar el diccionario de índices
+            d_índs_calib['Normal'].append(d_info)  # Agregar el diccionario de índices
 
             # Guardar cuenta del número de observaciones hasta ahora
             n_obs_cumul += n_obs
@@ -1974,8 +1976,8 @@ class Red(Simulable):
         for i, m in enumerate(l_obs_v):
             # Para cada observación...
 
-            parc, etps, días = d_índs_calib[i]['índs']  # Los índices de valores válidos
-            r = d_índs_calib[i]['rango']  # El rango en el vector de obs para calibraciones
+            parc, etps, días = d_índs_calib['Normal'][i]['índs']  # Los índices de valores válidos
+            r = d_índs_calib['Normal'][i]['rango']  # El rango en el vector de obs para calibraciones
 
             # Guardar los valores
             d_obs_c['Normal'][r[0]:r[1]] = m[parc, etps, días]

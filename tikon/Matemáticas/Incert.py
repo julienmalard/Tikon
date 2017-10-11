@@ -208,7 +208,8 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
                 # Verificar si la matriz NumPy tiene el tamaño suficiente para el número de repeticiones que querremos
                 tamaño_máx = dist.shape[0]
                 if tamaño_máx < rep_per_calib[i]:
-                    avisar('Número de replicaciones superior al tamaño de la traza de parámetro disponible.')
+                    avisar('Número de repeticiones paramétricas ({}) superior al tamaño de la traza de parámetro '
+                           'disponible ([]).'.format(rep_per_calib[i], tamaño_máx))
                     devolv = True
                 else:
                     devolv = False

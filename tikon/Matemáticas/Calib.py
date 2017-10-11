@@ -88,7 +88,7 @@ class ModBayes(object):
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
         # la maquinaría de calibración de PyMC.
         l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
-                                    l_trazas=aprioris, formato='calib', comunes=False)
+                                      l_trazas=aprioris, formato='calib', comunes=False)
 
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
@@ -117,7 +117,7 @@ class ModBayes(object):
                 # Si las observaciones siguen una distribución Gamma...
 
                 # Crear el variable PyMC
-                var_obs = pymc.Gamma('obs_'.format(tipo), alpha=simul['Gamma']['alpha'], beta=simul['Gamma']['beta'],
+                var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'], beta=simul['Gamma']['beta'],
                                      value=m_obs, observed=True, trace=False)
 
                 # ...y agregarlo a la lista de variables de observación
@@ -125,12 +125,16 @@ class ModBayes(object):
 
             elif tipo == 'Normal':
                 # Si tenemos distribución normal de las observaciones...
-                var_obs = pymc.Normal('obs_'.format(tipo), mu=simul['Normal']['mu'], tau=simul['Normal']['tau'],
+                tau = simul['Normal']['sigma'] ** -2
+                var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
                                       value=m_obs, observed=True, trace=False)
-                l_var_obs.append(var_obs)
+                l_var_obs.extend([var_obs])
+            else:
+                raise ValueError
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
         símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id)
+        return
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -152,7 +156,7 @@ class ModBayes(object):
 
         # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
         # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
-        # símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+        símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
 
         # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
