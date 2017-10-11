@@ -899,7 +899,7 @@ class Simulable(Coso):
 
         dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=None)
         dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
-        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...
+        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
         dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
 
         símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
@@ -1344,7 +1344,7 @@ class Simulable(Coso):
             # Determinar el tiempo final, si es necesario
             if tiempo_final is None:
                 tiempo_final = {exp: obj_exp.tiempo_final(tipo=símismo.ext)}
-            n_pasos = mat.ceil(tiempo_final[exp] / paso)
+            n_pasos = mat.ceil(tiempo_final[exp] / paso) + 1
 
             # También guardamos el número de pasos y las superficies de las parcelas.
             dic_args['n_pasos'][exp] = n_pasos
@@ -1476,7 +1476,7 @@ class Simulable(Coso):
         en los diccionarios símismo.matrs_simul['d_l_matrs_valid'] y ['matrs_valid'].
         """
 
-        d_l_m_predics = símismo.dic_simul['d_l_m_predics']
+        d_l_m_predics = símismo.dic_simul['d_l_m_predics_v']
         d_l_m_valid = símismo.dic_simul['d_l_m_valid']
         info = símismo.dic_simul['d_l_í_valid']
 
@@ -1489,7 +1489,7 @@ class Simulable(Coso):
                     m_v[..., días_v_e] = m_p[..., días_p_e]
 
                 # Días que hay que interpolar
-                días_v_i, días_p_i = info[i]['interpol']
+                días_v_i, *días_p_i = info[t_dist][i]['interpol']
                 if len(días_v_i):
                     # Pienso que este sería más rápido.
                     m_v[..., días_v_i] = días_p_i[1]  # El valor superior
@@ -1517,10 +1517,14 @@ class Simulable(Coso):
 
         d_l_m_valid = símismo.dic_simul['d_l_m_valid']
         d_calib = símismo.dic_simul['d_calib']
-        d_índs = símismo.dic_simul['d_l_índ_calib']
+        d_índs = símismo.dic_simul['d_l_í_calib']
 
         for t_dist, l_matr_v in d_l_m_valid.items():
             d_dist = d_calib[t_dist]
+
+            # Por una razón extraña, PyMC se queja si no hacemos copias aquí. A ver si hay que hacer lo mismo con PyMC3.
+            d_dist['mu'] = np.zeros_like(d_dist['mu'])
+            d_dist['sigma'] = np.zeros_like(d_dist['sigma'])
 
             for i, m in enumerate(l_matr_v):
                 r = d_índs[t_dist][i]['rango']
@@ -1528,7 +1532,9 @@ class Simulable(Coso):
 
                 if t_dist == 'Normal':
                     d_dist['mu'][r[0]:r[1]] = np.mean(m[parc, :, 0, etps, días], axis=1)
-                    d_dist['sigma'][r[0]:r[1]] = np.std(m[parc, :, 0, etps, días], axis=1)
+
+                    # Evitar sigmas de 0. Causan muchos problemas después.
+                    d_dist['sigma'][r[0]:r[1]] = np.maximum(1, np.std(m[parc, :, 0, etps, días], axis=1))
 
                 else:
                     raise ValueError
@@ -1774,8 +1780,6 @@ class Simulable(Coso):
             return l
 
         lista_dists = sacar_dists_calibs(símismo)
-
-        lista_dists.append((['Modelo', 'error', ''], símismo.ModBayes.error))
 
         for ubic, dist in lista_dists:
 

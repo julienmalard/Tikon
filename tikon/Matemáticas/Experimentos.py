@@ -102,13 +102,13 @@ class Experimento(object):
 
     def obt_parcelas(símismo, tipo):
         """
-        Devuelve un conjunto de parcelas únicas que aparecen en los datos para el tipo de Simulable especificado.
+        Devuelve una lista de parcelas únicas que aparecen en los datos para el tipo de Simulable especificado.
 
         :param tipo: La extensión del tipo de simulable.
         :type tipo: str
 
-        :return: Un conjunto de parcelas únicas con datos disponibles.
-        :rtype: set
+        :return: Una lista de parcelas únicas con datos disponibles.
+        :rtype: lista
         """
 
         c_parcelas = set()
