@@ -6,12 +6,12 @@ from tikon.Proyectos.Opisina_arenosella.Red_Opisina import Red_coco
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
-dib_aprioris = False
-dib_valid_perf = False
-dib_simul = False
-dib_dists = False
-dib_valid = False
-dib_calibs = False
+dib_aprioris = True
+dib_valid_perf = True
+dib_simul = True
+dib_dists = True
+dib_valid = True
+dib_calibs = True
 proyecto = 'Artificial'
 
 
@@ -198,7 +198,7 @@ for p in range(100, 0, -10):
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
     Red_coco.calibrar(nombre='Calib con prec. {}'.format(p), exper=Exper_artificial,
-                      quema=0, n_iter=100, extraer=1, dibujar=dib_calibs)
+                      quema=0, n_iter=5000, extraer=1, dibujar=dib_calibs)
     Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))

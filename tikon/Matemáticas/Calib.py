@@ -83,6 +83,7 @@ class ModBayes(object):
 
         símismo.lista_parám = lista_d_paráms
         símismo.id = id_calib
+        símismo.n_iter = 0
 
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
         # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
@@ -95,6 +96,14 @@ class ModBayes(object):
         for parám in l_var_paráms:
             if isinstance(parám, pymc.Deterministic):
                 l_var_paráms.append(min(parám.extended_parents))
+
+        # Quitar variables sin incertidumbre. Por una razón muy rara, simul() no funcionará en PyMC sino.
+        for parám in l_var_paráms.copy():
+            if isinstance(parám, pymc.Uniform):
+                if parám.parents['upper'] == parám.parents['lower']:
+                    l_var_paráms.remove(parám)
+            if isinstance(parám, pymc.Degenerate):
+                l_var_paráms.remove(parám)
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
         función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -121,20 +130,21 @@ class ModBayes(object):
                                      value=m_obs, observed=True, trace=False)
 
                 # ...y agregarlo a la lista de variables de observación
-                l_var_obs.append(var_obs)
+                l_var_obs.extend([var_obs])
 
             elif tipo == 'Normal':
                 # Si tenemos distribución normal de las observaciones...
                 tau = simul['Normal']['sigma'] ** -2
                 var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
                                       value=m_obs, observed=True, trace=False)
-                l_var_obs.extend([var_obs])
+                nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
+                          tau.parents['a'], tau.parents['a'].parents['self']]
+                l_var_obs.extend(nuevos)
             else:
                 raise ValueError
 
-        # Y, por fin, el objeto MCMC de PyMC que trae todos estos componientes juntos.
-        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id)
-        return
+        # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
+        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, dbname=símismo.id)  # db='sqlite',
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -153,6 +163,8 @@ class ModBayes(object):
         de (10000 - 100) / 10 = 990 datos para aproximar la destribución de cada parámetro.
 
         """
+
+        símismo.n_iter += rep
 
         # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
         # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
@@ -185,7 +197,11 @@ class ModBayes(object):
 
             # Para cada parámetro en la lista, convertir el variable PyMC en un vector numpy de sus trazas, y
             # cambiar el nombre
-            vec_np = d_parám[id_calib].trace(chain=None)[:]
+            try:
+                vec_np = d_parám[id_calib].trace(chain=None)[:]
+            except AttributeError:
+                vec_np = np.zeros(símismo.n_iter)
+                vec_np[:] = d_parám[id_calib].value
 
             # Quitar el nombre inicial
             d_parám.pop(id_calib)

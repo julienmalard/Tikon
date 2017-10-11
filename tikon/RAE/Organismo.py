@@ -70,7 +70,7 @@ class Organismo(Coso):
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['estr'].values()], key=lambda d: d['posición'])
 
-    def añadir_etapa(símismo, nombre, posición, ecuaciones):
+    def añadir_etapa(símismo, nombre, posición, ecuaciones, lím_error=0.1):
         """
         Esta función añade una etapa al organismo.
 
@@ -127,6 +127,11 @@ class Organismo(Coso):
 
         # Actualizar el organismo
         símismo.actualizar()
+
+        # Aplicar límites a la estocasticidad diaria potenticial para este organismo.
+        if lím_error is not None:
+            símismo.especificar_apriori(etapa=nombre, ubic_parám=['Error', 'Dist', 'Normal', 'sigma'],
+                                        rango=(0, lím_error), certidumbre=1)
 
     def quitar_etapa(símismo, nombre):
         """
