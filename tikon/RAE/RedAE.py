@@ -13,6 +13,7 @@ from .Gen_organismos import generar_org
 from .Organismo import Organismo
 from datetime import datetime as ft
 
+
 class Red(Simulable):
     """
     Una Red representa una red agroecológica. Trae varios `Organismos` juntos para interactuar. Aquí se implementan
@@ -524,20 +525,23 @@ class Red(Simulable):
 
             for i_parc in range(n_parc):
                 prc = símismo.info_exps['parcelas'][exp][i_parc]
-                for i_etp, d_etp in range(n_etp):
+                for i_etp, d_etp in enumerate(símismo.etapas):
 
                     etp = d_etp['nombre']
                     org = d_etp['org']
 
-                    if len(m.shape) == 4:
+                    if len(m.shape) == 5:
                         # Si no es una matriz de depredación...
 
-                        if l_m_obs[i] is None:
+                        try:
+                            if l_m_obs[i] is None:
+                                vec_obs = None
+                            else:
+                                vec_obs = l_m_obs[i][i_parc, i_etp, :]
+                        except IndexError:
                             vec_obs = None
-                        else:
-                            vec_obs = l_m_obs[i][n_parc, n_etp, :]
 
-                        matr_pred = m[n_parc, :, :, n_etp, :]
+                        matr_pred = m[i_parc, :, :, i_etp, :]
 
                         # Generar el titulo del gráfico. Incluir el nombre de la parcela, si necesario:
                         if egr == 'Transiciones':
@@ -828,18 +832,19 @@ class Red(Simulable):
         for mod, í_etps in modifs.items():
 
             # Una COPIA de la matriz de crecimiento para estas etapas
-            r = crec[:, :, :, í_etps]
+            r = np.take(crec, í_etps, axis=3)
 
             cf = coefs_mod[mod]  # type: dict
 
             # Modificaciones ambientales a la taza de crecimiento intrínsica
             if mod == 'Ninguna':
                 # Sin modificación a r.
-                r[:, í_etps] = np.multiply(cf['r'], paso)
+                np.multiply(cf['r'], paso, out=r)
 
             elif mod == 'Log Normal Temperatura':
                 # r responde a la temperatura con una ecuación log normal.
-                r[:, í_etps] = (cf['r'] * paso) * mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2)
+                np.multiply(cf['r'] * paso,  mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2),
+                            out=r)
 
             else:
                 raise ValueError
@@ -849,7 +854,7 @@ class Red(Simulable):
         # Calcular el crecimiento de la población
         for tp_ec, í_etps in tipos_ec.items():
 
-            crec_etp = crec[:, :, :, í_etps]  # COPIA de la parte de la matriz "crec" de esta etapa.
+            crec_etp = np.take(crec, í_etps, axis=3)  # COPIA de la parte de la matriz "crec" de esta etapa.
 
             pobs_etps = pobs[:, :, :, í_etps]  # La población de esta etapa
             cf = coefs_ec[tp_ec]  # type: dict
@@ -1005,11 +1010,11 @@ class Red(Simulable):
 
             # Y ya pasamos a calcular el número de individuos de esta etapa que se reproducen en este paso de tiempo
             cf = coefs_pr[tp_prob]
-            pob_etp = pobs[:, :, :, í_etps]
+            pob_etp = np.take(pobs, í_etps, axis=3)
 
             # Una referencia a la parte apriopiada de la matriz de reproducciones
             n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
-            repr_etp_recip = reprod[..., í_etps]
+            repr_etp_recip = np.take(reprod, í_etps, axis=3)
 
             if tp_prob == 'Constante':
                 # Reproducciones en proporción al tamaño de la población.
@@ -1069,8 +1074,8 @@ class Red(Simulable):
         for tp_ec, í_etps in tipos_ec.items():
 
             cf = coefs[tp_ec]
-            muerte_etp = muertes[:, :, :, í_etps]
-            pob_etp = pobs[:, :, :, í_etps]  # La población de estas etapas
+            muerte_etp = np.take(muertes, í_etps, axis=3)
+            pob_etp = np.take(pobs, í_etps, axis=3)  # La población de estas etapas
 
             if tp_ec == 'Constante':
                 # Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
@@ -1119,7 +1124,7 @@ class Red(Simulable):
     def _calc_trans(símismo, pobs, paso, trans):
         """
         Esta función calcula las transiciones de organismos de una etapa a otra. Esto puede incluir muerte por
-          viejez.
+        viejez.
 
         :param pobs:
         :type pobs: np.ndarray
@@ -1145,7 +1150,7 @@ class Red(Simulable):
             cf = coefs_pr[tp_prob]
 
             # Una COPIA de la parte apriopiada de la matriz de transiciones
-            trans_etp = trans[..., í_etps]
+            trans_etp = np.take(trans, í_etps, axis=3)
 
             if tp_prob == 'Constante':
                 # Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
@@ -1355,9 +1360,9 @@ class Red(Simulable):
         antes = ft.now()
         símismo._calc_ruido(pobs=pobs, paso=paso)
         fin = ft.now()
-        t_ruido = fin-antes
+        t_ruido = fin-antes_0
 
-        if True:
+        if False:
             print('Tiempo total: {}'.format(fin-antes))
             print('\tDepred:\t{}'.format(t_depred))
             print('\tCrec:\t{}'.format(t_crec))
@@ -1489,7 +1494,7 @@ class Red(Simulable):
         No hay nada nada que hacer, visto que una Red no tiene coeficientes propios.
         """
 
-        return []
+        return [], []
 
     def añadir_exp(símismo, experimento, corresp=None, corresp_pobs=None, corresp_crec=None, corresp_repr=None,
                    corresp_trans=None, corresp_muertes=None):
@@ -1868,7 +1873,7 @@ class Red(Simulable):
 
         # Generamos la lista de matrices de predicciones. Las ubicaciones se guardan automáticamente.
         l_preds = símismo.dic_simul['l_m_preds_todas']
-        dic_a_lista(d=d_preds, l=l_preds, u=símismo.dic_simul['l_ubics_m_preds'])
+        dic_a_lista(d=d_preds, l=l_preds, l_u=símismo.dic_simul['l_ubics_m_preds'])
 
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
 
@@ -2364,6 +2369,32 @@ class Red(Simulable):
         # Para simplificar el código
         pobs = símismo.predics['Cohortes']['Pobs']
         edades = símismo.predics['Cohortes']['Edades']
+
+        """
+        totales = np.sum(pobs, axis=0)
+        quitar = np.floor(np.divide(muertes, totales) * pobs)
+        
+        if í_recip is not None:
+
+            if í_don is None:
+                raise ValueError
+
+            # Los índices (en la matriz de cohortes) de las etapas recipientes.
+            í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
+
+            í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
+
+            # Las edades de las etapas que se quitaron
+            eds = edades
+
+            # Cambiar el orden de las etapas para los cohortes recipientes
+            nuevos = np.zeros_like(quitar)
+            nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
+            símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
+            
+        faltan = totales - quitar
+        
+        """
 
         muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
 

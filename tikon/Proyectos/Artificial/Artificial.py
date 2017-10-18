@@ -118,11 +118,14 @@ def _simul_a_exp(red):
 
     etps_interés = [i for i, _ in enumerate(red.etapas) if all(i not in f.values() for f in red.fantasmas.values())]
 
+    # Saltar la hoja de coco. Causa muchos problemas.
+    etps_interés = etps_interés[1:]
+
     archivo = 'temp.csv'
 
     with open(archivo, 'w', newline='') as arch_csv:
         escritorcsv = csv.writer(arch_csv)
-        escritorcsv.writerow(['Día'] + ['Etapa %i' % i for i in range(len(etps_interés))])
+        escritorcsv.writerow(['Día'] + ['Etapa %i' % i for i in etps_interés])
         for día in range(preds.shape[-1]):
             l_vals = [día] + list(preds[0, 0, 0, etps_interés, día])
             escritorcsv.writerow(l_vals)
@@ -135,6 +138,7 @@ def _simul_a_exp(red):
 
 def _agregar_exp(red, exper):
     etps_interés = [i for i in range(len(red.etapas)) if all(i not in f.values() for f in red.fantasmas.values())]
+    etps_interés = etps_interés[1:]
 
     corresp = {}
     for etp in etps_interés:
@@ -185,27 +189,29 @@ _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 # Validar con estos valores
 print('Validación inicial...')
 _agregar_exp(red=Red_coco, exper=Exper_artificial)
-# valid_perfecta = Red_coco.validar(nombre='Valid con verdaderos', exper=Exper_artificial, usar_especificadas=True,
-#                                   detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
-#                                   n_rep_parám=30, n_rep_estoc=30)
-# print('Validación Perfecta\n********************')
-# pprint(valid_perfecta)
+valid_perfecta = Red_coco.validar(nombre='Valid con verdaderos', exper=Exper_artificial, usar_especificadas=True,
+                                  detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
+                                  n_rep_parám=30, n_rep_estoc=30)
+print('Validación Perfecta\n********************')
+pprint(valid_perfecta)
 
 
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
-for p in range(100, 0, -10):
+for p in range(100, -10, -10):
     print('Calibrando con p={}.'.format(p))
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
+    Red_coco.validar(nombre='Valid antes de calib prec. {}'.format(p), exper=Exper_artificial,
+                     usar_especificadas=True, detalles=False, guardar=True,
+                     dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10)
     Red_coco.calibrar(nombre='Calib con prec. {}'.format(p), exper=Exper_artificial,
-                      quema=0, n_iter=5000, extraer=1, dibujar=dib_calibs)
+                      n_rep_estoc=20, quema=0, n_iter=10000, extraer=1, dibujar=dib_calibs)
     Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))
     valid = Red_coco.validar(nombre='Valid con calib prec. {}'.format(p), exper=Exper_artificial,
                              usar_especificadas=True, detalles=False, guardar=True,
-                             dibujar=dib_valid,
-                             n_rep_parám=10, n_rep_estoc=10)
+                             dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10)
 
     print('Resultados de validación después de calib con precisión de {}%:\n============='.format(p))
     pprint(valid)

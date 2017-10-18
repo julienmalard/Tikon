@@ -664,6 +664,9 @@ class Simulable(Coso):
         if 'Calibraciones' not in símismo.receta:
             símismo.receta['Calibraciones'] = {'0': "A prioris no informativos generados automáticamente por Tiko'n."}
 
+        # Un experimento interno al objeto. Muy útil para pequeñas simulaciones de exploración y con pocos datos.
+        símismo.Experimento = Experimento(nombre='Intrínsico', proyecto=proyecto)
+
         # Indica si el Simulable está listo para una simulación.
         símismo.listo = False
 
@@ -730,7 +733,7 @@ class Simulable(Coso):
         # Dejamos la implementación del incremento del modelo a las subclases individuales.
         raise NotImplementedError
 
-    def simular(símismo, exper, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
+    def simular(símismo, exper=None, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
                 mostrar=True, opciones_dib=None, dib_dists=True, valid=False):
         """
@@ -797,6 +800,11 @@ class Simulable(Coso):
 
         # Actualizar el objeto
         símismo.actualizar()
+
+        # Permitir que se use el experimento intrínsico de la Red si no se especificó otra cosa.
+        if exper is None:
+            exper = símismo.Experimento
+            símismo.añadir_exp(exper)
 
         # Poner los experimentos en la forma correcta:
         exper = símismo._prep_lista_exper(exper=exper)
@@ -886,7 +894,9 @@ class Simulable(Coso):
         nombre = símismo._valid_nombre_simul(nombre=nombre)
 
         # 2. Creamos la lista de parámetros que hay que calibrar
-        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todos()
+        lista_paráms, lista_líms, nombres = símismo._gen_lista_coefs_interés_todos()
+        guardar_json({'parám_{}'.format(i): n for i, n in enumerate(nombres)},
+                     os.path.join(os.path.split(__file__)[0], 'paráms.txt'))
 
         # 3. Filtrar coeficientes por calib
         if aprioris is None:
@@ -1095,7 +1105,7 @@ class Simulable(Coso):
         exper = símismo._prep_lista_exper(exper=exper)
 
         # Lista de diccionarios de parámetros y de sus límites teoréticos
-        lista_paráms, lista_líms = símismo._gen_lista_coefs_interés_todos()
+        lista_paráms, lista_líms, nombres = símismo._gen_lista_coefs_interés_todos()
         n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
 
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
@@ -1142,11 +1152,17 @@ class Simulable(Coso):
             llaves_a_dic(llvs=símismo.dic_simul['l_ubics_m_preds'], d=resultado)
             l_resultado = dic_a_lista(resultado)
 
+            for í_m, m in enumerate(l_matrs_pred):
 
-            for m in l_matrs_pred:
+                if len(m.shape) == 5:
 
-                res_día = sobol.analyze(problema, v_pred)
-                l_resultado[í_m][d, :] = res_día
+                    v_pred = m[parc, :, :, etp, día]
+                    v_mu = np.mean(v_pred, axis=0)
+                    v_sigma = np.std(v_pred, axis=0)
+                    res_día = sobol.analyze(problema, v_mu)
+                    l_resultado[í_m][parc, etp, día] = res_día
+                else:
+                    raise()
 
         else:
             raise ValueError
@@ -1226,8 +1242,8 @@ class Simulable(Coso):
         recursiva, tanto como una lista, en el mismo orden, de los límites de dichos coeficientes.
 
         :return: Un tuple conteniendo una lista de todos los coeficientes de interés para la calibración y una lista
-        de sus límites.
-        :rtype: (list, list)
+        de sus límites, seguido por una lista de las ubicaciones de cada parámetro.
+        :rtype: (list, list, lista)
 
         """
 
@@ -1243,7 +1259,7 @@ class Simulable(Coso):
             """
 
             # Inicializar las listas de coeficientes y de límites con los coeficientes y límites del objeto actual.
-            lista_coefs = objeto._sacar_coefs_interno()
+            lista_coefs, lista_nombres = objeto._sacar_coefs_interno()
             lista_líms = objeto._sacar_líms_coefs_interno()
 
             if isinstance(objeto, Simulable):
@@ -1252,9 +1268,10 @@ class Simulable(Coso):
                     resultado = sacar_coefs_recursivo(obj)
                     lista_coefs += resultado[0]
                     lista_líms += resultado[1]
+                    lista_nombres += [[obj.nombre] + x for x in resultado[2]]
 
             # Devolver la lista de coeficientes y la lista de límites
-            return lista_coefs, lista_líms
+            return lista_coefs, lista_líms, lista_nombres
 
         # Implementar la función recursiva arriba
         return sacar_coefs_recursivo(símismo)
@@ -1520,7 +1537,7 @@ class Simulable(Coso):
         d_índs = símismo.dic_simul['d_l_í_calib']
 
         for t_dist, l_matr_v in d_l_m_valid.items():
-            d_dist = d_calib[t_dist]
+            d_dist = d_calib[t_dist]  # type: dict
 
             # Por una razón extraña, PyMC se queja si no hacemos copias aquí. A ver si hay que hacer lo mismo con PyMC3.
             d_dist['mu'] = np.zeros_like(d_dist['mu'])
@@ -1792,8 +1809,12 @@ class Simulable(Coso):
 
             título = ':'.join(ubic[1:-1])
 
-            Arte.graficar_dists(dists=[dist], valores=dist.trace(chain=None)[:],
-                                título=título, archivo=archivo)
+            try:
+                vals = dist.trace(chain=None)[:]
+                Arte.graficar_dists(dists=[dist], valores=vals,
+                                    título=título, archivo=archivo)
+            except AttributeError:
+                pass
 
     def especificar_apriori(símismo, **kwargs):
         """
