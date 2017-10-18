@@ -158,13 +158,13 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
 
 pprint(Red_coco.ver_coefs_no_espec())
 
-# Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
+Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
 # Red_coco.calibrar(exper=Experimento_A, n_iter=10000, quema=0, extraer=10, dibujar=True)
-Red_coco.validar(Experimento_A, n_rep_parám=50, n_rep_estoc=50, opciones_dib=ops_dib, dib_dists=True)
+Red_coco.validar(Experimento_A, n_rep_parám=20, n_rep_estoc=20, opciones_dib=ops_dib, dib_dists=True)
 
 input('¿Seguir?')
 
-Red_coco.validar(Experimento_B, n_rep_parám=10, n_rep_estoc=10)
+# Red_coco.validar(Experimento_B, n_rep_parám=10, n_rep_estoc=10)
 
 Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoides) para O. arenosella en coco, '
                                'empleando a prioris.'

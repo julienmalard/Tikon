@@ -492,12 +492,15 @@ class Organismo(Coso):
         """
         Ver la documentación de Coso.
 
-        :rtype: list
+        :rtype: tuple(list, list)
 
         """
 
         # Una lista para guardar los diccionarios de coeficientes.
         lista_coefs = []
+
+        # Y otra para guardar los nombres de los coeficientes
+        lista_nombres = []
 
         # Para cada etapa del organismo...
         for etp in símismo.etapas:
@@ -524,9 +527,12 @@ class Organismo(Coso):
                         if inters is None:
                             # Si no hay interacciones, guardamos el diccionario así como es.
                             l_coefs = [dic]
+                            l_nombres = [[etp['nombre'], categ, sub_categ, parám]]
 
                         elif type(inters) is list:
                             l_coefs = []
+                            l_nombres = []
+
                             for tipo_inter in inters:
 
                                 for org_inter, v in símismo.config[etp['nombre']][tipo_inter].items():
@@ -539,13 +545,15 @@ class Organismo(Coso):
 
                                     for etp_inter in lista_etps_inter:
                                         l_coefs.append(dic[org_inter][etp_inter])
+                                        l_nombres.append([etp['nombre'], categ, sub_categ, parám, org_inter, etp_inter])
 
                         else:
                             raise ValueError
 
                         lista_coefs += l_coefs
+                        lista_nombres += l_nombres
 
-        return lista_coefs
+        return lista_coefs, lista_nombres
 
     def _sacar_líms_coefs_interno(símismo):
         lista_líms = []
