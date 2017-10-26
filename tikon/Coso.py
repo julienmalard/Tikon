@@ -104,7 +104,7 @@ class Coso(object):
         # Si es una limpieza recursiva, limpiamos todos los objetos vinculados de manera recursiva también.
         if recursivo:
             for coso in símismo.objetos:
-                coso.limpiar_especificados(recursivo=recursivo)
+                coso.borrar_calib(id_calib=id_calib, recursivo=recursivo)
 
     def limpiar_especificados(símismo, recursivo=True):
         """
