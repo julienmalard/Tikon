@@ -60,11 +60,12 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
     formato = formato.lower()
 
     if n_rep_parám is None:
-        if formato == 'simul':
+        if formato == 'calib':
+            n_rep_parám = 1000  # para hacer: verificar
+
+        else:
             raise ValueError('Se debe especificar el número de repeticiones paramétricas para generar las '
                              'distribuciones NumPy para una simulación.')
-        else:
-            n_rep_parám = 1000
 
     if l_lms is None and formato == 'calib':
         raise ValueError('Hay que especificar los límites teoréticos de las distribuciones para generar a prioris'
@@ -382,7 +383,7 @@ def dist_a_texto(dist):
     args = dist.args
 
     nombre_scipy = dist.dist.name
-    nombre_dist = [x for x in Ds.dists if Ds.dists[x]['scipy'] == nombre_scipy][0]
+    nombre_dist = next(x for x in Ds.dists if Ds.dists[x]['scipy'] == nombre_scipy)
 
     texto_dist = '%s~(%s)' % (nombre_dist, str(args))
 
@@ -1160,7 +1161,7 @@ def validar_matr_pred(matr_predic, vector_obs):
     vector_predic = matr_predic.mean(axis=0)
 
     # Calcular R cuadrado
-    r2 = estad.linregress(vector_predic, vector_obs)[2] ** 2
+    r2 = calc_r2(vector_predic, vector_obs)
 
     # Raíz cuadrada normalizada del error promedio
     rcnep = np.divide(np.sqrt(np.square(vector_predic - vector_obs).mean()), np.mean(vector_obs))
@@ -1175,9 +1176,32 @@ def validar_matr_pred(matr_predic, vector_obs):
 
     percentiles = np.divide(np.arange(1, n_días + 1), n_días)
 
-    r2_percentiles = estad.linregress(confianza, percentiles)[2] ** 2
+    r2_percentiles = calc_r2(confianza, percentiles)
 
     return {'r2': r2, 'rcnep': rcnep, 'r2_percentiles': r2_percentiles}
+
+
+def calc_r2(y_obs, y_pred):
+    """
+    Calcula el coeficiente de determinación (R2) entre las predicciones de un modelo y los valores observados.
+    Notar que calcula R2 *entre valores predichos y observados*, y *no* entre un variable predictor y dependiente.
+    Para este últimeo, emplear `scipy.stats.linregress`.
+
+    :param y_obs: Valores observados.
+    :type y_obs: np.ndarray
+    :param y_pred: Valores predichos. (y_sombrero)
+    :type y_pred: np.ndarray
+    :return: El coeficiente de determinación, R2.
+    :rtype: float
+    """
+    prom_y = np.mean(y_obs)
+    sc_rs = np.sum(np.subtract(y_obs, y_pred) ** 2)
+    sc_reg = np.sum(np.subtract(y_pred, prom_y) ** 2)
+    sc_t = sc_rs + sc_reg
+
+    r2 = 1 - np.divide(sc_rs, sc_t)
+
+    return r2
 
 
 # Para hacer: implementar pymc3
