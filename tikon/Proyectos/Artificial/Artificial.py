@@ -6,12 +6,13 @@ from tikon.Proyectos.Opisina_arenosella.Red_Opisina import Red_coco
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
-dib_aprioris = True
-dib_valid_perf = True
-dib_simul = True
-dib_dists = True
-dib_valid = True
-dib_calibs = True
+dib = True
+dib_aprioris = dib
+dib_valid_perf = dib
+dib_simul = dib
+dib_dists = dib
+dib_valid = dib
+dib_calibs = dib
 proyecto = 'Artificial'
 
 
@@ -156,7 +157,7 @@ def _agregar_exp(red, exper):
 # Aplicar a prioris
 _aplicar_a_prioris(red=Red_coco, d_a_pr=a_prioris)
 Coco = Red_coco.organismos['Coco']
-Coco.estimar_densidad(rango=(38000e6, 42000e6), certidumbre=0.95)
+Coco.estimar_densidad(rango=(38, 42), certidumbre=0.95)
 
 # Por el momento, tenemos que conectar con un experimento aunque no lo usemos. Para hacer: Esto tendrá que cambiar
 Exper = Experimento(nombre='Sitio A', proyecto=Red_coco.proyecto)
@@ -210,7 +211,7 @@ for p in range(100, -10, -10):
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))
     valid = Red_coco.validar(nombre='Valid con calib prec. {}'.format(p), exper=Exper_artificial,
-                             usar_especificadas=True, detalles=False, guardar=True,
+                             usar_especificadas=False, detalles=False, guardar=True,
                              dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10)
 
     print('Resultados de validación después de calib con precisión de {}%:\n============='.format(p))

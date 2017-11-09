@@ -21,7 +21,7 @@ Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 
 
 Parasitoide_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
 
-Red_coco = Red(nombre='Red coco_AM', organismos=[O_arenosella, Parasitoide_larvas, Parasitoide_pupa, Coco],
+Red_coco = Red(nombre='Red coco_prueba', organismos=[O_arenosella, Parasitoide_larvas, Parasitoide_pupa, Coco],
                proyecto=proyecto)
 
 Araña = Ins.Sencillo('Araña', proyecto=proyecto)
