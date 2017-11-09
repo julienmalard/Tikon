@@ -347,11 +347,11 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
                 # Crear la distribución
                 dist = clase_dist(nombre, *paráms)
 
-                # Y aplicaar las transformaciones
-                if transform['sum'] != 0:
-                    dist = pymc.Lambda('%s_s' % nombre, lambda x=dist, s=transform['sum']: x + s)
+                # Y aplicar las transformaciones
                 if transform['mult'] != 1:
                     dist = pymc.Lambda('%s_m' % dist, lambda x=dist, m=transform['mult']: x * m)
+                if transform['sum'] != 0:
+                    dist = pymc.Lambda('%s_s' % dist, lambda x=dist, s=transform['sum']: x + s)
 
             else:
                 # Sino, hay error.
@@ -433,7 +433,7 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
         if cont:
             dist = 'Uniforme~({}, {})'.format(rango[0], (rango[1] - rango[0]))
         else:
-            dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1])
+            dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1] + 1)
 
     else:
         # Si hay incertidumbre...
@@ -742,8 +742,8 @@ def límites_a_texto_dist(límites, cont=True):
                 dist = 'Degenerado~({})'.format(máx)
             else:
                 if cont:
-                    loc = máx - mín
-                    dist = 'Uniforme~({}, {})'.format(mín, loc)
+                    esc = máx - mín
+                    dist = 'Uniforme~({}, {})'.format(mín, esc)
                 else:
                     dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
 
@@ -929,10 +929,11 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
                     # Y crear la distribución.
                     dist = dic_dist['pymc'](nombre, *args_pymc)
 
-                    if transform['sum'] != 0:
-                        dist = dist + transform['sum']
                     if transform['mult'] != 1:
                         dist = dist * transform['mult']
+
+                    if transform['sum'] != 0:
+                        dist = dist + transform['sum']
                     mejor_ajuste['dist'] = dist
 
                 else:
@@ -1032,7 +1033,10 @@ def paráms_scipy_a_pymc(tipo_dist, paráms):
         paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
 
     elif tipo_dist == 'Uniforme':
-        paráms_pymc = (paráms[0], paráms[1] + paráms[0])
+        # Normalizar la distribución Uniforme para PyMC. Sino hace muchos problemas.
+        paráms_pymc = (0, 1)
+        transform_pymc['sum'] = paráms[0]
+        transform_pymc['mult'] = paráms[1]
 
     elif tipo_dist == 'VonMises':
         paráms_pymc = (paráms[1], paráms[0])
@@ -1204,147 +1208,114 @@ def calc_r2(y_obs, y_pred):
     return r2
 
 
-# Para hacer: implementar pymc3
 def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
-    if pm3 is None:  # Para hacer: quitar esto después de migrar a PyMC 3
+    if pm3 is None:
         raise ImportError(
             'PyMC 3 (pymc3) no está instalado en esta máquina.\nDeberías de instalarlo un día. De verdad que'
             'es muy chévere.')
 
     transform_pymc = {'mult': 1, 'sum': 0}
 
-    try:
-        clase_dist = Ds.obt_dist(dist=tipo_dist, tipo='pymc3')
-    except ValueError as e:
+    if not Ds.obt_dist(dist=tipo_dist, tipo='pymc3'):
         raise ValueError('La distribución "{}" no parece existir en Tiko\'n al momento.'.format(tipo_dist))
 
     if tipo_dist == 'Beta':
-        dist_pm3 = clase_dist(alpha=paráms['a'], beta=paráms['b'])
+        dist_pm3 = pm3.Beta(alpha=paráms['a'], beta=paráms['b'])
         transform_pymc['mult'] = paráms['scale']
         transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Cauchy':
-        dist_pm3 = clase_dist(alpha=paráms['a'], beta=paráms['scale'])
+        dist_pm3 = pm3.Cauchy(alpha=paráms['a'], beta=paráms['scale'])
 
     elif tipo_dist == 'Chi2':
-        dist_pm3 = clase_dist(nu=paráms['df'])
+        dist_pm3 = pm3.ChiSquared(nu=paráms['df'])
         transform_pymc['mult'] = paráms['scale']
         transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Exponencial':
-        dist_pm3 = clase_dist(lam=1/paráms['scale'])
+        dist_pm3 = pm3.Exponential(lam=1 / paráms['scale'])
         transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Gamma':
-        dist_pm3 = clase_dist(alpha=paráms['alpha'], beta=1/paráms['scale'])
+        dist_pm3 = pm3.Gamma(alpha=paráms['alpha'], beta=1 / paráms['scale'])
         transform_pymc['sum'] = paráms['loc']
 
-    elif tipo_dist == 'MitadCauchy':  # para hacer: trabajar desde aquí
-        paráms_pymc = (paráms[0], paráms[1])
-        dist_pm3 = pm3.HalfCauchy()
+    elif tipo_dist == 'MitadCauchy':
+        dist_pm3 = pm3.HalfCauchy(beta=paráms['scale'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'MitadNormal':
-        paráms_pymc = (1 / paráms[1] ** 2,)
-        transform_pymc['sum'] = paráms[0]
-        dist_pm3 = pm3.HalfNormal()
+        dist_pm3 = pm3.HalfNormal(sd=paráms['scale'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'GammaInversa':
-        paráms_pymc = (paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.InverseGamma()
+        dist_pm3 = pm3.InverseGamma(alpha=paráms['a'], beta=paráms['scale'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Laplace':
-        paráms_pymc = (paráms[0], 1 / paráms[1])
-        dist_pm3 = pm3.Laplace()
+        dist_pm3 = pm3.Laplace(mu=paráms['loc'], b=paráms['scale'])
 
     elif tipo_dist == 'Logística':
         paráms_pymc = (paráms[0], 1 / paráms[1])
-        dist_pm3 = NotImplemented
+        dist_pm3 = pm3.Logistic(mu=paráms['loc'], s=paráms['scale'])
 
     elif tipo_dist == 'LogNormal':
-        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0] ** 2))
-        transform_pymc['mult'] = paráms[2]
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Lognormal()
-
-    elif tipo_dist == 'TNoCentral':
-        paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
-        dist_pm3 = NotImplemented
+        dist_pm3 = pm3.Lognormal(mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
 
     elif tipo_dist == 'Normal':
-        paráms_pymc = (paráms[0], 1 / paráms[1] ** 2)
-        dist_pm3 = pm3.Normal()
+        dist_pm3 = pm3.Normal(mu=paráms['loc'], sd=paráms['scale'])
 
     elif tipo_dist == 'Pareto':
-        paráms_pymc = (paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Pareto()
+        dist_pm3 = pm3.Pareto(alpha=paráms['b'], m=paráms['scale'])  # para hacer: verificar
 
     elif tipo_dist == 'T':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
-        dist_pm3 = pm3.StudentT()
+        dist_pm3 = pm3.StudentT(nu=paráms['df'], mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
 
     elif tipo_dist == 'NormalTrunc':
-        mu = paráms[2]
         mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
-        dist_pm3 = pm3.Bound(pm3.Normal)
+        mín_abs, máx_abs = mín * paráms['scale'] + paráms['mu'], máx * paráms['scale'] + paráms['mu']
+        NormalTrunc = pm3.Bound(pm3.Normal, lower=mín_abs, upper=máx_abs)
+        dist_pm3 = NormalTrunc(mu=paráms['loc'], sd=paráms['scale'])
 
     elif tipo_dist == 'Uniforme':
-        paráms_pymc = (paráms[0], paráms[1] + paráms[0])
-        dist_pm3 = pm3.Uniform()
+        dist_pm3 = pm3.Uniform(paráms['loc'], paráms['loc'] + paráms['scale'])
 
     elif tipo_dist == 'VonMises':
-        paráms_pymc = (paráms[1], paráms[0])
-        transform_pymc['mult'] = paráms[2]
-        dist_pm3 = pm3.VonMises()
+        dist_pm3 = pm3.VonMises(mu=paráms['loc'], kappa=paráms['kappa'])
+        transform_pymc['mult'] = paráms['scale']
 
     elif tipo_dist == 'Weibull':
-        dist_pm3 = pm3.Weibull()
         raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
+        dist_pm3 = pm3.Weibull()
 
     elif tipo_dist == 'Bernoulli':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Bernoulli()
+        dist_pm3 = pm3.Bernoulli(p=paráms['p'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Binomial':
-        paráms_pymc = (paráms[0], paráms[1])
-        transform_pymc['sum'] = paráms[2]
-        dist_pm3 = pm3.Binomial()
+        dist_pm3 = pm3.Binomial(n=paráms['n'], p=paráms['p'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Geométrica':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Geometric()
-
-    elif tipo_dist == 'Hypergeométrica':
-        paráms_pymc = (paráms[1], paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[3]
-        dist_pm3 = NotImplemented
+        dist_pm3 = pm3.Geometric(p=paráms['p'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'BinomialNegativo':
-        paráms_pymc = (paráms[1], paráms[0])
-        transform_pymc['sum'] = paráms[2]
-        dist_pm3 = pm3.NegativeBinomial()
+        n = paráms['n']
+        p = paráms['p']
+        dist_pm3 = pm3.NegativeBinomial(mu=n(1-p)/p, alpha=n)  # para hacer: verificar
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Poisson':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        dist_pm3 = pm3.Poisson()
+        dist_pm3 = pm3.Poisson(mu=paráms['mu'])
+        transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'UnifDiscr':
-        paráms_pymc = (paráms[0], paráms[1] - 1)
-        dist_pm3 = pm3.DiscreteUniform()
+        dist_pm3 = pm3.DiscreteUniform(lower=paráms['low'], upper=paráms['high'])
+        transform_pymc['sum'] = paráms['loc']
 
     else:
-        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC 3.' %
+        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones de PyMC 3.' %
                          tipo_dist)
 
     return dist_pm3
-
-
-def anal_sens():
-    pass

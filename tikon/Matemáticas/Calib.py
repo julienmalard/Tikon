@@ -91,19 +91,17 @@ class ModBayes(object):
         l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
                                       l_trazas=aprioris, formato='calib', comunes=False)
 
+        # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
+        l_var_paráms = [x for x in l_var_paráms
+                        if not (isinstance(x, pymc.Uniform) and x.parents['lower'] == x.parents['upper'])
+                        and not isinstance(x, pymc.Degenerate)
+                        ]
+
         # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
         # transformaciones de las distribuciones básicas de PyMC)
         for parám in l_var_paráms:
             if isinstance(parám, pymc.Deterministic):
                 l_var_paráms.append(min(parám.extended_parents))
-
-        # Quitar variables sin incertidumbre. Por una razón muy rara, simul() no funcionará en PyMC sino.
-        for parám in l_var_paráms.copy():
-            if isinstance(parám, pymc.Uniform):
-                if parám.parents['upper'] == parám.parents['lower']:
-                    l_var_paráms.remove(parám)
-            if isinstance(parám, pymc.Degenerate):
-                l_var_paráms.remove(parám)
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
         función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -113,8 +111,8 @@ class ModBayes(object):
         # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
         # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
         @pymc.deterministic(trace=False)
-        def simul(d=dic_argums, _=l_var_paráms):
-            return función(**d)
+        def simul(_=l_var_paráms):
+            return función(**dic_argums)
 
         # Ahora, las observaciones
         l_var_obs = []  # Una lista para los variables de observación

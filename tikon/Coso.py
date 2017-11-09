@@ -1,5 +1,4 @@
 import copy as copiar
-import io
 import json
 import math as mat
 import os
