@@ -743,19 +743,6 @@ class BD(object):
 
         """
 
-        # Una lista de lso formatos de fecha posibles. Esta función intentará de leer los datos de fechas con cada
-        # formato en esta lista y, si encuentra un que funciona, parará allí.
-        separadores = ['-', '/', ' ', '.']
-
-        f = ['%d{0}%m{0}%y', '%m{0}%d{0}%y', '%d{0}%m{0}%Y', '%m{0}%d{0}%Y',
-             '%d{0}%b{0}%y', '%m{0}%b{0}%y', '%d{0}%b{0}%Y', '%b{0}%d{0}%Y',
-             '%d{0}%B{0}%y', '%m{0}%B{0}%y', '%d{0}%B{0}%Y', '%m{0}%B{0}%Y',
-             '%y{0}%m{0}%d', '%y{0}%d{0}%m', '%Y{0}%m{0}%d', '%Y{0}%d{0}%m',
-             '%y{0}%b{0}%d', '%y{0}%d{0}%b', '%Y{0}%b{0}%d', '%Y{0}%d{0}%b',
-             '%y{0}%B{0}%d', '%y{0}%d{0}%B', '%Y{0}%B{0}%d', '%Y{0}%d{0}%B']
-
-        formatos_posibles = [x.format(s) for s in separadores for x in f]
-
         # Primero, si los datos de fechas están en formato simplemente numérico...
         if all([x.isdigit() for x in lista_fechas]):
 
@@ -768,6 +755,19 @@ class BD(object):
         else:
             # Sino, intentar de leer el formato de fecha
             fechas = None
+
+            # Una lista de lso formatos de fecha posibles. Esta función intentará de leer los datos de fechas con cada
+            # formato en esta lista y, si encuentra un que funciona, parará allí.
+            separadores = ['-', '/', ' ', '.']
+
+            f = ['%d{0}%m{0}%y', '%m{0}%d{0}%y', '%d{0}%m{0}%Y', '%m{0}%d{0}%Y',
+                 '%d{0}%b{0}%y', '%m{0}%b{0}%y', '%d{0}%b{0}%Y', '%b{0}%d{0}%Y',
+                 '%d{0}%B{0}%y', '%m{0}%B{0}%y', '%d{0}%B{0}%Y', '%m{0}%B{0}%Y',
+                 '%y{0}%m{0}%d', '%y{0}%d{0}%m', '%Y{0}%m{0}%d', '%Y{0}%d{0}%m',
+                 '%y{0}%b{0}%d', '%y{0}%d{0}%b', '%Y{0}%b{0}%d', '%Y{0}%d{0}%b',
+                 '%y{0}%B{0}%d', '%y{0}%d{0}%B', '%Y{0}%B{0}%d', '%Y{0}%d{0}%B']
+
+            formatos_posibles = [x.format(s) for s in separadores for x in f]
 
             # Intentar con cada formato en la lista de formatos posibles
             for formato in formatos_posibles:
