@@ -556,10 +556,10 @@ class Red(Simulable):
                         else:
                             título = '{op}{org}, etapa "{etp}"'.format(op=op, org=org, etp=etp)
 
-                        Arte.gráfico(matr_predic=matr_pred, vector_obs=vec_obs,
-                                     título=título, etiq_y=egr,
-                                     n_líneas=n_líneas, incert=incert,
-                                     mostrar=mostrar, directorio=dir_img)
+                        Arte.graficar_pred(matr_predic=matr_pred, vector_obs=vec_obs,
+                                           título=título, etiq_y=egr,
+                                           n_líneas=n_líneas, incert=incert,
+                                           mostrar=mostrar, directorio=dir_img)
                     else:
                         # Si es una matriz de depredación...
 
@@ -577,7 +577,7 @@ class Red(Simulable):
                             org_víc = símismo.etapas[n_etp_víc]['org']
 
                             # La matriz de predicciones
-                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 4: etp víctima, 5: día
+                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: etp depred, 4: etp víctima, 5: día
                             matr_pred = m[n_parc, ..., n_etp, n_etp_víc, :]  # Eje 0: estoc, 1: parám, 2: día
 
                             if n_parc > 1:
@@ -590,10 +590,10 @@ class Red(Simulable):
                                     .format(org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
 
                             # Generar el gráfico
-                            Arte.gráfico(matr_predic=matr_pred,
-                                         título=título, etiq_y='Depredación',
-                                         n_líneas=n_líneas, incert=incert,
-                                         mostrar=mostrar, directorio=dir_img)
+                            Arte.graficar_pred(matr_predic=matr_pred,
+                                               título=título, etiq_y='Depredación',
+                                               n_líneas=n_líneas, incert=incert,
+                                               mostrar=mostrar, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
         """
@@ -1480,6 +1480,83 @@ class Red(Simulable):
         valid = validar_matr_pred(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
 
         return {'Valid': valid, 'Valid detallades': valids_detalles}
+
+    def _procesar_matrs_sens(símismo):
+        """
+        Ver la documentación de `Coso`.
+        :return:
+        :rtype: (list[np.ndarray], list[list[str]])
+        """
+
+        l_matrs_pred = símismo.dic_simul['l_m_preds_todas']
+        l_ubics_m_preds = símismo.dic_simul['l_ubics_m_preds']
+
+        l_preds_proc = []
+        l_ubics_preds_proc = []
+
+        for m, u in zip(l_matrs_pred, l_ubics_m_preds):
+
+            n_parc = m.shape[0]
+
+            for i_prc in range(n_parc):
+                exp = u[0]
+                prc = símismo.info_exps['parcelas'][exp][i_prc]
+                for i_etp, d_etp in enumerate(símismo.etapas):
+
+                    etp = d_etp['nombre']
+                    org = d_etp['org']
+
+                    if len(m.shape) == 5:
+                        # Si no es una matriz de depredación...
+
+                        # La matriz de predicciones
+                        # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: etp víctima, 4: día
+                        matr_pred = m[i_prc, :, :, i_etp, :]  # Eje 0: estoc, 1: parám, 2: día
+                        mu = np.mean(matr_pred, axis=0)  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, 4: día
+                        sigma = np.std(matr_pred, axis=0)
+
+                        ubic_mu = u + [prc, org, etp, mu]
+                        ubic_sigma = u + [prc, org, etp, sigma]
+
+                        l_preds_proc += mu
+                        l_ubics_preds_proc += ubic_mu
+
+                        l_preds_proc += sigma
+                        l_ubics_preds_proc += ubic_sigma
+
+                    else:
+                        # Si es una matriz de depredación...
+
+                        presas = [símismo.núms_etapas[o][e]
+                                  for o, d_e in símismo.etapas[i_etp]['conf']['presa'].items()
+                                  for e in d_e]
+                        huéspedes = [símismo.núms_etapas[o][e]
+                                     for o, d_e in símismo.etapas[i_etp]['conf']['huésped'].items()
+                                     for e in d_e['entra']]
+                        víctimas = presas + huéspedes
+
+                        for i_etp_víc in víctimas:  # type: int
+
+                            etp_víc = símismo.etapas[i_etp_víc]['nombre']
+                            org_víc = símismo.etapas[i_etp_víc]['org']
+
+                            # La matriz de predicciones
+                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: etp depred, 4: etp víctima, 5: día
+                            matr_pred = m[prc, ..., i_etp, i_etp_víc, :]  # Eje 0: estoc, 1: parám, 2: día
+
+                            mu = np.mean(matr_pred, axis=0)
+                            sigma = np.std(matr_pred, axis=0)
+
+                            ubic_mu = u + [prc, org, etp, org_víc, etp_víc, mu]
+                            ubic_sigma = u + [prc, org, etp, org_víc, etp_víc, sigma]
+
+                            l_preds_proc += mu
+                            l_ubics_preds_proc += ubic_mu
+
+                            l_preds_proc += sigma
+                            l_ubics_preds_proc += ubic_sigma
+
+        return l_preds_proc, l_ubics_preds_proc
 
     def _sacar_líms_coefs_interno(símismo):
         """
