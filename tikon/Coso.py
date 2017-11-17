@@ -9,6 +9,16 @@ from warnings import warn as avisar
 
 import SALib.analyze.sobol as sobol
 import SALib.sample.saltelli as saltelli
+import SALib.sample.fast_sampler as fast_sampler
+import SALib.analyze.fast as fast
+import SALib.sample.morris as morris_muestra
+import SALib.analyze.morris as morris_anlz
+import SALib.sample.latin as latin
+import SALib.analyze.delta as delta
+import SALib.analyze.dgsm as dgsm
+import SALib.sample.ff as ff_muestra
+import SALib.analyze.ff as ff_anlz
+
 import numpy as np
 import pymc
 
@@ -162,7 +172,7 @@ class Coso(object):
         proyecto = símismo._prep_directorio(proyecto)
 
         # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
-        receta_prep = símismo._prep_coefs_json(símismo.receta)
+        receta_prep = dic_np_a_lista(símismo.receta)
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
         guardar_json(dic=receta_prep, archivo=proyecto)
@@ -442,57 +452,6 @@ class Coso(object):
 
                     # Quitar el viejo nombre
                     d.pop(ll)
-
-    @classmethod
-    def _prep_coefs_json(cls, d, d_egr=None):
-        """
-        Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
-        de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
-        quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
-        no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
-        pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
-
-        :param d: El diccionario para convertir
-        :type d: dict
-
-        :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
-        se llama esta función)
-        :type: dict
-
-        """
-
-        if d_egr is None:
-            d_egr = {}
-
-        # Para cada itema (llave, valor) del diccionario
-        for ll, v in d.items():
-            if type(v) is dict:
-                d_egr[ll] = v.copy()
-            else:
-                d_egr[ll] = v
-
-            if type(v) is dict:
-
-                # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-                cls._prep_coefs_json(v, d_egr=d_egr[ll])
-
-            elif type(v) is str:
-
-                # Quitar distribuciones a priori especificadas por el usuario.
-                if ll == 'especificado':
-                    d_egr.pop(ll)
-
-            elif type(v) is np.ndarray:
-
-                # Transformar matrices numpy a texto
-                d_egr[ll] = v.tolist()
-
-            elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
-
-                # Si el itema es un variable de PyMC, borrarlo
-                d_egr.pop(ll)
-
-        return d_egr
 
     @classmethod
     def generar_aprioris(cls):
@@ -928,10 +887,10 @@ class Simulable(Coso):
                                     función_llenar_coefs=símismo._llenar_coefs
                                     )
 
-        # 8. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
+        # 7. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
         símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
 
-        # Si querríamos dibujos de la calibración, hacerlos ahora
+        # 8. Si querríamos dibujos de la calibración, hacerlos ahora
         if dibujar:
             símismo.dibujar_calib()
 
@@ -1094,8 +1053,37 @@ class Simulable(Coso):
 
         return valid
 
-    def sensibilidad(símismo, nombre, exper, n, método='Sobol', por_dist_ingr=0.95, calibs=None,
-                     detalles=False, usar_especificadas=True, calc_2_orden_sobol=False, dibujar=False):
+    def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
+                     detalles=False, usar_especificadas=True, opciones_sens=False, dibujar=False):
+        """
+        Esta función calcula la sensibilidad de los parámetros del modelo. Puede aplicar varios tipos de análisis de
+        sensibilidad.
+
+        :param nombre: El nombre para la simulación de incertidumbre.
+        :type nombre: str
+        :param exper: Los experimentos para incluir.
+        :type exper: str | list | Experimento
+        :param n: El número de valores de parámetros para intentar.
+        :type n: int
+        :param método: El método de análisis. Puede ser uno de `Sobol`, `FAST`, `Morris`, `DMIM`, `DGSM`, o `FF`. Ver
+        el paquete `SALib` para más detalles.
+        :type método: str
+        :param calibs: Las calibraciones para incluir en el análisis.
+        :type calibs: list | str
+        :param por_dist_ingr: El porcentaje de las distribuciones cumulativas de los parámetros para incluir en el
+        análisis.
+        :type por_dist_ingr: float | int
+        :param detalles: Si quieres simular con detalles (o no).
+        :type detalles: bool
+        :param usar_especificadas: Si hay que utilizar a prioris especificados.
+        :type usar_especificadas: bool
+        :param opciones_sens: Opciones específicos al método de análisis de sensibilidad.
+        :type opciones_sens: dict
+        :param dibujar: Si hay que dibujar los resultados.
+        :type dibujar: bool
+        :return: Un tuple de la lista de nombres de los párámetros y de un diccionario con los resultados.
+        :rtype: (list[list], dict)
+        """
 
         # Validar el nombre de la simulación para esta corrida
         nombre = símismo._valid_nombre_simul(nombre=nombre)
@@ -1103,13 +1091,15 @@ class Simulable(Coso):
         # Poner los experimentos en la forma correcta
         exper = símismo._prep_lista_exper(exper=exper)
 
-        # Lista de diccionarios de parámetros y de sus límites teoréticos
-        lista_paráms, lista_líms, nombres = símismo._gen_lista_coefs_interés_todos()
-        n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
+        # La lista de diccionarios de parámetros y de sus límites teoréticos
+        lista_paráms, lista_líms, nombres_paráms = símismo._gen_lista_coefs_interés_todos()
 
+        # Las calibraciones para utilizar para el análisis
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
                                                usar_especificadas=usar_especificadas)
 
+        # Una lista de las distribuciones de los parámetros. Esta función también llena los diccionarios de los
+        # parámetros con estas mismas distribuciones.
         lista_dists = Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs,
                                             formato='sensib', comunes=False, l_lms=lista_líms)
 
@@ -1117,62 +1107,207 @@ class Simulable(Coso):
         lista_líms_efec = Incert.dists_a_líms(l_dists=lista_dists, por_dist_ingr=por_dist_ingr)
 
         # Definir los parámetros del análisis en el formato que le gusta al paquete SALib.
+        n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
         problema = {
             'num_vars': n_paráms,  # El número de parámetros
             'names': [str(x) for x in range(n_paráms)],  # Nombres numéricos muy sencillos
             'bounds': lista_líms_efec  # La lista de los límites de los parámetros para el analisis de sensibilidad
         }
 
-        # La matriz de resultados de análisis de sensibilidad para devolver
-        resultado = {}
+        # Finalmente, hacer el análisis de sensibilidad. Primero generamos los valores de parámetros para intentar.
+        método_mín = método.lower()
 
-        # Finalmente, hacer el análisis de sensibilidad.
-        if método == 'Sobol':
+        if método_mín == 'sobol':
+            # Preparar opciones
+            conv_ops_muestrear = {'calc_segundo_orden': 'calc_second_order'}
+            conv_ops_anlz = {'calc_segundo_orden': 'calc_second_order', 'núm_remuestreos': 'num_resamples',
+                             'nivel_conf': 'conf_level', 'paralelo': 'parallel', 'n_procesadores': 'n_processors'}
+
+            # La opciones para las funciones de de muestreo y de análisis
+            ops_muestrear = {conv_ops_muestrear[a]: val for a, val in opciones_sens.items() if a in conv_ops_muestrear}
+            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
 
             # Calcular cuáles valores de parámetros tenemos que poner para el análisis Sobol
-            vals_paráms = saltelli.sample(problema, n, calc_second_order=calc_2_orden_sobol)
+            vals_paráms = saltelli.sample(problem=problema, N=n, **ops_muestrear)
 
-            # Aplicar estas matrices de parámetros a los diccionarios de coeficientes
-            for n, vals in enumerate(vals_paráms):
-                lista_paráms[n][nombre] = vals
+            # La función de análisis
+            fun_anlz = sobol.analyze
 
-            # El número de repeticiones paramétricas
-            n_rep_parám = len(vals_paráms[0])
+        elif método_mín == 'fast':
+            # Preparar opciones
+            if 'M' in opciones_sens:
+                ops_muestrear = ops_anlz = {'M': opciones_sens['M']}
+            else:
+                ops_muestrear = ops_anlz = {}
 
-            # Hay que poner usar_especificadas=False aquí para evitar que distribuciones especificadas tomen el
-            # lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True asegurar que se
-            # guarde el orden de los valores de los variables tales como especificados por SALib.
-            símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                            dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+            # Calcular para FAST
+            vals_paráms = fast_sampler.sample(problem=problema, N=n, **ops_muestrear)
 
-            # Para hacer: crear esta sección
+            # La función de análisis
+            fun_anlz = fast.analyze
 
-            l_matrs_pred = símismo.dic_simul['l_m_preds_todas']
-            llaves_a_dic(llvs=símismo.dic_simul['l_ubics_m_preds'], d=resultado)
-            l_resultado = dic_a_lista(resultado)
+        elif método_mín == 'morris':
+            # Preparar opciones
+            conv_ops_muestrear = {'núm_niveles': 'num_levels', 'salto_cuadr': 'grid_jump',
+                                  'traj_optimal': 'optimal_trajectories', 'opt_local': 'local_optimization'}
+            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level',
+                             'salto_cuadr': 'grid_jump', 'núm_niveles': 'num_levels'}
 
-            for í_m, m in enumerate(l_matrs_pred):
+            # La opciones para las funciones de de muestreo y de análisis
+            ops_muestrear = {conv_ops_muestrear[a]: val for a, val in opciones_sens.items() if a in conv_ops_muestrear}
+            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
 
-                if len(m.shape) == 5:
+            # Calcular para Morris
+            vals_paráms = morris_muestra.sample(problem=problema, N=n, **ops_muestrear)
+            ops_anlz['X'] = vals_paráms
 
-                    v_pred = m[parc, :, :, etp, día]
-                    v_mu = np.mean(v_pred, axis=0)
-                    v_sigma = np.std(v_pred, axis=0)
-                    res_día = sobol.analyze(problema, v_mu)
-                    l_resultado[í_m][parc, etp, día] = res_día
-                else:
-                    raise()
+            # La función de análisis
+            fun_anlz = morris_anlz
+
+        elif método_mín == 'dmim':
+            # Preparar opciones
+            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level'}
+            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
+
+            # Calcular para DMIM
+            vals_paráms = latin.sample(problem=problema, N=n)
+            ops_anlz['X'] = vals_paráms
+
+            # La función de análisis
+            fun_anlz = delta.analyze
+
+        elif método_mín == 'dgsm':  # para hacer: verificar
+            # Preparar opciones
+            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level'}
+            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
+
+            # Calcular para DGSM
+            vals_paráms = saltelli.sample(problem=problema, N=n)
+            ops_anlz['X'] = vals_paráms
+
+            # La función de análisis
+            fun_anlz = dgsm
+
+        elif método_mín == 'ff':
+            # Preparar opciones
+            if 'segundo_orden' in opciones_sens:
+                ops_anlz = {'second_order': opciones_sens['segundo_orden']}
+            else:
+                ops_anlz = {}
+
+            # Calcular para FF
+            vals_paráms = ff_muestra.sample(problem=problema)
+            ops_anlz['X'] = vals_paráms
+
+            # La función de análisis
+            fun_anlz = ff_anlz
 
         else:
-            raise ValueError
+            raise ValueError('Método de análisis de sensibilidad "{}" no reconocido.'.format(método))
 
-        if dibujar:
-            pass
+        # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes
+        for n, vals in enumerate(vals_paráms):
+            lista_paráms[n][nombre] = vals
 
-        # Borrar las distribuciones de
+        # El número de repeticiones paramétricas
+        n_rep_parám = len(vals_paráms[0])
+
+        # Correr la simulación. Hay que poner usar_especificadas=False aquí para evitar que distribuciones
+        # especificadas tomen el lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True
+        # asegurar que se guarde el orden de los valores de los variables tales como especificados por SALib.
+        símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
+                        dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+
+        # Procesar las matrices
+        l_matrs_proc, ubics_m = símismo._procesar_matrs_sens()
+
+        # Borrar las distribuciones creadas para el análisis
         símismo.borrar_calib(id_calib=nombre)
 
-        return resultado
+        # Una lista para guardar los resultados. Cada diccionario en la lista tiene el formato siguiente:
+        # {índice_sensibilidad1: [matriz de resultados, eje 0 = parám, (eje 1 = parám2), eje -1 = día)],
+        #  índice_sensibilidad2: ...}
+        l_d_sens = []
+
+        # Por fin, analizar la sensibilidad
+        for m in l_matrs_proc:
+            # Para cada matriz procesada...
+
+            # El diccionario para los resultados
+            d_sens = {}
+
+            # Agregarlo a la lista de resultados
+            l_d_sens.append(d_sens)
+
+            # Llenar la matriz de resultados para cada día de simulación
+            n_días = m.shape[1]
+            for d in range(n_días):
+                # Para cada día de simulación...
+
+                # Analizar la sensibilidad
+                d_egr_sens = fun_anlz(problema, Y=m[:, d], **ops_anlz)
+
+                for egr, m_egr in d_egr_sens.items():
+                    # Para cada tipo de egreso del análisis de sensibilidad...
+
+                    # Crear la matriz de resultados vacía, si necesario
+                    if egr not in d_sens:
+                        d_sens[egr] = np.zeros((*m_egr.shape, n_días))
+
+                    # Llenar los datos para este día
+                    d_sens[egr][:, d] = d_egr_sens[egr]
+
+        # Convertir la lista de resultados de AS a un diccionario de resultados para devolver al usuario
+        resultado = llaves_a_dic(l_ubics=ubics_m, vals=l_d_sens)
+
+        # Si necesario, dibujar los resultados
+        if dibujar:
+
+            for ubic, d in zip(ubics_m, l_d_sens):
+                # Para cada matriz de análisis de sensibilidad...
+
+                for índ, m in d.items():
+                    # Para cada índice de sensibilidad y su matriz de resultados correspondiente...
+
+                    # El directorio del gráfico
+                    direc = os.path.join(símismo.proyecto, símismo.nombre, nombre, *ubic)
+                    direc = símismo._prep_directorio(directorio=direc)
+                    símismo._prep_directorio(direc)
+
+                    if len(m.shape) == 2:
+                        # Si no tenemos interacción de parámetros...
+
+                        for i, prm in enumerate(nombres_paráms):
+                            # Para cada parámetro...
+
+                            # El título del gráfico
+                            título = '{}: {}'.format(prm, índ)
+
+                            # Dibujar el gráfico
+                            Arte.graficar_línea(datos=m[i, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
+                                                título=título, directorio=direc)
+                    elif len(m.shape) == 3:
+                        # Si tenemos interacciones entre parámetros...
+
+                        for i, prm_1 in enumerate(nombres_paráms):
+                            # Para cada parámetro...
+
+                            for j, prm_2 in enumerate(nombres_paráms):
+                                # Para cada parámetro otra vez...
+
+                                # El título del gráfico
+                                título = '{}-{}: {}'.format(prm_1, prm_2, índ)
+
+                                # Dibujar el gráfico
+                                Arte.graficar_línea(datos=m[i, j, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
+                                                    título=título, directorio=direc)
+                    else:
+                        # Si tenemos otra forma de matriz, no sé qué hacer.
+                        raise ValueError('Número de ejes ({}) inesperado. Quejarse al programador.'
+                                         .format(len(m.shape)))
+
+        # Devolver los resultados
+        return nombres_paráms, resultado
 
     def dibujar(símismo, mostrar=True, directorio=None, exper=None, **kwargs):
         """
@@ -1242,7 +1377,7 @@ class Simulable(Coso):
 
         :return: Un tuple conteniendo una lista de todos los coeficientes de interés para la calibración y una lista
         de sus límites, seguido por una lista de las ubicaciones de cada parámetro.
-        :rtype: (list, list, lista)
+        :rtype: (list, list, list)
 
         """
 
@@ -1554,6 +1689,17 @@ class Simulable(Coso):
 
                 else:
                     raise ValueError
+
+    def _procesar_matrs_sens(símismo):
+        """
+        Esta función debe procesar las matrices de egresos de la última simulación para ponerlas en formato correcto
+        para el análisis de sensibilidad.
+
+        :return: Un tuple de la lista de las matrices procesadas y de una lista de las ubicaciones de estas matrices.
+        :rtype: (list[np.ndarray], list[list[str]])
+        """
+
+        raise NotImplementedError
 
     def _prep_lista_exper(símismo, exper):
         """
@@ -1921,6 +2067,57 @@ def dic_lista_a_np(d):
                 pass
 
 
+def dic_np_a_lista(d, d_egr=None):
+    """
+    Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
+    de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
+    quita variables de typo PyMC que no sa han guardado en forma de matriz. Cambia el diccionario in situ, así que
+    no devuelve ningún valor. Una nota importante: esta función puede tomar diccionarios de estructura arbitraria,
+    pero no convertirá exitosamente diccionarios que contienen listas de matrices numpy.
+
+    :param d: El diccionario para convertir
+    :type d: dict
+
+    :param d_egr: El diccionario que se devolverá. Únicamente se usa para recursión (nunca especificar d_egr mientras
+    se llama esta función)
+    :type: dict
+
+    """
+
+    if d_egr is None:
+        d_egr = {}
+
+    # Para cada itema (llave, valor) del diccionario
+    for ll, v in d.items():
+        if type(v) is dict:
+            d_egr[ll] = v.copy()
+        else:
+            d_egr[ll] = v
+
+        if type(v) is dict:
+
+            # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
+            cls.dic_np_a_lista(v, d_egr=d_egr[ll])
+
+        elif type(v) is str:
+
+            # Quitar distribuciones a priori especificadas por el usuario.
+            if ll == 'especificado':
+                d_egr.pop(ll)
+
+        elif type(v) is np.ndarray:
+
+            # Transformar matrices numpy a texto
+            d_egr[ll] = v.tolist()
+
+        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+
+            # Si el itema es un variable de PyMC, borrarlo
+            d_egr.pop(ll)
+
+    return d_egr
+
+
 def guardar_json(dic, archivo):
     """
     Esta función guarda un diccionario con carácteres internacionales en formato JSON.
@@ -1947,6 +2144,8 @@ def dic_a_lista(d, l=None, ll_f=None, l_u=None, u=None):
     :type ll_f: str
     :param l_u: Si hay de devolver una lista de la ubicación de cada itema en la lista
     :type l_u: list
+    :param u:
+    :type u: list
     :return:
     :rtype: list
     """
@@ -1991,3 +2190,42 @@ def llenar_copia_dic_matr(d_f, d_r):
             d_r[ll][:] = v
         else:
             pass
+
+
+def llaves_a_dic(l_ubics, vals):
+    """
+    Esta función toma una lista de ubicaciones (listas de llaves) y valores correspondientes y genera un diccionario.
+    Es el opuesto de `dic_a_lista`.
+
+    :param l_ubics: La lista de ubicaciones de valores.
+    :type l_ubics: list[list[str]]
+    :param vals: La lista de los valores.
+    :type vals: list
+    :return: El diccionario reconstruido.
+    :rtype: dict
+    """
+
+    # Asegurarse que cada valor tenga una ubicación en el diccionario, y vice versa.
+    if len(l_ubics) != len(vals):
+        raise ValueError('La lista de ubicaciones debe tener el mismo tamaño que la lista de valores.')
+
+    # El diccionario, vacío, para devolver
+    dic = {}
+
+    # Llenar el diccionario
+    for val, l_llvs in zip(vals, l_ubics):
+        # Para cada pareja de valor y ubicación...
+
+        d = dic
+        for i, ll in enumerate(l_llvs):
+            if i == len(l_llvs) - 1:
+                # Si es el último elemento en la list de ubicaciones...
+                d[ll] = val  # Guardar el valor
+            else:
+                # Sino, crear la llave y continuar
+                if ll not in d:
+                    d[ll] = {}
+                d = d[ll]
+
+    # Devolver el resultado
+    return dic

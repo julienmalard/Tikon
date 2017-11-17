@@ -8,18 +8,40 @@ from scipy import stats as estad
 from tikon.Matemáticas.Incert import texto_a_dist
 
 
-def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
-            etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', n_líneas=0,
-            mostrar=True, directorio=None):
+def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, directorio=None, mostrar=False):
+    """
+
+    :param datos:
+    :type datos: np.ndarray
+    :param título:
+    :type título: str
+    :param etiq_y:
+    :type etiq_y: str
+    :param etiq_x:
+    :type etiq_x: str
+    :param color:
+    :type color: str
+    :param directorio:
+    :type directorio: str
+
+    """
+
+    graficar_pred(matr_predic=datos, título=título, etiq_y=etiq_y, etiq_x=etiq_x, color=color, directorio=directorio,
+                  mostrar=mostrar, vector_obs=None, promedio=True, n_líneas=0, incert=None)
+
+
+def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
+                  etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', n_líneas=0,
+                  mostrar=True, directorio=None):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
     :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástico, eje 1 = incertidumbre
-    paramétric0, eje 2 = día.
+    paramétrico, eje 2 = día.
     :type matr_predic: np.ndarray
 
     :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
-    :type vector_obs: np.ndarray
+    :type vector_obs: np.ndarray | None
 
     :param tiempos_obs: El vector de los tiempos de las observaciones.
     :type tiempos_obs: np.ndarray
@@ -40,7 +62,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
     :type promedio: bool
 
     :param incert: El tipo de incertidumbre para mostrar (o no). Puede ser None, 'confianza', o 'descomponer'.
-    :type incert: str
+    :type incert: str | None
 
     :param todas_líneas: Si hay que mostrar todas las líneas de las repeticiones o no.
     :type todas_líneas: bool
@@ -93,7 +115,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         dib.plot(tiempos_obs, vector_obs, 'o', color=color, label='Obs')
         dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
 
-    # Incluir la incertidumbre
+    # Incluir el incertidumbre
     if incert is None:
         # Si no quiso el usuario, no poner la incertidumbre
         pass
@@ -186,7 +208,7 @@ def gráfico(matr_predic, título, vector_obs=None, tiempos_obs=None,
         dib.show()
     else:
         if directorio[-4:] != '.png':
-            válidos = (' ','.','_')
+            válidos = (' ', '.','_')
             nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
             directorio = os.path.join(directorio, nombre_arch)
         dib.savefig(directorio)
