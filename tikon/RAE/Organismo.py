@@ -2,7 +2,7 @@ import os
 
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
-from tikon.Matemáticas.Incert import límites_a_texto_apriori
+from tikon.Matemáticas.Incert import límites_a_texto_dist
 
 
 class Organismo(Coso):
@@ -70,7 +70,7 @@ class Organismo(Coso):
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['estr'].values()], key=lambda d: d['posición'])
 
-    def añadir_etapa(símismo, nombre, posición, ecuaciones):
+    def añadir_etapa(símismo, nombre, posición, ecuaciones, lím_error=0.1):
         """
         Esta función añade una etapa al organismo.
 
@@ -127,6 +127,11 @@ class Organismo(Coso):
 
         # Actualizar el organismo
         símismo.actualizar()
+
+        # Aplicar límites a la estocasticidad diaria potenticial para este organismo.
+        if lím_error is not None:
+            símismo.especificar_apriori(etapa=nombre, ubic_parám=['Error', 'Dist', 'Normal', 'sigma'],
+                                        rango=(0, lím_error), certidumbre=1)
 
     def quitar_etapa(símismo, nombre):
         """
@@ -278,7 +283,7 @@ class Organismo(Coso):
                                     if e_víc not in dic[víctima.nombre]:
                                         # Si ya no existía una entrada para esta etapa, generar un a priori no
                                         # informativo
-                                        no_informativo = límites_a_texto_apriori(límites=límites)
+                                        no_informativo = límites_a_texto_dist(límites=límites)
                                         dic[víctima.nombre][e_víc] = {'0': no_informativo}
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
@@ -487,12 +492,15 @@ class Organismo(Coso):
         """
         Ver la documentación de Coso.
 
-        :rtype: list
+        :rtype: tuple(list, list)
 
         """
 
         # Una lista para guardar los diccionarios de coeficientes.
         lista_coefs = []
+
+        # Y otra para guardar los nombres de los coeficientes
+        lista_nombres = []
 
         # Para cada etapa del organismo...
         for etp in símismo.etapas:
@@ -519,9 +527,12 @@ class Organismo(Coso):
                         if inters is None:
                             # Si no hay interacciones, guardamos el diccionario así como es.
                             l_coefs = [dic]
+                            l_nombres = [[etp['nombre'], categ, sub_categ, parám]]
 
                         elif type(inters) is list:
                             l_coefs = []
+                            l_nombres = []
+
                             for tipo_inter in inters:
 
                                 for org_inter, v in símismo.config[etp['nombre']][tipo_inter].items():
@@ -534,13 +545,15 @@ class Organismo(Coso):
 
                                     for etp_inter in lista_etps_inter:
                                         l_coefs.append(dic[org_inter][etp_inter])
+                                        l_nombres.append([etp['nombre'], categ, sub_categ, parám, org_inter, etp_inter])
 
                         else:
                             raise ValueError
 
                         lista_coefs += l_coefs
+                        lista_nombres += l_nombres
 
-        return lista_coefs
+        return lista_coefs, lista_nombres
 
     def _sacar_líms_coefs_interno(símismo):
         lista_líms = []
@@ -601,6 +614,11 @@ class Organismo(Coso):
         # Para cada etapa del organismo...
         for etp in símismo.etapas:
             for categ in sorted(Ec.ecs_orgs):
+
+                # No contar a prioris de errores que faltan
+                if categ == 'Error':
+                    continue
+
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
                     tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
                     dic_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec]
@@ -646,6 +664,11 @@ class Organismo(Coso):
         :type etp: str
 
         """
+
+        # Implementar error estocástico normal si no ha sido especificado ya.
+        if 'Error' not in ecs:
+            ecs['Error'] = {}
+            ecs['Error']['Dist'] = 'Normal'
 
         # Para cada categoría de ecuaciones...
         for categ, d_categ in símismo.dic_info_ecs.items():

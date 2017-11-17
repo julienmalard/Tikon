@@ -282,7 +282,7 @@ setup(
                      'de cultivos existentes.',
     requires=['pymc', 'numpy', 'matplotlib', 'scipy', 'SALib'],
     classifiers=[
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     package_data={
         # Incluir estos documentos de los paquetes:
