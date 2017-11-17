@@ -90,11 +90,11 @@ class Planta(Organismo):
         """
 
         :param rango:
-        :type rango:
+        :type rango: tuple[float | int, float | int]
         :param certidumbre:
-        :type certidumbre:
+        :type certidumbre: float | int
         :param parte:
-        :type parte:
+        :type parte: str
 
         """
 

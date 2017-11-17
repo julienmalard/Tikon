@@ -161,117 +161,117 @@ ecs_orgs = {
              },
 
     'Transiciones': {
-                     'Prob': {'Nada': {},
+        'Prob': {'Nada': {},
 
-                              'Constante': {'q': {'límites': (0, 1),
-                                                  'inter': None}
-                                            },
+                 'Constante': {'q': {'límites': (0, 1),
+                                     'inter': None}
+                               },
 
-                              'Normal': {'mu': {'límites': (0, np.inf),
-                                                'inter': None},
-                                         'sigma': {'límites': (0, np.inf),
-                                                   'inter': None}
-                                         },
-                              'Triang': {'a': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'b': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'c': {'límites': (0, np.inf),
-                                               'inter': None}
-                                         },
-                              'Cauchy': {'u': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'f': {'límites': (0, np.inf),
-                                               'inter': None}
-                                         },
-                              'Gamma': {'u': {'límites': (0, np.inf),
-                                              'inter': None},
-                                        'f': {'límites': (0, np.inf),
-                                              'inter': None},
-                                        'a': {'límites': (0, np.inf),
-                                              'inter': None}
-                                        },
-                              'Logística': {'u': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            'f': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            },
-                              'T': {'k': {'límites': (0, np.inf),
-                                          'inter': None},
-                                    'mu': {'límites': (0, np.inf),
-                                           'inter': None},
-                                    'sigma': {'límites': (0, np.inf),
-                                              'inter': None}
-                                    }
-                              },
+                 'Normal': {'mu': {'límites': (0, np.inf),
+                                   'inter': None},
+                            'sigma': {'límites': (0, np.inf),
+                                      'inter': None}
+                            },
+                 'Triang': {'a': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'b': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'c': {'límites': (0, np.inf),
+                                  'inter': None}
+                            },
+                 'Cauchy': {'u': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'f': {'límites': (0, np.inf),
+                                  'inter': None}
+                            },
+                 'Gamma': {'u': {'límites': (0, np.inf),
+                                 'inter': None},
+                           'f': {'límites': (0, np.inf),
+                                 'inter': None},
+                           'a': {'límites': (0, np.inf),
+                                 'inter': None}
+                           },
+                 'Logística': {'u': {'límites': (0, np.inf),
+                                     'inter': None},
+                               'f': {'límites': (0, np.inf),
+                                     'inter': None},
+                               },
+                 'T': {'k': {'límites': (0, np.inf),
+                             'inter': None},
+                       'mu': {'límites': (0, np.inf),
+                              'inter': None},
+                       'sigma': {'límites': (0, np.inf),
+                                 'inter': None}
+                       }
+                 },
 
-                     'Mult': {'Nada': {},
+        'Mult': {'Nada': {},
 
-                              'Linear': {'a': {'límites': (0, np.inf),
-                                               'inter': None}
-                                         }
-                              }
-                     },
+                 'Linear': {'a': {'límites': (0, np.inf),
+                                  'inter': None}
+                            }
+                 }
+    },
 
     'Reproducción': {
-                     'Prob': {'Nada': {},
+        'Prob': {'Nada': {},
 
-                              'Constante': {'a': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            },
-                              'Depredación': {'n': {'límites': (0, np.inf),
-                                                    'inter': ['presa']}
-                                              },
-                              'Normal': {'n': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'mu': {'límites': (0, np.inf),
-                                                'inter': None},
-                                         'sigma': {'límites': (0, np.inf),
-                                                   'inter': None}
-                                         },
-                              'Triang': {'n': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'a': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'b': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'c': {'límites': (0, np.inf),
-                                               'inter': None}
-                                         },
-                              'Cauchy': {'n': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'u': {'límites': (0, np.inf),
-                                               'inter': None},
-                                         'f': {'límites': (0, np.inf),
-                                               'inter': None}
-                                         },
-                              'Gamma': {'n': {'límites': (0, np.inf),
-                                              'inter': None},
-                                        'u': {'límites': (0, np.inf),
-                                              'inter': None},
-                                        'f': {'límites': (0, np.inf),
-                                              'inter': None},
-                                        'a': {'límites': (0, np.inf),
-                                              'inter': None}
-                                        },
-                              'Logística': {'n': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            'u': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            'f': {'límites': (0, np.inf),
-                                                  'inter': None},
-                                            },
-                              'T': {'n': {'límites': (0, np.inf),
-                                          'inter': None},
-                                    'k': {'límites': (0, np.inf),
-                                          'inter': None},
-                                    'mu': {'límites': (0, np.inf),
-                                           'inter': None},
-                                    'sigma': {'límites': (0, np.inf),
-                                              'inter': None}
-                                    }
-                              }
-                     },
+                 'Constante': {'a': {'límites': (0, np.inf),
+                                     'inter': None},
+                               },
+                 'Depredación': {'n': {'límites': (0, np.inf),
+                                       'inter': ['presa']}
+                                 },
+                 'Normal': {'n': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'mu': {'límites': (0, np.inf),
+                                   'inter': None},
+                            'sigma': {'límites': (0, np.inf),
+                                      'inter': None}
+                            },
+                 'Triang': {'n': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'a': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'b': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'c': {'límites': (0, np.inf),
+                                  'inter': None}
+                            },
+                 'Cauchy': {'n': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'u': {'límites': (0, np.inf),
+                                  'inter': None},
+                            'f': {'límites': (0, np.inf),
+                                  'inter': None}
+                            },
+                 'Gamma': {'n': {'límites': (0, np.inf),
+                                 'inter': None},
+                           'u': {'límites': (0, np.inf),
+                                 'inter': None},
+                           'f': {'límites': (0, np.inf),
+                                 'inter': None},
+                           'a': {'límites': (0, np.inf),
+                                 'inter': None}
+                           },
+                 'Logística': {'n': {'límites': (0, np.inf),
+                                     'inter': None},
+                               'u': {'límites': (0, np.inf),
+                                     'inter': None},
+                               'f': {'límites': (0, np.inf),
+                                     'inter': None},
+                               },
+                 'T': {'n': {'límites': (0, np.inf),
+                             'inter': None},
+                       'k': {'límites': (0, np.inf),
+                             'inter': None},
+                       'mu': {'límites': (0, np.inf),
+                              'inter': None},
+                       'sigma': {'límites': (0, np.inf),
+                                 'inter': None}
+                       }
+                 }
+    },
 
     'Movimiento': {
         # 'Ecuación': {None: {},
@@ -287,6 +287,14 @@ ecs_orgs = {
         #                       },
         #       'Radiación': {}
         #       },
+    },
+
+    'Error': {
+        'Dist': {
+            'Normal': {'sigma': {'límites': (0, 1),
+                                 'inter': None}
+                       }
+        }
     }
 
 }
@@ -926,7 +934,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
                 # el número de identificación '0'.
                 if 'inter' not in v.keys() or v['inter'] is None:
                     # Si no hay interacciones, es muy fácil
-                    d[ll]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                    d[ll]['0'] = Incert.límites_a_texto_dist(v['límites'])
 
                 else:
                     # Si hay interacciones, hay que repetir el parámetro para cada interacción.
@@ -939,7 +947,7 @@ def gen_ec_inic(d_ecs, inter=None, d=None):
                             d[ll][i] = {}
 
                             # Llenar el nuevo diccionario con su distribución no informativa
-                            d[ll][i]['0'] = Incert.límites_a_texto_apriori(v['límites'])
+                            d[ll][i]['0'] = Incert.límites_a_texto_dist(v['límites'])
                     else:
                         # Si no se especificarion, pasar
                         pass

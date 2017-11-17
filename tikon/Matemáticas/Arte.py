@@ -198,7 +198,7 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     Esta función genera un gráfico de una o más distribuciones y valores.
 
     :param dists: Una lista de las distribuciones para graficar.
-    :type dists: list
+    :type dists: list[str, pymc.Deterministic, pymc.Stochastic]
 
     :param n: El número de puntos para el gráfico.
     :type n: int
@@ -221,7 +221,7 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if type(dists) is not list:
         dists = [dists]
 
-    dib.close()
+    dib.close()  # Cerrar el gráfico anterior, si había.
 
     # Poner cada distribución en el gráfico
     for dist in dists:
@@ -231,13 +231,13 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
 
         if isinstance(dist, pymc.Stochastic):
             puntos = np.array([dist.rand() for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=100)
+            y, delim = np.histogram(puntos, normed=True, bins=n//100)
             x = 0.5 * (delim[1:] + delim[:-1])
 
         elif isinstance(dist, pymc.Deterministic):
             dist_stoc = min(dist.extended_parents)
             puntos = np.array([(dist_stoc.rand(), dist.value)[1] for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=100)
+            y, delim = np.histogram(puntos, normed=True, bins=n//100)
             x = 0.5 * (delim[1:] + delim[:-1])
 
         elif isinstance(dist, estad._distn_infrastructure.rv_frozen):

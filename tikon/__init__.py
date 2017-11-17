@@ -25,17 +25,20 @@ dirs_auto = {
 }
 mods_faltan = []
 
+ctrls_cambiados = False
 for mod in dirs_modelos:
     if not os.path.exists(dirs_modelos[mod]):
 
         if mod in dirs_auto and os.path.exists(dirs_auto[mod]):
             dirs_modelos[mod] = dirs_auto[mod]
-
-            with open(archivo_ctrls, 'w', encoding='utf8') as d:
-                json.dump(dirs_modelos, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
+            ctrls_cambiados = True
 
         else:
             mods_faltan.append(mod)
+
+if ctrls_cambiados:
+    with open(archivo_ctrls, 'w', encoding='utf8') as d:
+        json.dump(dic_ctrls, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
 
 if len(mods_faltan):
     avisar('Directorios no encontrados para los modelos de cultivo %s. '
