@@ -1,12 +1,12 @@
 import tikon.RAE.Insecto as Ins
-from tikon.Experimentos import Experimento
+from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Café.Leucoptera_coffeella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
 import tikon.RAE.Planta as Plt
 
 # Opciones artísticas
-dib_aprioris = False
-ops_dib = {'incert': None, 'todas_líneas': True}
+dib_aprioris = True
+ops_dib = {'incert': None, 'todas_líneas': False}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Café\\Leucoptera_coffeella'
@@ -25,7 +25,7 @@ El_Encanto = Experimento(nombre='Suconusco_Chiapas', proyecto=proyecto)
 #       Elevation on Coffee Leafminer Leucoptera Coffeella (Lepidoptera: Lyonetiidae) Population Dynamics and
 #       Natural Enemies.” Crop Protection 29 (9): 1039–48. doi:10.1016/j.cropro.2010.03.007.
 
-El_Encanto.agregar_orgs(archivo='Suconusco_Chiapas.csv', col_tiempo='Día', factor=900 * 1000)
+El_Encanto.agregar_pobs(archivo='Suconusco_Chiapas.csv', col_tiempo='Día', factor=900 * 1000)
 # Factor: datos en Suconusco_Chiapas está por larvas/plantas; se asume que hay 1 panta cada 10 m2 (2mx5m).
 # El factor de 100 cambia los datos de individuos/plantas a individuos/hectarias.
 
@@ -63,4 +63,10 @@ from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
 
-Red_café.validar(El_Encanto, n_rep_parám=10, n_rep_estoc=10)
+Red_café.validar(nombre='Valid antes de calib', exper=El_Encanto, n_rep_parám=10, n_rep_estoc=10)
+
+Red_café.calibrar('Prueba', n_iter=10, quema=0, extraer=1, dibujar=True)
+
+Red_café.validar(exper=El_Encanto, nombre='Valid prueba')
+
+Red_café.sensibilidad(nombre='Sensib_sobol', exper=El_Encanto, n=10)
