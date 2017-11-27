@@ -1052,7 +1052,7 @@ class Simulable(Coso):
         return valid
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
-                     n_rep_estoc=30, detalles=False, usar_especificadas=True, opciones_sens=False, dibujar=False):
+                     n_rep_estoc=30, detalles=False, usar_especificadas=True, opciones_sens=None, dibujar=False):
         """
         Esta función calcula la sensibilidad de los parámetros del modelo. Puede aplicar varios tipos de análisis de
         sensibilidad.
@@ -1091,6 +1091,10 @@ class Simulable(Coso):
         # Poner los experimentos en la forma correcta
         exper = símismo._prep_lista_exper(exper=exper)
 
+        #
+        if opciones_sens is None:
+            opciones_sens = {}
+
         # La lista de diccionarios de parámetros y de sus límites teoréticos
         lista_paráms, lista_líms, nombres_paráms = símismo._gen_lista_coefs_interés_todos()
 
@@ -1101,17 +1105,21 @@ class Simulable(Coso):
         # Una lista de las distribuciones de los parámetros. Esta función también llena los diccionarios de los
         # parámetros con estas mismas distribuciones.
         lista_dists = Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs,
-                                            formato='sensib', comunes=False, l_lms=lista_líms)
+                                            formato='sensib', comunes=False, l_lms=lista_líms, n_rep_parám=1000)
 
         # Basado en las distribuciones de los parámetros, establecer los límites para el análisis de sensibilidad
         lista_líms_efec = Incert.dists_a_líms(l_dists=lista_dists, por_dist_ingr=por_dist_ingr)
 
         # Definir los parámetros del análisis en el formato que le gusta al paquete SALib.
-        n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
+        i_acetables = [i for i, lms in enumerate(lista_líms_efec) if lms[0] != lms[1]]
+        nombres = [str(x) for x in range(len(lista_paráms))]  # Nombres numéricos muy sencillos
+        n_paráms = len(i_acetables)  # El número de parámetros para el análisis de sensibilidad
         problema = {
             'num_vars': n_paráms,  # El número de parámetros
-            'names': [str(x) for x in range(n_paráms)],  # Nombres numéricos muy sencillos
-            'bounds': lista_líms_efec  # La lista de los límites de los parámetros para el analisis de sensibilidad
+            # Nombres numéricos muy sencillos
+            'names': [n for i, n in enumerate(nombres) if i in i_acetables],
+            # La lista de los límites de los parámetros para el analisis de sensibilidad
+            'bounds': [n for i, n in enumerate(lista_líms_efec) if i in i_acetables]
         }
 
         # Finalmente, hacer el análisis de sensibilidad. Primero generamos los valores de parámetros para intentar.
@@ -1206,8 +1214,9 @@ class Simulable(Coso):
             raise ValueError('Método de análisis de sensibilidad "{}" no reconocido.'.format(método))
 
         # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes
-        for n, vals in enumerate(vals_paráms):
-            lista_paráms[n][nombre] = vals
+        for i in i_acetables:
+            i_rel = i_aceptables.index(i)
+            lista_paráms[i][nombre] = vals_paráms[:, i_rel]
 
         # El número de repeticiones paramétricas
         n_rep_parám = len(vals_paráms[0])

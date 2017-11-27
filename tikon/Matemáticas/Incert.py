@@ -778,7 +778,7 @@ def dists_a_líms(l_dists, por_dist_ingr):
         # Para cada distribución...
 
         # Calcular los porcentiles según el tipo de distribución
-        if isinstance(dist, estad.rv_frozen):
+        if isinstance(dist, estad._distn_infrastructure.rv_frozen):
             # Para distribuciones SciPy...
             l_líms.append([dist.cdf(colas[0]), dist.cdf(colas[1])])
         elif isinstance(dist, np.ndarray):
