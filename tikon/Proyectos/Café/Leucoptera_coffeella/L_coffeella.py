@@ -67,6 +67,6 @@ Red_café.validar(nombre='Valid antes de calib', exper=El_Encanto, n_rep_parám=
 
 Red_café.calibrar('Prueba', n_iter=10, quema=0, extraer=1, dibujar=True)
 
-Red_café.validar(exper=El_Encanto, nombre='Valid prueba')
+Red_café.validar(exper=El_Encanto, nombre='Valid prueba', n_rep_parám=10, n_rep_estoc=10)
 
 Red_café.sensibilidad(nombre='Sensib_sobol', exper=El_Encanto, n=10)

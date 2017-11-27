@@ -1,7 +1,11 @@
 import math as mat
 
 import numpy as np
-import pymc3 as pm3
+try:
+    import pymc3 as pm3
+except ImportError:
+    pm3 = None
+
 import scipy.stats as estad
 from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
     Laplace, Logistic, Lognormal, Normal, Pareto, T, Uniform, VonMises, \
@@ -31,7 +35,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                     },
          'Beta': {'scipy': estad.beta,
                   'pymc': Beta,
-                  'pymc3': pm3.Beta,
+                  'pymc3': True,
                   'límites': (0, 1),
                   'tipo': 'cont'
                   },
@@ -52,7 +56,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                   },
          'Cauchy': {'scipy': estad.cauchy,
                     'pymc': Cauchy,
-                    'pymc3': pm3.Cauchy,
+                    'pymc3': True,
                     'límites': (-inf, inf),
                     'tipo': 'cont'
                     },
@@ -63,7 +67,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                  },
          'Chi2': {'scipy': estad.chi2,
                   'pymc': Chi2,
-                  'pymc3': pm3.ChiSquared,
+                  'pymc3': True,
                   'límites': (0, inf),
                   'tipo': 'cont'
                   },
@@ -98,7 +102,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                          },
          'NormalExponencial': {'scipy': estad.exponnorm,
                                'pymc': None,
-                               'pymc3': pm3.ExGaussian,
+                               'pymc3': True,
                                'límites': (-inf, inf),
                                'tipo': 'cont'
                                },
@@ -179,7 +183,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                         },
          'Gamma': {'scipy': estad.gamma,
                    'pymc': Gamma,
-                   'pymc3': pm3.Gamma,
+                   'pymc3': True,
                    'límites': (0, inf),
                    'tipo': 'cont'
                    },
@@ -215,7 +219,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                              },
          'MitadCauchy': {'scipy': estad.halfcauchy,
                          'pymc': HalfCauchy,
-                         'pymc3': pm3.HalfCauchy,
+                         'pymc3': True,
                          'límites': (0, inf),
                          'tipo': 'cont'
                          },
@@ -226,7 +230,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                             },
          'MitadNormal': {'scipy': estad.halfnorm,
                          'pymc': HalfNormal,
-                         'pymc3': pm3.HalfNormal,
+                         'pymc3': True,
                          'límites': (0, inf),
                          'tipo': 'cont'
                          },
@@ -242,7 +246,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                           },
          'GammaInversa': {'scipy': estad.invgamma,
                           'pymc': InverseGamma,
-                          'pymc3': pm3.InverseGamma,
+                          'pymc3': True,
                           'límites': (0, inf),
                           'tipo': 'cont'
                           },
@@ -278,7 +282,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                          },
          'Laplace': {'scipy': estad.laplace,
                      'pymc': Laplace,
-                     'pymc3': pm3.Laplace,
+                     'pymc3': True,
                      'límites': (-inf, inf),
                      'tipo': 'cont'
                      },
@@ -313,7 +317,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                         },
          'LogNormal': {'scipy': estad.lognorm,
                        'pymc': Lognormal,
-                       'pymc3': pm3.Lognormal,
+                       'pymc3': True,
                        'límites': (0, inf),
                        'tipo': 'cont'
                        },
@@ -358,13 +362,13 @@ dists = {'Alpha': {'scipy': estad.alpha,
 
          'Normal': {'scipy': estad.norm,
                     'pymc': Normal,
-                    'pymc3': pm3.Normal,
+                    'pymc3': True,
                     'límites': (-inf, inf),
                     'tipo': 'cont'
                     },
          'Pareto': {'scipy': estad.pareto,
                     'pymc': Pareto,
-                    'pymc3': pm3.Pareto,
+                    'pymc3': True,
                     'límites': (1, inf),
                     'tipo': 'cont'
                     },
@@ -422,14 +426,14 @@ dists = {'Alpha': {'scipy': estad.alpha,
 
          'NormalSesgada': {'scipy': estad.skewnorm,
                            'pymc': None,
-                           'pymc3': pm3.SkewNormal,
+                           'pymc3': True,
                            'límites': (-inf, inf),
                            'tipo': 'cont'
                            },
 
          'T': {'scipy': estad.t,
                'pymc': T,
-               'pymc3': pm3.StudentT,
+               'pymc3': True,
                'límites': (-inf, inf),
                'tipo': 'cont'
                },
@@ -459,14 +463,14 @@ dists = {'Alpha': {'scipy': estad.alpha,
                          },
          'Uniforme': {'scipy': estad.uniform,
                       'pymc': Uniform,
-                      'pymc3': pm3.Uniform,
+                      'pymc3': True,
                       'límites': (0, 1),  # El límite es (a, b)
                       'tipo': 'cont'
                       },
 
          'VonMises': {'scipy': estad.vonmises,
                       'pymc': VonMises,
-                      'pymc3': pm3.VonMises,
+                      'pymc3': True,
                       'límites': (-pi, pi),
                       'tipo': 'cont'
                       },
@@ -478,13 +482,13 @@ dists = {'Alpha': {'scipy': estad.alpha,
                          },
          'Wald': {'scipy': estad.wald,
                   'pymc': None,
-                  'pymc3': pm3.Wald,
+                  'pymc3': True,
                   'límites': (0, inf),
                   'tipo': 'cont'
                   },
          'Weibull': {'scipy': estad.weibull_min,
                      'pymc': Weibull,
-                     'pymc3': pm3.Weibull,
+                     'pymc3': True,
                      'límites': (0, inf),
                      'tipo': 'cont'
                      },
@@ -503,13 +507,13 @@ dists = {'Alpha': {'scipy': estad.alpha,
 
          'Bernoulli': {'scipy': estad.bernoulli,
                        'pymc': Bernoulli,
-                       'pymc3': pm3.Bernoulli,
+                       'pymc3': True,
                        'límites': (0, 1),
                        'tipo': 'discr'
                        },
          'Binomial': {'scipy': estad.binom,
                       'pymc': Binomial,
-                      'pymc3': pm3.Binomial,
+                      'pymc3': True,
                       'límites': (0, 1),  # Límite es de (0, N)
                       'tipo': 'discr'
                       },
@@ -525,7 +529,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                              },
          'Geométrica': {'scipy': estad.geom,
                         'pymc': Geometric,
-                        'pymc3': pm3.Geometric,
+                        'pymc3': True,
                         'límites': (1, inf),
                         'tipo': 'discr'
                         },
@@ -541,7 +545,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                          },
          'BinomialNegativo': {'scipy': estad.nbinom,
                               'pymc': NegativeBinomial,
-                              'pymc3': pm3.NegativeBinomial,
+                              'pymc3': True,
                               'límites': (0, inf),
                               'tipo': 'discr'
                               },
@@ -552,7 +556,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                     },
          'Poisson': {'scipy': estad.poisson,
                      'pymc': Poisson,
-                     'pymc3': pm3.Poisson,
+                     'pymc3': True,
                      'límites': (0, inf),
                      'tipo': 'discr'
                      },
@@ -563,7 +567,7 @@ dists = {'Alpha': {'scipy': estad.alpha,
                      },
          'UnifDiscr': {'scipy': estad.randint,
                        'pymc': DiscreteUniform,
-                       'pymc3': pm3.DiscreteUniform,
+                       'pymc3': True,
                        'límites': (0, 1),  # Límite es de (a, b)
                        'tipo': 'discr'
                        },
