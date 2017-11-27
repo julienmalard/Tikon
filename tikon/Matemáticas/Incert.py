@@ -293,7 +293,7 @@ def gen_vector_coefs(d_parám, í_trazas):
 
         elif isinstance(d_parám[trz], pymc.Stochastic) or isinstance(d_parám[trz], pymc.Deterministic):
             # Variables de calibraciones activas (PyMC) se agregan directamente
-            vector.append(d_parám[trz])
+            vector.append([d_parám[trz]])
 
         else:
             # Si la traza era de otro tipo, tenemos un error.
