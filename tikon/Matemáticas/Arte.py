@@ -281,6 +281,7 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
 
     # Si hay valores, hacer un histrograma
     if valores is not None:
+        valores = valores.astype(float)
         dib.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
 
     # Si se especificó un título, ponerlo

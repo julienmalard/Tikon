@@ -762,7 +762,7 @@ class Simulable(Coso):
         # Permitir que se use el experimento intrínsico de la Red si no se especificó otra cosa.
         if exper is None:
             exper = símismo.Experimento
-            símismo.añadir_exp(exper)
+            símismo.añadir_exp(exper)  # Para hacer
 
         # Poner los experimentos en la forma correcta:
         exper = símismo._prep_lista_exper(exper=exper)
@@ -857,8 +857,6 @@ class Simulable(Coso):
                      os.path.join(os.path.split(__file__)[0], 'paráms.txt'))
 
         # 3. Filtrar coeficientes por calib
-        if aprioris is None:
-            aprioris = ['0']
         lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
@@ -1054,7 +1052,7 @@ class Simulable(Coso):
         return valid
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
-                     detalles=False, usar_especificadas=True, opciones_sens=False, dibujar=False):
+                     n_rep_estoc=30, detalles=False, usar_especificadas=True, opciones_sens=False, dibujar=False):
         """
         Esta función calcula la sensibilidad de los parámetros del modelo. Puede aplicar varios tipos de análisis de
         sensibilidad.
@@ -1073,6 +1071,8 @@ class Simulable(Coso):
         :param por_dist_ingr: El porcentaje de las distribuciones cumulativas de los parámetros para incluir en el
         análisis.
         :type por_dist_ingr: float | int
+        :param n_rep_estoc: El número de repeticiones estocásticas.
+        :type n_rep_estoc: int
         :param detalles: Si quieres simular con detalles (o no).
         :type detalles: bool
         :param usar_especificadas: Si hay que utilizar a prioris especificados.
@@ -1216,7 +1216,7 @@ class Simulable(Coso):
         # especificadas tomen el lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True
         # asegurar que se guarde el orden de los valores de los variables tales como especificados por SALib.
         símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                        dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+                        dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc, usar_especificadas=False)
 
         # Procesar las matrices
         l_matrs_proc, ubics_m = símismo._procesar_matrs_sens()
@@ -1756,6 +1756,8 @@ class Simulable(Coso):
         """
 
         # Preparar el parámetro "calibs"
+        if calibs is None:
+            calibs = ['0']
 
         if type(calibs) is str and calibs not in ['Todos', 'Comunes', 'Correspondientes']:
             # Si calibs es el nombre de una calibración (y no un nombre especial)...
@@ -1833,7 +1835,6 @@ class Simulable(Coso):
             conj_calibs = set(calibs)
 
         else:
-
             # Si "calibs" no era ni texto ni una lista, hay un error.
             raise ValueError("Parámetro 'calibs' inválido.")
 
