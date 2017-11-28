@@ -653,7 +653,7 @@ class Simulable(Coso):
             'l_m_preds_todas': [],
             'l_ubics_m_preds': [],
             'd_calib': {},
-            'copia_d_calib': {}
+            'inic_d_predics_exps': {}
         }
         símismo.predics_exps = símismo.dic_simul['d_predics_exps']  # Simplificación del código
 
@@ -1213,13 +1213,14 @@ class Simulable(Coso):
         else:
             raise ValueError('Método de análisis de sensibilidad "{}" no reconocido.'.format(método))
 
-        # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes
+        # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes. Las con distribuciones sin
+        # incertidumbre guardarán su distribución SciPy original.
         for i in i_acetables:
-            i_rel = i_aceptables.index(i)
+            i_rel = i_acetables.index(i)
             lista_paráms[i][nombre] = vals_paráms[:, i_rel]
 
         # El número de repeticiones paramétricas
-        n_rep_parám = len(vals_paráms[0])
+        n_rep_parám = vals_paráms.shape[0]
 
         # Correr la simulación. Hay que poner usar_especificadas=False aquí para evitar que distribuciones
         # especificadas tomen el lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True
@@ -1264,7 +1265,7 @@ class Simulable(Coso):
                         d_sens[egr] = np.zeros((*m_egr.shape, n_días))
 
                     # Llenar los datos para este día
-                    d_sens[egr][:, d] = d_egr_sens[egr]
+                    d_sens[egr][..., d] = d_egr_sens[egr]
 
         # Convertir la lista de resultados de AS a un diccionario de resultados para devolver al usuario
         resultado = llaves_a_dic(l_ubics=ubics_m, vals=l_d_sens)
@@ -1375,7 +1376,7 @@ class Simulable(Coso):
         símismo._justo_antes_de_simular()
 
         # Para cada paso de tiempo, incrementar el modelo
-        for i in range(1, n_pasos):
+        for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
             símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
 
     def _gen_lista_coefs_interés_todos(símismo):
@@ -1542,8 +1543,6 @@ class Simulable(Coso):
         símismo._gen_dic_predics_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
                                       paso=paso, n_pasos=n_pasos, detalles=detalles)
 
-        símismo.dic_simul['copia_d_predics_exps'] = copiar.deepcopy(símismo.dic_simul['d_predics_exps'])
-
         if tipo == 'valid' or tipo == 'calib':
             símismo._gen_dics_valid(exper=exper, paso=paso, n_pasos=n_pasos,
                                     n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms)
@@ -1563,9 +1562,10 @@ class Simulable(Coso):
     def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
-          correspondiendo a los valores observados, y eso en el mismo orden.
+        correspondiendo a los valores observados, y eso en el mismo orden.
+
         Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
-          simular como llaves.
+        simular como llaves.
 
         :param dic_predics_exps: Un diccionario de las matrices, incluyendo datos iniciales, para la simulación de
         cada experimento.
@@ -1591,7 +1591,7 @@ class Simulable(Coso):
         # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
         # datos iniciales para las próximas).
         d_predics_exps = símismo.dic_simul['d_predics_exps']
-        llenar_copia_dic_matr(d_f=símismo.dic_simul['copia_d_predics_exps'], d_r=d_predics_exps)
+        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=d_predics_exps)
 
         # Para cada experimento...
         for exp in d_predics_exps:
