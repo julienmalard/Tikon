@@ -772,7 +772,7 @@ class Simulable(Coso):
             t_final = tiempo_final
             tiempo_final = {}
             for exp in exper:
-                tiempo_final[exp.nombre] = t_final
+                tiempo_final[exp] = t_final
 
         # Preparar la lista de parámetros de interés
         lista_paráms = símismo._gen_lista_coefs_interés_todos()[0]
@@ -1052,7 +1052,8 @@ class Simulable(Coso):
         return valid
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
-                     n_rep_estoc=30, detalles=False, usar_especificadas=True, opciones_sens=None, dibujar=False):
+                     n_rep_estoc=30, tiempo_final=None, detalles=False, usar_especificadas=True,
+                     opciones_sens=None, dibujar=False):
         """
         Esta función calcula la sensibilidad de los parámetros del modelo. Puede aplicar varios tipos de análisis de
         sensibilidad.
@@ -1225,8 +1226,9 @@ class Simulable(Coso):
         # Correr la simulación. Hay que poner usar_especificadas=False aquí para evitar que distribuciones
         # especificadas tomen el lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True
         # asegurar que se guarde el orden de los valores de los variables tales como especificados por SALib.
-        símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                        dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc, usar_especificadas=False)
+        símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, tiempo_final=tiempo_final,
+                        n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc, usar_especificadas=False,
+                        dibujar=False, mostrar=False, dib_dists=False)
 
         # Procesar las matrices
         l_matrs_proc, ubics_m = símismo._procesar_matrs_sens()
@@ -1282,7 +1284,6 @@ class Simulable(Coso):
                     # El directorio del gráfico
                     direc = os.path.join(símismo.proyecto, símismo.nombre, nombre, *ubic)
                     direc = símismo._prep_directorio(directorio=direc)
-                    símismo._prep_directorio(direc)
 
                     if len(m.shape) == 2:
                         # Si no tenemos interacción de parámetros...
