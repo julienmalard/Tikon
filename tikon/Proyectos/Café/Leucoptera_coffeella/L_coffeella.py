@@ -62,7 +62,7 @@ for org in [L_coffeella, Parasitoide_larvas]:
 from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
-Red_café.sensibilidad(nombre='Sensib_sobol', exper=El_Encanto, n=2)
+Red_café.sensibilidad(nombre='Sensib_sobol', tiempo_final=15, exper=El_Encanto, n=2, dibujar=True)
 
 Red_café.validar(nombre='Valid antes de calib', exper=El_Encanto, n_rep_parám=10, n_rep_estoc=10, guardar=True)
 
