@@ -4,7 +4,19 @@ import pymc
 from tikon.Matemáticas.Incert import trazas_a_dists
 
 
-class ModBayes(object):
+class ModCalib(object):
+    """
+    La clase plantilla (pariente) para modelos de calibración.
+    """
+
+    def calib(símismo, rep, quema, extraer):
+        raise NotImplementedError
+
+    def guardar(símismo, nombre=None):
+        raise NotImplementedError
+
+
+class ModBayes(ModCalib):
     """
     Esta clase merece una descripción detallada. Al final, un Modelo es lo que trae junto simulación, observaciones y
     parámetros para calibrar estos últimos por medio de inferencia Bayesiana (usando el módulo de Python PyMC).
@@ -15,7 +27,7 @@ class ModBayes(object):
     """
 
     def __init__(símismo, función, dic_argums, d_obs, lista_d_paráms, aprioris, lista_líms, id_calib,
-                 función_llenar_coefs):
+                 función_llenar_coefs, método):
         """
         Al iniciarse, un Modelo hace el siguiente:
 
@@ -53,7 +65,7 @@ class ModBayes(object):
         pasar, poner un diccionario vacío, {}.
         :type dic_argums: dict
 
-        :param obs:
+        :param d_obs:
         :type d_obs: dict[dict[np.ndarray]]
 
         :param lista_d_paráms: El diccionario de los parámetros para calibrar.
@@ -73,8 +85,11 @@ class ModBayes(object):
         :type id_calib: str
 
         :param función_llenar_coefs: Una funcion que llenara los diccionarios del Simulable con los coeficientes PyMC
-        recién creados.
+          recién creados.
         :type función_llenar_coefs: Callable
+
+        :param método:
+        :type método: str
 
         """
 
@@ -83,6 +98,7 @@ class ModBayes(object):
 
         símismo.lista_parám = lista_d_paráms
         símismo.id = id_calib
+        símismo.método = método
         símismo.n_iter = 0
 
         # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
@@ -166,7 +182,12 @@ class ModBayes(object):
 
         # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
         # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
-        símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+        if símismo.método.lower() == 'metrópolis adaptivo':
+            símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
+        elif símismo.método.lower() == 'metrópolis':
+            pass
+        else:
+            raise ValueError
 
         # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
         símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
@@ -209,3 +230,15 @@ class ModBayes(object):
 
         # Cerrar la base de datos de nuevo
         símismo.MCMC.db.close()
+
+
+class ModGLUE(ModCalib):
+
+    def __init__(símismo):
+        raise NotImplementedError
+
+    def calib(símismo, rep, quema, extraer):
+        raise NotImplementedError
+
+    def guardar(símismo, nombre=None):
+        raise NotImplementedError

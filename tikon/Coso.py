@@ -24,7 +24,7 @@ import pymc
 
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
-from tikon.Matemáticas.Calib import ModBayes
+from tikon.Matemáticas.Calib import ModBayes, ModGLUE
 from tikon.Matemáticas.Experimentos import Experimento
 
 
@@ -172,10 +172,10 @@ class Coso(object):
         proyecto = símismo._prep_directorio(proyecto)
 
         # Convertir matrices a formato de lista y quitar objetos PyMC, si quedan
-        receta_prep = dic_np_a_lista(símismo.receta)
+        receta_prep = prep_receta_json(símismo.receta)
 
         # Guardar el documento de manera que preserve carácteres no latinos (UTF-8)
-        guardar_json(dic=receta_prep, archivo=proyecto)
+        guardar_json(dic=receta_prep, archivo=os.path.join(proyecto, símismo.nombre + símismo.ext))
 
         # Si se especificó así, guardar todos los objetos vinculados con este objeto también.
         if iterativo:
@@ -387,6 +387,20 @@ class Coso(object):
 
         """
 
+        lista_objs = []
+
+        # Sacar la lista de los objetos de este tipo en Proyectos
+        for raíz, dirs, archivos in os.walk(dir_proyectos, topdown=False):
+            for nombre in archivos:
+                ext = os.path.splitext(nombre)[1]
+                if ext == cls.ext:
+                    lista_objs.append(cls(fuente=nombre))
+
+        dic_aprioris = cls._apriori_de_existente(lista_objs=lista_objs, clase_objs=cls)
+
+        archivo = os.path.join(directorio_base, 'A prioris', cls.__name__, '.apr')
+        guardar_json(dic=dic_aprioris, archivo=archivo)
+
         # Para hacer: completar
         raise NotImplemented
 
@@ -412,7 +426,7 @@ class Coso(object):
                 # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
                 cls._borrar_dist(v, nombre=nombre)
 
-            elif type(v) is str:
+            else:
 
                 # Si la distribución lleva el nombre especificado...
                 if ll == str(nombre):
@@ -452,29 +466,6 @@ class Coso(object):
 
                     # Quitar el viejo nombre
                     d.pop(ll)
-
-    @classmethod
-    def generar_aprioris(cls):
-        """
-        Esta función generar a prioris para una clase dada de Coso basado en las calibraciones existentes de todas las
-        otras instancias de esta clase. Guarda el diccionario de a prioris genéricos para que nuevas instancias de esta
-        clase lo puedan acceder.
-
-        """
-
-        lista_objs = []
-
-        # Sacar la lista de los objetos de este tipo en Proyectos
-        for raíz, dirs, archivos in os.walk(dir_proyectos, topdown=False):
-            for nombre in archivos:
-                ext = os.path.splitext(nombre)[1]
-                if ext == cls.ext:
-                    lista_objs.append(cls(fuente=nombre))
-
-        dic_aprioris = cls._apriori_de_existente(lista_objs=lista_objs, clase_objs=cls)
-
-        archivo = os.path.join(directorio_base, 'A prioris', cls.__name__, '.apr')
-        guardar_json(dic=dic_aprioris, archivo=archivo)
 
     @staticmethod
     def _apriori_de_existente(lista_objs, clase_objs):
@@ -629,7 +620,7 @@ class Simulable(Coso):
         símismo.listo = False
 
         # Contendrá el objeto de modelo Bayesiano para la calibración
-        símismo.ModBayes = None
+        símismo.ModCalib = None
 
         # Experimentos asociados
         símismo.exps = {}
@@ -752,7 +743,7 @@ class Simulable(Coso):
             opciones_dib = {}
 
         if directorio_dib is None:
-            directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, nombre, 'Gráficos simulación')
+            directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, nombre, 'Grf simul')
 
         directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
 
@@ -801,7 +792,7 @@ class Simulable(Coso):
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10,
-                 n_iter=10000, quema=100, extraer=10, dibujar=False):
+                 n_iter=10000, quema=100, extraer=10, método='Metrópolis', dibujar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -812,7 +803,7 @@ class Simulable(Coso):
           4. Preparar los argumentos para la calibración, dado los experimentos vinculados.
           5. Generar un vector unidimensional, en orden reproducible, de las observaciones de los experimentos (para
              comparar más rápido después con las predicciones del modelo).
-          6. Crear el modelo (ModBayes) para la calibración
+          6. Crear el modelo (ModCalib) para la calibración
           7. Por fin, calibrar el modelo.
 
         :param nombre: El nombre de la calibración.
@@ -822,25 +813,28 @@ class Simulable(Coso):
         :type aprioris: int | str | list | None
 
         :param exper: Los experimentos vinculados al objeto a usar para la calibración. exper=None lleva al uso de
-        todos los experimentos disponibles.
+          todos los experimentos disponibles.
         :type exper: list | str | Experimento | None
 
-        :param paso: El paso para la calibración
+        :param paso: El paso para la calibración.
         :type paso: int
+
+        :param n_rep_estoc: El número de repeticiones estocásticas.
+        :type n_rep_estoc: int
 
         :param n_iter: El número de iteraciones para la calibración.
         :type n_iter: int
 
         :param quema: El número de iteraciones iniciales que hay que botar. (Para evitar el efecto de condiciones
-        iniciales en la calibración).
+          iniciales en la calibración).
         :type quema: int
 
         :param extraer: Cada cuantas iteraciones guardar (para limitar el efecto de autocorrelación entre iteraciones).
-        extraer = 1 lleva al uso de todas las iteraciones.
+          extraer = 1 lleva al uso de todas las iteraciones.
         :type extraer: int
 
         :param dibujar: Si queremos dibujar los resultados de las calibraciones (cambios en distribuciones de
-        parámetros) o no.
+          parámetros) o no.
         :type dibujar: bool
 
         """
@@ -874,19 +868,27 @@ class Simulable(Coso):
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
 
-        # 6. Creamos el modelo ModBayes de calibración, lo cual genera variables PyMC
-        símismo.ModBayes = ModBayes(función=símismo._simul_exps,
-                                    dic_argums=dic_argums,
-                                    d_obs=d_obs,
-                                    lista_d_paráms=lista_paráms,
-                                    aprioris=lista_aprioris,
-                                    lista_líms=lista_líms,
-                                    id_calib=nombre,
-                                    función_llenar_coefs=símismo._llenar_coefs
-                                    )
+        # 6. Creamos el modelo ModCalib de calibración, lo cual genera variables PyMC
+        if método.lower() == 'metrópolis' or método.lower() == 'metrópolis adaptivo':
+            símismo.ModCalib = ModBayes(función=símismo._simul_exps,
+                                        dic_argums=dic_argums,
+                                        d_obs=d_obs,
+                                        lista_d_paráms=lista_paráms,
+                                        aprioris=lista_aprioris,
+                                        lista_líms=lista_líms,
+                                        id_calib=nombre,
+                                        función_llenar_coefs=símismo._llenar_coefs,
+                                        método=método
+                                        )
+        elif método.lower() == 'glue':
+            símismo.ModCalib = ModGLUE()
 
-        # 7. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModBayes
-        símismo.ModBayes.calib(rep=n_iter, quema=quema, extraer=extraer)
+        else:
+            raise ValueError
+
+
+        # 7. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModCalib
+        símismo.ModCalib.calib(rep=n_iter, quema=quema, extraer=extraer)
 
         # 8. Si querríamos dibujos de la calibración, hacerlos ahora
         if dibujar:
@@ -908,11 +910,11 @@ class Simulable(Coso):
         """
 
         # Si ya no existe un modelo de calibración, no podemos avanzarla.
-        if símismo.ModBayes is None:
+        if símismo.ModCalib is None:
             raise TypeError('Hay que iniciar una calibración antes de avanzarla.')
 
         # Avanzar la calibración.
-        símismo.ModBayes.calib(rep=rep, quema=quema, extraer=extraer)
+        símismo.ModCalib.calib(rep=rep, quema=quema, extraer=extraer)
 
     def guardar_calib(símismo, descrip, utilizador, contacto=''):
         """
@@ -930,14 +932,14 @@ class Simulable(Coso):
         """
 
         # Si no hay modelo, no hay nada para guardar.
-        if símismo.ModBayes is None:
+        if símismo.ModCalib is None:
             raise ValueError('No hay calibraciones para guardar')
 
         # La fecha y hora a la cual se guardó
         ahora = ft.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # El nombre de identificación de la calibración.
-        nb = símismo.ModBayes.id
+        nb = símismo.ModCalib.id
 
         # Guardar la descripción de esta calibración en el diccionario del objeto
         símismo.receta['Calibraciones'][nb] = dict(Descripción=descrip,
@@ -947,10 +949,10 @@ class Simulable(Coso):
                                                    Config=copiar.deepcopy(símismo.receta['estr']))
 
         # Guardar los resultados de la calibración
-        símismo.ModBayes.guardar()
+        símismo.ModCalib.guardar()
 
         # Borrar el objeto de modelo, ya que no se necesita
-        símismo.ModBayes = None
+        símismo.ModCalib = None
 
     def añadir_exp(símismo, experimento, corresp):
         """
@@ -973,8 +975,8 @@ class Simulable(Coso):
 
         símismo._actualizar_vínculos_exps()
 
-    def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=50, n_rep_estoc=50,
-                usar_especificadas=False, detalles=True, guardar=False,
+    def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=20, n_rep_estoc=20,
+                usar_especificadas=False, detalles=False, guardar=True,
                 dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
@@ -1002,6 +1004,9 @@ class Simulable(Coso):
         :param detalles: Para unos Simulables, especifica si hay que guardar resultados rápidos o detallados.
         :type detalles: bool
 
+        :param guardar: Si hay que guardar los resultados dela validación
+        :type guardar: bool
+
         :param dibujar: Si hay que generar gráficos de los resultados.
         :type dibujar: bool
 
@@ -1027,10 +1032,12 @@ class Simulable(Coso):
         # Si no se especificaron calibraciones para validar, tomamos la calibración activa, si hay, y en el caso
         # contrario tomamos el conjunto de todas las calibraciones anteriores.
         if calibs is None:
-            if símismo.ModBayes is None:
+            if símismo.ModCalib is None:
                 calibs = 'Todos'
             else:
-                calibs = símismo.ModBayes.id
+                calibs = símismo.ModCalib.id
+
+        nombre = símismo._valid_nombre_simul(nombre)
 
         # Simular los experimentos
         símismo.simular(nombre=nombre, exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
@@ -1074,6 +1081,8 @@ class Simulable(Coso):
         :type por_dist_ingr: float | int
         :param n_rep_estoc: El número de repeticiones estocásticas.
         :type n_rep_estoc: int
+        :param tiempo_final: El tiempo final de la simulación
+        :type tiempo_final: int
         :param detalles: Si quieres simular con detalles (o no).
         :type detalles: bool
         :param usar_especificadas: Si hay que utilizar a prioris especificados.
@@ -1957,7 +1966,7 @@ class Simulable(Coso):
         for ubic, dist in lista_dists:
 
             directorio = os.path.join(directorio_base, 'Proyectos', os.path.splitext(símismo.proyecto)[0],
-                                      símismo.nombre, 'Gráficos calibración', símismo.ModBayes.id, ubic[0])
+                                      símismo.nombre, 'Gráficos calibración', símismo.ModCalib.id, ubic[0])
             archivo = os.path.join(directorio, '_'.join(ubic[1:-1]) + '.png')
 
             if not os.path.exists(directorio):
@@ -2078,7 +2087,7 @@ def dic_lista_a_np(d):
                 pass
 
 
-def dic_np_a_lista(d, d_egr=None):
+def prep_receta_json(d, d_egr=None):
     """
     Esta función recursiva prepara un diccionario de coeficientes para ser guardado en formato json. Toma las matrices
     de numpy contenidas en un diccionario de estructura arbitraria listas y las convierte en numéricas. También
@@ -2108,7 +2117,7 @@ def dic_np_a_lista(d, d_egr=None):
         if type(v) is dict:
 
             # Si el itema era otro diccionario, llamar esta función de nuevo con el nuevo diccionario
-            cls.dic_np_a_lista(v, d_egr=d_egr[ll])
+            prep_receta_json(v, d_egr=d_egr[ll])
 
         elif type(v) is str:
 

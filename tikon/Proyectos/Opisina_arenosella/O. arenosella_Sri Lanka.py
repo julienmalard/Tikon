@@ -1,7 +1,8 @@
 from pprint import pprint
 
+from tikon.RAE.Planta import Hojas
+from tikon.RAE.RedAE import Red
 import tikon.RAE.Insecto as Ins
-from tikon.Proyectos.Opisina_arenosella.Red_Opisina import Red_coco, Red_coco_araña
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 
@@ -11,17 +12,18 @@ ops_dib = {'n_líneas': 5}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
-Coco = Red_coco.organismos['Coco']
-Coco.estimar_densidad(rango=(38000e6, 42000e6), certidumbre=0.95)
 
-"""
+n_iter = 10
+quema = 0
+extraer = 1
+
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
 
 # Datos de desnsidad de coco: Agricultural Ecology and Environment, pg 321 +
 # https://books.google.com.gt/books?id=0gjoQ0OTpAYC&pg=PA318&lpg=PA318&dq=coconut+field+leaf+area&source=bl&ots=I9GJ8L88y2&sig=t0LUc7kUPDyDlniDdoipiYx84uU&hl=en&sa=X&ved=0ahUKEwiKqcqs_Y7OAhXLlB4KHSOrBAAQ6AEIMDAC#v=onepage&q=coconut%20field%20leaf%20area&f=false
-Coco = Plt.Constante(nombre='Palma de coco', densidad=40020e6, proyecto=proyecto)  # Unidades: mm2 / ha
-
+Coco = Hojas(nombre='Palma de coco', proyecto=proyecto)  # Unidades: mm2 / ha
+Coco.estimar_densidad(rango=(38, 42), certidumbre=0.95)
 
 O_arenosella_senc.secome(Coco)
 Parasitoide_senc.secome(O_arenosella_senc)
@@ -29,13 +31,13 @@ Parasitoide_senc.secome(O_arenosella_senc)
 Red_coco_senc = Red('Campos coco sencillo', organismos=[Coco, O_arenosella_senc, Parasitoide_senc],
                     proyecto=proyecto)
 Red_coco_senc.guardar()
-"""
+
 Experimento_A = Experimento(nombre='Sitio A', proyecto=proyecto)
-Experimento_A.agregar_pobs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429/500)
+Experimento_A.agregar_pobs(archivo='Oarenosella_A.csv', col_tiempo='Día', factor=655757.1429 / 500)
 
 Experimento_B = Experimento(nombre='Sitio B', proyecto=proyecto)
-Experimento_B.agregar_pobs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429/500)
-"""
+Experimento_B.agregar_pobs(archivo='Oarenosella_B.csv', col_tiempo='Día', factor=655757.1429 / 500)
+
 Red_coco_senc.añadir_exp(Experimento_A,
                          corresp={'O. arenosella_senc': {'adulto': ['Larva', 'Pupa']},
                                   'Parasitoide_senc': {'adulto': ['Para_larva_abs', 'Para_pupa_abs']}
@@ -48,21 +50,17 @@ Red_coco_senc.añadir_exp(Experimento_B,
                                   }
                          )
 
-
-ajuste_inic = Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
-print('Ajuste inicial: ', ajuste_inic)
-
-
 # Intentar calibrar
-Red_coco_senc.calibrar(nombre='Sin a priori', exper=Experimento_A, n_iter=500, quema=10)
-Red_coco_senc.validar(exper=Experimento_A)
-Red_coco_senc.validar(exper=Experimento_B)
+ajuste_inic = Red_coco_senc.validar(nombre='senc Sitio A, Antes de calibrar', exper=Experimento_A)
+print('Ajuste inicial: ', ajuste_inic)
+Red_coco_senc.calibrar(nombre='Sin a priori', exper=Experimento_A, n_iter=n_iter, quema=quema)
+Red_coco_senc.validar(nombre='senc Sitio A, con calibración', exper=Experimento_A)
+Red_coco_senc.validar(nombre='senc Sitio B, con calibración', exper=Experimento_B)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'sin usar a prioris. Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-
 
 # Especificar distribuciones a priori
 for a_priori in a_prioris[O_arenosella_senc.nombre]:
@@ -71,26 +69,26 @@ for a_priori in a_prioris[O_arenosella_senc.nombre]:
 for a_priori in a_prioris[Parasitoide_senc.nombre]:
     Parasitoide_senc.especificar_apriori(dibujar=dib_aprioris, **a_priori)
 
-
 # Verificar el modelo ahora
-ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
+ajuste_con_aprioris = Red_coco_senc.validar(exper=Experimento_A)
 print('Ajuste con a priosis: ', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
-Red_coco_senc.calibrar('Con aprioris', exper=Experimento_A, n_iter=100, quema=10, extraer=1,
+Red_coco_senc.validar(nombre='senc Sitio A, con a prioris', exper=Experimento_A, opciones_dib=ops_dib)
+Red_coco_senc.calibrar('senc Con aprioris', exper=Experimento_A, n_iter=n_iter, quema=quema, extraer=1,
                        dibujar=True)
-Red_coco_senc.validar(exper=Experimento_A, n_rep_estoc=5, n_rep_parám=5, opciones_dib=ops_dib)
-Red_coco_senc.validar(exper=Experimento_B, n_rep_estoc=5, n_rep_parám=5, opciones_dib=ops_dib)
+Red_coco_senc.validar(nombre='senc Sitio A, con calib a prioris', exper=Experimento_A, opciones_dib=ops_dib)
+Red_coco_senc.validar(nombre='senc Sitio B, con calib a prioris', exper=Experimento_B, opciones_dib=ops_dib)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'empleando a prioris.'
                                     'Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-"""
+
 # Bueno, ahora vamos a ver con una estructura de red más compleja (agregando un depredador generalista)
-Araña = Red_coco_araña.organismos['Araña']
-"""
+Araña = Ins.Sencillo('Araña', proyecto=proyecto)
+
 Araña.secome(O_arenosella_senc)
 Araña.secome(Parasitoide_senc)
 
@@ -99,27 +97,34 @@ for a_priori in a_prioris[Araña.nombre]:
 
 Red_coco_senc.añadir_org(Araña)
 
-Red_coco_senc.validar(exper=Experimento_A, n_rep_parám=40, n_rep_estoc=40)
+Red_coco_senc.validar(nombre='senc Sitio A, con araña y ap', exper=Experimento_A)
 
-Red_coco_senc.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=1000, quema=100, extraer=10,
+Red_coco_senc.calibrar(nombre='senc Con araña y ap', exper=Experimento_A, n_iter=n_iter, quema=quema, extraer=extraer,
                        dibujar=True)
-Red_coco_senc.validar(exper=Experimento_A)
-Red_coco_senc.validar(exper=Experimento_B)
+Red_coco_senc.validar(nombre='senc Sitio A, con araña y calib', exper=Experimento_A)
+Red_coco_senc.validar(nombre='senc Sitio B, con araña y calib', exper=Experimento_B)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'empleando a prioris.'
                                     'Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
-"""
 
 # Intentemos algo más interesante ahora.
-O_arenosella = Red_coco.organismos['O. arenosella']
+O_arenosella = Ins.MetamCompleta('O. arenosella', proyecto=proyecto, njuvenil=5)
 
-Parasitoide_larvas = Red_coco.organismos['Parasitoide larvas']
+Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas', proyecto=proyecto)
 
-Parasitoides_pupa = Red_coco.organismos['Parasitoide pupas']
+Parasitoide_pupa = Ins.Parasitoide('Parasitoide pupas', proyecto=proyecto)
 
+O_arenosella.secome(Coco, etps_depred='juvenil')
+
+Parasitoide_larvas.parasita(O_arenosella, etps_infec=['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_sale='juvenil_5')
+
+Parasitoide_pupa.parasita(O_arenosella, etps_infec=['pupa'], etp_sale='pupa')
+
+Red_coco = Red(nombre='Red coco_prueba', organismos=[O_arenosella, Parasitoide_larvas, Parasitoide_pupa, Coco],
+               proyecto=proyecto)
 
 Red_coco.añadir_exp(Experimento_A,
                     corresp={'O. arenosella': {'juvenil_1': ['Estado 1'],
@@ -141,15 +146,8 @@ Red_coco.añadir_exp(Experimento_B,
                                                'pupa': ['Pupa']}}
                     )
 
-if False:
-    araña = Ins.Sencillo('Araña', proyecto=proyecto)
-    for a_priori in a_prioris[araña.nombre]:
-        araña.especificar_apriori(dibujar=dib_aprioris, **a_priori)
-
-    Red_coco.añadir_org(araña)
-
 # A prioris para la nueva red
-for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
+for org in [O_arenosella, Parasitoide_larvas, Parasitoide_pupa]:
     try:
         for a_priori in a_prioris[org.nombre]:
             org.especificar_apriori(dibujar=dib_aprioris, **a_priori)
@@ -158,11 +156,11 @@ for org in [O_arenosella, Parasitoide_larvas, Parasitoides_pupa]:
 
 pprint(Red_coco.ver_coefs_no_espec())
 
-Red_coco.calibrar(exper=Experimento_A, n_iter=100, quema=0, extraer=1, dibujar=True)
-# Red_coco.calibrar(exper=Experimento_A, n_iter=10000, quema=0, extraer=10, dibujar=True)
-Red_coco.validar(Experimento_A, n_rep_parám=20, n_rep_estoc=20, opciones_dib=ops_dib, dib_dists=True)
+Red_coco.validar(exper=Experimento_A, nombre='Sitio A, antes calib', usar_especificadas=True)
+Red_coco.calibrar(exper=Experimento_A, nombre='Sin araña', n_iter=n_iter, quema=quema, extraer=1, dibujar=True)
 
-input('¿Seguir?')
+Red_coco.validar(nombre='Sitio A, con calib', exper=Experimento_A, opciones_dib=ops_dib, dib_dists=True)
+Red_coco.validar(nombre='Sitio B, con calib', exper=Experimento_B, opciones_dib=ops_dib, dib_dists=True)
 
 # Red_coco.validar(Experimento_B, n_rep_parám=10, n_rep_estoc=10)
 
@@ -173,15 +171,16 @@ Red_coco.guardar_calib(descrip='Calibración de red completa (oruga y parasitoid
                        contacto='julien.malard@mail.mcgill.ca')
 Red_coco.guardar()
 
-input('¿Seguir?')
 # Ahora, con una red más compleja y con estructura completa para los insectos
 Red_coco.añadir_org(Araña)
 
-print('Calibrando...')
-Red_coco.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=10, quema=1)
-print('Validando...')
-Red_coco.validar(exper=Experimento_A)
-Red_coco.validar(exper=Experimento_B)
+for a_priori in a_prioris[Araña.nombre]:
+    Araña.especificar_apriori(dibujar=dib_aprioris, **a_priori)
+
+Red_coco.validar(nombre='Sitio A, antes calib con araña', exper=Experimento_A, opciones_dib=ops_dib)
+Red_coco.calibrar(nombre='Con araña', exper=Experimento_A, n_iter=n_iter, quema=quema, dibujar=True)
+Red_coco.validar(nombre='Sitio A, con calib y araña', exper=Experimento_A, opciones_dib=ops_dib)
+Red_coco.validar(nombre='Sitio B, con calib y araña', exper=Experimento_B, opciones_dib=ops_dib)
 
 Red_coco.guardar_calib(descrip='Calibración de red completa (oruga, parasitoide y araña) para O. arenosella en coco, '
                                'empleando a prioris.'
@@ -189,6 +188,5 @@ Red_coco.guardar_calib(descrip='Calibración de red completa (oruga, parasitoide
                        utilizador='Julien Malard',
                        contacto='julien.malard@mail.mcgill.ca')
 Red_coco.guardar()
-
 
 # Podríamos hacer modelos más complejos con especies distintas de avispas, etc.

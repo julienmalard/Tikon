@@ -280,7 +280,7 @@ setup(
     long_description='Tiko\'n es una herramienta para desarrollar modelos de agroecología (relaciones tróficas'
                      'entre insectos, enfermedades, y plantas). Está escrito para permitir la integración de modelos'
                      'de cultivos existentes.',
-    requires=['pymc', 'numpy', 'matplotlib', 'scipy', 'SALib'],
+    requires=['pymc', 'numpy', 'matplotlib', 'scipy', 'SALib', 'pathvalidate'],
     classifiers=[
         'Programming Language :: Python :: 3.6',
     ],

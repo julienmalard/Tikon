@@ -551,7 +551,7 @@ class Red(Simulable):
                         else:
                             op = ''
                         if n_parc > 1:
-                            título = 'Parcela "{prc}", {op}"{org}", etapa "{etp}"'\
+                            título = 'Parcela "{prc}", {op}"{org}", etapa "{etp}"' \
                                 .format(prc=prc, op=op, org=org, etp=etp)
                         else:
                             título = '{op}{org}, etapa "{etp}"'.format(op=op, org=org, etp=etp)
@@ -582,11 +582,11 @@ class Red(Simulable):
 
                             if n_parc > 1:
                                 título = 'Parcela "{prc}", {org}, etapa "{etp}" ' \
-                                         'atacando a "{org_víc}", etapa "{etp_víc}"'\
+                                         'atacando a "{org_víc}", etapa "{etp_víc}"' \
                                     .format(prc=prc, org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
                             else:
                                 título = '{org}, etapa "{etp}" ' \
-                                         'atacando a "{org_víc}", etapa "{etp_víc}"'\
+                                         'atacando a "{org_víc}", etapa "{etp_víc}"' \
                                     .format(org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
 
                             # Generar el gráfico
@@ -843,7 +843,7 @@ class Red(Simulable):
 
             elif mod == 'Log Normal Temperatura':
                 # r responde a la temperatura con una ecuación log normal.
-                np.multiply(cf['r'] * paso,  mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2),
+                np.multiply(cf['r'] * paso, mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2),
                             out=r)
 
             else:
@@ -858,6 +858,9 @@ class Red(Simulable):
 
             pobs_etps = pobs[:, :, :, í_etps]  # La población de esta etapa
             cf = coefs_ec[tp_ec]  # type: dict
+
+            # Densidades de poblaciones
+            dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
 
             if tp_ec == 'Exponencial':
                 # Crecimiento exponencial
@@ -874,7 +877,7 @@ class Red(Simulable):
                 # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
                 # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
 
-                k = np.nansum(np.multiply(pobs, cf['K']), axis=3)  # Calcular la capacidad de carga
+                k = np.nansum(np.multiply(pobs[..., np.newaxis, :], cf['K']), axis=-1)  # Calcular la capacidad de carga
                 np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
                 # Evitar péridadas de poblaciones superiores a la población.
@@ -1325,32 +1328,32 @@ class Red(Simulable):
         # Una especie que mata a otra.
         antes_0 = ft.now()
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
-        t_depred = ft.now()-antes_0
+        t_depred = ft.now() - antes_0
 
         # Una población que crece (misma etapa)
         antes = ft.now()
         símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
-        t_crec = ft.now()-antes
+        t_crec = ft.now() - antes
 
         # Muertes por el ambiente
         antes = ft.now()
         símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
-        t_muertes = ft.now()-antes
+        t_muertes = ft.now() - antes
 
         # Calcular cambios de edades
         antes = ft.now()
         símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
-        t_edad = ft.now()-antes
+        t_edad = ft.now() - antes
 
         # Una etapa que cambia a otra, o que se muere por su edad.
         antes = ft.now()
         símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
-        t_trans = ft.now()-antes
+        t_trans = ft.now() - antes
 
         # Una etapa que se reproduce para producir más de otra etapa
         antes = ft.now()
         símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
-        t_reprod = ft.now()-antes
+        t_reprod = ft.now() - antes
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
@@ -1360,10 +1363,10 @@ class Red(Simulable):
         antes = ft.now()
         símismo._calc_ruido(pobs=pobs, paso=paso)
         fin = ft.now()
-        t_ruido = fin-antes_0
+        t_ruido = fin - antes_0
 
         if False:
-            print('Tiempo total: {}'.format(fin-antes))
+            print('Tiempo total: {}'.format(fin - antes))
             print('\tDepred:\t{}'.format(t_depred))
             print('\tCrec:\t{}'.format(t_crec))
             print('\tMrtes:\t{}'.format(t_muertes))
@@ -1455,7 +1458,8 @@ class Red(Simulable):
                         if np.sum(~np.isnan(vec_obs)) == 0:
                             continue
 
-                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp, :]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
+                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp,
+                                     :]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
 
                         org = símismo.etapas[n_etp]['org']
                         etp = símismo.etapas[n_etp]['nombre']
@@ -1817,7 +1821,6 @@ class Red(Simulable):
 
                     # Para cada otra columna que hay que combinar con esta...
                     for col_otra in combin_etps_obs[n_etp]:
-
                         # Sumar las observaciones.
                         datos_otra = obj_exp.obt_datos_rae('Pobs', por_parcela=True)['datos'][:, col_otra, 0]
                         np.sum(matr_obs_inic, datos_otra, out=matr_obs_inic)
@@ -2046,6 +2049,7 @@ class Red(Simulable):
                 return l.index(m)
             except ValueError:
                 return None
+
         l_m_obs_todas = [l_m_obs_v[temp(m, l_m_preds_v)] if temp(m, l_m_preds_v) is not None else None
                          for í, m in enumerate(l_m_preds_todas)]
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
@@ -2174,7 +2178,7 @@ class Red(Simulable):
                                 # Dibujar la distribución, si necesario
                                 if dib_dists:
                                     directorio_dib = os.path.join(símismo.proyecto, símismo.nombre, nombre_simul,
-                                                                  'Gráficos simulación', 'Dists',
+                                                                  'Grf simul', 'Dists',
                                                                   categ, subcateg, tipo_ec, parám)
 
                                     directorio_dib = símismo._prep_directorio(directorio=directorio_dib)
@@ -2225,7 +2229,7 @@ class Red(Simulable):
                                                     if dib_dists:
                                                         directorio_dib = os.path.join(
                                                             símismo.proyecto, símismo.nombre, nombre_simul,
-                                                            'Gráficos simulación', 'Dists',
+                                                            'Grf simul', 'Dists',
                                                             categ, subcateg, tipo_ec, parám)
 
                                                         directorio_dib = símismo._prep_directorio(
@@ -2449,87 +2453,88 @@ class Red(Simulable):
 
         """
 
-        # Para simplificar el código
-        pobs = símismo.predics['Cohortes']['Pobs']
-        edades = símismo.predics['Cohortes']['Edades']
+        if len(símismo.predics['Cohortes']):
+            # Para simplificar el código
+            pobs = símismo.predics['Cohortes']['Pobs']
+            edades = símismo.predics['Cohortes']['Edades']
 
-        """
-        totales = np.sum(pobs, axis=0)
-        quitar = np.floor(np.divide(muertes, totales) * pobs)
-        
-        if í_recip is not None:
-
-            if í_don is None:
-                raise ValueError
-
-            # Los índices (en la matriz de cohortes) de las etapas recipientes.
-            í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
-
-            í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
-
-            # Las edades de las etapas que se quitaron
-            eds = edades
-
-            # Cambiar el orden de las etapas para los cohortes recipientes
-            nuevos = np.zeros_like(quitar)
-            nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
-            símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
+            """
+            totales = np.sum(pobs, axis=0)
+            quitar = np.floor(np.divide(muertes, totales) * pobs)
             
-        faltan = totales - quitar
-        
-        """
-
-        muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
-
-        # Una suma cumulativa inversa de la distribución de cohortes
-        pobs_cums = np.cumsum(pobs[::-1], axis=0)[::-1]
-
-        # Para cada cohorte...
-        for n_día in range(pobs.shape[0]):
-
-            # Si ya no hay nada que hacer, parar aquí
-            if np.sum(muertes) == 0:
-                return
-
-            pobs_coh = pobs[n_día, ...]
-
-            if n_día < pobs.shape[0] - 1:
-                # Si no es la última categoría de los cohortes...
-
-                # Quitar los de esta edad que se murieron
-                quitar = np.floor(np.multiply(np.divide(pobs_coh, pobs_cums[n_día]), muertes))
-
-                quitar[np.isnan(quitar)] = 0
-
-                quitar = np.minimum(np.maximum(quitar, muertes - pobs_cums[n_día + 1]), muertes)
-
-                # Actualizar las muertes que faltan implementar
-                np.subtract(muertes, quitar, out=muertes)
-
-            else:
-                # Si es la última categoría de cohortes, hay que quitar todo lo que queda en muertes
-                quitar = muertes
-
-            np.subtract(pobs_coh, quitar, out=pobs_coh)
-
-            # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
             if í_recip is not None:
-
+    
                 if í_don is None:
                     raise ValueError
-
+    
                 # Los índices (en la matriz de cohortes) de las etapas recipientes.
                 í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
-
+    
                 í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
-
+    
                 # Las edades de las etapas que se quitaron
-                eds = edades[n_día, ...]
-
+                eds = edades
+    
                 # Cambiar el orden de las etapas para los cohortes recipientes
                 nuevos = np.zeros_like(quitar)
                 nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
                 símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
+                
+            faltan = totales - quitar
+            
+            """
+
+            muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
+
+            # Una suma cumulativa inversa de la distribución de cohortes
+            pobs_cums = np.cumsum(pobs[::-1], axis=0)[::-1]
+
+            # Para cada cohorte...
+            for n_día in range(pobs.shape[0]):
+
+                # Si ya no hay nada que hacer, parar aquí
+                if np.sum(muertes) == 0:
+                    return
+
+                pobs_coh = pobs[n_día, ...]
+
+                if n_día < pobs.shape[0] - 1:
+                    # Si no es la última categoría de los cohortes...
+
+                    # Quitar los de esta edad que se murieron
+                    quitar = np.floor(np.multiply(np.divide(pobs_coh, pobs_cums[n_día]), muertes))
+
+                    quitar[np.isnan(quitar)] = 0
+
+                    quitar = np.minimum(np.maximum(quitar, muertes - pobs_cums[n_día + 1]), muertes)
+
+                    # Actualizar las muertes que faltan implementar
+                    np.subtract(muertes, quitar, out=muertes)
+
+                else:
+                    # Si es la última categoría de cohortes, hay que quitar todo lo que queda en muertes
+                    quitar = muertes
+
+                np.subtract(pobs_coh, quitar, out=pobs_coh)
+
+                # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
+                if í_recip is not None:
+
+                    if í_don is None:
+                        raise ValueError
+
+                    # Los índices (en la matriz de cohortes) de las etapas recipientes.
+                    í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
+
+                    í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
+
+                    # Las edades de las etapas que se quitaron
+                    eds = edades[n_día, ...]
+
+                    # Cambiar el orden de las etapas para los cohortes recipientes
+                    nuevos = np.zeros_like(quitar)
+                    nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
+                    símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
 
     def _ajustar_cohortes(símismo, cambio):
         """
