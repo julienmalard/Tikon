@@ -2,7 +2,7 @@ from pprint import pprint
 import numpy as np
 import csv
 
-from tikon.Proyectos.Opisina_arenosella.Red_Opisina import Red_coco
+from tikon.Proyectos.Opisina_arenosella.Red_Opisina import gen_red
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
@@ -14,6 +14,12 @@ dib_dists = dib
 dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
+
+
+nombre = 'Red M'
+método = 'Metrópolis'  # 'Metrópolis Adaptivo'
+quema = 2000
+n_iter = 5000
 
 
 # Funciones útiles
@@ -122,7 +128,7 @@ def _simul_a_exp(red):
     # Saltar la hoja de coco. Causa muchos problemas.
     etps_interés = etps_interés[1:]
 
-    archivo = 'temp.csv'
+    archivo = 'temp_{}.csv'.format(nombre)
 
     with open(archivo, 'w', newline='') as arch_csv:
         escritorcsv = csv.writer(arch_csv)
@@ -153,6 +159,8 @@ def _agregar_exp(red, exper):
 
     red.añadir_exp(exper, corresp=corresp)
 
+# Crear la red
+Red_coco = gen_red(nombre=nombre)
 
 # Aplicar a prioris
 _aplicar_a_prioris(red=Red_coco, d_a_pr=a_prioris)
@@ -173,7 +181,7 @@ Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1']
 
 # Generar una simulación con UNA repetición paramétrica (y estocástica)
 print('Generando datos artificiales...')
-Red_coco.simular(exper=Exper, nombre='Datos artificiales', n_rep_parám=1, n_rep_estoc=1,
+Red_coco.simular(exper=Exper, nombre='{}, Datos artificiales'.format(nombre), n_rep_parám=1, n_rep_estoc=1,
                  mostrar=False, detalles=False, usar_especificadas=True, dib_dists=dib_dists,
                  dibujar=dib_simul)
 
@@ -190,27 +198,27 @@ _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 # Validar con estos valores
 print('Validación inicial...')
 _agregar_exp(red=Red_coco, exper=Exper_artificial)
-valid_perfecta = Red_coco.validar(nombre='Valid con verdaderos', exper=Exper_artificial, usar_especificadas=True,
-                                  detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
+valid_perfecta = Red_coco.validar(nombre='{}, Valid con verdaderos'.format(nombre), exper=Exper_artificial,
+                                  usar_especificadas=True, detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
                                   n_rep_parám=30, n_rep_estoc=30)
 print('Validación Perfecta\n********************')
 pprint(valid_perfecta)
 
 
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
-for p in range(100, -10, -10):
+for p in range(90, -10, -10):
     print('Calibrando con p={}.'.format(p))
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
-    Red_coco.validar(nombre='Valid antes de calib prec. {}'.format(p), exper=Exper_artificial,
+    Red_coco.validar(nombre='{}, Vld antes clb prec {}'.format(nombre, p), exper=Exper_artificial,
                      usar_especificadas=True, detalles=False, guardar=True,
                      dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10)
-    Red_coco.calibrar(nombre='Calib con prec. {}'.format(p), exper=Exper_artificial,
-                      n_rep_estoc=20, quema=0, n_iter=10000, extraer=1, dibujar=dib_calibs)
-    Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
+    Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
+                      n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=1, método=método, dibujar=dib_calibs)
+    Red_coco.guardar_calib(descrip='{}, Calib con datos artificiales, precisión de {}'.format(nombre, p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))
-    valid = Red_coco.validar(nombre='Valid con calib prec. {}'.format(p), exper=Exper_artificial,
+    valid = Red_coco.validar(nombre='Vld con clb prec {}'.format(p), exper=Exper_artificial,
                              usar_especificadas=False, detalles=False, guardar=True,
                              dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10)
 

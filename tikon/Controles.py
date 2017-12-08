@@ -1,10 +1,11 @@
 import os.path
 import json
-
+import pathvalidate
+from warnings import warn as avisar
 
 from pkg_resources import resource_filename
 
-# Este documento contiene información general para el programa Tikon
+# Este documento contiene información general para el programa Tiko'n
 
 # El directorio de pase del programa Tikon. Utilizado como referencia para encontrar y escribir documentos.
 directorio_base = os.path.dirname(__file__)
@@ -32,3 +33,21 @@ def espec_dir_modelo_cult(modelo, directorio):
             json.dump(dic_ctrls, d, ensure_ascii=False, sort_keys=True, indent=2)  # Guardar todo
     else:
         raise ValueError('El directorio especificado ("{}") no existe.'.format(directorio))
+
+
+def valid_archivo(archivo):
+
+    direc, nombre = os.path.split(archivo)
+    disco, direc = os.path.splitdrive(direc)
+
+    direc = pathvalidate.sanitize_file_path(direc, replacement_text='_')
+    nombre = pathvalidate.sanitize_filename(nombre, replacement_text='_')
+
+    if len(direc) >= 260:
+        raise ValueError('El archivo siguiente queda demasiado largo...\n\t{}'.format(archivo))
+
+    if len(direc) + len(nombre) > 260:
+        avisar('Cortamos el nombre "{}" por ser demasiado largo'.format(nombre))
+        nombre = nombre[:len(direc) - 260]
+
+    return os.path.join(disco, direc, nombre)
