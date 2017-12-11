@@ -5,6 +5,8 @@ from warnings import warn as avisar
 
 from pkg_resources import resource_filename
 
+usar_pymc3 = False
+
 # Este documento contiene información general para el programa Tiko'n
 
 # El directorio de pase del programa Tikon. Utilizado como referencia para encontrar y escribir documentos.

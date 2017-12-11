@@ -762,6 +762,9 @@ class Red(Simulable):
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0
 
+        # Arreglar errores de redondeo en la computación
+        depred[depred < 0] = 0
+
         # Ajustar por superficies
         np.multiply(depred, extrn['superficies'].reshape(depred.shape[0], 1, 1, 1, 1), out=depred)
 
@@ -917,6 +920,9 @@ class Red(Simulable):
         crec[np.isnan(crec)] = 0
 
         np.floor(crec)
+
+        # Asegurarse que no perdimos más que existen
+        np.maximum(-pobs, crec, out=crec)
 
         # Actualizar la matriz de poblaciones
         np.add(pobs, crec, out=pobs)
@@ -1268,7 +1274,13 @@ class Red(Simulable):
         # Una distribución normal
         np.multiply(pobs, ruido, out=ruido)
         np.maximum(1, ruido, out=ruido)
-        np.round(np.random.normal(0, ruido), out=ruido)
+        try:
+            np.round(np.random.normal(0, ruido), out=ruido)
+        except ValueError:
+            print(ruido)
+            print(ruido.min())
+            print(np.round(np.random.normal(0, ruido)).min())
+            raise ValueError
 
         # Verificara que no quitamos más que existen
         ruido = np.where(-ruido > pobs, -pobs, ruido)
