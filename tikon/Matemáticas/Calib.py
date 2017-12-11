@@ -158,7 +158,8 @@ class ModBayes(ModCalib):
                 raise ValueError
 
         # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id)
+        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
+                                 dbmode='w')
 
     def calib(símismo, rep, quema, extraer):
         """

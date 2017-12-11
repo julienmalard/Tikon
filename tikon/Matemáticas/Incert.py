@@ -933,12 +933,18 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
 
                 # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
                 if usar_pymc:
-                    # Convertir los argumentos a formato PyMC
-                    args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+                    from tikon.Controles import usar_pymc3
+                    if usar_pymc3:
+                        # Convertir los argumentos a una distribución PyMC3
+                        dist, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+                    else:
+                        # Convertir los argumentos a formato PyMC
+                        args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
 
-                    # Y crear la distribución.
-                    dist = dic_dist['pymc'](nombre, *args_pymc)
+                        # Y crear la distribución.
+                        dist = dic_dist['pymc'](nombre, *args_pymc)
 
+                    # Ajustar la distribución
                     if transform['mult'] != 1:
                         dist = dist * transform['mult']
 
@@ -1313,7 +1319,8 @@ def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
     elif tipo_dist == 'BinomialNegativo':
         n = paráms['n']
         p = paráms['p']
-        dist_pm3 = pm3.NegativeBinomial(mu=n(1-p)/p, alpha=n)  # para hacer: verificar
+        dist_pm3 = pm3.NegativeBinomial(mu=n(1-p)/p, alpha=n)
+        avisar('Tenemos que verificar esta distribución')  # para hacer: verificar
         transform_pymc['sum'] = paráms['loc']
 
     elif tipo_dist == 'Poisson':
@@ -1328,4 +1335,4 @@ def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
         raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones de PyMC 3.' %
                          tipo_dist)
 
-    return dist_pm3
+    return dist_pm3, transform_pymc

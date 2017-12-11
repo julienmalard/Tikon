@@ -21,6 +21,8 @@ import SALib.analyze.ff as ff_anlz
 
 import numpy as np
 import pymc
+import pymc3
+from theano.tensor.var import TensorVariable
 
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
@@ -1920,7 +1922,8 @@ class Simulable(Coso):
                     u.append(ll)
                     sacar_dists_de_dic(d=v, l=l, u=u)
 
-                elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+                elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic) or \
+                        isinstance(v, pymc3.model.TensorVariable):
                     u.append(ll)
                     l.append((u.copy(), v))
                     u.pop()
@@ -2130,7 +2133,7 @@ def prep_receta_json(d, d_egr=None):
             # Transformar matrices numpy a texto
             d_egr[ll] = v.tolist()
 
-        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic) or isinstance(v, pymc3.model.TensorVariable):
 
             # Si el itema es un variable de PyMC, borrarlo
             d_egr.pop(ll)

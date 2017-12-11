@@ -16,9 +16,9 @@ dib_calibs = dib
 proyecto = 'Artificial'
 
 
-nombre = 'Red M'
+nombre = 'Red M, q0'
 método = 'Metrópolis'  # 'Metrópolis Adaptivo'
-quema = 2000
+quema = 0
 n_iter = 5000
 
 
@@ -158,6 +158,7 @@ def _agregar_exp(red, exper):
         corresp[org][nombre] = ['Etapa %i' % etp]
 
     red.añadir_exp(exper, corresp=corresp)
+
 
 # Crear la red
 Red_coco = gen_red(nombre=nombre)

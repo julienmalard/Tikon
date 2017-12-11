@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pymc
+import pymc3
 from matplotlib import pyplot as dib
 from scipy import stats as estad
 
@@ -286,6 +287,14 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
             puntos = np.array([(dist_stoc.rand(), dist.value)[1] for _ in range(n)])
             y, delim = np.histogram(puntos, normed=True, bins=n//100)
             x = 0.5 * (delim[1:] + delim[:-1])
+
+        elif isinstance(dist, pymc3.model.FreeRV) or isinstance(dist, pymc3.model.TransformedRV):
+            puntos = np.array([dist.random() for _ in range(n)])
+            y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+            x = 0.5 * (delim[1:] + delim[:-1])
+
+        elif isinstance(dist, pymc3.model.TensorVariable):
+            raise NotImplementedError
 
         elif isinstance(dist, estad._distn_infrastructure.rv_frozen):
             x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
