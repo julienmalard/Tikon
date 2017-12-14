@@ -6,7 +6,7 @@ from tikon.Proyectos.Opisina_arenosella.Red_Opisina import gen_red
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
-dib = True
+dib = False
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib
@@ -201,7 +201,7 @@ print('Validación inicial...')
 _agregar_exp(red=Red_coco, exper=Exper_artificial)
 valid_perfecta = Red_coco.validar(nombre='{}, Valid con verdaderos'.format(nombre), exper=Exper_artificial,
                                   usar_especificadas=True, detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
-                                  n_rep_parám=30, n_rep_estoc=30)
+                                  n_rep_parám=30, n_rep_estoc=30, depurar=True)
 print('Validación Perfecta\n********************')
 pprint(valid_perfecta)
 

@@ -684,9 +684,12 @@ class Simulable(Coso):
         # Dejamos la implementación del incremento del modelo a las subclases individuales.
         raise NotImplementedError
 
+    def _incrementar_depurar(símismo, paso, i, detalles, extrn, d_tiempo):
+        raise NotImplementedError
+
     def simular(símismo, exper=None, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
-                mostrar=True, opciones_dib=None, dib_dists=True, valid=False):
+                mostrar=True, opciones_dib=None, dib_dists=True, valid=False, depurar=False):
         """
         Esta función corre una simulación del Simulable.
 
@@ -784,7 +787,7 @@ class Simulable(Coso):
         dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
         símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám, paso=paso,
                                 n_pasos=dic_argums['n_pasos'], detalles=detalles, tipo='valid' if valid else 'simul')
-        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, devolver_calib=False)
+        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, devolver_calib=False, depurar=depurar)
 
         # Borrar los vectores de coeficientes temporarios
         símismo.borrar_calib(id_calib=nombre)
@@ -979,7 +982,7 @@ class Simulable(Coso):
 
     def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=20, n_rep_estoc=20,
                 usar_especificadas=False, detalles=False, guardar=True,
-                dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
+                dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True, depurar=False):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -1045,7 +1048,7 @@ class Simulable(Coso):
         símismo.simular(nombre=nombre, exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
                         calibs=calibs, usar_especificadas=usar_especificadas, detalles=detalles,
                         dibujar=dibujar, mostrar=mostrar,
-                        opciones_dib=opciones_dib, dib_dists=dib_dists, valid=True)
+                        opciones_dib=opciones_dib, dib_dists=dib_dists, valid=True, depurar=depurar)
 
         # Procesar los datos de la validación
         símismo._procesar_valid()
@@ -1367,7 +1370,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _calc_simul(símismo, paso, n_pasos, detalles, extrn=None):
+    def _calc_simul(símismo, paso, n_pasos, detalles, extrn=None, depurar=False):
         """
         Esta función aumenta el modelo para cada paso en la simulación. Se usa en simulaciones normales, tanto como en
           simulaciones de experimentos.
@@ -1387,9 +1390,21 @@ class Simulable(Coso):
         símismo._numerizar_coefs()
         símismo._justo_antes_de_simular()
 
-        # Para cada paso de tiempo, incrementar el modelo
-        for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
-            símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
+        if not depurar:
+            # Para cada paso de tiempo, incrementar el modelo
+            for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
+                símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
+        else:
+            # Para cada paso de tiempo, incrementar el modelo
+            d_tiempo = {}
+            for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
+                d_tiempo = símismo._incrementar_depurar(paso, i=i, detalles=detalles, extrn=extrn, d_tiempo=d_tiempo)
+
+            t_total_intern = sum(v for v in d_tiempo.values())
+            print('Descomposición de tiempo de simulación\n')
+            print('\tCálculo\tSegs\t% del todal')
+            for ll, v in d_tiempo.items():
+                print('\t{}\t{}\t{} %'.format(ll, round(v, 4), round(v / t_total_intern * 100), 4))
 
     def _gen_lista_coefs_interés_todos(símismo):
 
@@ -1571,7 +1586,7 @@ class Simulable(Coso):
     def _gen_dics_calib(símismo, exper):
         raise NotImplementedError
 
-    def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib):
+    def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib, depurar=False):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
         correspondiendo a los valores observados, y eso en el mismo orden.
@@ -1612,7 +1627,7 @@ class Simulable(Coso):
 
             # Simular el modelo
             antes = time.time()
-            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp])
+            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp], depurar=depurar)
             print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
         # Procesar los egresos de la simulación.
