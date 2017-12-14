@@ -1194,7 +1194,7 @@ class Red(Simulable):
         for tp_mult, í_etps in tipos_mult.items():
             if tp_mult == 'Linear':
                 trans[..., í_etps] *= coefs_mt[tp_mult]['a']
-                np.floor(trans)
+                np.round(trans, out=trans)
             else:
                 raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
 
@@ -1274,13 +1274,7 @@ class Red(Simulable):
         # Una distribución normal
         np.multiply(pobs, ruido, out=ruido)
         np.maximum(1, ruido, out=ruido)
-        try:
-            np.round(np.random.normal(0, ruido), out=ruido)
-        except ValueError:
-            print(ruido)
-            print(ruido.min())
-            print(np.round(np.random.normal(0, ruido)).min())
-            raise ValueError
+        np.round(np.random.normal(0, ruido), out=ruido)
 
         # Verificara que no quitamos más que existen
         ruido = np.where(-ruido > pobs, -pobs, ruido)
@@ -1338,54 +1332,150 @@ class Red(Simulable):
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
         # Una especie que mata a otra.
-        antes_0 = ft.now()
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
-        t_depred = ft.now() - antes_0
 
         # Una población que crece (misma etapa)
-        antes = ft.now()
         símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
-        t_crec = ft.now() - antes
 
         # Muertes por el ambiente
-        antes = ft.now()
         símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
-        t_muertes = ft.now() - antes
 
         # Calcular cambios de edades
-        antes = ft.now()
         símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
-        t_edad = ft.now() - antes
 
         # Una etapa que cambia a otra, o que se muere por su edad.
-        antes = ft.now()
         símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
-        t_trans = ft.now() - antes
 
         # Una etapa que se reproduce para producir más de otra etapa
-        antes = ft.now()
         símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
-        t_reprod = ft.now() - antes
 
         if mov:
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
 
         # Ruido aleatorio
+        símismo._calc_ruido(pobs=pobs, paso=paso)
+
+    def _incrementar_depurar(símismo, paso, i, detalles, d_tiempo, mov=False, extrn=None):
+
+
+        # Empezar con las poblaciones del paso anterior
+        símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
+        pobs = símismo.predics['Pobs'][..., i]
+
+        def verificar_estado(punto):
+            """
+            Verifica la consistencia interna del modelo.
+
+            :param punto: El punto de ejecución (para mensajes de error)
+            :type punto: str
+            """
+
+            etps_ins = [i for i, x in enumerate(símismo.etapas)
+                        if isinstance(símismo.organismos[x['org']], Ins.Insecto)]
+
+            mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya. \n\tSino, es culpa mía.'
+
+            if pobs.min() < 0:
+                raise ValueError('Población inferior a 0 justo después de calcular {}.\n{}'.format(punto, mnsg))
+            if np.any(np.isnan(pobs)):
+                raise ValueError('Población "nan" justo después de calcular {}.\n{}'.format(punto, mnsg))
+            if np.any(np.not_equal(pobs[..., etps_ins].astype(int), pobs[..., etps_ins])):
+                raise ValueError('Población fraccional justo después de calcular {}\n{}.'.format(punto, mnsg))
+            if len(símismo.predics['Cohortes']):
+                pobs_coh = símismo.predics['Cohortes']['Pobs']
+                if pobs_coh.min() < 0:
+                    raise ValueError('Población de cohorte inferior a 0 justo después de calcular {}.\n{}'
+                                     .format(punto, mnsg))
+                if np.any(np.not_equal(pobs_coh.astype(int), pobs_coh)):
+                    raise ValueError('Población de cohorte fraccional justo después de calcular {}.\n{}'
+                                     .format(punto, mnsg))
+                if np.any(np.isnan(pobs_coh)):
+                    raise ValueError('Población de cohorte "nan" justo después de calcular {}.\n{}'.format(punto, mnsg))
+                if np.any(np.not_equal(pobs_coh.sum(axis=0), pobs[..., símismo.índices_cohortes])):
+                    raise ValueError('Población de cohorte no suma a población total justo después de calcular {}.'
+                                     .format(punto))
+
+        if not len(d_tiempo):
+            d_tiempo = {'Depredación': 0, 'Crecimiento': 0, 'Muertes': 0, 'Edad': 0, 'Transiciones': 0,
+                        'Reproducción': 0, 'Movimiento': 0, 'Ruido': 0}
+
+        # Especificar las matrices de depredación, crecimiento, etc.
+        if detalles:
+            depred = símismo.predics['Depredación'][..., i]
+            crec = símismo.predics['Crecimiento'][..., i]
+            muertes = símismo.predics['Muertes'][..., i]
+            trans = símismo.predics['Transiciones'][..., i]
+            reprod = símismo.predics['Reproducción'][..., i]
+
+        else:
+            depred = símismo.predics['Depredación']
+            crec = símismo.predics['Crecimiento']
+            muertes = símismo.predics['Muertes']
+            trans = símismo.predics['Transiciones']
+            reprod = símismo.predics['Reproducción']
+
+        edades = símismo.predics['Edades']
+
+        # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
+        # Una especie que mata a otra.
+        verificar_estado('Inicio')
+        antes = ft.now()
+        símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
+        ahora = ft.now()
+        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds/1000000
+        verificar_estado('Depredación')
+
+        # Una población que crece (misma etapa)
+        antes = ft.now()
+        símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
+        ahora = ft.now()
+        d_tiempo['Crecimiento'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Crecimiento')
+
+        # Muertes por el ambiente
+        antes = ft.now()
+        símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
+        ahora = ft.now()
+        d_tiempo['Muertes'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Muertes')
+
+        # Calcular cambios de edades
+        antes = ft.now()
+        símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
+        ahora = ft.now()
+        d_tiempo['Edad'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Edad')
+
+        # Una etapa que cambia a otra, o que se muere por su edad.
+        antes = ft.now()
+        símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
+        ahora = ft.now()
+        d_tiempo['Transiciones'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Transiciones')
+
+        # Una etapa que se reproduce para producir más de otra etapa
+        antes = ft.now()
+        símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
+        ahora = ft.now()
+        d_tiempo['Reproducción'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Reproducción')
+
+        if mov:
+            # Movimientos de organismos de una parcela a otra.
+            símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
+            ahora = ft.now()
+            d_tiempo['Movimiento'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+            verificar_estado('Movimiento')
+
+        # Ruido aleatorio
         antes = ft.now()
         símismo._calc_ruido(pobs=pobs, paso=paso)
-        fin = ft.now()
-        t_ruido = fin - antes_0
+        ahora = ft.now()
+        d_tiempo['Ruido'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Ruido')
 
-        if False:
-            print('Tiempo total: {}'.format(fin - antes))
-            print('\tDepred:\t{}'.format(t_depred))
-            print('\tCrec:\t{}'.format(t_crec))
-            print('\tMrtes:\t{}'.format(t_muertes))
-            print('\tEdad:\t{}'.format(t_edad))
-            print('\tTrans:\t{}'.format(t_trans))
-            print('\tReprod:\t{}'.format(t_reprod))
-            print('\tRuido:\t{}'.format(t_ruido))
+        return d_tiempo
 
     def _procesar_simul(símismo):
         """
@@ -2471,8 +2561,15 @@ class Red(Simulable):
             edades = símismo.predics['Cohortes']['Edades']
 
             """
-            totales = np.sum(pobs, axis=0)
-            quitar = np.floor(np.divide(muertes, totales) * pobs)
+            muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
+            
+            totales_pobs = np.sum(pobs, axis=0)
+            quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
+            np.subtract(pobs, quitar, out=pobs)
+            
+            np.subtract(muertes, quitar.sum(axis=0), out=muertes)
+            
+            
             
             if í_recip is not None:
     
