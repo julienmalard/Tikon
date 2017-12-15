@@ -1172,9 +1172,9 @@ class Red(Simulable):
 
             else:
                 # Aquí tenemos todas las probabilidades de muerte dependientes en distribuciones de cohortes:
-                edad_extra = símismo.predics['Edades']
+                edad_extra = símismo.predics['Edades'][..., í_etps]
 
-                símismo._trans_cohortes(cambio_edad=edad_extra[..., í_etps], etps=í_etps,
+                símismo._trans_cohortes(cambio_edad=edad_extra, etps=í_etps,
                                         dists=símismo.dists['Trans'][tp_prob],
                                         matr_egr=trans_etp)
 
@@ -1269,7 +1269,7 @@ class Red(Simulable):
                 ruido[..., í_etps] = cf_ruido['sigma'] * paso  # Ajustando por el paso
 
             else:
-                raise ValueError
+                raise ValueError('Tipo de ruido "{}" no reconocido por Tiko\'n.'.format(tp_ruido))
 
         # Una distribución normal
         np.multiply(pobs, ruido, out=ruido)
@@ -2560,39 +2560,47 @@ class Red(Simulable):
             pobs = símismo.predics['Cohortes']['Pobs']
             edades = símismo.predics['Cohortes']['Edades']
 
-            """
+
             muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
             
             totales_pobs = np.sum(pobs, axis=0)
             quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
+            quitar[np.isnan(quitar)] = 0
+
             np.subtract(pobs, quitar, out=pobs)
             
             np.subtract(muertes, quitar.sum(axis=0), out=muertes)
-            
-            
-            
+
+            cum_presente = np.cumsum(np.greater(pobs, 0), axis=0)
+            quitar_2 = np.where(np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, muertes)), 1, 0)
+
+            np.subtract(pobs, quitar_2, out=pobs)
+
+            np.add(quitar_2, quitar, out=quitar)
+
+            # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
             if í_recip is not None:
-    
+
                 if í_don is None:
                     raise ValueError
-    
+
                 # Los índices (en la matriz de cohortes) de las etapas recipientes.
                 í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
-    
-                í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
-    
-                # Las edades de las etapas que se quitaron
-                eds = edades
-    
-                # Cambiar el orden de las etapas para los cohortes recipientes
-                nuevos = np.zeros_like(quitar)
-                nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
-                símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
-                
-            faltan = totales - quitar
-            
-            """
 
+                í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
+
+                # Para cada cohorte...
+                for n_día in range(pobs.shape[0]):
+
+                    # Las edades de las etapas que se quitaron
+                    eds = edades[n_día, ...]
+
+                    # Cambiar el orden de las etapas para los cohortes recipientes
+                    nuevos = np.zeros_like(quitar[n_día])
+                    nuevos[..., í_recip_coh] = quitar[n_día][..., í_don_coh]
+                    símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
+
+        """
             muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
 
             # Una suma cumulativa inversa de la distribución de cohortes
@@ -2644,6 +2652,7 @@ class Red(Simulable):
                     nuevos = np.zeros_like(quitar)
                     nuevos[..., í_recip_coh] = quitar[..., í_don_coh]
                     símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
+        """
 
     def _ajustar_cohortes(símismo, cambio):
         """

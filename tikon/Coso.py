@@ -22,7 +22,6 @@ import SALib.analyze.ff as ff_anlz
 import numpy as np
 import pymc
 import pymc3
-from theano.tensor.var import TensorVariable
 
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
@@ -797,7 +796,7 @@ class Simulable(Coso):
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10,
-                 n_iter=10000, quema=100, extraer=10, método='Metrópolis', dibujar=False):
+                 n_iter=10000, quema=100, extraer=10, método='Metrópolis', dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -866,6 +865,7 @@ class Simulable(Coso):
         dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
         dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
         dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
+        dic_argums['depurar'] = depurar
 
         símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
                                 n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
@@ -1402,9 +1402,10 @@ class Simulable(Coso):
 
             t_total_intern = sum(v for v in d_tiempo.values())
             print('Descomposición de tiempo de simulación\n')
-            print('\tCálculo\tSegs\t% del todal')
+            print('\tCálculo\t\tSegundos\t% del total')
             for ll, v in d_tiempo.items():
-                print('\t{}\t{}\t{} %'.format(ll, round(v, 4), round(v / t_total_intern * 100), 4))
+                print('\t{}\t{}\t\t{} %'.format(ll if len(ll) >= 12 else ll + '-' * (12 - len(ll)),
+                                                round(v, 2), round(v / t_total_intern * 100), 2))
 
     def _gen_lista_coefs_interés_todos(símismo):
 
@@ -1593,10 +1594,6 @@ class Simulable(Coso):
 
         Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
         simular como llaves.
-
-        :param dic_predics_exps: Un diccionario de las matrices, incluyendo datos iniciales, para la simulación de
-        cada experimento.
-        :type dic_predics_exps: dict
 
         :param paso: El paso para la simulación
         :type paso: int
