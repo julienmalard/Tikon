@@ -498,7 +498,7 @@ class Coso(object):
 
             return d_copia
 
-        # 2) Una función para copiar las trazas de un diccionario de coeficientes de un objeto
+        # 2) Una función para copiar_profundo las trazas de un diccionario de coeficientes de un objeto
         def sacar_trazas(d_fuente, d_final):
             """
 
@@ -1400,12 +1400,12 @@ class Simulable(Coso):
             for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
                 d_tiempo = símismo._incrementar_depurar(paso, i=i, detalles=detalles, extrn=extrn, d_tiempo=d_tiempo)
 
-            t_total_intern = sum(v for v in d_tiempo.values())
+            t_total_interno = sum(v for v in d_tiempo.values())
+
             print('Descomposición de tiempo de simulación\n')
-            print('\tCálculo\t\tSegundos\t% del total')
+            print('\t{:<13}{:>12}{:>14}'.format('Cálculo', 'Segundos', '% del total'))
             for ll, v in d_tiempo.items():
-                print('\t{}\t{}\t\t{} %'.format(ll if len(ll) >= 12 else ll + '-' * (12 - len(ll)),
-                                                round(v, 2), round(v / t_total_intern * 100), 2))
+                print('\t{:<13}{:12.2f}{:12.2f} %'.format(ll, v, v / t_total_interno * 100))
 
     def _gen_lista_coefs_interés_todos(símismo):
 
@@ -1614,13 +1614,12 @@ class Simulable(Coso):
 
         # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
         # datos iniciales para las próximas).
-        d_predics_exps = símismo.dic_simul['d_predics_exps']
-        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=d_predics_exps)
+        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=símismo.predics_exps)
 
         # Para cada experimento...
-        for exp in d_predics_exps:
+        for exp in símismo.predics_exps:
             # Apuntar el diccionario de predicciones del Simulable al diccionario apropiado en símismo.predics_exps.
-            símismo.predics = símismo.dic_simul['d_predics_exps'][exp]
+            símismo.predics = símismo.predics_exps[exp]
 
             # Simular el modelo
             antes = time.time()
