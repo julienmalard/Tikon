@@ -17,6 +17,7 @@ proyecto = 'Artificial'
 
 
 nombre = 'Red M, q0'
+print(nombre)
 método = 'Metrópolis'  # 'Metrópolis Adaptivo'
 quema = 0
 n_iter = 5000
@@ -184,7 +185,7 @@ Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1']
 print('Generando datos artificiales...')
 Red_coco.simular(exper=Exper, nombre='{}, Datos artificiales'.format(nombre), n_rep_parám=1, n_rep_estoc=1,
                  mostrar=False, detalles=False, usar_especificadas=True, dib_dists=dib_dists,
-                 dibujar=dib_simul)
+                 dibujar=dib_simul, depurar=True)
 
 # Extraer las predicciones de la simulación y copiarlas a un nuevo Experimento
 Exper_artificial = _simul_a_exp(Red_coco)
