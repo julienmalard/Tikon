@@ -796,7 +796,7 @@ class Simulable(Coso):
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10,
-                 n_iter=10000, quema=100, extraer=10, método='Metrópolis', dibujar=False, depurar=False):
+                 n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -2221,7 +2221,11 @@ def llenar_copia_dic_matr(d_f, d_r):
         if isinstance(v, dict):
             llenar_copia_dic_matr(d_f=v, d_r=d_r[ll])
         elif isinstance(v, np.ndarray):
-            d_r[ll][:] = v
+            if d_r[ll].shape == v.shape:
+                d_r[ll][:] = v
+            else:
+                # Para unas matrices, copiar el primer día de datos solamente.
+                d_r[ll][..., 0] = v
         else:
             pass
 

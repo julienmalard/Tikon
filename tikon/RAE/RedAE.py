@@ -2072,9 +2072,10 @@ class Red(Simulable):
         dic_a_lista(d=d_preds, l=l_preds, l_u=símismo.dic_simul['l_ubics_m_preds'])
 
         # Generamos una copia de los datos iniciales, para poder reinicializar corridas. Para Redes, solamente tenemos
-        # que hacer una copia de los cohortes.
+        # que hacer una copia de los cohortes, y del primer día de poblaciones.
         símismo.dic_simul['inic_d_predics_exps'] = {
-            exp: {'Cohortes': copiar_profundo(d_exp['Cohortes'])}
+            exp: {'Cohortes': copiar_profundo(d_exp['Cohortes']),
+                  'Pobs': d_exp['Pobs'][..., 0].copy()}
             for exp, d_exp in símismo.dic_simul['d_predics_exps'].items()
         }
 

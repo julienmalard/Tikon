@@ -13,7 +13,7 @@ ops_dib = {'n_líneas': 5}
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
 
-n_iter = 10
+n_iter = 10000
 quema = 0
 extraer = 1
 

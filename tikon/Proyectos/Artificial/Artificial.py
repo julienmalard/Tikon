@@ -6,7 +6,7 @@ from tikon.Proyectos.Opisina_arenosella.Red_Opisina import gen_red
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
-dib = False
+dib = True
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib
@@ -22,7 +22,7 @@ método = 'Metrópolis'  # 'Metrópolis Adaptivo'
 quema = 0
 n_iter = 5000
 
-depurar=True
+depurar = False
 
 # Funciones útiles
 def _aplicar_a_prioris(red, d_a_pr):
@@ -214,14 +214,14 @@ for p in range(90, -10, -10):
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
     print('\tValidando antes de calib...')
-    Red_coco.validar(nombre='{}, Vld antes clb prec {}'.format(nombre, p), exper=Exper_artificial,
+    Red_coco.validar(nombre='Vld antes clb prec {}'.format(p), exper=Exper_artificial,
                      usar_especificadas=True, detalles=False, guardar=True,
                      dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
     print('\tCalibrando...')
     Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
                       n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=1, método=método, dibujar=dib_calibs,
                       depurar=depurar)
-    Red_coco.guardar_calib(descrip='{}, Calib con datos artificiales, precisión de {}'.format(nombre, p),
+    Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))
     valid = Red_coco.validar(nombre='Vld con clb prec {}'.format(p), exper=Exper_artificial,

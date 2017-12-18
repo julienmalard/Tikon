@@ -1,5 +1,7 @@
 import numpy as np
 import pymc
+import pymc3
+from tikon.Controles import usar_pymc3
 
 from tikon.Matemáticas.Incert import trazas_a_dists
 
@@ -101,65 +103,117 @@ class ModBayes(ModCalib):
         símismo.método = método
         símismo.n_iter = 0
 
-        # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
-        # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
-        # la maquinaría de calibración de PyMC.
-        l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
-                                      l_trazas=aprioris, formato='calib', comunes=False)
+        if not usar_pymc3:
 
-        # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
-        l_var_paráms = [x for x in l_var_paráms
-                        if not (isinstance(x, pymc.Uniform) and x.parents['lower'] == x.parents['upper'])
-                        and not isinstance(x, pymc.Degenerate)
-                        ]
+            # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
+            # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
+            # la maquinaría de calibración de PyMC.
+            l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
+                                          l_trazas=aprioris, formato='calib', comunes=False)
 
-        # Incluir también los parientes de cualquier variable determinístico (estos se crean cuando se necesitan
-        # transformaciones de las distribuciones básicas de PyMC)
-        for parám in l_var_paráms:
-            if isinstance(parám, pymc.Deterministic):
-                l_var_paráms.append(min(parám.extended_parents))
+            # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
+            l_var_paráms = [x for x in l_var_paráms
+                            if not (isinstance(x, pymc.Uniform) and x.parents['lower'] == x.parents['upper'])
+                            and not isinstance(x, pymc.Degenerate)
+                            ]
 
-        # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
-        función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
+            # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
+            función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
 
-        # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
-        # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
-        # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
-        # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
-        @pymc.deterministic(trace=False)
-        def simul(_=l_var_paráms):
-            return función(**dic_argums)
+            # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
+            # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
+            # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
+            # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+            @pymc.deterministic(trace=False)
+            def simul(_=l_var_paráms):
+                return función(**dic_argums)
 
-        # Ahora, las observaciones
-        l_var_obs = []  # Una lista para los variables de observación
-        for tipo, m_obs in d_obs.items():
-            # Para cada tipo (distribución) de observación y su matriz de observaciones correspondiente...
+            # Ahora, las observaciones
+            l_var_obs = []  # Una lista para los variables de observación
+            for tipo, m_obs in d_obs.items():
+                # Para cada tipo (distribución) de observación y su matriz de observaciones correspondiente...
 
-            # ... crear la distribución apropiada en PyMC
-            if tipo == 'Gamma':
-                # Si las observaciones siguen una distribución Gamma...
+                # ... crear la distribución apropiada en PyMC
+                if tipo == 'Gamma':
+                    # Si las observaciones siguen una distribución Gamma...
 
-                # Crear el variable PyMC
-                var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'], beta=simul['Gamma']['beta'],
-                                     value=m_obs, observed=True, trace=False)
+                    # Crear el variable PyMC
+                    var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
+                                         beta=simul['Gamma']['beta'],
+                                         value=m_obs, observed=True, trace=False)
 
-                # ...y agregarlo a la lista de variables de observación
-                l_var_obs.extend([var_obs])
+                    # ...y agregarlo a la lista de variables de observación
+                    l_var_obs.extend([var_obs])
 
-            elif tipo == 'Normal':
-                # Si tenemos distribución normal de las observaciones...
-                tau = simul['Normal']['sigma'] ** -2
-                var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
-                                      value=m_obs, observed=True, trace=False)
-                nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
-                          tau.parents['a'], tau.parents['a'].parents['self']]
-                l_var_obs.extend(nuevos)
-            else:
-                raise ValueError
+                elif tipo == 'Normal':
+                    # Si tenemos distribución normal de las observaciones...
+                    tau = simul['Normal']['sigma'] ** -2
+                    var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+                                          value=m_obs, observed=True, trace=False)
+                    nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
+                              tau.parents['a'], tau.parents['a'].parents['self']]
+                    l_var_obs.extend(nuevos)
+                else:
+                    raise ValueError
 
-        # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-        símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
-                                 dbmode='w')
+            # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
+            símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
+                                     dbmode='w')
+        else:
+
+            raise NotImplementedError
+
+            símismo.MCMC = pymc3.Model()
+
+            with símismo.MCMC as mod:
+                # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
+                # también es la responsable para crear la conexión dinámica entre el diccionario de los parámetros y
+                # la maquinaría de calibración de PyMC.
+                l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
+                                              l_trazas=aprioris, formato='calib', comunes=False)
+
+                # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
+                función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
+
+                # Una función determinística para llamar a la función de simulación del modelo que estamos calibrando. Le
+                # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
+                # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
+                # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+                @pymc.deterministic(trace=False)
+                def simul(_=l_var_paráms):
+                    return función(**dic_argums)
+
+                # Ahora, las observaciones
+                l_var_obs = []  # Una lista para los variables de observación
+                for tipo, m_obs in d_obs.items():
+                    # Para cada tipo (distribución) de observación y su matriz de observaciones correspondiente...
+
+                    # ... crear la distribución apropiada en PyMC
+                    if tipo == 'Gamma':
+                        # Si las observaciones siguen una distribución Gamma...
+
+                        # Crear el variable PyMC
+                        var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
+                                             beta=simul['Gamma']['beta'],
+                                             value=m_obs, observed=True, trace=False)
+
+                        # ...y agregarlo a la lista de variables de observación
+                        l_var_obs.extend([var_obs])
+
+                    elif tipo == 'Normal':
+                        # Si tenemos distribución normal de las observaciones...
+                        tau = simul['Normal']['sigma'] ** -2
+                        var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+                                              value=m_obs, observed=True, trace=False)
+                        nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
+                                  tau.parents['a'], tau.parents['a'].parents['self']]
+                        l_var_obs.extend(nuevos)
+                    else:
+                        raise ValueError
+
+                # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
+                símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
+                                         dbmode='w')
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -219,7 +273,7 @@ class ModBayes(ModCalib):
             # cambiar el nombre
             try:
                 vec_np = d_parám[id_calib].trace(chain=None)[:]
-            except AttributeError:
+            except (AttributeError, IndexError):
                 vec_np = np.zeros(símismo.n_iter)
                 vec_np[:] = d_parám[id_calib].value
 
