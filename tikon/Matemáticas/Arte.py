@@ -294,7 +294,22 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
             x = 0.5 * (delim[1:] + delim[:-1])
 
         elif isinstance(dist, pymc3.model.TensorVariable):
-            raise NotImplementedError
+            def obt_parientes(d, c_p=None):
+                if c_p is None:
+                    c_p = set()
+
+                for i in d.get_parents():
+                    if isinstance(i, pymc3.model.FreeRV) or isinstance(i, pymc3.model.TransformedRV):
+                        c_p.add(i)
+                    else:
+                        obt_parientes(d=i, c_p=c_p)
+
+                return c_p
+
+            parientes = obt_parientes(dist)
+            puntos = np.array([dist.eval({p: p.random() for p in parientes}) for _ in range(n)])
+            y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+            x = 0.5 * (delim[1:] + delim[:-1])
 
         elif isinstance(dist, estad._distn_infrastructure.rv_frozen):
             x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
