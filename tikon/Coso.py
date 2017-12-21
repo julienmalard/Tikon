@@ -23,6 +23,8 @@ import numpy as np
 import pymc
 import pymc3
 
+from tikon import __correo__
+from tikon.Matemáticas.Calib import VarCalib
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes, ModGLUE
@@ -641,6 +643,7 @@ class Simulable(Coso):
             'd_obs_valid': {},
             'd_obs_calib': {},
             'l_m_obs_todas': [],
+            'l_días_obs_todas': [],
             'd_l_í_calib': {},
             'l_m_preds_todas': [],
             'l_ubics_m_preds': [],
@@ -795,8 +798,9 @@ class Simulable(Coso):
         if dibujar:
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
-    def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10,
-                 n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', dibujar=False, depurar=False):
+    def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10, tiempo_final=None,
+                 n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', pedazitos=None,
+                 dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -843,11 +847,54 @@ class Simulable(Coso):
 
         """
 
-        # Actualizar
+        # 0. Actualizar
         símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
         nombre = símismo._valid_nombre_simul(nombre=nombre)
+
+        # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
+        # para la calibración.
+        exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
+
+
+
+        # 0.5 Hacer calibración por pedazitos, si lo queremos
+        nombre_pdzt_ant = None
+        if pedazitos is not None:
+
+            tiempo_final = símismo._obt_tiempo_final(exper=exper)
+
+            for f in range(1, pedazitos):
+
+                nombre_pedazito = nombre + '_pdzt_{}'.format(f)
+
+                símismo.calibrar(nombre=nombre_pedazito,
+                                 aprioris=aprioris, exper=exper, paso=paso, n_rep_estoc=n_rep_estoc,
+                                 n_iter=n_iter, quema=quema, extraer=extraer, método=método,
+                                 tiempo_final={exp: int(tiempo_final[exp] * f / pedazitos) for exp in tiempo_final},
+                                 pedazitos=None,  # Queremos cada subcalibración sin sus propias pedazitos
+                                 dibujar=False, depurar=depurar)
+                símismo.guardar_calib(descrip='Pedazito {} de calib {}'.format(f, nombre),
+                                      utilizador='Interno a Tiko\'n. Nunca debería de ver esta calibración.',
+                                      contacto=__correo__)
+
+                if nombre_pdzt_ant is not None:
+                    símismo.borrar_calib(id_calib=nombre_pdzt_ant)
+
+                nombre_pdzt_ant = nombre_pedazito
+
+                # Actualizar los aprioris
+                aprioris = nombre_pedazito
+
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
+        dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
+        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
+        dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
+        dic_argums['depurar'] = depurar
+
+        símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
+                                n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
 
         # 2. Creamos la lista de parámetros que hay que calibrar
         lista_paráms, lista_líms, nombres = símismo._gen_lista_coefs_interés_todos()
@@ -856,19 +903,6 @@ class Simulable(Coso):
 
         # 3. Filtrar coeficientes por calib
         lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
-
-        # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
-        # para la calibración.
-        exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
-
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=None)
-        dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
-        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
-        dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
-        dic_argums['depurar'] = depurar
-
-        símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
-                                n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
 
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
@@ -891,6 +925,8 @@ class Simulable(Coso):
         else:
             raise ValueError
 
+        if nombre_pdzt_ant is not None:
+            símismo.borrar_calib(id_calib=nombre_pdzt_ant)
 
         # 7. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModCalib
         símismo.ModCalib.calib(rep=n_iter, quema=quema, extraer=extraer)
@@ -1521,6 +1557,10 @@ class Simulable(Coso):
         dic_args = dict(n_pasos={},
                         extrn={})
 
+        # Determinar el tiempo final, si es necesario
+        if tiempo_final is None:
+            tiempo_final = símismo._obt_tiempo_final(exper=exper)
+
         # Para cada experimento...
         for exp in exper:
 
@@ -1530,9 +1570,7 @@ class Simulable(Coso):
             parc = obj_exp.obt_parcelas(tipo=símismo.ext)
             tamaño_parcelas = obj_exp.superficies(parc=parc)
 
-            # Determinar el tiempo final, si es necesario
-            if tiempo_final is None:
-                tiempo_final = {exp: obj_exp.tiempo_final(tipo=símismo.ext)}
+
             n_pasos = mat.ceil(tiempo_final[exp] / paso) + 1
 
             # También guardamos el número de pasos y las superficies de las parcelas.
@@ -1540,6 +1578,17 @@ class Simulable(Coso):
             dic_args['extrn'][exp] = {'superficies': tamaño_parcelas}
 
         return dic_args
+
+    def _obt_tiempo_final(símismo, exper):
+        """
+
+        :param exper:
+        :type exper:
+        :return:
+        :rtype: dict
+        """
+
+        return {exp: símismo.exps[exp]['Exp'].tiempo_final(tipo=símismo.ext) for exp in exper}
 
     def _prep_dic_simul(símismo, exper, n_rep_estoc, n_rep_paráms, paso, n_pasos, detalles, tipo):
         """
@@ -1909,8 +1958,8 @@ class Simulable(Coso):
 
         def sacar_dists_de_dic(d, l=None, u=None):
             """
-            Esta función recursiva saca las distribuciones PyMC de un diccionario de coeficientes.
-              Devuelva los resultados en forma de tuple:
+            Esta función recursiva saca las distribuciones `VarCalib` de un diccionario de coeficientes.
+            Devuelva los resultados en forma de tuple:
 
 
             :param d: El diccionario

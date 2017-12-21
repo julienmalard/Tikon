@@ -124,7 +124,7 @@ class Unidad(object):
                 if fase == 'e':
                     agregar_unid(l_dic[-1])
                 elif fase == 'p':
-
+                    raise NotImplementedError
 
                 if paréntesis > 0:
                     raise ValueError

@@ -51,7 +51,7 @@ class Experimento(object):
 
         símismo.proyecto = proyecto
 
-    def obt_datos_rae(símismo, egr, por_parcela=False):
+    def obt_datos_rae(símismo, egr, t_final=None, por_parcela=False):
         """
         Saca datos de Red AgroEcológica.
 
@@ -93,6 +93,10 @@ class Experimento(object):
 
                 # No hay nano-zorros en este mundo
                 dic_egr['datos'] = datos.astype(int)
+
+            if t_final is not None:
+                dic_egr['datos'] = dic_egr['datos'][..., dic_egr['días'] < t_final]
+                dic_egr['días'] = dic_egr['días'][dic_egr['días'] < t_final]
         else:
             # Si no encontramos datos, bueno, pués no encontramos datos.
             dic_egr = None

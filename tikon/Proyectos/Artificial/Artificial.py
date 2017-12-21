@@ -6,7 +6,12 @@ from tikon.Proyectos.Opisina_arenosella.Red_Opisina import gen_red
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 from tikon.Matemáticas.Experimentos import Experimento
 
-dib = True
+
+"""
+Genera datos artificiales y después intenta calibrar para re-descubrir los mismos parámetros conocidos.
+"""
+
+dib = False
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib
@@ -16,13 +21,15 @@ dib_calibs = dib
 proyecto = 'Artificial'
 
 
-nombre = 'Red M, q0'
+nombre = 'Red MA, q2k pd5'
 print(nombre)
 método = 'Metrópolis'  # 'Metrópolis Adaptivo'
 quema = 0
 n_iter = 5000
+pedazitos = 5
 
 depurar = False
+
 
 # Funciones útiles
 def _aplicar_a_prioris(red, d_a_pr):
@@ -152,12 +159,12 @@ def _agregar_exp(red, exper):
     corresp = {}
     for etp in etps_interés:
         org = red.etapas[etp]['org']
-        nombre = red.etapas[etp]['nombre']
+        nmbr = red.etapas[etp]['nombre']
 
         if org not in corresp:
             corresp[org] = {}
 
-        corresp[org][nombre] = ['Etapa %i' % etp]
+        corresp[org][nmbr] = ['Etapa %i' % etp]
 
     red.añadir_exp(exper, corresp=corresp)
 
@@ -216,17 +223,17 @@ for p in range(90, -10, -10):
     print('\tValidando antes de calib...')
     Red_coco.validar(nombre='Vld antes clb prec {}'.format(p), exper=Exper_artificial,
                      usar_especificadas=True, detalles=False, guardar=True,
-                     dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
+                     dibujar=dib_valid, dib_dists=dib_dists, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
     print('\tCalibrando...')
     Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
                       n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=1, método=método, dibujar=dib_calibs,
-                      depurar=depurar)
+                      depurar=depurar, pedazitos=pedazitos)
     Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
     print('Validando con p={}...'.format(p))
     valid = Red_coco.validar(nombre='Vld con clb prec {}'.format(p), exper=Exper_artificial,
                              usar_especificadas=False, detalles=False, guardar=True,
-                             dibujar=dib_valid, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
+                             dibujar=dib_valid, dib_dists=dib_dists, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
 
     print('Resultados de validación después de calib con precisión de {}%:\n============='.format(p))
     pprint(valid)
