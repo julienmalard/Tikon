@@ -1,6 +1,8 @@
 import numpy as np
 import pymc
 import pymc3
+import theano.tensor as tt
+from theano.compile.ops import as_op
 from tikon.Controles import usar_pymc3
 
 from tikon.Matemáticas.Incert import trazas_a_dists
@@ -161,8 +163,6 @@ class ModBayes(ModCalib):
                                      dbmode='w')
         else:
 
-            raise NotImplementedError
-
             símismo.MCMC = pymc3.Model()
 
             with símismo.MCMC as mod:
@@ -179,7 +179,7 @@ class ModBayes(ModCalib):
                 # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
                 # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
                 # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
-                @pymc.deterministic(trace=False)
+                @as_op(itypes=[tt.fscalar]*len(l_var_paráms), otypes=[tt.fscalar])
                 def simul(_=l_var_paráms):
                     return función(**dic_argums)
 
@@ -296,4 +296,49 @@ class ModGLUE(ModCalib):
         raise NotImplementedError
 
     def guardar(símismo, nombre=None):
+        raise NotImplementedError
+
+
+class VarCalib(object):
+    def __init__(símismo, tipo_calib, tipo_var, paráms):
+        símismo.tipo_calib = tipo_calib
+        símismo.tipo_var = tipo_var
+        símismo.paráms = paráms
+
+    def obt_val(símismo):
+        raise NotImplementedError
+
+    def dibujar(símismo):
+        raise NotImplementedError
+
+    def traza(símismo):
+        raise NotImplementedError
+
+
+class VarPyMC2(VarCalib):
+    def __init__(símismo, tipo_calib, tipo_var, paráms):
+
+        super().__init__(tipo_calib=tipo_calib, tipo_var=tipo_var, paráms=paráms)
+
+    def obt_val(símismo):
+        raise NotImplementedError
+
+    def dibujar(símismo):
+        raise NotImplementedError
+
+    def traza(símismo):
+        raise NotImplementedError
+
+
+class VarPyMC3(VarCalib):
+    def __init__(símismo, tipo_calib, tipo_var, paráms):
+        super().__init__(tipo_calib=tipo_calib, tipo_var=tipo_var, paráms=paráms)
+
+    def obt_val(símismo):
+        raise NotImplementedError
+
+    def dibujar(símismo):
+        raise NotImplementedError
+
+    def traza(símismo):
         raise NotImplementedError

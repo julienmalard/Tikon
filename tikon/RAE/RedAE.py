@@ -508,6 +508,7 @@ class Red(Simulable):
         l_m_preds = símismo.dic_simul['l_m_preds_todas']
         l_ubic_m_preds = símismo.dic_simul['l_ubics_m_preds']
         l_m_obs = símismo.dic_simul['l_m_obs_todas']
+        l_días_obs_todas = símismo.dic_simul['l_días_obs_todas']
 
         for i, m in enumerate(l_m_preds):  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, [4: etp víctima], -1: día
             n_parc = m.shape[0]
@@ -538,8 +539,9 @@ class Red(Simulable):
                                 vec_obs = None
                             else:
                                 vec_obs = l_m_obs[i][i_parc, i_etp, :]
+                                días_obs = l_días_obs_todas[i]
                         except IndexError:
-                            vec_obs = None
+                            vec_obs = días_obs = None
 
                         matr_pred = m[i_parc, :, :, i_etp, :]
 
@@ -557,11 +559,14 @@ class Red(Simulable):
                             título = '{op}{org}, etapa "{etp}"'.format(op=op, org=org, etp=etp)
 
                         Arte.graficar_pred(matr_predic=matr_pred, vector_obs=vec_obs,
+                                           tiempos_obs=días_obs,
                                            título=título, etiq_y=egr,
                                            n_líneas=n_líneas, incert=incert,
                                            mostrar=mostrar, directorio=dir_img)
                     else:
                         # Si es una matriz de depredación...
+
+                        # ... todavía no incorporamos observaciones.
 
                         presas = [símismo.núms_etapas[o][e]
                                   for o, d_e in símismo.etapas[n_etp]['conf']['presa'].items()
@@ -1574,8 +1579,7 @@ class Red(Simulable):
                         if np.sum(~np.isnan(vec_obs)) == 0:
                             continue
 
-                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp,
-                                     :]  # Eje 0: parc, 1: estoc, 2: parám, 3: día
+                        matr_preds = d_matrs_valid[exp][egr][n_p, ..., n_etp, :]  # Eje 0 parc, 1 estoc, 2 parám, 3 día
 
                         org = símismo.etapas[n_etp]['org']
                         etp = símismo.etapas[n_etp]['nombre']
@@ -2085,6 +2089,8 @@ class Red(Simulable):
         d_obs = símismo.dic_simul['d_obs_valid']  # El diccionario de matrices de observaciones para la validación
         d_valid = símismo.dic_simul['matrs_valid']  # El diciconario de matrices de la validación
         d_preds_v = {}  # El diccionario de matrices de simulación que vinculados con observaciones
+        d_días_obs = {}
+
 
         # Diccionario temporario para organizar los índices
         d_índs = {}
@@ -2095,6 +2101,7 @@ class Red(Simulable):
             obj_exp = símismo.exps[exp]['Exp']  # El objeto del Experimento
             nombres_parc = obj_exp.obt_parcelas(tipo=símismo.ext)
             n_parc = len(nombres_parc)  # El número de parcelas
+            t_final = paso * n_pasos[exp]
 
             for egr in símismo.l_egresos:
                 # Para cada egreso posible...
@@ -2103,14 +2110,15 @@ class Red(Simulable):
                     # Si el egreso ha sido observado en el Experimento...
 
                     # Asegurarse que el nombre del experimento existe en los diccionarios necesarios
-                    for d in [d_obs, d_valid, d_preds_v, d_índs]:
+                    for d in [d_obs, d_días_obs, d_valid, d_preds_v, d_índs]:
                         if exp not in d:
                             d[exp] = {}
 
                     # El diccionario de datos del Experimento. Los tomamos en unidades de observaciones por ha, porque
                     # así se reportarán los resultados de la simulación.
-                    datos = obj_exp.obt_datos_rae(egr, por_parcela=False)
-                    días = datos['días']  # Los días con estas observaciones
+                    datos = obj_exp.obt_datos_rae(egr, t_final=t_final, por_parcela=False)
+                    # Los días con estas observaciones
+                    d_días_obs[exp][egr] = días = datos['días']
                     n_días = len(días)  # El número de días con observaciones
                     n_etps = len(símismo.etapas)  # El número de etapas en la Red
 
@@ -2160,6 +2168,7 @@ class Red(Simulable):
         # Crear la lista completa de matrices de observaciones, para gráficos y análisis de sensibilidad
         l_m_preds_v = dic_a_lista(d_preds_v)
         l_m_obs_v = dic_a_lista(d_obs)
+        l_días_obs_v = dic_a_lista(d_días_obs)
         l_m_preds_todas = símismo.dic_simul['l_m_preds_todas']
 
         def temp(m, l):
@@ -2168,9 +2177,17 @@ class Red(Simulable):
             except ValueError:
                 return None
 
+        # Guardar las matrices de observaciones que corresponden con las matrices de predicciones, en el mismo orden.
+        # Poner None para matrices de predicciones que no tienen observaciones correspondientes.
         l_m_obs_todas = [l_m_obs_v[temp(m, l_m_preds_v)] if temp(m, l_m_preds_v) is not None else None
-                         for í, m in enumerate(l_m_preds_todas)]
+                         for m in l_m_preds_todas]
+
+        # La lista de índices de días para las observaciones. Poner None para los que no tienen observaciones.
+        # Posiblemente podrîa ser más elegante.
+        l_días_obs_todas = [l_días_obs_v[temp(m, l_m_preds_v)] if temp(m, l_m_preds_v) is not None else None
+                            for m in l_m_preds_todas]
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
+        símismo.dic_simul['l_días_obs_todas'].extend(l_días_obs_todas)
 
     def _gen_dics_calib(símismo, exper):
 
@@ -2327,7 +2344,11 @@ class Red(Simulable):
 
                                             # Para cada etapa víctima
                                             for etp_víc in l_etps_víc:
-                                                n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
+                                                try:
+                                                    n_etp_víc = símismo.núms_etapas[org_víc][etp_víc]
+                                                except KeyError:
+                                                    # Seguir si esta etapa o organismo no existe en la Red.
+                                                    continue
 
                                                 # Incluir etapas fantasmas, pero NO para parasitoides (así que una etapa
                                                 # fantasma puede caer víctima de un deprededor o de una enfermedad que
