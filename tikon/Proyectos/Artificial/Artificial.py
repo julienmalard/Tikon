@@ -11,7 +11,7 @@ from tikon.Matemáticas.Experimentos import Experimento
 Genera datos artificiales y después intenta calibrar para re-descubrir los mismos parámetros conocidos.
 """
 
-dib = False
+dib = True
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib
@@ -23,8 +23,8 @@ proyecto = 'Artificial'
 
 nombre = 'Red MA, q2k pd5'
 print(nombre)
-método = 'Metrópolis'  # 'Metrópolis Adaptivo'
-quema = 0
+método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
+quema = 2000
 n_iter = 5000
 pedazitos = 5
 
@@ -216,7 +216,7 @@ pprint(valid_perfecta)
 
 
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
-for p in range(90, -10, -10):
+for p in range(90, 80, -10):
     print('Calibrando con p={}.\n********************'.format(p))
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)

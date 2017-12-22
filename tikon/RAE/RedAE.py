@@ -558,11 +558,9 @@ class Red(Simulable):
                         else:
                             título = '{op}{org}, etapa "{etp}"'.format(op=op, org=org, etp=etp)
 
-                        Arte.graficar_pred(matr_predic=matr_pred, vector_obs=vec_obs,
-                                           tiempos_obs=días_obs,
-                                           título=título, etiq_y=egr,
-                                           n_líneas=n_líneas, incert=incert,
-                                           mostrar=mostrar, directorio=dir_img)
+                        Arte.graficar_pred(matr_predic=matr_pred, título=título, vector_obs=vec_obs,
+                                           tiempos_obs=días_obs, etiq_y=egr, incert=incert, n_líneas=n_líneas,
+                                           directorio=dir_img)
                     else:
                         # Si es una matriz de depredación...
 
@@ -595,10 +593,8 @@ class Red(Simulable):
                                     .format(org=org, etp=etp, org_víc=org_víc, etp_víc=etp_víc)
 
                             # Generar el gráfico
-                            Arte.graficar_pred(matr_predic=matr_pred,
-                                               título=título, etiq_y='Depredación',
-                                               n_líneas=n_líneas, incert=incert,
-                                               mostrar=mostrar, directorio=dir_img)
+                            Arte.graficar_pred(matr_predic=matr_pred, título=título, etiq_y='Depredación',
+                                               incert=incert, n_líneas=n_líneas, directorio=dir_img)
 
     def _calc_depred(símismo, pobs, depred, extrn, paso):
         """
