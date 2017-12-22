@@ -800,7 +800,7 @@ class Simulable(Coso):
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10, tiempo_final=None,
                  n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', pedazitos=None,
-                 dibujar=False, depurar=False):
+                 usar_especificadas=True, dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -874,6 +874,7 @@ class Simulable(Coso):
                                  n_iter=n_iter, quema=quema, extraer=extraer, método=método,
                                  tiempo_final={exp: int(tiempo_final[exp] * f / pedazitos) for exp in tiempo_final},
                                  pedazitos=None,  # Queremos cada subcalibración sin sus propias pedazitos
+                                 usar_especificadas=usar_especificadas if f == 1 else False,
                                  dibujar=False, depurar=depurar)
                 símismo.guardar_calib(descrip='Pedazito {} de calib {}'.format(f, nombre),
                                       utilizador='Interno a Tiko\'n. Nunca debería de ver esta calibración.',
@@ -902,7 +903,8 @@ class Simulable(Coso):
                      os.path.join(os.path.split(__file__)[0], 'paráms.txt'))
 
         # 3. Filtrar coeficientes por calib
-        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
+        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms,
+                                                 usar_especificadas=usar_especificadas)
 
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
@@ -1345,8 +1347,8 @@ class Simulable(Coso):
                             título = '{}: {}'.format(prm, índ)
 
                             # Dibujar el gráfico
-                            Arte.graficar_línea(datos=m[i, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
-                                                título=título, directorio=direc)
+                            Arte.graficar_línea(datos=m[i, :], título=título, etiq_y='{}: {}'.format(método, índ),
+                                                etiq_x='Día', directorio=direc)
                     elif len(m.shape) == 3:
                         # Si tenemos interacciones entre parámetros...
 
@@ -1360,8 +1362,8 @@ class Simulable(Coso):
                                 título = '{}-{}: {}'.format(prm_1, prm_2, índ)
 
                                 # Dibujar el gráfico
-                                Arte.graficar_línea(datos=m[i, j, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
-                                                    título=título, directorio=direc)
+                                Arte.graficar_línea(datos=m[i, j, :], título=título,
+                                                    etiq_y='{}: {}'.format(método, índ), etiq_x='Día', directorio=direc)
                     else:
                         # Si tenemos otra forma de matriz, no sé qué hacer.
                         raise ValueError('Número de ejes ({}) inesperado. Quejarse al programador.'

@@ -1,5 +1,6 @@
 from warnings import warn as avisar
 
+import math as mat
 import numpy as np
 import pymc
 
@@ -748,14 +749,11 @@ def límites_a_texto_dist(límites, cont=True):
                 dist = 'Geométrica~(1e-8, {})'.format(loc)
 
         else:  # El caso (R, R)
-            if máx == mín:
-                dist = 'Degenerado~({})'.format(máx)
+            if cont:
+                esc = máx - mín
+                dist = 'Uniforme~({}, {})'.format(mín, esc)
             else:
-                if cont:
-                    esc = máx - mín
-                    dist = 'Uniforme~({}, {})'.format(mín, esc)
-                else:
-                    dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
+                dist = 'UnifDiscr~({}, {})'.format(mín, mín + 1)
 
     return dist
 
@@ -912,6 +910,8 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
                         restric = {'floc': mín_parám, 'fscale': máx_parám - mín_parám}
                     elif nombre_dist == 'NormalTrunc':
                         restric = {'floc': (máx_parám + mín_parám) / 2}
+                    elif nombre_dist == 'VonMises':
+                        restric = {'floc': mín_parám + mat.pi, 'fscale': máx_parám - mín_parám}
                     else:
                         raise ValueError(nombre_dist)
 
@@ -920,41 +920,49 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
                 # Para distribuciones uniformes, no hay nada que calibrar.
                 args = tuple(restric.values())
             else:
-                args = dic_dist['scipy'].fit(datos, **restric)
+                try:
+                    args = dic_dist['scipy'].fit(datos, **restric)
+                except:
+                    args = None
 
-            # Medir el ajuste de la distribución
-            p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
+            if args is not None:
+                # Medir el ajuste de la distribución
+                p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
 
-            # Si el ajuste es mejor que el mejor ajuste anterior...
-            if p >= mejor_ajuste['p']:
+                # Si el ajuste es mejor que el mejor ajuste anterior...
+                if p >= mejor_ajuste['p']:
 
-                # Guardarlo
-                mejor_ajuste['p'] = p
+                    # Guardarlo
+                    mejor_ajuste['p'] = p
 
-                # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
-                if usar_pymc:
-                    from tikon.Controles import usar_pymc3
-                    if usar_pymc3:
-                        # Convertir los argumentos a una distribución PyMC3
-                        dist, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+                    # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
+                    if usar_pymc:
+                        from tikon.Controles import usar_pymc3
+                        if usar_pymc3:
+                            # Convertir los argumentos a una distribución PyMC3
+                            dist, transform = paráms_scipy_a_dist_pymc3(tipo_dist=nombre_dist, paráms=args)
+                        else:
+                            # Convertir los argumentos a formato PyMC
+                            args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
+
+                            # Y crear la distribución.
+                            dist = dic_dist['pymc'](nombre, *args_pymc)
+
+                        # Ajustar la distribución
+                        if transform['mult'] != 1:
+                            dist = dist * transform['mult']
+                            dist.keep_trace = True
+
+                        if transform['sum'] != 0:
+                            dist.keep_trace = False
+                            dist = dist + transform['sum']
+                            dist.keep_trace = True
+
+                        mejor_ajuste['dist'] = dist
+
                     else:
-                        # Convertir los argumentos a formato PyMC
-                        args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
 
-                        # Y crear la distribución.
-                        dist = dic_dist['pymc'](nombre, *args_pymc)
-
-                    # Ajustar la distribución
-                    if transform['mult'] != 1:
-                        dist = dist * transform['mult']
-
-                    if transform['sum'] != 0:
-                        dist = dist + transform['sum']
-                    mejor_ajuste['dist'] = dist
-
-                else:
-
-                    mejor_ajuste['dist'] = dic_dist['scipy'](*args)
+                        mejor_ajuste['dist'] = dic_dist['scipy'](*args)
 
     # Si no logramos un buen aujste, avisar al usuario.
     if mejor_ajuste['p'] <= 0.10:

@@ -114,10 +114,19 @@ class ModBayes(ModCalib):
                                           l_trazas=aprioris, formato='calib', comunes=False)
 
             # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
-            l_var_paráms = [x for x in l_var_paráms
-                            if not (isinstance(x, pymc.Uniform) and x.parents['lower'] == x.parents['upper'])
-                            and not isinstance(x, pymc.Degenerate)
-                            ]
+            l_var_paráms_final = []
+            for v in l_var_paráms:
+                if isinstance(v, pymc.Uniform) or isinstance(v, pymc.Degenerate):
+                    continue
+                if any(isinstance(p, pymc.Degenerate) for p in list(v.extended_parents)):
+                    continue
+                if any(isinstance(p, pymc.Uniform) and p.parents['upper'] == p.parents['lower']
+                       for p in list(v.extended_parents)):
+                    continue
+                l_var_paráms_final.append(v)
+
+                if isinstance(v, pymc.Deterministic) or isinstance(v, pymc.Lambda):
+                    l_var_paráms_final += (list(v.extended_parents))
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
             función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -127,7 +136,7 @@ class ModBayes(ModCalib):
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
             @pymc.deterministic(trace=False)
-            def simul(_=l_var_paráms):
+            def simul(_=l_var_paráms_final):
                 return función(**dic_argums)
 
             # Ahora, las observaciones
@@ -159,7 +168,7 @@ class ModBayes(ModCalib):
                     raise ValueError
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
+            símismo.MCMC = pymc.MCMC({simul, *l_var_paráms_final, *l_var_obs}, db='sqlite', dbname=símismo.id,
                                      dbmode='w')
         else:
 
