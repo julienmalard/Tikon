@@ -7,14 +7,14 @@ from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 
 # Opciones artísticas
-dibujar = False
+dibujar = True
 ops_dib = {'n_líneas': 5}
 
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
 
 método = 'Metrópolis adaptivo'
-n_iter = 2
+n_iter = 10000
 quema = 0
 extraer = 1
 pedazitos = 5
