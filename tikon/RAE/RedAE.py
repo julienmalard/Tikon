@@ -2317,9 +2317,7 @@ class Red(Simulable):
                                     título = símismo.etapas[n_etp]['org'] + ', ' + símismo.etapas[n_etp]['nombre']
 
                                     Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs
-                                                               and type(d) is str],
-                                                        valores=matr_etp,
-                                                        título=título,
+                                                               and type(d) is str], valores=matr_etp, título=título,
                                                         archivo=directorio_dib)
 
                             else:
@@ -2377,8 +2375,7 @@ class Red(Simulable):
                                                         Arte.graficar_dists(
                                                             dists=[d for x, d in d_parám_etp[org_víc][etp_víc].items()
                                                                    if x in calibs and type(d) is str],
-                                                            valores=matr_etp[:, n],
-                                                            título=título,
+                                                            valores=matr_etp[:, n], título=título,
                                                             archivo=directorio_dib)
 
                                     else:

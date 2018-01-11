@@ -377,7 +377,7 @@ class Coso(object):
 
         # Si necesario, dibujar y mostrar la nueva distribución.
         if dibujar:
-            Arte.graficar_dists([texto_dist], rango=rango, título=título, archivo=archivo)
+            Arte.graficar_dists(texto_dist, rango=rango, título=título, archivo=archivo)
 
     @classmethod
     def generar_aprioris(cls, directorio=None):
@@ -1984,8 +1984,7 @@ class Simulable(Coso):
                     u.append(ll)
                     sacar_dists_de_dic(d=v, l=l, u=u)
 
-                elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic) or \
-                        isinstance(v, pymc3.model.TensorVariable):
+                elif isinstance(v, VarCalib):
                     u.append(ll)
                     l.append((u.copy(), v))
                     u.pop()
@@ -2040,9 +2039,7 @@ class Simulable(Coso):
             título = ':'.join(ubic[1:-1])
 
             try:
-                vals = dist.trace(chain=None)[:]
-                Arte.graficar_dists(dists=[dist], valores=vals,
-                                    título=título, archivo=archivo)
+                Arte.graficar_dists(dists=dist, título=título, archivo=archivo)
             except AttributeError:
                 pass
 
