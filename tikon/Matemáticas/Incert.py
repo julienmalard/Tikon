@@ -893,7 +893,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
                     restric = {}
 
                 else:
-                    # TIKON (por culpa de SciPy), no puede tomar distribuciones en (-inf, R].
+                    # TIKO'N (por culpa de SciPy), no puede tomar distribuciones en (-inf, R].
                     raise ValueError('Tikon no puede tomar distribuciones en el intervalo (-inf, R]. Hay que '
                                      'cambiar tus ecuaciones para usar un variable en el intervalo [R, inf). '
                                      'Disculpas. Pero de verdad es la culpa del módulo SciPy.')

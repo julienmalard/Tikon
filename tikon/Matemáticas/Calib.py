@@ -1,10 +1,14 @@
-import numpy as np
-import pymc
-import pymc3
-import theano.tensor as tt
-from theano.compile.ops import as_op
-from tikon.Controles import usar_pymc3
+from tempfile import mkdtemp
 
+import numpy as np
+import pymc as pm2
+import pymc3 as pm3
+import theano.tensor as tt
+from pymc3.step_methods import smc as mcs
+from theano.compile.ops import as_op
+
+import tikon.Matemáticas.Distribuciones as Ds
+from tikon.Controles import usar_pymc3
 from tikon.Matemáticas.Incert import trazas_a_dists
 
 
@@ -116,16 +120,16 @@ class ModBayes(ModCalib):
             # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
             l_var_paráms_final = []
             for v in l_var_paráms:
-                if isinstance(v, pymc.Uniform) or isinstance(v, pymc.Degenerate):
+                if isinstance(v, pm2.Uniform) or isinstance(v, pm2.Degenerate):
                     continue
-                if any(isinstance(p, pymc.Degenerate) for p in list(v.extended_parents)):
+                if any(isinstance(p, pm2.Degenerate) for p in list(v.extended_parents)):
                     continue
-                if any(isinstance(p, pymc.Uniform) and p.parents['upper'] == p.parents['lower']
+                if any(isinstance(p, pm2.Uniform) and p.parents['upper'] == p.parents['lower']
                        for p in list(v.extended_parents)):
                     continue
                 l_var_paráms_final.append(v)
 
-                if isinstance(v, pymc.Deterministic) or isinstance(v, pymc.Lambda):
+                if isinstance(v, pm2.Deterministic) or isinstance(v, pm2.Lambda):
                     l_var_paráms_final += (list(v.extended_parents))
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
@@ -135,7 +139,7 @@ class ModBayes(ModCalib):
             # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
-            @pymc.deterministic(trace=False)
+            @pm2.deterministic(trace=False)
             def simul(_=l_var_paráms_final):
                 return función(**dic_argums)
 
@@ -149,9 +153,9 @@ class ModBayes(ModCalib):
                     # Si las observaciones siguen una distribución Gamma...
 
                     # Crear el variable PyMC
-                    var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
-                                         beta=simul['Gamma']['beta'],
-                                         value=m_obs, observed=True, trace=False)
+                    var_obs = pm2.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
+                                        beta=simul['Gamma']['beta'],
+                                        value=m_obs, observed=True, trace=False)
 
                     # ...y agregarlo a la lista de variables de observación
                     l_var_obs.extend([var_obs])
@@ -159,8 +163,8 @@ class ModBayes(ModCalib):
                 elif tipo == 'Normal':
                     # Si tenemos distribución normal de las observaciones...
                     tau = simul['Normal']['sigma'] ** -2
-                    var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
-                                          value=m_obs, observed=True, trace=False)
+                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+                                         value=m_obs, observed=True, trace=False)
                     nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
                               tau.parents['a'], tau.parents['a'].parents['self']]
                     l_var_obs.extend(nuevos)
@@ -168,11 +172,11 @@ class ModBayes(ModCalib):
                     raise ValueError
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pymc.MCMC({simul, *l_var_paráms_final, *l_var_obs}, db='sqlite', dbname=símismo.id,
-                                     dbmode='w')
+            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs}, db='sqlite', dbname=símismo.id,
+                                    dbmode='w')
         else:
 
-            símismo.MCMC = pymc3.Model()
+            símismo.MCMC = pm3.Model()
 
             with símismo.MCMC as mod:
                 # Crear una lista de los objetos estocásticos de PyMC para representar a los parámetros. Esta función
@@ -188,7 +192,7 @@ class ModBayes(ModCalib):
                 # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
                 # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
                 # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
-                @as_op(itypes=[tt.fscalar]*len(l_var_paráms), otypes=[tt.fscalar])
+                @as_op(itypes=[tt.fscalar] * len(l_var_paráms), otypes=[tt.fscalar])
                 def simul(_=l_var_paráms):
                     return función(**dic_argums)
 
@@ -202,9 +206,9 @@ class ModBayes(ModCalib):
                         # Si las observaciones siguen una distribución Gamma...
 
                         # Crear el variable PyMC
-                        var_obs = pymc.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
-                                             beta=simul['Gamma']['beta'],
-                                             value=m_obs, observed=True, trace=False)
+                        var_obs = pm2.Gamma('obs_{}'.format(tipo), alpha=simul['Gamma']['alpha'],
+                                            beta=simul['Gamma']['beta'],
+                                            value=m_obs, observed=True, trace=False)
 
                         # ...y agregarlo a la lista de variables de observación
                         l_var_obs.extend([var_obs])
@@ -212,8 +216,8 @@ class ModBayes(ModCalib):
                     elif tipo == 'Normal':
                         # Si tenemos distribución normal de las observaciones...
                         tau = simul['Normal']['sigma'] ** -2
-                        var_obs = pymc.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
-                                              value=m_obs, observed=True, trace=False)
+                        var_obs = pm2.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+                                             value=m_obs, observed=True, trace=False)
                         nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
                                   tau.parents['a'], tau.parents['a'].parents['self']]
                         l_var_obs.extend(nuevos)
@@ -221,8 +225,8 @@ class ModBayes(ModCalib):
                         raise ValueError
 
                 # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-                símismo.MCMC = pymc.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
-                                         dbmode='w')
+                símismo.MCMC = pm2.MCMC({simul, *l_var_paráms, *l_var_obs}, db='sqlite', dbname=símismo.id,
+                                        dbmode='w')
 
     def calib(símismo, rep, quema, extraer):
         """
@@ -244,17 +248,29 @@ class ModBayes(ModCalib):
 
         símismo.n_iter += rep
 
-        # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
-        # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
-        if símismo.método.lower() == 'metrópolis adaptivo':
-            símismo.MCMC.use_step_method(pymc.AdaptiveMetropolis, símismo.MCMC.stochastics)
-        elif símismo.método.lower() == 'metrópolis':
-            pass
-        else:
-            raise ValueError
+        if not usar_pymc3:
+            # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
+            # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
+            if símismo.método.lower() == 'metrópolis adaptivo':
+                símismo.MCMC.use_step_method(pm2.AdaptiveMetropolis, símismo.MCMC.stochastics)
+            elif símismo.método.lower() == 'metrópolis':
+                pass
+            else:
+                raise ValueError
 
-        # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
-        símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+            # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
+            símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+
+        else:
+            if símismo.método.lower() == 'mcs':
+                n_trazas = 1
+                dir_temp = mkdtemp(prefix='TKN_MCS')
+                traza = mcs.sample_smc(n_steps=rep,
+                                       n_chains=n_trazas,
+                                       progressbar=False,
+                                       homepath=dir_temp,
+                                       stage=0,
+                                       random_seed=42)
 
     def guardar(símismo, nombre=None):
         """
@@ -267,7 +283,7 @@ class ModBayes(ModCalib):
         id_calib = str(símismo.id)
 
         # Reabrir la base de datos SQLite
-        bd = pymc.database.sqlite.load(id_calib)
+        bd = pm2.database.sqlite.load(id_calib)
         bd.connect_model(símismo.MCMC)
 
         # Si no se especificó nombre, se empleará el mismo nombre que el id de la calibración.
@@ -309,12 +325,32 @@ class ModGLUE(ModCalib):
 
 
 class VarCalib(object):
-    def __init__(símismo, tipo_calib, tipo_var, paráms):
-        símismo.tipo_calib = tipo_calib
-        símismo.tipo_var = tipo_var
+    def __init__(símismo, tipo_dist, paráms):
+        """
+
+        :param tipo_dist: El tipo de distribución. (P.ej., ``Normal``, ``Uniforme``, etc.)
+        :type tipo_dist: str
+        :param paráms:
+        :type paráms: str
+        """
+        símismo.tipo_dist = tipo_dist
         símismo.paráms = paráms
+        símismo.var = None
+
+    def obt_var(símismo):
+        """
+
+        :return:
+        :rtype: list | pm2.Stochastic | pm3.model.FreeRV
+        """
+        raise NotImplementedError
 
     def obt_val(símismo):
+        """
+
+        :return:
+        :rtype: float
+        """
         raise NotImplementedError
 
     def dibujar(símismo):
@@ -325,26 +361,224 @@ class VarCalib(object):
 
 
 class VarPyMC2(VarCalib):
-    def __init__(símismo, tipo_calib, tipo_var, paráms):
+    """
+    Esta clase representa variables de PyMC v2.
+    """
 
-        super().__init__(tipo_calib=tipo_calib, tipo_var=tipo_var, paráms=paráms)
+    def __init__(símismo, nombre, tipo_dist, paráms):
+        """
+
+        :param nombre:
+        :type nombre: str
+        :param tipo_calib:
+        :type tipo_calib:
+        :param tipo_dist:
+        :type tipo_dist: str
+        :param paráms:
+        :type paráms: dict
+        """
+
+        super().__init__(tipo_dist=tipo_dist, paráms=paráms)
+
+        # Verificar que existe este variable
+        if tipo_dist not in Ds.dists:
+            raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC2.' %
+                             tipo_dist)
+
+        # Generar la distribución y sus parámetros
+        transform = {'mult': 1, 'sum': 0}
+
+        if tipo_dist == 'Beta':
+            clase_dist = pm2.Beta
+            paráms_pymc = (paráms[0], paráms[1])
+            transform['sum'] = paráms[2]
+            transform['mult'] = paráms[3]
+
+        elif tipo_dist == 'Cauchy':
+            clase_dist = pm2.Cauchy
+            paráms_pymc = (paráms[0], paráms[1])
+
+        elif tipo_dist == 'Chi2':
+            clase_dist = pm2.Chi2
+            paráms_pymc = (paráms[0],)
+            transform['sum'] = paráms[1]
+            transform['mult'] = paráms[2]
+
+        elif tipo_dist == 'Exponencial':
+            clase_dist = pm2.Exponential
+            paráms_pymc = (1 / paráms[1],)
+            transform['sum'] = paráms[0]
+
+        elif tipo_dist == 'WeibullExponencial':
+            clase_dist = pm2.Exponweib
+            paráms_pymc = (paráms[0], paráms[1], paráms[2], paráms[3])
+
+        elif tipo_dist == 'Gamma':
+            clase_dist = pm2.Gamma
+            paráms_pymc = (paráms[0], 1 / paráms[2])
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'MitadCauchy':
+            clase_dist = pm2.HalfCauchy
+            paráms_pymc = (paráms[0], paráms[1])
+
+        elif tipo_dist == 'MitadNormal':
+            clase_dist = pm2.HalfNormal
+            paráms_pymc = (1 / paráms[1] ** 2,)
+            transform['sum'] = paráms[0]
+
+        elif tipo_dist == 'GammaInversa':
+            clase_dist = pm2.InverseGamma
+            paráms_pymc = (paráms[0], paráms[2])
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'Laplace':
+            clase_dist = pm2.Laplace
+            paráms_pymc = (paráms[0], 1 / paráms[1])
+
+        elif tipo_dist == 'Logística':
+            clase_dist = pm2.Logistic
+            paráms_pymc = (paráms[0], 1 / paráms[1])
+
+        elif tipo_dist == 'LogNormal':
+            clase_dist = pm2.Lognormal
+            paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0] ** 2))
+            transform['mult'] = paráms[2]
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'TNoCentral':
+            clase_dist = pm2.NoncentralT
+            paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
+
+        elif tipo_dist == 'Normal':
+            clase_dist = pm2.Normal
+            paráms_pymc = (paráms[0], 1 / paráms[1] ** 2)
+
+        elif tipo_dist == 'Pareto':
+            clase_dist = pm2.Pareto
+            paráms_pymc = (paráms[0], paráms[2])
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'T':
+            clase_dist = pm2.T
+            paráms_pymc = (paráms[0],)
+            transform['sum'] = paráms[1]
+            transform['mult'] = 1 / np.sqrt(paráms[2])
+
+        elif tipo_dist == 'NormalTrunc':
+            clase_dist = pm2.TruncatedNormal
+            mu = paráms[2]
+            mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
+            paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
+
+        elif tipo_dist == 'Uniforme':
+            clase_dist = pm2.Uniform
+            # Normalizar la distribución Uniforme para PyMC. Sino hace muchos problemas.
+            paráms_pymc = (0, 1)
+            transform['sum'] = paráms[0]
+            transform['mult'] = paráms[1]
+
+        elif tipo_dist == 'VonMises':
+            clase_dist = pm2.VonMises
+            paráms_pymc = (paráms[1], paráms[0])
+            transform['mult'] = paráms[2]
+
+        elif tipo_dist == 'Weibull':
+            clase_dist = pm2.Weibull
+            raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
+
+        elif tipo_dist == 'Bernoulli':
+            clase_dist = pm2.Bernoulli
+            paráms_pymc = (paráms[0],)
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'Binomial':
+            clase_dist = pm2.Binomial
+            paráms_pymc = (paráms[0], paráms[1])
+            transform['sum'] = paráms[2]
+
+        elif tipo_dist == 'Geométrica':
+            clase_dist = pm2.Geometric
+            paráms_pymc = (paráms[0],)
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'Hypergeométrica':
+            clase_dist = pm2.Hypergeometric
+            paráms_pymc = (paráms[1], paráms[0], paráms[2])
+            transform['sum'] = paráms[3]
+
+        elif tipo_dist == 'BinomialNegativo':
+            clase_dist = pm2.NegativeBinomial
+            paráms_pymc = (paráms[1], paráms[0])
+            transform['sum'] = paráms[2]
+
+        elif tipo_dist == 'Poisson':
+            clase_dist = pm2.Poisson
+            paráms_pymc = (paráms[0],)
+            transform['sum'] = paráms[1]
+
+        elif tipo_dist == 'UnifDiscr':
+            clase_dist = pm2.DiscreteUniform
+            paráms_pymc = (paráms[0], paráms[1] - 1)
+
+        else:
+            raise ValueError('La distribución "{}" existe en la base de datos de Tiko\'n para distribuciones PyMC2,'
+                             'pero no está configurada en la clase VarPyMC2.'.format(tipo_dist))
+
+        # Crear el variable PyMC2
+        var_base = clase_dist(paráms_pymc)
+        símismo.l_vars = l_vars = [var_base]
+
+        # Hacer modificaciones, si necesario, y agregar éstas a la lista de variables.
+        if transform['mult'] != 1:
+            dist_2 = pm2.Lambda('%s_m' % nombre, lambda x=var_base, m=transform['mult']: x * m)
+
+            var_base.keep_trace = False  # No guardar la traza del variable pariente
+            l_vars.append(dist_2)
+
+        if transform['sum'] != 0:
+            dist_3 = pm2.Lambda('%s_s' % nombre, lambda x=l_vars[-1], s=transform['sum']: x + s)
+
+            l_vars[-1].keep_trace = False  # No guardar la traza del variable pariente
+            l_vars.append(dist_3)
+
+        # Guardar el último variable de la lista como variable principal.
+        símismo.var = l_vars[-1]
 
     def obt_val(símismo):
-        raise NotImplementedError
+        return float(símismo.var.value)
+
+    def obt_var(símismo):
+
+        v_base = símismo.l_vars[0]
+
+        if isinstance(v_base, pm2.Degenerate):
+            return []
+        elif isinstance(v_base, pm2.Uniform) and v_base.parents['upper'] == v_base.parents['lower']:
+            return []
+        else:
+            return [v for v in símismo.l_vars if not (v.rand() == v.rand() == v.rand())]
 
     def dibujar(símismo):
         raise NotImplementedError
 
     def traza(símismo):
-        raise NotImplementedError
+
+        try:
+            return símismo.var.trace(chain=None)[:]
+        except AttributeError:
+            return np.array([])
 
 
 class VarPyMC3(VarCalib):
-    def __init__(símismo, tipo_calib, tipo_var, paráms):
-        super().__init__(tipo_calib=tipo_calib, tipo_var=tipo_var, paráms=paráms)
+    def __init__(símismo, tipo_dist, paráms):
+        super().__init__(tipo_dist=tipo_dist, paráms=paráms)
 
     def obt_val(símismo):
         raise NotImplementedError
+
+    def obt_var(símismo):
+        return símismo.var
 
     def dibujar(símismo):
         raise NotImplementedError
