@@ -1,8 +1,7 @@
 import os
 
 import numpy as np
-import pymc
-import pymc3
+from tikon.Matemáticas.Calib import VarCalib
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from scipy import stats as estad
@@ -35,11 +34,10 @@ def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, dire
     if etiq_y is None:
         etiq_y = título
 
-    if mostrar is False:
-        if directorio is None:
-            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
-        elif not os.path.isdir(directorio):
-            os.makedirs(directorio)
+    if directorio is None:
+        raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
+    elif not os.path.isdir(directorio):
+        os.makedirs(directorio)
 
     # El vector de días
     x = np.arange(datos.shape[0])
@@ -242,17 +240,14 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_
     fig.savefig(directorio)
 
 
-def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, archivo=None):
+def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
     """
     Esta función genera un gráfico de una o más distribuciones y valores.
 
     :param dists: Una lista de las distribuciones para graficar.
-    :type dists: list[str, pymc.Deterministic, pymc.Stochastic]
+    :type dists: list[str, VarCalib] | str | VarCalib
 
-    :param n: El número de puntos para el gráfico.
-    :type n: int
-
-    :param valores: Una matriz numpy de valores para hacer un histograma (opcional)
+    :param valores: Una matriz numpy de valores para generar un histograma (opcional)
     :type valores: np.ndarray
 
     :param rango: Un rango de valores para resaltar en el gráfico (opcional).
@@ -270,76 +265,55 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if type(dists) is not list:
         dists = [dists]
 
+    n = 100000
+
     fig = Figura()
     TelaFigura(fig)
-    ejes = fig.add_subplot(111)
-    ejes.set_aspect('equal')
 
     # Poner cada distribución en el gráfico
     for dist in dists:
 
-        if isinstance(dist, str):
-            dist = texto_a_dist(texto=dist, usar_pymc=False)
+        if isinstance(dist, VarCalib):
+            ejes = fig.subplots(1, 2)
 
-        if isinstance(dist, pymc.Stochastic):
-            puntos = np.array([dist.rand() for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n//100)
-            x = 0.5 * (delim[1:] + delim[:-1])
+            dist.dibujar(ejes=ejes)
 
-        elif isinstance(dist, pymc.Deterministic):
-            dist_stoc = min(dist.extended_parents)
-            puntos = np.array([(dist_stoc.rand(), dist.value)[1] for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n//100)
-            x = 0.5 * (delim[1:] + delim[:-1])
-
-        elif isinstance(dist, pymc3.model.FreeRV) or isinstance(dist, pymc3.model.TransformedRV):
-            puntos = np.array([dist.random() for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n // 100)
-            x = 0.5 * (delim[1:] + delim[:-1])
-
-        elif isinstance(dist, pymc3.model.TensorVariable):
-            def obt_parientes(d, c_p=None):
-                if c_p is None:
-                    c_p = set()
-
-                for i in d.get_parents():
-                    if isinstance(i, pymc3.model.FreeRV) or isinstance(i, pymc3.model.TransformedRV):
-                        c_p.add(i)
-                    else:
-                        obt_parientes(d=i, c_p=c_p)
-
-                return c_p
-
-            parientes = obt_parientes(dist)
-            puntos = np.array([dist.eval({p: p.random() for p in parientes}) for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n // 100)
-            x = 0.5 * (delim[1:] + delim[:-1])
-
-        elif isinstance(dist, estad._distn_infrastructure.rv_frozen):
-            x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
-            y = dist.pdf(x)
+            # Si se especificó un título, ponerlo
+            if título is not None:
+                fig.suptitle(título)
 
         else:
-            raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
 
-        # Dibujar la distribución
-        ejes.plot(x, y, 'b-', lw=2, alpha=0.6)
+            if isinstance(dist, str):
+                dist = texto_a_dist(texto=dist, usar_pymc=False)
 
-        # Resaltar un rango, si necesario
-        if rango is not None:
-            if rango[1] < rango[0]:
-                rango = (rango[1], rango[0])
-            ejes.fill_between(x[(rango[0] <= x) & (x <= rango[1])], 0, y[(rango[0] <= x) & (x <= rango[1])],
-                              color='blue', alpha=0.2)
+            if isinstance(dist, estad._distn_infrastructure.rv_frozen):
+                x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
+                y = dist.pdf(x)
+            else:
+                raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
 
-    # Si hay valores, hacer un histrograma
-    if valores is not None:
-        valores = valores.astype(float)
-        ejes.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+            ejes = fig.add_subplot(111)
+            ejes.set_aspect('equal')
 
-    # Si se especificó un título, ponerlo
-    if título is not None:
-        ejes.set_title(título)
+            # Dibujar la distribución
+            ejes.plot(x, y, 'b-', lw=2, alpha=0.6)
+
+            # Resaltar un rango, si necesario
+            if rango is not None:
+                if rango[1] < rango[0]:
+                    rango = (rango[1], rango[0])
+                ejes.fill_between(x[(rango[0] <= x) & (x <= rango[1])], 0, y[(rango[0] <= x) & (x <= rango[1])],
+                                  color='blue', alpha=0.2)
+
+            # Si hay valores, hacer un histrograma
+            if valores is not None:
+                valores = valores.astype(float)
+                ejes.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+
+            # Si se especificó un título, ponerlo
+            if título is not None:
+                ejes.set_title(título)
 
     # Guardar el gráfico
     if archivo[-4:] != '.png':

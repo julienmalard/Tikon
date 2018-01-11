@@ -8,6 +8,8 @@ import scipy.stats as estad
 from scipy.optimize import minimize as minimizar
 
 import tikon.Matemáticas.Distribuciones as Ds
+from tikon.Controles import usar_pymc3
+from tikon.Matemáticas.Calib import VarPyMC2, VarPyMC3
 from tikon import __email__ as correo
 
 try:
@@ -348,25 +350,11 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
             # Si querremos una distribución de PyMC...
 
             # Sacar la clase PyMC para esta distribución
-            clase_dist = Ds.dists[tipo_dist]['pymc']
-
-            # Si existe clase PyMC correspondiente...
-            if clase_dist is not None:
-                # Convertir los parámetros al formato para PyMC
-                paráms, transform = paráms_scipy_a_pymc(tipo_dist=tipo_dist, paráms=paráms)
-
-                # Crear la distribución
-                dist = clase_dist(nombre, *paráms)
-
-                # Y aplicar las transformaciones
-                if transform['mult'] != 1:
-                    dist = pymc.Lambda('%s_m' % dist, lambda x=dist, m=transform['mult']: x * m)
-                if transform['sum'] != 0:
-                    dist = pymc.Lambda('%s_s' % dist, lambda x=dist, s=transform['sum']: x + s)
-
+            if usar_pymc3:
+                dist = VarPyMC3(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
             else:
-                # Sino, hay error.
-                raise ValueError('No existe distribución PyMC correspondiendo a %s.' % tipo_dist)
+                dist = VarPyMC2(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
+
         else:
             # Sino, usar una distribución de SciPy
             dist = Ds.dists[tipo_dist]['scipy'](*paráms)
@@ -839,7 +827,7 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
     mín_parám, máx_parám = límites
 
     # Un diccionario para guardar el mejor ajuste
-    mejor_ajuste = dict(dist=None, p=0.0)
+    mejor_ajuste = dict(prms='', tipo='', p=0.0)
 
     # Sacar las distribuciones del buen tipo (contínuas o discretas)
     if cont:
@@ -918,189 +906,43 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
             # Ajustar los parámetros de la distribución SciPy para caber con los datos.
             if nombre_dist == 'Uniforme':
                 # Para distribuciones uniformes, no hay nada que calibrar.
-                args = tuple(restric.values())
+                prms = tuple(restric.values())
             else:
                 try:
-                    args = dic_dist['scipy'].fit(datos, **restric)
+                    prms = dic_dist['scipy'].fit(datos, **restric)
                 except:
-                    args = None
+                    prms = None
 
-            if args is not None:
+            if prms is not None:
                 # Medir el ajuste de la distribución
-                p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=args)[1]
+                p = estad.kstest(rvs=datos, cdf=nombre_scipy, args=prms)[1]
 
                 # Si el ajuste es mejor que el mejor ajuste anterior...
                 if p >= mejor_ajuste['p']:
 
                     # Guardarlo
                     mejor_ajuste['p'] = p
-
-                    # Guardar también el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
-                    if usar_pymc:
-                        from tikon.Controles import usar_pymc3
-                        if usar_pymc3:
-                            # Convertir los argumentos a una distribución PyMC3
-                            dist, transform = paráms_scipy_a_dist_pymc3(tipo_dist=nombre_dist, paráms=args)
-                        else:
-                            # Convertir los argumentos a formato PyMC
-                            args_pymc, transform = paráms_scipy_a_pymc(tipo_dist=nombre_dist, paráms=args)
-
-                            # Y crear la distribución.
-                            dist = dic_dist['pymc'](nombre, *args_pymc)
-
-                        # Ajustar la distribución
-                        if transform['mult'] != 1:
-                            dist = dist * transform['mult']
-                            dist.keep_trace = True
-
-                        if transform['sum'] != 0:
-                            dist.keep_trace = False
-                            dist = dist + transform['sum']
-                            dist.keep_trace = True
-
-                        mejor_ajuste['dist'] = dist
-
-                    else:
-
-                        mejor_ajuste['dist'] = dic_dist['scipy'](*args)
+                    mejor_ajuste['prms'] = prms
+                    mejor_ajuste['tipo'] = nombre_dist
 
     # Si no logramos un buen aujste, avisar al usuario.
     if mejor_ajuste['p'] <= 0.10:
         avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
 
-    # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
-    return mejor_ajuste['dist'], mejor_ajuste['p']
+    # Generar el objeto de la distribución, o de PyMC, o de SciPy, según lo que queremos
+    if usar_pymc:
+        if usar_pymc3:
+            # Convertir los argumentos a una distribución PyMC3
+            dist = VarPyMC3(nombre=nombre, tipo_dist=mejor_ajuste['tipo'], paráms=mejor_ajuste['prms'])
 
-
-def paráms_scipy_a_pymc(tipo_dist, paráms):
-    """
-    Esta función transforma un tuple de parámetros de distribución SciPy a parámetros correspondientes para una función
-    de PyMC.
-
-    :param tipo_dist: El tipo de distribución.
-    :type tipo_dist: str
-
-    :param paráms: Los parámetros SciPy
-    :type paráms: tuple
-
-    :return: Un tuple de parámetros PyMC y un diccionario de transformaciones adicionales necesarias.
-    :rtype: (tuple, dict)
-
-    """
-
-    transform_pymc = {'mult': 1, 'sum': 0}
-
-    if tipo_dist == 'Beta':
-        paráms_pymc = (paráms[0], paráms[1])
-        transform_pymc['sum'] = paráms[2]
-        transform_pymc['mult'] = paráms[3]
-
-    elif tipo_dist == 'Cauchy':
-        paráms_pymc = (paráms[0], paráms[1])
-
-    elif tipo_dist == 'Chi2':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        transform_pymc['mult'] = paráms[2]
-
-    elif tipo_dist == 'Exponencial':
-        paráms_pymc = (1 / paráms[1],)
-        transform_pymc['sum'] = paráms[0]
-
-    elif tipo_dist == 'WeibullExponencial':
-        paráms_pymc = (paráms[0], paráms[1], paráms[2], paráms[3])
-
-    elif tipo_dist == 'Gamma':
-        paráms_pymc = (paráms[0], 1 / paráms[2])
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'MitadCauchy':
-        paráms_pymc = (paráms[0], paráms[1])
-
-    elif tipo_dist == 'MitadNormal':
-        paráms_pymc = (1 / paráms[1] ** 2,)
-        transform_pymc['sum'] = paráms[0]
-
-    elif tipo_dist == 'GammaInversa':
-        paráms_pymc = (paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'Laplace':
-        paráms_pymc = (paráms[0], 1 / paráms[1])
-
-    elif tipo_dist == 'Logística':
-        paráms_pymc = (paráms[0], 1 / paráms[1])
-
-    elif tipo_dist == 'LogNormal':
-        paráms_pymc = (np.log(paráms[2]), 1 / (paráms[0] ** 2))
-        transform_pymc['mult'] = paráms[2]
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'TNoCentral':
-        paráms_pymc = (paráms[2], 1 / paráms[3], paráms[0])
-
-    elif tipo_dist == 'Normal':
-        paráms_pymc = (paráms[0], 1 / paráms[1] ** 2)
-
-    elif tipo_dist == 'Pareto':
-        paráms_pymc = (paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'T':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-        transform_pymc['mult'] = 1 / np.sqrt(paráms[2])
-
-    elif tipo_dist == 'NormalTrunc':
-        mu = paráms[2]
-        mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        paráms_pymc = (mu, 1 / paráms[3] ** 2, mín * paráms[3] + mu, máx * paráms[3] + mu)
-
-    elif tipo_dist == 'Uniforme':
-        # Normalizar la distribución Uniforme para PyMC. Sino hace muchos problemas.
-        paráms_pymc = (0, 1)
-        transform_pymc['sum'] = paráms[0]
-        transform_pymc['mult'] = paráms[1]
-
-    elif tipo_dist == 'VonMises':
-        paráms_pymc = (paráms[1], paráms[0])
-        transform_pymc['mult'] = paráms[2]
-
-    elif tipo_dist == 'Weibull':
-        raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
-
-    elif tipo_dist == 'Bernoulli':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'Binomial':
-        paráms_pymc = (paráms[0], paráms[1])
-        transform_pymc['sum'] = paráms[2]
-
-    elif tipo_dist == 'Geométrica':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'Hypergeométrica':
-        paráms_pymc = (paráms[1], paráms[0], paráms[2])
-        transform_pymc['sum'] = paráms[3]
-
-    elif tipo_dist == 'BinomialNegativo':
-        paráms_pymc = (paráms[1], paráms[0])
-        transform_pymc['sum'] = paráms[2]
-
-    elif tipo_dist == 'Poisson':
-        paráms_pymc = (paráms[0],)
-        transform_pymc['sum'] = paráms[1]
-
-    elif tipo_dist == 'UnifDiscr':
-        paráms_pymc = (paráms[0], paráms[1] - 1)
-
+        else:
+            # Convertir los argumentos a formato PyMC2
+            dist = VarPyMC2(nombre=nombre, tipo_dist=mejor_ajuste['tipo'], paráms=mejor_ajuste['prms'])
     else:
-        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC.' %
-                         tipo_dist)
+        dist = Ds.dists[mejor_ajuste['tipo']]['scipy'](*mejor_ajuste['prms'])
 
-    return paráms_pymc, transform_pymc
+    # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
+    return dist, mejor_ajuste['p']
 
 
 def numerizar(f, c=None):
@@ -1230,117 +1072,3 @@ def calc_r2(y_obs, y_pred):
     r2 = 1 - np.divide(sc_rs, sc_t)
 
     return r2
-
-
-def paráms_scipy_a_dist_pymc3(tipo_dist, paráms):
-    if pm3 is None:
-        raise ImportError(
-            'PyMC 3 (pymc3) no está instalado en esta máquina.\nDeberías de instalarlo un día. De verdad que'
-            'es muy chévere.')
-
-    transform_pymc = {'mult': 1, 'sum': 0}
-
-    if not Ds.obt_dist(dist=tipo_dist, tipo='pymc3'):
-        raise ValueError('La distribución "{}" no parece existir en Tiko\'n al momento.'.format(tipo_dist))
-
-    if tipo_dist == 'Beta':
-        dist_pm3 = pm3.Beta(alpha=paráms['a'], beta=paráms['b'])
-        transform_pymc['mult'] = paráms['scale']
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Cauchy':
-        dist_pm3 = pm3.Cauchy(alpha=paráms['a'], beta=paráms['scale'])
-
-    elif tipo_dist == 'Chi2':
-        dist_pm3 = pm3.ChiSquared(nu=paráms['df'])
-        transform_pymc['mult'] = paráms['scale']
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Exponencial':
-        dist_pm3 = pm3.Exponential(lam=1 / paráms['scale'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Gamma':
-        dist_pm3 = pm3.Gamma(alpha=paráms['alpha'], beta=1 / paráms['scale'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'MitadCauchy':
-        dist_pm3 = pm3.HalfCauchy(beta=paráms['scale'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'MitadNormal':
-        dist_pm3 = pm3.HalfNormal(sd=paráms['scale'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'GammaInversa':
-        dist_pm3 = pm3.InverseGamma(alpha=paráms['a'], beta=paráms['scale'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Laplace':
-        dist_pm3 = pm3.Laplace(mu=paráms['loc'], b=paráms['scale'])
-
-    elif tipo_dist == 'Logística':
-        paráms_pymc = (paráms[0], 1 / paráms[1])
-        dist_pm3 = pm3.Logistic(mu=paráms['loc'], s=paráms['scale'])
-
-    elif tipo_dist == 'LogNormal':
-        dist_pm3 = pm3.Lognormal(mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
-
-    elif tipo_dist == 'Normal':
-        dist_pm3 = pm3.Normal(mu=paráms['loc'], sd=paráms['scale'])
-
-    elif tipo_dist == 'Pareto':
-        dist_pm3 = pm3.Pareto(alpha=paráms['b'], m=paráms['scale'])  # para hacer: verificar
-
-    elif tipo_dist == 'T':
-        dist_pm3 = pm3.StudentT(nu=paráms['df'], mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
-
-    elif tipo_dist == 'NormalTrunc':
-        mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-        mín_abs, máx_abs = mín * paráms['scale'] + paráms['mu'], máx * paráms['scale'] + paráms['mu']
-        NormalTrunc = pm3.Bound(pm3.Normal, lower=mín_abs, upper=máx_abs)
-        dist_pm3 = NormalTrunc(mu=paráms['loc'], sd=paráms['scale'])
-
-    elif tipo_dist == 'Uniforme':
-        dist_pm3 = pm3.Uniform(paráms['loc'], paráms['loc'] + paráms['scale'])
-
-    elif tipo_dist == 'VonMises':
-        dist_pm3 = pm3.VonMises(mu=paráms['loc'], kappa=paráms['kappa'])
-        transform_pymc['mult'] = paráms['scale']
-
-    elif tipo_dist == 'Weibull':
-        raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
-        dist_pm3 = pm3.Weibull()
-
-    elif tipo_dist == 'Bernoulli':
-        dist_pm3 = pm3.Bernoulli(p=paráms['p'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Binomial':
-        dist_pm3 = pm3.Binomial(n=paráms['n'], p=paráms['p'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Geométrica':
-        dist_pm3 = pm3.Geometric(p=paráms['p'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'BinomialNegativo':
-        n = paráms['n']
-        p = paráms['p']
-        dist_pm3 = pm3.NegativeBinomial(mu=n(1-p)/p, alpha=n)
-        avisar('Tenemos que verificar esta distribución')  # para hacer: verificar
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'Poisson':
-        dist_pm3 = pm3.Poisson(mu=paráms['mu'])
-        transform_pymc['sum'] = paráms['loc']
-
-    elif tipo_dist == 'UnifDiscr':
-        dist_pm3 = pm3.DiscreteUniform(lower=paráms['low'], upper=paráms['high'])
-        transform_pymc['sum'] = paráms['loc']
-
-    else:
-        raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones de PyMC 3.' %
-                         tipo_dist)
-
-    return dist_pm3, transform_pymc

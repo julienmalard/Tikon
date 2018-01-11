@@ -456,21 +456,3 @@ dists = {'Alpha': {'scipy': estad.alpha,
                   'tipo': 'discr'
                   }
          }
-
-
-def obt_dist(dist, tipo):
-    try:
-        dic_dist = dists[dist]
-    except KeyError:
-        raise ValueError('La distribución "{}" todavía no exite en Tiko\'n.'.format(dist))
-
-    mens_error_tipo = 'La distribución "{}" no tiene la propiedad "{}".'.format(dist, tipo)
-    try:
-        obj_dist = dic_dist[tipo]
-    except KeyError:
-        raise ValueError(mens_error_tipo)
-
-    if obj_dist:
-        return obj_dist
-    else:
-        raise ValueError(mens_error_tipo)
