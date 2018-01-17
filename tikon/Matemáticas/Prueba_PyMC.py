@@ -8,7 +8,7 @@ adaptivo = True
 emp = 0
 fin = 60
 print(emp, fin)
-n_iter = 50000
+n_iter = 50
 
 
 class ModBayes(object):
@@ -20,19 +20,14 @@ class ModBayes(object):
         l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
                                       l_trazas=aprioris, formato='calib', comunes=False)
 
-        # Quitar variables sin incertidumbre. Por una razón muy rara, simul() no funcionará en PyMC sino. También
-        # quitar variables Uniformes. De verdad que necesito cambiar a PyMC3.
-        l_var_paráms = [x for x in l_var_paráms
-                        if not (isinstance(x, pymc.Uniform) and x.parents['lower'] == x.parents['upper'])
-                        # if not isinstance(x, pymc.Uniform) and not isinstance(x, pymc.Degenerate)
-                        and not isinstance(x, pymc.Degenerate)
-                        ]
-        l_var_paráms = l_var_paráms[emp:fin]
-
-        for parám in l_var_paráms:
-            if isinstance(parám, pymc.Deterministic):
-                l_var_paráms.append(min(parám.extended_parents))
-
+        # Quitar variables sin incertidumbre. Por una razón muy rara, simul() no funcionará en PyMC sino. # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
+        l_var_paráms_final = []
+        for v in l_var_paráms:
+            vrs = v.obt_var()
+            if isinstance(vrs, list):
+                l_var_paráms_final.extend(vrs)
+            else:
+                l_var_paráms_final.append(vrs)
 
 
         # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
@@ -87,7 +82,10 @@ líms = [[0.006143547954646662, 0.004143547954646662], [0.02641613017892241, 0.0
 
 if __name__ == '__main__':
 
-    datos = np.array([4.1, 3.9, 4.2, 3.8, 4]) * 1e6
+    fac = 1e8
+    datos = np.random.normal(5*fac, 1*fac, 50)
+    print('Datos', datos)
+    print('******************')
 
     if False:
         for l in líms:
@@ -122,10 +120,10 @@ if __name__ == '__main__':
 
     else:
         # Prueba estúpidamente sencilla (porque las otras pruebas no funcionan...)
-        var_mu = pymc.Uniform('mu', 0, 1)
+        var_mu = pymc.Uniform('mu', 0, 10)
         var_s = pymc.Gamma('sigma', 1, 10)
-        var_mu_trans = var_mu * 10e8
-        var_s_trans = var_s * 10
+        var_mu_trans = var_mu * fac
+        var_s_trans = var_s * fac
         var_0 = pymc.Uniform('0', 0, 10)
         obs = pymc.Normal('obs', mu=var_mu_trans, tau=1/var_s_trans**2, value=datos, trace=True, observed=True)
         mod_prueba = pymc.MCMC((var_mu, var_s, var_mu_trans, var_s_trans, obs, var_0))
