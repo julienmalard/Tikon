@@ -21,14 +21,14 @@ dib_calibs = dib
 proyecto = 'Artificial'
 
 
-nombre = 'Red MA, q2k pd5'
+nombre = 'prueba'
 print(nombre)
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
-quema = 2000
-n_iter = 5000
+quema = 0
+n_iter = 1000
 pedazitos = 5
 
-depurar = False
+depurar = True
 
 
 # Funciones útiles
@@ -216,7 +216,7 @@ pprint(valid_perfecta)
 
 
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
-for p in range(90, 80, -10):
+for p in range(90, 10, -10):
     print('Calibrando con p={}.\n********************'.format(p))
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)

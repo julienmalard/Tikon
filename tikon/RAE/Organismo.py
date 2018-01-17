@@ -567,7 +567,8 @@ class Organismo(Coso):
                         if dic_paráms[parám]['inter'] is None:
                             líms = [dic_paráms[parám]['límites']]
                         else:
-                            núm_inter = len(símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec][parám])
+                            d_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec][parám]
+                            núm_inter = len([etp_v for org_v, d in d_coefs.items() for etp_v in d])
                             líms = [dic_paráms[parám]['límites']] * núm_inter
                         lista_líms += líms
 

@@ -7,10 +7,6 @@ except ImportError:
     pm3 = None
 
 import scipy.stats as estad
-from pymc import Beta, Cauchy, Chi2, Degenerate, Exponential, Exponweib, Gamma, HalfCauchy, HalfNormal, InverseGamma, \
-    Laplace, Logistic, Lognormal, Normal, Pareto, T, Uniform, VonMises, \
-    Bernoulli, Binomial, Geometric, Hypergeometric, NegativeBinomial, Poisson, DiscreteUniform, TruncatedNormal, \
-    Weibull
 
 
 # Par asimplificar el código (un poquitísimo)
