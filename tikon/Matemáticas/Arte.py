@@ -6,6 +6,7 @@ from matplotlib import pyplot as dib
 from scipy import stats as estad
 
 from tikon.Matemáticas.Incert import texto_a_dist
+from tikon.Controles import valid_archivo
 
 
 def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, directorio=None, mostrar=False):
@@ -269,12 +270,10 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if type(dists) is not list:
         dists = [dists]
 
-    dib.close()  # Cerrar el gráfico anterior, si había.
-
     # Poner cada distribución en el gráfico
     for dist in dists:
 
-        if type(dist) is str:
+        if isinstance(dist, str):
             dist = texto_a_dist(texto=dist, usar_pymc=False)
 
         if isinstance(dist, pymc.Stochastic):
@@ -318,11 +317,11 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if archivo is None:
         dib.show()
     else:
-        inacceptables = [':', ';', '/', '\\']
-        for i in inacceptables:
-            título = título.replace(i, '_')
-
         if archivo[-4:] != '.png':
             archivo = os.path.join(archivo, título + '.png')
 
+        valid_archivo(archivo)
+
         dib.savefig(archivo)
+
+    dib.close()  # Cerrar el gráfico

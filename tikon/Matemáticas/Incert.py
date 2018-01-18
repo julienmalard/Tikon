@@ -296,7 +296,7 @@ def gen_vector_coefs(d_parám, í_trazas):
 
         elif isinstance(d_parám[trz], pymc.Stochastic) or isinstance(d_parám[trz], pymc.Deterministic):
             # Variables de calibraciones activas (PyMC) se agregan directamente
-            vector.append([d_parám[trz]])
+            vector.append(d_parám[trz])
 
         elif isinstance(d_parám[trz], estad._distn_infrastructure.rv_frozen):
             # Para distribuciones en formato SciPy, generar trazas de una vez
@@ -307,7 +307,10 @@ def gen_vector_coefs(d_parám, í_trazas):
             raise TypeError('Hay un error con la traza, que no puede ser de tipo "{}".'.format(type(d_parám[trz])))
 
     # Combinar las trazas de cada calibración en una única matriz NumPy unidimensional.
-    return np.concatenate(vector)
+    if len(vector) > 1:
+        return np.concatenate(vector)
+    else:
+        return np.array(vector)
 
 
 def texto_a_dist(texto, usar_pymc=False, nombre=None):
