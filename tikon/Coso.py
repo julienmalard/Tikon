@@ -653,7 +653,7 @@ class Simulable(Coso):
             'l_m_preds_todas': [],
             'l_ubics_m_preds': [],
             'd_calib': {},
-            'copia_d_calib': {}
+            'inic_d_predics_exps': {}
         }
         símismo.predics_exps = símismo.dic_simul['d_predics_exps']  # Simplificación del código
 
@@ -762,7 +762,7 @@ class Simulable(Coso):
         # Permitir que se use el experimento intrínsico de la Red si no se especificó otra cosa.
         if exper is None:
             exper = símismo.Experimento
-            símismo.añadir_exp(exper)
+            símismo.añadir_exp(exper)  # Para hacer
 
         # Poner los experimentos en la forma correcta:
         exper = símismo._prep_lista_exper(exper=exper)
@@ -772,7 +772,7 @@ class Simulable(Coso):
             t_final = tiempo_final
             tiempo_final = {}
             for exp in exper:
-                tiempo_final[exp.nombre] = t_final
+                tiempo_final[exp] = t_final
 
         # Preparar la lista de parámetros de interés
         lista_paráms = símismo._gen_lista_coefs_interés_todos()[0]
@@ -857,8 +857,6 @@ class Simulable(Coso):
                      os.path.join(os.path.split(__file__)[0], 'paráms.txt'))
 
         # 3. Filtrar coeficientes por calib
-        if aprioris is None:
-            aprioris = ['0']
         lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
 
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
@@ -1054,7 +1052,8 @@ class Simulable(Coso):
         return valid
 
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
-                     detalles=False, usar_especificadas=True, opciones_sens=False, dibujar=False):
+                     n_rep_estoc=30, tiempo_final=None, detalles=False, usar_especificadas=True,
+                     opciones_sens=None, dibujar=False):
         """
         Esta función calcula la sensibilidad de los parámetros del modelo. Puede aplicar varios tipos de análisis de
         sensibilidad.
@@ -1073,6 +1072,8 @@ class Simulable(Coso):
         :param por_dist_ingr: El porcentaje de las distribuciones cumulativas de los parámetros para incluir en el
         análisis.
         :type por_dist_ingr: float | int
+        :param n_rep_estoc: El número de repeticiones estocásticas.
+        :type n_rep_estoc: int
         :param detalles: Si quieres simular con detalles (o no).
         :type detalles: bool
         :param usar_especificadas: Si hay que utilizar a prioris especificados.
@@ -1091,6 +1092,10 @@ class Simulable(Coso):
         # Poner los experimentos en la forma correcta
         exper = símismo._prep_lista_exper(exper=exper)
 
+        #
+        if opciones_sens is None:
+            opciones_sens = {}
+
         # La lista de diccionarios de parámetros y de sus límites teoréticos
         lista_paráms, lista_líms, nombres_paráms = símismo._gen_lista_coefs_interés_todos()
 
@@ -1101,17 +1106,21 @@ class Simulable(Coso):
         # Una lista de las distribuciones de los parámetros. Esta función también llena los diccionarios de los
         # parámetros con estas mismas distribuciones.
         lista_dists = Incert.trazas_a_dists(id_simul=nombre, l_d_pm=lista_paráms, l_trazas=lista_calibs,
-                                            formato='sensib', comunes=False, l_lms=lista_líms)
+                                            formato='sensib', comunes=False, l_lms=lista_líms, n_rep_parám=1000)
 
         # Basado en las distribuciones de los parámetros, establecer los límites para el análisis de sensibilidad
         lista_líms_efec = Incert.dists_a_líms(l_dists=lista_dists, por_dist_ingr=por_dist_ingr)
 
         # Definir los parámetros del análisis en el formato que le gusta al paquete SALib.
-        n_paráms = len(lista_paráms)  # El número de parámetros para el análisis de sensibilidad
+        i_acetables = [i for i, lms in enumerate(lista_líms_efec) if lms[0] != lms[1]]
+        nombres = [str(x) for x in range(len(lista_paráms))]  # Nombres numéricos muy sencillos
+        n_paráms = len(i_acetables)  # El número de parámetros para el análisis de sensibilidad
         problema = {
             'num_vars': n_paráms,  # El número de parámetros
-            'names': [str(x) for x in range(n_paráms)],  # Nombres numéricos muy sencillos
-            'bounds': lista_líms_efec  # La lista de los límites de los parámetros para el analisis de sensibilidad
+            # Nombres numéricos muy sencillos
+            'names': [n for i, n in enumerate(nombres) if i in i_acetables],
+            # La lista de los límites de los parámetros para el analisis de sensibilidad
+            'bounds': [n for i, n in enumerate(lista_líms_efec) if i in i_acetables]
         }
 
         # Finalmente, hacer el análisis de sensibilidad. Primero generamos los valores de parámetros para intentar.
@@ -1205,18 +1214,21 @@ class Simulable(Coso):
         else:
             raise ValueError('Método de análisis de sensibilidad "{}" no reconocido.'.format(método))
 
-        # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes
-        for n, vals in enumerate(vals_paráms):
-            lista_paráms[n][nombre] = vals
+        # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes. Las con distribuciones sin
+        # incertidumbre guardarán su distribución SciPy original.
+        for i in i_acetables:
+            i_rel = i_acetables.index(i)
+            lista_paráms[i][nombre] = vals_paráms[:, i_rel]
 
         # El número de repeticiones paramétricas
-        n_rep_parám = len(vals_paráms[0])
+        n_rep_parám = vals_paráms.shape[0]
 
         # Correr la simulación. Hay que poner usar_especificadas=False aquí para evitar que distribuciones
         # especificadas tomen el lugar de las distribuciones que acabamos de generar por SALib. gen_dists=True
         # asegurar que se guarde el orden de los valores de los variables tales como especificados por SALib.
-        símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, dibujar=False, mostrar=False,
-                        dib_dists=False, n_rep_parám=n_rep_parám, n_rep_estoc=1, usar_especificadas=False)
+        símismo.simular(exper=exper, nombre=nombre, calibs=nombre, detalles=detalles, tiempo_final=tiempo_final,
+                        n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc, usar_especificadas=False,
+                        dibujar=False, mostrar=False, dib_dists=False)
 
         # Procesar las matrices
         l_matrs_proc, ubics_m = símismo._procesar_matrs_sens()
@@ -1255,7 +1267,7 @@ class Simulable(Coso):
                         d_sens[egr] = np.zeros((*m_egr.shape, n_días))
 
                     # Llenar los datos para este día
-                    d_sens[egr][:, d] = d_egr_sens[egr]
+                    d_sens[egr][..., d] = d_egr_sens[egr]
 
         # Convertir la lista de resultados de AS a un diccionario de resultados para devolver al usuario
         resultado = llaves_a_dic(l_ubics=ubics_m, vals=l_d_sens)
@@ -1272,7 +1284,6 @@ class Simulable(Coso):
                     # El directorio del gráfico
                     direc = os.path.join(símismo.proyecto, símismo.nombre, nombre, *ubic)
                     direc = símismo._prep_directorio(directorio=direc)
-                    símismo._prep_directorio(direc)
 
                     if len(m.shape) == 2:
                         # Si no tenemos interacción de parámetros...
@@ -1366,7 +1377,7 @@ class Simulable(Coso):
         símismo._justo_antes_de_simular()
 
         # Para cada paso de tiempo, incrementar el modelo
-        for i in range(1, n_pasos):
+        for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
             símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
 
     def _gen_lista_coefs_interés_todos(símismo):
@@ -1533,8 +1544,6 @@ class Simulable(Coso):
         símismo._gen_dic_predics_exps(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms,
                                       paso=paso, n_pasos=n_pasos, detalles=detalles)
 
-        símismo.dic_simul['copia_d_predics_exps'] = copiar.deepcopy(símismo.dic_simul['d_predics_exps'])
-
         if tipo == 'valid' or tipo == 'calib':
             símismo._gen_dics_valid(exper=exper, paso=paso, n_pasos=n_pasos,
                                     n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms)
@@ -1554,9 +1563,10 @@ class Simulable(Coso):
     def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
-          correspondiendo a los valores observados, y eso en el mismo orden.
+        correspondiendo a los valores observados, y eso en el mismo orden.
+
         Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
-          simular como llaves.
+        simular como llaves.
 
         :param dic_predics_exps: Un diccionario de las matrices, incluyendo datos iniciales, para la simulación de
         cada experimento.
@@ -1582,7 +1592,7 @@ class Simulable(Coso):
         # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
         # datos iniciales para las próximas).
         d_predics_exps = símismo.dic_simul['d_predics_exps']
-        llenar_copia_dic_matr(d_f=símismo.dic_simul['copia_d_predics_exps'], d_r=d_predics_exps)
+        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=d_predics_exps)
 
         # Para cada experimento...
         for exp in d_predics_exps:
@@ -1756,6 +1766,8 @@ class Simulable(Coso):
         """
 
         # Preparar el parámetro "calibs"
+        if calibs is None:
+            calibs = ['0']
 
         if type(calibs) is str and calibs not in ['Todos', 'Comunes', 'Correspondientes']:
             # Si calibs es el nombre de una calibración (y no un nombre especial)...
@@ -1833,7 +1845,6 @@ class Simulable(Coso):
             conj_calibs = set(calibs)
 
         else:
-
             # Si "calibs" no era ni texto ni una lista, hay un error.
             raise ValueError("Parámetro 'calibs' inválido.")
 
