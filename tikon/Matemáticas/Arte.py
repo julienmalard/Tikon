@@ -26,8 +26,39 @@ def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, dire
 
     """
 
-    graficar_pred(matr_predic=datos, título=título, etiq_y=etiq_y, etiq_x=etiq_x, color=color, directorio=directorio,
-                  mostrar=mostrar, vector_obs=None, promedio=True, n_líneas=0, incert=None)
+    if color is None:
+        color = '#99CC00'
+
+    if etiq_y is None:
+        etiq_y = título
+
+    if mostrar is False:
+        if directorio is None:
+            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
+        elif not os.path.isdir(directorio):
+                os.makedirs(directorio)
+
+    # El vector de días
+    x = np.arange(datos.shape[0])
+
+    # Dibujar la línea
+    dib.plot(x, datos, lw=2, color=color)
+
+    dib.xlabel(etiq_x)
+    dib.ylabel(etiq_y)
+    dib.title(título)
+
+    dib.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+
+    if mostrar is True:
+        dib.show()
+    else:
+        if directorio[-4:] != '.png':
+            válidos = (' ', '.','_')
+            nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
+            directorio = os.path.join(directorio, nombre_arch)
+        dib.savefig(directorio)
+        dib.close()
 
 
 def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
@@ -75,11 +106,6 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
 
     :param directorio: El archivo donde guardar el gráfico
     :type directorio: str
-
-    Parameters
-    ----------
-    n_líneas
-    n_líneas
 
     """
 
@@ -281,6 +307,7 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
 
     # Si hay valores, hacer un histrograma
     if valores is not None:
+        valores = valores.astype(float)
         dib.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
 
     # Si se especificó un título, ponerlo

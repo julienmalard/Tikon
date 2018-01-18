@@ -1515,14 +1515,14 @@ class Red(Simulable):
                         mu = np.mean(matr_pred, axis=0)  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, 4: día
                         sigma = np.std(matr_pred, axis=0)
 
-                        ubic_mu = u + [prc, org, etp, mu]
-                        ubic_sigma = u + [prc, org, etp, sigma]
+                        ubic_mu = u + [prc, org, etp, 'mu']
+                        ubic_sigma = u + [prc, org, etp, 'sigma']
 
-                        l_preds_proc += mu
-                        l_ubics_preds_proc += ubic_mu
+                        l_preds_proc.append(mu)
+                        l_ubics_preds_proc.append(ubic_mu)
 
-                        l_preds_proc += sigma
-                        l_ubics_preds_proc += ubic_sigma
+                        l_preds_proc.append(sigma)
+                        l_ubics_preds_proc.append(ubic_sigma)
 
                     else:
                         # Si es una matriz de depredación...
@@ -1951,6 +1951,12 @@ class Red(Simulable):
         # Generamos la lista de matrices de predicciones. Las ubicaciones se guardan automáticamente.
         l_preds = símismo.dic_simul['l_m_preds_todas']
         dic_a_lista(d=d_preds, l=l_preds, l_u=símismo.dic_simul['l_ubics_m_preds'])
+
+        # Generamos una copia de los datos iniciales, para poder reinicializar corridas. Para Redes, solamente tenemos
+        # que hacer una copia de los cohortes.
+        símismo.dic_simul['inic_d_predics_exps'] = {
+            exp: {'Cohortes': d_exp['Cohortes'].copy()} for exp, d_exp in símismo.dic_simul['d_predics_exps'].items()
+        }
 
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
 

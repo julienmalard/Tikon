@@ -197,8 +197,8 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
             # La distribución
             dist = d_trza[nombre_trz]
 
-            if isinstance(dist, str):
-                # Si la distribución está en formato de texto...
+            if isinstance(dist, str) or isinstance(dist, estad._distn_infrastructure.rv_frozen):
+                # Si la distribución está en formato de texto o de distribución SciPy...
 
                 # Solamente guardar el número de repeticiones para esta distribución (índices no tienen sentido).
                 d_índs[nombre_trz] = rep_per_calib[i]
@@ -229,6 +229,9 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
             elif isinstance(dist, pymc.Stochastic) or isinstance(dist, pymc.Deterministic):
                 # ..y si es un variable de calibración activa, poner el variable sí mismo en la matriz
                 d_índs[nombre_trz] = None
+
+            else:
+                raise TypeError
 
         return d_índs
 
@@ -294,6 +297,10 @@ def gen_vector_coefs(d_parám, í_trazas):
         elif isinstance(d_parám[trz], pymc.Stochastic) or isinstance(d_parám[trz], pymc.Deterministic):
             # Variables de calibraciones activas (PyMC) se agregan directamente
             vector.append([d_parám[trz]])
+
+        elif isinstance(d_parám[trz], estad._distn_infrastructure.rv_frozen):
+            # Para distribuciones en formato SciPy, generar trazas de una vez
+            vector.append(d_parám[trz].rvs(size=índs))
 
         else:
             # Si la traza era de otro tipo, tenemos un error.
@@ -778,16 +785,16 @@ def dists_a_líms(l_dists, por_dist_ingr):
         # Para cada distribución...
 
         # Calcular los porcentiles según el tipo de distribución
-        if isinstance(dist, estad.rv_frozen):
+        if isinstance(dist, estad._distn_infrastructure.rv_frozen):
             # Para distribuciones SciPy...
-            l_líms.append([dist.cdf(colas[0]), dist.cdf(colas[1])])
+            l_líms.append([dist.ppf(colas[0]), dist.ppf(colas[1])])
         elif isinstance(dist, np.ndarray):
             # Para distribuciones en formato de matriz NumPy...
             l_líms.append([np.percentile(dist, colas[0] * 100, np.percentile(dist, colas[1] * 100))])
         elif isinstance(dist, str):
             # Para distribuciones en formato de texto...
             d_sp = texto_a_dist(dist)  # Convertir a SciPy
-            l_líms.append([d_sp.cdf(colas[0]), d_sp.cdf(colas[1])])  # Calcular los límites
+            l_líms.append([d_sp.ppf(colas[0]), d_sp.ppf(colas[1])])  # Calcular los límites
         else:
             # Si no reconocimos el tipo de la distribución, hay un error.
             raise ValueError('Tipo de distribución "{}" no reconocido.'.format(type(dist)))
