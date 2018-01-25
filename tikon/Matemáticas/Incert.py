@@ -1136,8 +1136,6 @@ class VarPyMC2(VarCalib):
 
         :param nombre:
         :type nombre: str
-        :param tipo_calib:
-        :type tipo_calib:
         :param tipo_dist:
         :type tipo_dist: str
         :param paráms:
@@ -1297,7 +1295,8 @@ class VarPyMC2(VarCalib):
 
         # Hacer modificaciones, si necesario, y agregar éstas a la lista de variables.
         if transform['mult'] != 1:
-            dist_2 = pm2.Lambda('%s_m' % nombre, lambda x=var_base, m=transform['mult']: x * m)
+            nombre = '%s_m' % nombre
+            dist_2 = pm2.Lambda(nombre, lambda x=var_base, m=transform['mult']: x * m)
 
             # Guardar esta traza, pero ya no guardar la traza del variable pariente.
             dist_2.keep_trace = True

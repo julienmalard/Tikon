@@ -134,6 +134,7 @@ class ModBayes(ModCalib):
             l_var_paráms_final.append(vacío_2)
             vacío_1 = pm2.Normal('vacío_1', 0, 1)
             l_var_paráms.append(vacío_1)
+            vacío_05 = pm2.Normal('vacío_0.5', 0, 1)
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
             función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -143,7 +144,7 @@ class ModBayes(ModCalib):
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
             @pm2.deterministic(trace=False)
-            def simul(_=l_var_paráms_final):
+            def simul(_=l_var_paráms_final, a=vacío_05):
                 return función(**dic_argums)
 
             # Ahora, las observaciones
@@ -178,7 +179,7 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs, vacío_0, vacío_1, vacío_2}, db='sqlite',
+            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2}, db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')
         else:
