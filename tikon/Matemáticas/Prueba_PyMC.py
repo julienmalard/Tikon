@@ -8,7 +8,7 @@ adaptivo = True
 emp = 0
 fin = 60
 print(emp, fin)
-n_iter = 50
+n_iter = 1000
 
 
 class ModBayes(object):
@@ -125,22 +125,29 @@ if __name__ == '__main__':
         var_mu_trans = var_mu * fac
         var_s_trans = var_s * fac
         var_0 = pymc.Uniform('0', 0, 10)
-        obs = pymc.Normal('obs', mu=var_mu_trans, tau=1/var_s_trans**2, value=datos, trace=True, observed=True)
-        mod_prueba = pymc.MCMC((var_mu, var_s, var_mu_trans, var_s_trans, obs, var_0))
+        l = [pymc.Normal('z_{}'.format(i), 1, 2) for i in range(100)]
+
+        @pymc.deterministic()
+        def func_todo(mu=var_mu_trans, s=var_s_trans, _=l):
+            a = [x / 10000 for x in _]
+            return {'mu': mu}
+
+        obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True, observed=True)
+        mod_prueba = pymc.MCMC((var_mu, var_s, func_todo, var_mu_trans, var_s_trans, obs, var_0, *l))
         if adaptivo:
             mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
         mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
 
         for v in mod_prueba.variables:
-            if True:
+            if v.__name__[0] != 'z':
                 try:
                     dib.plot(mod_prueba.trace(v.__name__)[:])
                     dib.title(v.__name__)
                     dib.show()
                 except (TypeError, KeyError):
                     pass
-            try:
-                print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
-                print('************')
-            except (TypeError, KeyError):
-                pass
+                try:
+                    print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
+                    print('************')
+                except (TypeError, KeyError):
+                    pass
