@@ -932,9 +932,11 @@ class Red(Simulable):
         """
 
         :param extrn:
-        :type extrn:
+        :type extrn: dict
+        :param edades:
+        :type edades: np.ndarray
         :param paso:
-        :type paso:
+        :type paso: int
 
         """
 

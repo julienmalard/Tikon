@@ -3,6 +3,7 @@ from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Café.Leucoptera_coffeella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
 import tikon.RAE.Planta as Plt
+from tikon.Paisaje.NuevaParcela import Parcela
 
 # Opciones artísticas
 dib_aprioris = True
@@ -37,6 +38,9 @@ L_coffeella.secome(Café, etps_depred='juvenil')
 Parasitoide_larvas = Ins.Parasitoide('Parasitoide larvas', proyecto=proyecto)
 Parasitoide_larvas.parasita(L_coffeella, etps_infec=['juvenil'], etp_sale='juvenil')
 
+for org in [L_coffeella, Parasitoide_larvas]:
+    for etp in org.etapas:
+        org.aplicar_ecuación(etapa=etp, tipo_ec={'Edad': {'Ecuación': 'Días grados'}})
 
 # Crear objeto red
 Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Café],
@@ -62,6 +66,11 @@ for org in [L_coffeella, Parasitoide_larvas]:
 from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
+Finca_el_Encanto = Parcela('El Encanto', lat=, long=, alt=)
+Finca_el_Encanto.observar_clima(freq='Mensual', archivo='Algo.csv', meses='Meses', años='Años',
+                            cols_datos={'Precipitación': 'Lluvia', 'Precipitación': 'Temp máx', 'Precipitación': 'Temp mín'},
+                            conv={'Precipitación': 1})
+
 Red_café.sensibilidad(nombre='Sensib_sobol', tiempo_final=15, exper=El_Encanto, n=2, dibujar=True)
 
 Red_café.validar(nombre='Valid antes de calib', exper=El_Encanto, n_rep_parám=10, n_rep_estoc=10, guardar=True)
