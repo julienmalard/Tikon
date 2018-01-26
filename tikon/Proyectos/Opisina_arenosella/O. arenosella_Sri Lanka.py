@@ -5,7 +5,7 @@ from tikon.RAE.RedAE import Red
 import tikon.RAE.Insecto as Ins
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
-
+qqqq
 # Opciones artísticas
 dib_aprioris = True
 ops_dib = {'n_líneas': 5}
