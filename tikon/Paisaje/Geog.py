@@ -1,6 +1,7 @@
-import csv
 import datetime as ft
-import os
+import pandas as pd
+from taqdir.مقام import مقام
+from taqdir.ذرائع.مشاہدات import دن_مشا, مہنہ_مشا, سال_مشا
 
 # Ofrecemos la oportunidad de utilizar تقدیر, taqdir, en español
 
@@ -12,13 +13,14 @@ conv_vars = {
     'Temperatura mínima': 'درجہ_حرارت_اوسط'
 }
 
+
 # Una subclase traducida
 class Lugar(مقام):
     """
     Esta clase conecta con la clase مقام, o Lugar, del paquete taqdir.
     """
 
-    def __init__(símismo, lat, long, elev):
+    def __init__(símismo, nombre, lat, long, elev):
         """
         Inciamos el :class:`Lugar` con sus coordenadas.
         :param lat: La latitud del lugares.
@@ -29,6 +31,7 @@ class Lugar(مقام):
         :type elev: float | int
         """
 
+        símismo.nombre = nombre
         # Iniciamos como مقام
         super().__init__(چوڑائی=lat, طول=long, بلندی=elev)
 
@@ -63,7 +66,7 @@ class Lugar(مقام):
 
         símismo.مشاہدہ_کرنا(مشاہد=obs)
 
-    def observar_mensuales(símismo, archivo, cols_datos, conv, meses, años):
+    def observar_mensuales(símismo, archivo, cols_datos, meses, años, conv=None):
         """
         Esta función permite conectar observaciones mensuales de datos climáticos.
         :param archivo: El archivo con la base de datos.
@@ -84,6 +87,8 @@ class Lugar(مقام):
             if v not in conv_vars:
                 raise KeyError(_('Error en observaciones mensuales: "{}" no es variable climático reconocido en '
                                  'Tinamït. Debe ser uno de: {}').format(v, ', '.join(conv_vars)))
+        if conv is None:
+            conv = {v: 1 for v in cols_datos}
         for v in conv:
             if v not in conv_vars:
                 raise KeyError(_('Error en factores de conversión: "{}" no es variable climático reconocido en '
@@ -165,7 +170,7 @@ class Lugar(مقام):
         for v in vars_clima:
             if v not in conv_vars:
                 raise ValueError(_('El variable "{}" está erróneo. Debe ser uno de:\n'
-                                 '\t{}').format(v, ', '.join(conv_vars)))
+                                   '\t{}').format(v, ', '.join(conv_vars)))
 
         v_conv = [conv_vars[v] for v in vars_clima]
 
@@ -195,7 +200,7 @@ class Lugar(مقام):
                 v_conv = conv_vars[v]
             except KeyError:
                 raise ValueError(_('El variable "{}" está erróneo. Debe ser uno de:\n'
-                                 '\t{}').format(v, ', '.join(conv_vars)))
+                                   '\t{}').format(v, ', '.join(conv_vars)))
             if c is None:
                 if v in ['درجہ_حرارت_زیادہ', 'درجہ_حرارت_کم', 'درجہ_حرارت_اوسط']:
                     c = 'prom'
@@ -210,5 +215,3 @@ class Lugar(مقام):
                 raise ValueError
 
         return resultados
-
-
