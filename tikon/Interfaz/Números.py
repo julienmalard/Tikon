@@ -1,7 +1,6 @@
 import re
 
-
-dic_trads = {'Latino': {'núms': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0'),
+dic_trads = {'Latino': {'núms': ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'),
                         'sep_dec': '.'},
              'हिंदी': {'núms': ('०', '१', '२', '३', '४', '५', '६', '७', '८', '९'),
                        'sep_dec': '.'},
@@ -27,8 +26,10 @@ dic_trads = {'Latino': {'núms': ('1', '2', '3', '4', '5', '6', '7', '8', '9', '
              'తెలుగు': {'núms': ('౦', '౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯'),
                         'sep_dec': '.'},
              '汉语': {'núms': ('〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'),
+                    'bases': [(10, "十"), (100, "百"), (1000, "千"), (10000, "万")],
                     'sep_dec': '.'},
              '日本語': {'núms': ('〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'),
+                     'bases': [(10, "十"), (100, "百"), (1000, "千"), (10000, "万")],
                      'sep_dec': '.'},
              }
 
@@ -100,64 +101,58 @@ def tx_a_núm(texto):
         if bases is not None:
             # Intentar ver si puede ser un sistema de bases (unidades).
 
+            l_bases = [b[1] for b in bases]
+
+            # Ver si hay de separar decimales
             try:
+                entero, dec = texto.split(sep_dec)
+            except ValueError:
+                entero = texto
+                dec = None
 
-                # Ver si hay de separar decimales
-                try:
-                    entero, dec = texto.split(sep_dec)
-                except ValueError:
-                    entero = texto
-                    dec = None
+            error = False
+            val_entero = 0
+            v = última_base = None
+            for j, i in enumerate(entero):
+                if i in l_núms:
+                    v = _conv_tx_cifra(i, lengua)
+                    if j == len(entero) -1:
+                        val_entero += v
+                elif i in l_bases:
 
-                # Expresiones RegEx para esta lengua
-                regex_núm = r'[{}]'.format(''.join([n for n in l_núms]))
-                regex_unid = r'[{}]'.format(''.join([b[1] for b in bases]))
-                regex = r'((?P<núm>{})?(?P<unid>{}|$))'.format(regex_núm, regex_unid)
-
-                # Intentar encontrar secuencias de unidades y de números en el texto.
-                m = re.finditer(regex, entero)
-                resultados = [x for x in list(m) if len(x.group())]
-
-                if not len(resultados):
-                    # Si no encontramos nada, seguir con la próxima lengua
+                    base = bases[l_bases.index(i)][0]
+                    if última_base is None or base < última_base:
+                        if v is None:
+                            v = 1
+                        v *= base
+                        val_entero += v
+                    else:
+                        if v is None:
+                            v = 0
+                        val_entero += v
+                        val_entero *= base
+                    v = None
+                    última_base = base
+                else:
+                    error = True
                     continue
 
-                # Grupos de números y de sus bases (unidades)
-                grupos = resultados[:-1]
+            if error:
+                continue
 
-                # Dividir en números y en unidades
-                núms = [_trad_texto(g.group('núm'), núms=l_núms, sep_dec=sep_dec) for g in grupos]
-                unids = [_trad_texto(g.group('unid'), núms=[b[1] for b in bases], sep_dec=sep_dec)
-                         for g in grupos]
+            # Calcular el número traducido
+            if dec is not None:
+                # Si había decima, convertir el texto decimal
+                val_dec = _trad_texto(texto=dec, núms=l_núms, sep_dec=sep_dec, txt=True)
 
-                # Calcular el valor de cada número con su base.
-                vals = [núms[i] * u for i, u in enumerate(unids)]
+                # Calcular el número
+                núm = float(str(val_entero) + sep_dec + val_dec)
 
-                # Agregar o multiplicar valores, como necesario.
-                val_entero = vals[0]
-                for i, v in enumerate(vals[1:]):
-                    if unids[i + 1] > unids[i]:
-                        val_entero *= v
-                    else:
-                        val_entero += v
+            else:
+                # ... si no había decimal, no hay nada más que hacer
+                núm = val_entero
 
-                # Calcular el número traducido
-                if dec is not None:
-                    # Si había decima, convertir el texto decimal
-                    val_dec = _trad_texto(texto=dec, núms=l_núms, sep_dec=sep_dec, txt=True)
-
-                    # Calcular el número
-                    núm = float(str(val_entero) + sep_dec + val_dec)
-
-                else:
-                    # ... si no había decimal, no hay nada más que hacer
-                    núm = val_entero
-
-                return núm  # Devolver el número
-
-            except (KeyError, ValueError):
-                # Si no funcionó, intentemos otra lengua
-                pass
+            return núm  # Devolver el número
 
     # Si ninguna de las lenguas funcionó, hubo error.
     raise ValueError('No se pudo decifrar el número %s' % texto)
@@ -179,7 +174,7 @@ def _trad_texto(texto, núms, sep_dec, txt=False):
     :rtype: float | txt
     """
 
-    if all([x in núms + [sep_dec,] for x in texto]):
+    if all([x in núms + [sep_dec, ] for x in texto]):
         # Si todos los carácteres en el texto están reconocidos...
 
         # Cambiar el separador de decimal a un punto.
@@ -198,6 +193,14 @@ def _trad_texto(texto, núms, sep_dec, txt=False):
     else:
         # Si no se reconocieron todos los carácteres, no podemos hacer nada más.
         raise ValueError('Texto "{}" no reconocido.'.format(texto))
+
+
+def _conv_cifra(n, lengua):
+    return dic_trads[lengua]['núms'][n]
+
+
+def _conv_tx_cifra(tx, lengua):
+    return dic_trads[lengua]['núms'].index(tx)
 
 
 def núm_a_tx(núm, lengua, bases=True):
@@ -228,7 +231,7 @@ def núm_a_tx(núm, lengua, bases=True):
         try:
             l_bases = dic_trads[lengua]['bases']  # type: list[tuple]
         except KeyError:
-            pass
+            bases = False
 
     # Convertir el número a texto
     tx_número = str(núm)
@@ -242,16 +245,10 @@ def núm_a_tx(núm, lengua, bases=True):
         # Si la lengua tiene opciones de bases...
         if l_bases is not None:
 
-            trad_ent = ''
-            con_bases = gen_bases(int(entero), bases=l_bases)
-            for i, n in enumerate(con_bases):
-                try:
-                    trad_ent += núms[int(n)]
-                except KeyError:
-                    trad_ent += n
+            trad_ent = gen_bases(int(entero), bases=l_bases, lengua=lengua)
 
         else:
-            raise ValueError('No hay sistema de bases definido para la lengua %s.' % lengua)
+            trad_ent = ''.join(núms[int(n)] for n in entero)
 
     else:
         trad_ent = ''.join(núms[int(n)] for n in entero)
@@ -262,8 +259,7 @@ def núm_a_tx(núm, lengua, bases=True):
     return trad_núm
 
 
-
-def gen_bases(núm, bases, t=''):
+def gen_bases(núm, bases, lengua, t=''):
     """
 
     :param núm:
@@ -293,15 +289,19 @@ def gen_bases(núm, bases, t=''):
             # Sino...
 
             # Si el dividendo queda más alto que la base más pequeña, hay que seguir.
-            if dividendo >= bases[0]:
-                t += gen_bases(núm=dividendo, bases=bases, t=t)
+            if dividendo >= bases[0][0]:
+                t += gen_bases(núm=dividendo, bases=bases, t=t, lengua=lengua)
+                t += bases[-1][1]
+                núm %= mag
             else:
-                # El resto de la división
-                resto = núm % mag
-                if resto > 1:
-                    t += str(resto) + símb
+
+                if dividendo > 1:
+                    t += _conv_cifra(dividendo, lengua=lengua) + símb
                 else:
                     t += símb
+                núm %= mag
+                if núm < bases[0][0]:
+                    t += _conv_cifra(núm, lengua=lengua)
 
     return t
 
@@ -351,13 +351,8 @@ def leer_bases(texto, núms, sep_dec, bases, n=0):
 # Prueba
 if __name__ == '__main__':
 
-    tx_a_núm('௨௲௩௰')
     for leng in dic_trads:
         número = 123456.7809
         tx = núm_a_tx(número, leng)
-        latín = tx_a_núm(tx)
-        print(leng, ':', número, tx, latín)
-
-        tx = núm_a_tx(número, leng, bases=True)
         latín = tx_a_núm(tx)
         print(leng, ':', número, tx, latín)

@@ -7,26 +7,17 @@ import time
 from datetime import datetime as ft
 from warnings import warn as avisar
 
-import SALib.analyze.sobol as sobol
-import SALib.sample.saltelli as saltelli
-import SALib.sample.fast_sampler as fast_sampler
-import SALib.analyze.fast as fast
-import SALib.sample.morris as morris_muestra
-import SALib.analyze.morris as morris_anlz
-import SALib.sample.latin as latin
-import SALib.analyze.delta as delta
-import SALib.analyze.dgsm as dgsm
-import SALib.sample.ff as ff_muestra
-import SALib.analyze.ff as ff_anlz
-
 import numpy as np
 import pymc
+import pymc3
 
+from tikon import __correo__
+from Matemáticas.Incert import VarCalib
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
-from tikon.Matemáticas.Calib import ModBayes, ModGLUE
+from tikon.Matemáticas.Calib import ModBayes, ModGLUE, ModCalib
 from tikon.Matemáticas.Experimentos import Experimento
-
+from tikon.Matemáticas.Sensib import prep_anal_sensib
 
 class Coso(object):
     """
@@ -374,7 +365,7 @@ class Coso(object):
 
         # Si necesario, dibujar y mostrar la nueva distribución.
         if dibujar:
-            Arte.graficar_dists([texto_dist], rango=rango, título=título, archivo=archivo)
+            Arte.graficar_dists(texto_dist, rango=rango, título=título, archivo=archivo)
 
     @classmethod
     def generar_aprioris(cls, directorio=None):
@@ -497,7 +488,7 @@ class Coso(object):
 
             return d_copia
 
-        # 2) Una función para copiar las trazas de un diccionario de coeficientes de un objeto
+        # 2) Una función para copiar_profundo las trazas de un diccionario de coeficientes de un objeto
         def sacar_trazas(d_fuente, d_final):
             """
 
@@ -620,7 +611,7 @@ class Simulable(Coso):
         símismo.listo = False
 
         # Contendrá el objeto de modelo Bayesiano para la calibración
-        símismo.ModCalib = None
+        símismo.ModCalib = None  # type: ModCalib
 
         # Experimentos asociados
         símismo.exps = {}
@@ -640,6 +631,7 @@ class Simulable(Coso):
             'd_obs_valid': {},
             'd_obs_calib': {},
             'l_m_obs_todas': [],
+            'l_días_obs_todas': [],
             'd_l_í_calib': {},
             'l_m_preds_todas': [],
             'l_ubics_m_preds': [],
@@ -682,9 +674,12 @@ class Simulable(Coso):
         # Dejamos la implementación del incremento del modelo a las subclases individuales.
         raise NotImplementedError
 
+    def _incrementar_depurar(símismo, paso, i, detalles, extrn, d_tiempo):
+        raise NotImplementedError
+
     def simular(símismo, exper=None, nombre=None, paso=1, tiempo_final=None, n_rep_parám=100, n_rep_estoc=100,
                 calibs='Todos', usar_especificadas=False, detalles=True, dibujar=True, directorio_dib=None,
-                mostrar=True, opciones_dib=None, dib_dists=True, valid=False):
+                mostrar=True, opciones_dib=None, dib_dists=True, valid=False, depurar=False):
         """
         Esta función corre una simulación del Simulable.
 
@@ -782,7 +777,7 @@ class Simulable(Coso):
         dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
         símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=n_rep_parám, paso=paso,
                                 n_pasos=dic_argums['n_pasos'], detalles=detalles, tipo='valid' if valid else 'simul')
-        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, devolver_calib=False)
+        símismo._simul_exps(**dic_argums, paso=paso, detalles=detalles, devolver_calib=False, depurar=depurar)
 
         # Borrar los vectores de coeficientes temporarios
         símismo.borrar_calib(id_calib=nombre)
@@ -791,8 +786,9 @@ class Simulable(Coso):
         if dibujar:
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
-    def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10,
-                 n_iter=10000, quema=100, extraer=10, método='Metrópolis', dibujar=False):
+    def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10, tiempo_final=None,
+                 n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', pedazitos=None,
+                 usar_especificadas=True, dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
           1. Estar seguro de el el nombre de la calibración sea válido
@@ -839,11 +835,55 @@ class Simulable(Coso):
 
         """
 
-        # Actualizar
+        # 0. Actualizar
         símismo.actualizar()
 
         # 1. Primero, validamos el nombre y, si necesario, lo creamos.
         nombre = símismo._valid_nombre_simul(nombre=nombre)
+
+        # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
+        # para la calibración.
+        exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
+
+
+
+        # 0.5 Hacer calibración por pedazitos, si lo queremos
+        nombre_pdzt_ant = None
+        if pedazitos is not None:
+
+            tiempo_final = símismo._obt_tiempo_final(exper=exper, tiempo_final=tiempo_final)
+
+            for f in range(1, pedazitos):
+
+                nombre_pedazito = nombre + '_pdzt_{}'.format(f)
+
+                símismo.calibrar(nombre=nombre_pedazito,
+                                 aprioris=aprioris, exper=exper, paso=paso, n_rep_estoc=n_rep_estoc,
+                                 n_iter=n_iter, quema=quema, extraer=extraer, método=método,
+                                 tiempo_final={exp: int(tiempo_final[exp] * f / pedazitos) for exp in tiempo_final},
+                                 pedazitos=None,  # Queremos cada subcalibración sin sus propias pedazitos
+                                 usar_especificadas=usar_especificadas if f == 1 else False,
+                                 dibujar=False, depurar=depurar)
+                símismo.guardar_calib(descrip='Pedazito {} de calib {}'.format(f, nombre),
+                                      utilizador='Interno a Tiko\'n. Nunca debería de ver esta calibración.',
+                                      contacto=__correo__)
+
+                if nombre_pdzt_ant is not None:
+                    símismo.borrar_calib(id_calib=nombre_pdzt_ant)
+
+                nombre_pdzt_ant = nombre_pedazito
+
+                # Actualizar los aprioris
+                aprioris = nombre_pedazito
+
+        dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
+        dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
+        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
+        dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
+        dic_argums['depurar'] = depurar
+
+        símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
+                                n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
 
         # 2. Creamos la lista de parámetros que hay que calibrar
         lista_paráms, lista_líms, nombres = símismo._gen_lista_coefs_interés_todos()
@@ -851,19 +891,8 @@ class Simulable(Coso):
                      os.path.join(os.path.split(__file__)[0], 'paráms.txt'))
 
         # 3. Filtrar coeficientes por calib
-        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms, usar_especificadas=True)
-
-        # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
-        # para la calibración.
-        exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
-
-        dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=None)
-        dic_argums['paso'] = paso  # Guardar el paso en el diccionario también
-        dic_argums['detalles'] = False  # Queremos una simulación rápida para calibraciones...  # Para hacer
-        dic_argums['devolver_calib'] = True  # ...pero sí tenemos que vectorizar las predicciones.
-
-        símismo._prep_dic_simul(exper=exper, n_rep_estoc=n_rep_estoc, n_rep_paráms=1, paso=paso,
-                                n_pasos=dic_argums['n_pasos'], detalles=False, tipo='calib')
+        lista_aprioris = símismo._filtrar_calibs(calibs=aprioris, l_paráms=lista_paráms,
+                                                 usar_especificadas=usar_especificadas)
 
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
@@ -886,6 +915,8 @@ class Simulable(Coso):
         else:
             raise ValueError
 
+        if nombre_pdzt_ant is not None:
+            símismo.borrar_calib(id_calib=nombre_pdzt_ant)
 
         # 7. Calibrar el modelo, llamando las ecuaciones bayesianas a través del objeto ModCalib
         símismo.ModCalib.calib(rep=n_iter, quema=quema, extraer=extraer)
@@ -933,7 +964,7 @@ class Simulable(Coso):
 
         # Si no hay modelo, no hay nada para guardar.
         if símismo.ModCalib is None:
-            raise ValueError('No hay calibraciones para guardar')
+            raise ValueError('No hay calibraciones para guardar.')
 
         # La fecha y hora a la cual se guardó
         ahora = ft.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -977,7 +1008,7 @@ class Simulable(Coso):
 
     def validar(símismo, exper, nombre=None, calibs=None, paso=1, n_rep_parám=20, n_rep_estoc=20,
                 usar_especificadas=False, detalles=False, guardar=True,
-                dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True):
+                dibujar=True, mostrar=False, opciones_dib=None, dib_dists=True, depurar=False):
         """
         Esta función valida el modelo con datos de observaciones de experimentos.
 
@@ -1043,7 +1074,7 @@ class Simulable(Coso):
         símismo.simular(nombre=nombre, exper=exper, paso=paso, n_rep_parám=n_rep_parám, n_rep_estoc=n_rep_estoc,
                         calibs=calibs, usar_especificadas=usar_especificadas, detalles=detalles,
                         dibujar=dibujar, mostrar=mostrar,
-                        opciones_dib=opciones_dib, dib_dists=dib_dists, valid=True)
+                        opciones_dib=opciones_dib, dib_dists=dib_dists, valid=True, depurar=depurar)
 
         # Procesar los datos de la validación
         símismo._procesar_valid()
@@ -1133,95 +1164,7 @@ class Simulable(Coso):
         }
 
         # Finalmente, hacer el análisis de sensibilidad. Primero generamos los valores de parámetros para intentar.
-        método_mín = método.lower()
-
-        if método_mín == 'sobol':
-            # Preparar opciones
-            conv_ops_muestrear = {'calc_segundo_orden': 'calc_second_order'}
-            conv_ops_anlz = {'calc_segundo_orden': 'calc_second_order', 'núm_remuestreos': 'num_resamples',
-                             'nivel_conf': 'conf_level', 'paralelo': 'parallel', 'n_procesadores': 'n_processors'}
-
-            # La opciones para las funciones de de muestreo y de análisis
-            ops_muestrear = {conv_ops_muestrear[a]: val for a, val in opciones_sens.items() if a in conv_ops_muestrear}
-            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
-
-            # Calcular cuáles valores de parámetros tenemos que poner para el análisis Sobol
-            vals_paráms = saltelli.sample(problem=problema, N=n, **ops_muestrear)
-
-            # La función de análisis
-            fun_anlz = sobol.analyze
-
-        elif método_mín == 'fast':
-            # Preparar opciones
-            if 'M' in opciones_sens:
-                ops_muestrear = ops_anlz = {'M': opciones_sens['M']}
-            else:
-                ops_muestrear = ops_anlz = {}
-
-            # Calcular para FAST
-            vals_paráms = fast_sampler.sample(problem=problema, N=n, **ops_muestrear)
-
-            # La función de análisis
-            fun_anlz = fast.analyze
-
-        elif método_mín == 'morris':
-            # Preparar opciones
-            conv_ops_muestrear = {'núm_niveles': 'num_levels', 'salto_cuadr': 'grid_jump',
-                                  'traj_optimal': 'optimal_trajectories', 'opt_local': 'local_optimization'}
-            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level',
-                             'salto_cuadr': 'grid_jump', 'núm_niveles': 'num_levels'}
-
-            # La opciones para las funciones de de muestreo y de análisis
-            ops_muestrear = {conv_ops_muestrear[a]: val for a, val in opciones_sens.items() if a in conv_ops_muestrear}
-            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
-
-            # Calcular para Morris
-            vals_paráms = morris_muestra.sample(problem=problema, N=n, **ops_muestrear)
-            ops_anlz['X'] = vals_paráms
-
-            # La función de análisis
-            fun_anlz = morris_anlz
-
-        elif método_mín == 'dmim':
-            # Preparar opciones
-            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level'}
-            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
-
-            # Calcular para DMIM
-            vals_paráms = latin.sample(problem=problema, N=n)
-            ops_anlz['X'] = vals_paráms
-
-            # La función de análisis
-            fun_anlz = delta.analyze
-
-        elif método_mín == 'dgsm':  # para hacer: verificar
-            # Preparar opciones
-            conv_ops_anlz = {'núm_remuestreos': 'num_resamples', 'nivel_conf': 'conf_level'}
-            ops_anlz = {conv_ops_anlz[a]: val for a, val in opciones_sens.items() if a in conv_ops_anlz}
-
-            # Calcular para DGSM
-            vals_paráms = saltelli.sample(problem=problema, N=n)
-            ops_anlz['X'] = vals_paráms
-
-            # La función de análisis
-            fun_anlz = dgsm
-
-        elif método_mín == 'ff':
-            # Preparar opciones
-            if 'segundo_orden' in opciones_sens:
-                ops_anlz = {'second_order': opciones_sens['segundo_orden']}
-            else:
-                ops_anlz = {}
-
-            # Calcular para FF
-            vals_paráms = ff_muestra.sample(problem=problema)
-            ops_anlz['X'] = vals_paráms
-
-            # La función de análisis
-            fun_anlz = ff_anlz
-
-        else:
-            raise ValueError('Método de análisis de sensibilidad "{}" no reconocido.'.format(método))
+        vals_paráms, fun_anlz, ops_anlz = prep_anal_sensib(método, n=n, problema=problema, opciones=opciones_sens)
 
         # Aplicar las matrices de parámetros generadas a los diccionarios de coeficientes. Las con distribuciones sin
         # incertidumbre guardarán su distribución SciPy original.
@@ -1304,8 +1247,8 @@ class Simulable(Coso):
                             título = '{}: {}'.format(prm, índ)
 
                             # Dibujar el gráfico
-                            Arte.graficar_línea(datos=m[i, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
-                                                título=título, directorio=direc)
+                            Arte.graficar_línea(datos=m[i, :], título=título, etiq_y='{}: {}'.format(método, índ),
+                                                etiq_x='Día', directorio=direc)
                     elif len(m.shape) == 3:
                         # Si tenemos interacciones entre parámetros...
 
@@ -1319,8 +1262,8 @@ class Simulable(Coso):
                                 título = '{}-{}: {}'.format(prm_1, prm_2, índ)
 
                                 # Dibujar el gráfico
-                                Arte.graficar_línea(datos=m[i, j, :], etiq_x='Día', etiq_y='{}: {}'.format(método, índ),
-                                                    título=título, directorio=direc)
+                                Arte.graficar_línea(datos=m[i, j, :], título=título,
+                                                    etiq_y='{}: {}'.format(método, índ), etiq_x='Día', directorio=direc)
                     else:
                         # Si tenemos otra forma de matriz, no sé qué hacer.
                         raise ValueError('Número de ejes ({}) inesperado. Quejarse al programador.'
@@ -1365,7 +1308,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _calc_simul(símismo, paso, n_pasos, detalles, extrn=None):
+    def _calc_simul(símismo, paso, n_pasos, detalles, extrn=None, depurar=False):
         """
         Esta función aumenta el modelo para cada paso en la simulación. Se usa en simulaciones normales, tanto como en
           simulaciones de experimentos.
@@ -1385,9 +1328,22 @@ class Simulable(Coso):
         símismo._numerizar_coefs()
         símismo._justo_antes_de_simular()
 
-        # Para cada paso de tiempo, incrementar el modelo
-        for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
-            símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
+        if not depurar:
+            # Para cada paso de tiempo, incrementar el modelo
+            for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
+                símismo.incrementar(paso, i=i, detalles=detalles, extrn=extrn)
+        else:
+            # Para cada paso de tiempo, incrementar el modelo
+            d_tiempo = {}
+            for i in range(1, n_pasos):  # para hacer: ¿n_pasos o n_pasos+1?
+                d_tiempo = símismo._incrementar_depurar(paso, i=i, detalles=detalles, extrn=extrn, d_tiempo=d_tiempo)
+
+            t_total_interno = sum(v for v in d_tiempo.values())
+
+            print('Descomposición de tiempo de simulación\n')
+            print('\t{:<13}{:>12}{:>14}'.format('Cálculo', 'Segundos', '% del total'))
+            for ll, v in d_tiempo.items():
+                print('\t{:<13}{:12.2f}{:12.2f} %'.format(ll, v, v / t_total_interno * 100))
 
     def _gen_lista_coefs_interés_todos(símismo):
 
@@ -1503,6 +1459,10 @@ class Simulable(Coso):
         dic_args = dict(n_pasos={},
                         extrn={})
 
+        # Determinar el tiempo final, si es necesario
+        if tiempo_final is None:
+            tiempo_final = símismo._obt_tiempo_final(exper=exper)
+
         # Para cada experimento...
         for exp in exper:
 
@@ -1512,9 +1472,7 @@ class Simulable(Coso):
             parc = obj_exp.obt_parcelas(tipo=símismo.ext)
             tamaño_parcelas = obj_exp.superficies(parc=parc)
 
-            # Determinar el tiempo final, si es necesario
-            if tiempo_final is None:
-                tiempo_final = {exp: obj_exp.tiempo_final(tipo=símismo.ext)}
+
             n_pasos = mat.ceil(tiempo_final[exp] / paso) + 1
 
             # También guardamos el número de pasos y las superficies de las parcelas.
@@ -1522,6 +1480,20 @@ class Simulable(Coso):
             dic_args['extrn'][exp] = {'superficies': tamaño_parcelas}
 
         return dic_args
+
+    def _obt_tiempo_final(símismo, exper, tiempo_final=None):
+        """
+
+        :param exper:
+        :type exper:
+        :return:
+        :rtype: dict
+        """
+
+        if tiempo_final is None:
+            return {exp: símismo.exps[exp]['Exp'].tiempo_final(tipo=símismo.ext) for exp in exper}
+        else:
+            return {exp: tiempo_final for exp in exper}
 
     def _prep_dic_simul(símismo, exper, n_rep_estoc, n_rep_paráms, paso, n_pasos, detalles, tipo):
         """
@@ -1569,17 +1541,13 @@ class Simulable(Coso):
     def _gen_dics_calib(símismo, exper):
         raise NotImplementedError
 
-    def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib):
+    def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib, depurar=False):
         """
         Esta es la función que se calibrará cuando se calibra o valida el modelo. Devuelve las predicciones del modelo
         correspondiendo a los valores observados, y eso en el mismo orden.
 
         Todos los argumentos de esta función, a parte "paso," son diccionarios con el nombre de los experimentos para
         simular como llaves.
-
-        :param dic_predics_exps: Un diccionario de las matrices, incluyendo datos iniciales, para la simulación de
-        cada experimento.
-        :type dic_predics_exps: dict
 
         :param paso: El paso para la simulación
         :type paso: int
@@ -1600,17 +1568,16 @@ class Simulable(Coso):
 
         # Hacer una copia de los datos iniciales (así que, en la calibración del modelo, una iteración no borará los
         # datos iniciales para las próximas).
-        d_predics_exps = símismo.dic_simul['d_predics_exps']
-        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=d_predics_exps)
+        llenar_copia_dic_matr(d_f=símismo.dic_simul['inic_d_predics_exps'], d_r=símismo.predics_exps)
 
         # Para cada experimento...
-        for exp in d_predics_exps:
+        for exp in símismo.predics_exps:
             # Apuntar el diccionario de predicciones del Simulable al diccionario apropiado en símismo.predics_exps.
-            símismo.predics = símismo.dic_simul['d_predics_exps'][exp]
+            símismo.predics = símismo.predics_exps[exp]
 
             # Simular el modelo
             antes = time.time()
-            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp])
+            símismo._calc_simul(paso=paso, n_pasos=n_pasos[exp], detalles=detalles, extrn=extrn[exp], depurar=depurar)
             print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
         # Procesar los egresos de la simulación.
@@ -1896,8 +1863,8 @@ class Simulable(Coso):
 
         def sacar_dists_de_dic(d, l=None, u=None):
             """
-            Esta función recursiva saca las distribuciones PyMC de un diccionario de coeficientes.
-              Devuelva los resultados en forma de tuple:
+            Esta función recursiva saca las distribuciones `VarCalib` de un diccionario de coeficientes.
+            Devuelva los resultados en forma de tuple:
 
 
             :param d: El diccionario
@@ -1920,7 +1887,7 @@ class Simulable(Coso):
                     u.append(ll)
                     sacar_dists_de_dic(d=v, l=l, u=u)
 
-                elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+                elif isinstance(v, VarCalib):
                     u.append(ll)
                     l.append((u.copy(), v))
                     u.pop()
@@ -1975,9 +1942,7 @@ class Simulable(Coso):
             título = ':'.join(ubic[1:-1])
 
             try:
-                vals = dist.trace(chain=None)[:]
-                Arte.graficar_dists(dists=[dist], valores=vals,
-                                    título=título, archivo=archivo)
+                Arte.graficar_dists(dists=dist, título=título, archivo=archivo)
             except AttributeError:
                 pass
 
@@ -2130,7 +2095,7 @@ def prep_receta_json(d, d_egr=None):
             # Transformar matrices numpy a texto
             d_egr[ll] = v.tolist()
 
-        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic):
+        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic) or isinstance(v, pymc3.model.TensorVariable):
 
             # Si el itema es un variable de PyMC, borrarlo
             d_egr.pop(ll)
@@ -2207,7 +2172,11 @@ def llenar_copia_dic_matr(d_f, d_r):
         if isinstance(v, dict):
             llenar_copia_dic_matr(d_f=v, d_r=d_r[ll])
         elif isinstance(v, np.ndarray):
-            d_r[ll][:] = v
+            if d_r[ll].shape == v.shape:
+                d_r[ll][:] = v
+            else:
+                # Para unas matrices, copiar el primer día de datos solamente.
+                d_r[ll][..., 0] = v
         else:
             pass
 
