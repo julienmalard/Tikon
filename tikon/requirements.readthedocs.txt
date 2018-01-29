@@ -1,0 +1,4 @@
+sphinx>=1.5.1
+SALib
+pathvalidate
+taqdir

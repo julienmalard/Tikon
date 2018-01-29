@@ -1,15 +1,16 @@
 import os
 
 import numpy as np
-import pymc
-from matplotlib import pyplot as dib
+from Matemáticas.Incert import VarCalib
+from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
+from matplotlib.figure import Figure as Figura
 from scipy import stats as estad
 
 from tikon.Matemáticas.Incert import texto_a_dist
 from tikon.Controles import valid_archivo
 
 
-def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, directorio=None, mostrar=False):
+def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, directorio=None):
     """
 
     :param datos:
@@ -33,38 +34,38 @@ def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, dire
     if etiq_y is None:
         etiq_y = título
 
-    if mostrar is False:
-        if directorio is None:
-            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
-        elif not os.path.isdir(directorio):
-                os.makedirs(directorio)
+    if directorio is None:
+        raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
+    elif not os.path.isdir(directorio):
+        os.makedirs(directorio)
 
     # El vector de días
     x = np.arange(datos.shape[0])
 
     # Dibujar la línea
-    dib.plot(x, datos, lw=2, color=color)
+    fig=Figura()
+    TelaFigura(fig)
+    ejes = fig.add_subplot(111)
+    ejes.set_aspect('equal')
 
-    dib.xlabel(etiq_x)
-    dib.ylabel(etiq_y)
-    dib.title(título)
+    ejes.plot(x, datos, lw=2, color=color)
 
-    dib.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+    ejes.set_xlabel(etiq_x)
+    ejes.set_ylabel(etiq_y)
+    ejes.set_title(título)
 
-    if mostrar is True:
-        dib.show()
-    else:
-        if directorio[-4:] != '.png':
-            válidos = (' ', '.','_')
-            nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
-            directorio = os.path.join(directorio, nombre_arch)
-        dib.savefig(directorio)
-        dib.close()
+    ejes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
 
-def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
-                  etiq_y=None, etiq_x='Día', color=None, promedio=True, incert='componentes', n_líneas=0,
-                  mostrar=True, directorio=None):
+    if directorio[-4:] != '.png':
+        válidos = (' ', '.','_')
+        nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
+        directorio = os.path.join(directorio, nombre_arch)
+    fig.savefig(directorio)
+
+
+def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_y=None, etiq_x='Día', color=None,
+                  promedio=True, incert='componentes', n_líneas=0, directorio=None):
     """
     Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
 
@@ -102,9 +103,6 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
     :param n_líneas:
     :type n_líneas: int
 
-    :param mostrar: Si hay que mostrar el gráfico de inmediato, o solo guardarlo.
-    :type mostrar: bool
-
     :param directorio: El archivo donde guardar el gráfico
     :type directorio: str
 
@@ -116,11 +114,15 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
     if etiq_y is None:
         etiq_y = título
 
-    if mostrar is False:
-        if directorio is None:
-            raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
-        elif not os.path.isdir(directorio):
-                os.makedirs(directorio)
+    if directorio is None:
+        raise ValueError('Hay que especificar un archivo para guardar el gráfico de %s.' % título)
+    elif not os.path.isdir(directorio):
+        os.makedirs(directorio)
+
+    fig = Figura()
+    TelaFigura(fig)
+    ejes = fig.add_subplot(111)
+    ejes.set_aspect('equal')
 
     # El vector de días
     x = np.arange(matr_predic.shape[2])
@@ -128,7 +130,7 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
     # Si necesario, incluir el promedio de todas las repeticiones (estocásticas y paramétricas)
     prom_predic = matr_predic.mean(axis=(0, 1))
     if promedio:
-        dib.plot(x, prom_predic, lw=2, color=color)
+        ejes.plot(x, prom_predic, lw=2, color=color)
 
     # Si hay observaciones, mostrarlas también
     if vector_obs is not None:
@@ -139,8 +141,8 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
         tiempos_obs = tiempos_obs[vacíos]
         vector_obs = vector_obs[vacíos]
 
-        dib.plot(tiempos_obs, vector_obs, 'o', color=color, label='Obs')
-        dib.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
+        ejes.plot(tiempos_obs, vector_obs, 'o', color=color, label='Obs')
+        ejes.plot(tiempos_obs, vector_obs, lw=1, color='#000000')
 
     # Incluir el incertidumbre
     if incert is None:
@@ -169,10 +171,10 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
             op_mín = 0.01
             opacidad = (1-n/(len(percentiles)-1)) * (op_máx - op_mín) + op_mín
 
-            dib.fill_between(x, máx_perc_ant, máx_perc,
-                             facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
-            dib.fill_between(x, mín_perc, mín_perc_ant,
-                             facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
+            ejes.fill_between(x, máx_perc_ant, máx_perc,
+                              facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
+            ejes.fill_between(x, mín_perc, mín_perc_ant,
+                              facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
 
             # Guardar los máximos y mínimos
             mín_perc_ant = mín_perc
@@ -202,9 +204,9 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
         máx_parám = np.add(mitad, np.divide(incert_parám, 2))
         mín_parám = np.subtract(mitad, np.divide(incert_parám, 2))
 
-        dib.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
+        ejes.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
 
-        dib.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3, label='Incert estocástico')
+        ejes.fill_between(x, máx_total, mín_total, facecolor=color, alpha=0.3, label='Incert estocástico')
 
     else:
         raise ValueError('No entiendo el tipo de incertidumbre "%s" que especificaste para el gráfico.' % incert)
@@ -223,36 +225,29 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None,
         í_lín_parám = np.remainder(í_líneas, n_rep_parám)
 
         for n in range(í_lín_estoc.shape[0]):
-            dib.plot(x, matr_predic[í_lín_estoc[n], í_lín_parám[n]], lw=1, color=color)
+            ejes.plot(x, matr_predic[í_lín_estoc[n], í_lín_parám[n]], lw=1, color=color)
 
-    dib.xlabel(etiq_x)
-    dib.ylabel(etiq_y)
-    dib.title(título)
+    ejes.set_xlabel(etiq_x)
+    ejes.set_ylabel(etiq_y)
+    ejes.set_title(título)
 
-    dib.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+    ejes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
-    if mostrar is True:
-        dib.show()
-    else:
-        if directorio[-4:] != '.png':
-            válidos = (' ', '.','_')
-            nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
-            directorio = os.path.join(directorio, nombre_arch)
-        dib.savefig(directorio)
-        dib.close()
+    if directorio[-4:] != '.png':
+        válidos = (' ', '.','_')
+        nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
+        directorio = os.path.join(directorio, nombre_arch)
+    fig.savefig(directorio)
 
 
-def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, archivo=None):
+def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
     """
     Esta función genera un gráfico de una o más distribuciones y valores.
 
     :param dists: Una lista de las distribuciones para graficar.
-    :type dists: list[str, pymc.Deterministic, pymc.Stochastic]
+    :type dists: list[str, VarCalib] | str | VarCalib
 
-    :param n: El número de puntos para el gráfico.
-    :type n: int
-
-    :param valores: Una matriz numpy de valores para hacer un histograma (opcional)
+    :param valores: Una matriz numpy de valores para generar un histograma (opcional)
     :type valores: np.ndarray
 
     :param rango: Un rango de valores para resaltar en el gráfico (opcional).
@@ -270,58 +265,60 @@ def graficar_dists(dists, n=100000, valores=None, rango=None, título=None, arch
     if type(dists) is not list:
         dists = [dists]
 
+    n = 100000
+
+    fig = Figura()
+    TelaFigura(fig)
+
     # Poner cada distribución en el gráfico
     for dist in dists:
 
-        if isinstance(dist, str):
-            dist = texto_a_dist(texto=dist, usar_pymc=False)
+        if isinstance(dist, VarCalib):
+            ejes = fig.subplots(1, 2)
 
-        if isinstance(dist, pymc.Stochastic):
-            puntos = np.array([dist.rand() for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n//100)
-            x = 0.5 * (delim[1:] + delim[:-1])
+            dist.dibujar(ejes=ejes)
 
-        elif isinstance(dist, pymc.Deterministic):
-            dist_stoc = min(dist.extended_parents)
-            puntos = np.array([(dist_stoc.rand(), dist.value)[1] for _ in range(n)])
-            y, delim = np.histogram(puntos, normed=True, bins=n//100)
-            x = 0.5 * (delim[1:] + delim[:-1])
-
-        elif isinstance(dist, estad._distn_infrastructure.rv_frozen):
-            x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
-            y = dist.pdf(x)
+            # Si se especificó un título, ponerlo
+            if título is not None:
+                fig.suptitle(título)
 
         else:
-            raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
 
-        # Dibujar la distribución
-        dib.plot(x, y, 'b-', lw=2, alpha=0.6)
+            if isinstance(dist, str):
+                dist = texto_a_dist(texto=dist, usar_pymc=False)
 
-        # Resaltar un rango, si necesario
-        if rango is not None:
-            if rango[1] < rango[0]:
-                rango = (rango[1], rango[0])
-            dib.fill_between(x[(rango[0] <= x) & (x <= rango[1])], 0, y[(rango[0] <= x) & (x <= rango[1])],
-                             color='blue', alpha=0.2)
+            if isinstance(dist, estad._distn_infrastructure.rv_frozen):
+                x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
+                y = dist.pdf(x)
+            else:
+                raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
 
-    # Si hay valores, hacer un histrograma
-    if valores is not None:
-        valores = valores.astype(float)
-        dib.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+            ejes = fig.add_subplot(111)
+            ejes.set_aspect('equal')
 
-    # Si se especificó un título, ponerlo
-    if título is not None:
-        dib.title(título)
+            # Dibujar la distribución
+            ejes.plot(x, y, 'b-', lw=2, alpha=0.6)
 
-    # Mostrar o guardar el gráfico
-    if archivo is None:
-        dib.show()
-    else:
-        if archivo[-4:] != '.png':
-            archivo = os.path.join(archivo, título + '.png')
+            # Resaltar un rango, si necesario
+            if rango is not None:
+                if rango[1] < rango[0]:
+                    rango = (rango[1], rango[0])
+                ejes.fill_between(x[(rango[0] <= x) & (x <= rango[1])], 0, y[(rango[0] <= x) & (x <= rango[1])],
+                                  color='blue', alpha=0.2)
 
-        valid_archivo(archivo)
+            # Si hay valores, hacer un histrograma
+            if valores is not None:
+                valores = valores.astype(float)
+                ejes.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
 
-        dib.savefig(archivo)
+            # Si se especificó un título, ponerlo
+            if título is not None:
+                ejes.set_title(título)
 
-    dib.close()  # Cerrar el gráfico
+    # Guardar el gráfico
+    if archivo[-4:] != '.png':
+        archivo = os.path.join(archivo, título + '.png')
+
+    valid_archivo(archivo)
+
+    fig.savefig(archivo)

@@ -1,1 +1,0 @@
-from tikon.Trads.தமிழ் import வே_சு_வலை
