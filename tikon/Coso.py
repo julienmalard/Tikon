@@ -560,7 +560,7 @@ class Coso(object):
                     líms = d_ecs['límites']
 
                     dist = Incert.ajustar_dist(datos=datos, cont=cont, límites=líms, usar_pymc=False)[0]
-                    d[ll] = Incert.dist_a_texto(dist)
+                    d[ll] = dist.a_texto()
 
         # Generar un diccionario para guardar los a prioris
         dic_aprioris = gen_dic_vacío(dic_info_ecs)
