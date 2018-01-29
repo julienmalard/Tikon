@@ -12,7 +12,7 @@ import pymc
 import pymc3
 
 from tikon import __correo__
-from Matemáticas.Incert import VarCalib
+from tikon.Matemáticas.Incert import VarCalib
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes, ModGLUE, ModCalib

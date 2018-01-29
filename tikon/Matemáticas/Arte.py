@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from Matemáticas.Incert import VarCalib
+from tikon.Matemáticas.Incert import VarCalib
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from scipy import stats as estad
