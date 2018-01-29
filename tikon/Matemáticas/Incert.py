@@ -1,3 +1,4 @@
+import ast
 import math as mat
 from warnings import warn as avisar
 
@@ -104,7 +105,7 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
                 var_sp = texto_a_dist(texto=d_parám[trzs_texto[0]], usar_pymc=False)
 
                 # Convertir en matriz NumPy
-                dist = var_sp.rvs(n_rep_parám)
+                dist = var_sp.muestra_alea(n_rep_parám)
 
             elif formato == 'sensib':
                 # Si querremos una distribución para una análisis de sensibilidad, devolver la distribución SciPy
@@ -296,15 +297,15 @@ def gen_vector_coefs(d_parám, í_trazas):
             # Si está en formato texto, generar las trazas del tamaño especificado en "índs" por medio de una
             # distribución SciPy
             dist_sp = texto_a_dist(d_parám[trz], usar_pymc=False)
-            vector.append(dist_sp.rvs(size=índs))
+            vector.append(dist_sp.muestra_alea(size=índs))
 
-        elif isinstance(d_parám[trz], pymc.Stochastic) or isinstance(d_parám[trz], pymc.Deterministic):
+        elif isinstance(d_parám[trz], VarCalib):
             # Variables de calibraciones activas (PyMC) se agregan directamente
             vector.append(d_parám[trz])
 
-        elif isinstance(d_parám[trz], estad._distn_infrastructure.rv_frozen):
+        elif isinstance(d_parám[trz], VarSciPy):
             # Para distribuciones en formato SciPy, generar trazas de una vez
-            vector.append(d_parám[trz].rvs(size=índs))
+            vector.append(d_parám[trz].muestra_alea(n=índs))
 
         else:
             # Si la traza era de otro tipo, tenemos un error.
@@ -339,55 +340,21 @@ def texto_a_dist(texto, usar_pymc=False, nombre=None):
     if usar_pymc and nombre is None:
         raise ValueError('Se debe especificar un nombre para el variable si quieres una distribución de PyMC.')
 
-    # Dividir el nombre de la distribución de sus parámetros.
-    tipo_dist, paráms = texto.split('~')
-    paráms = paráms.replace('(', '').replace(')', '')
-    paráms = tuple([float(x) for x in paráms.split(',')])
+    if usar_pymc:
+        # Si querremos una distribución de PyMC...
 
-    # Si el nombre de la distribución está en la lista arriba...
-    if tipo_dist in Ds.dists:
-
-        if usar_pymc:
-            # Si querremos una distribución de PyMC...
-
-            # Sacar la clase PyMC para esta distribución
-            if usar_pymc3:
-                dist = VarPyMC3(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
-            else:
-                dist = VarPyMC2(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
-
+        # Sacar la clase PyMC para esta distribución
+        if usar_pymc3:
+            dist = VarPyMC3.de_texto(texto, nombre=nombre)
         else:
-            # Sino, usar una distribución de SciPy
-            dist = Ds.dists[tipo_dist]['scipy'](*paráms)
+            dist = VarPyMC2.de_texto(texto, nombre=nombre)
 
-        # Devolver la distribución appropiada
-        return dist
+    else:
+        # Sino, usar una distribución de SciPy
+        dist = VarSciPy.de_texto(texto)
 
-    # Si no encontramos el nombre de la distribución, hay un error.
-    raise ValueError('No se pudo decodar la distribución "%s".' % texto)
-
-
-def dist_a_texto(dist):
-    """
-    Esta función toma una distribución de SciPy y devuelva una representación de texto en formato de Tiko'n para
-    la distribución.
-
-    :param dist: La distribución.
-    :type dist: estad.rv_frozen
-
-    :return: La versión texto de la distribución.
-    :rtype: str
-
-    """
-
-    args = dist.args
-
-    nombre_scipy = dist.dist.name
-    nombre_dist = next(x for x in Ds.dists if Ds.dists[x]['scipy'] == nombre_scipy)
-
-    texto_dist = '%s~(%s)' % (nombre_dist, str(args))
-
-    return texto_dist
+    # Devolver la distribución appropiada
+    return dist
 
 
 def rango_a_texto_dist(rango, certidumbre, líms, cont):
@@ -412,279 +379,6 @@ def rango_a_texto_dist(rango, certidumbre, líms, cont):
     :rtype: str
 
     """
-
-    # La precisión que querremos de nuestras distribuciones aproximadas
-    límite_precisión = 0.0001
-
-    # Leer los límites intrínsicos del parámetro
-    mín = líms[0]
-    máx = líms[1]
-
-    # Si el rango está al revés, arreglarlo.
-    if rango[0] > rango[1]:
-        rango = (rango[1], rango[0])
-
-    # Asegurarse de que el rango cabe en los límites
-    if rango[0] < mín or rango[1] > máx:
-        raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
-
-    if certidumbre == 1:
-        # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
-        if cont:
-            dist = 'Uniforme~({}, {})'.format(rango[0], (rango[1] - rango[0]))
-        else:
-            dist = 'UnifDiscr~({}, {})'.format(rango[0], rango[1] + 1)
-
-    else:
-        # Si hay incertidumbre...
-
-        # Primero, hay que asegurarse que el máximo y mínimo del rango no sean iguales
-        if rango[0] == rango[1]:
-            raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores '
-                             'mínimos y máximos iguales.')
-
-        # Una idea de la escala del rango de incertidumbre
-        escala_rango = rango[1] / rango[0]  # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
-
-        # Ahora, asignar una distribución según cada caso posible
-        if mín == -np.inf:
-            if máx == np.inf:  # El caso (-inf, +inf)
-                if cont:
-                    mu = np.average(rango)
-                    # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
-                    sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - certidumbre) / 2 + certidumbre)
-                    dist = 'Normal~({}, {})'.format(mu, sigma)
-                else:
-                    raise ValueError('No se puede especificar a prioris con niveles de certidumbres inferiores a 100% '
-                                     'con parámetros discretos en el rango (-inf, +inf).')
-
-            else:  # El caso (-np.inf, R)
-                raise ValueError('Tikón no tiene funcionalidades de distribuciones a priori en intervalos (-inf, R). '
-                                 'Puedes crear un variable en el intervalo (R, inf) y utilisar su valor negativo en '
-                                 'las ecuaciones.')
-
-        else:
-            if máx == np.inf:  # El caso [R, +inf)
-                if cont:
-
-                    # Primero vamos a intentar crear una distribución gamma con la densidad especificada
-                    # (certidumbre) entre el rango especificado y 50% de la densidad no especificada de cada
-                    # lado del rango (así asegurándose que la densidad esté más o menos bien distribuida a través
-                    # del rango).
-
-                    área_cola = (1 - certidumbre) / 2  # La densidad que querremos de cada lado (cola) del rango
-
-                    # La función de optimización.
-                    def calc_ajust_gamma_1(x):
-                        """
-                        Emplea un rango normalizado y toma como único argumento el parámetro a de la distribución
-                        gamma; devuelve el ajuste de la distribución.
-
-                        :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a
-                        :type x: np.ndarray
-
-                        :return: El ajust del modelo
-                        :rtype: float
-                        """
-
-                        # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
-                        # a la izquierda de este límite.
-                        mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
-
-                        # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
-                        # especificados).
-                        máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
-
-                        # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
-                        # deseada.
-                        ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0]) - (1 - área_cola))
-
-                        return ajust  # Devolver el ajuste del modelo.
-
-                    # Hacer la optimización
-                    opt = minimizar(calc_ajust_gamma_1, x0=np.array([1]),
-                                    bounds=[(1, None)])
-
-                    # Calcular la escala
-                    escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0])
-
-                    # Calcular los parámetros
-                    paráms = [opt.x[0], mín, escala]
-
-                    # Validar la optimización
-                    valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
-                                 estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
-                                certidumbre)
-
-                    # Si validó bien, todo está bien.
-                    if valid < límite_precisión:
-                        dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
-
-                    else:
-                        # Si no validó bien, intentaremos otra cosa. Ahora vamos a permitir que el límite inferior
-                        # de la distribución gamma cambie un poco.
-                        # Esto puede ayudar en casos donde rango[1] - rango[0] << rango[0] - mín
-
-                        def calc_ajust_gamma_2(x):
-                            """
-                            Emplea un rango normalizado; devuelve el ajuste de la distribución.
-
-                            :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a, x[1] = loc.
-                            :type x: np.ndarray
-
-                            :return: El ajust del modelo
-                            :rtype: float
-                            """
-
-                            # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
-                            # a la izquierda de este límite.
-                            mín_ajust = estad.gamma.ppf(área_cola, a=x[0], loc=x[1])
-
-                            # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
-                            # especificados).
-                            máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
-
-                            # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
-                            # deseada.
-                            ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0], loc=x[1]) - (1 - área_cola))
-
-                            return ajust
-
-                        opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, mín]),
-                                        bounds=[(1, None), (mín, None)])
-
-                        escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
-
-                        paráms = [opt.x[0], opt.x[1] * escala + mín, escala]
-
-                        # Validar que todo esté bien.
-                        valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
-                                     estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
-                                    certidumbre)
-
-                        if valid < límite_precisión:
-                            # Si está bien, allí guardamos el resultado.
-                            dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
-
-                        else:
-                            # Si todavía logramos encontrar una buena distribución, reconocemos que no podemos hacer
-                            # milagros y abandonamos la condición que las dos colas deben tener el mismo área. Siempre
-                            # guardamos el mínimo de la función gamma en mín (el mínimo teorético del parámetro
-                            # especificado por el usuario).
-                            # Esto puede ayudar en casos donde rango[0] - mín << rango[1] - mín y certidumbre >> 0.
-
-                            # OTRA función de optimización...
-                            mx_ajust = 5  # 5 es un buen número para evitar problemas.
-
-                            def calc_ajust_gamma_3(x):
-                                """
-                                Emplea un rango normalizado y toma como único argumento el parámetro a de la
-                                distribución gamma; devuelve el ajuste de la distribución.
-
-                                :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la escala de la
-                                distribución.
-                                :type x: np.ndarray
-
-                                :return: El ajust del modelo
-                                :rtype: float
-
-                                """
-
-                                máx_ajust = mx_ajust  # El rango superior
-
-                                # El rango inferior proporcional
-                                mín_ajust = (rango[0] - mín) * máx_ajust / (rango[1] - mín)
-
-                                # La densidad de la distribución abajo del límite inferior del rango
-                                dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1])
-
-                                # La densidad adentro de los límites del rango
-                                dens_líms = estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1]) - \
-                                            estad.gamma.cdf(mín_ajust, a=x[0], scale=x[1])
-
-                                # Devolver una medida del ajuste de la distribución. Lo más importante sería la
-                                # densidad adentro del rango, pero también la densidad en la cola superior.
-                                return abs(dens_líms - certidumbre) * 100 + abs(dens_sup - área_cola)
-
-                            opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 1]),
-                                            bounds=[(1, None), (1e-10, None)])
-
-                            paráms = [opt.x[0], mín, (rango[1] - mín) / mx_ajust * opt.x[1]]
-
-                            # Validar que todo esté bien.
-                            valid = abs((estad.gamma.cdf(rango[1], a=paráms[0], loc=paráms[1], scale=paráms[2]) -
-                                         estad.gamma.cdf(rango[0], a=paráms[0], loc=paráms[1], scale=paráms[2])) -
-                                        certidumbre)
-
-                            # Si el error en la densidad de la distribución TODAVÍA queda superior al límite
-                            # acceptable...
-                            if valid > límite_precisión:
-                                raise ValueError('Error en la optimización de la distribución especificada. '
-                                                 'Esto es un error de programación, así que mejor se queje al '
-                                                 'programador. ({})'.format(correo))
-
-                            # Guardar la distribución de todo modo.
-                            dist = 'Gamma~({}, {}, {})'.format(paráms[0], paráms[1], paráms[2])
-
-                else:
-                    raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
-                                     '(R, inf). Si lo quieres añadir, ¡dale pués!')
-
-            else:  # El caso (R, R)
-                if cont:
-
-                    # Una distribución normal truncada con límites especificados y mu en la mitad del rango
-                    # especificado
-                    mu = (rango[0] + rango[1]) / 2
-                    opt = minimizar(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín - mu) / x, b=(máx - mu) / x,
-                                                                       loc=mu, scale=x) -
-                                                   estad.truncnorm.cdf(rango[0], a=(mín - mu) / x, b=(máx - mu) / x,
-                                                                       loc=mu, scale=x)) -
-                                                  certidumbre),
-                                    # bounds=[(1e-10, None)],  # para hacer: activar este
-                                    x0=np.array([rango[1] - rango[0]]),
-                                    method='Nelder-Mead')
-
-                    paráms = np.array([mu, opt.x[0], (mín - mu) / opt.x[0], (máx - mu) / opt.x[0]])
-
-                    # Validar la optimización
-                    valid = abs((estad.truncnorm.cdf(rango[1], loc=paráms[0], scale=paráms[1],
-                                                     a=paráms[2], b=paráms[3]) -
-                                 estad.truncnorm.cdf(rango[0], loc=paráms[0], scale=paráms[1],
-                                                     a=paráms[2], b=paráms[3], ))
-                                - certidumbre)
-
-                    # Si validó bien, guardar la distribución...
-                    if valid < límite_precisión:
-                        dist = 'NormalTrunc~({}, {}, {}, {})'.format(paráms[2], paráms[3], paráms[0], paráms[1])
-
-                    else:
-                        # ... si no, intentar con una distribución beta.
-                        opt = minimizar(
-                            lambda x: abs((estad.beta.cdf(rango[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
-                                           estad.beta.cdf(rango[0], a=x[0], b=x[1], loc=mín, scale=máx - mín)) -
-                                          certidumbre), bounds=[(1e-10, None), (1e-10, None)],
-                            x0=np.array([1e-10, 1e-10]))
-
-                        paráms = [opt.x[0], opt.x[1], mín, máx - mín]
-
-                        valid = abs((estad.beta.cdf(rango[1], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín) -
-                                     estad.beta.cdf(rango[0], a=paráms[0], b=paráms[1], loc=mín, scale=máx - mín)) -
-                                    certidumbre)
-
-                        # Avizar si todavía no optimizó bien
-                        if valid > límite_precisión:
-                            raise ValueError('Error en la optimización de la distribución especificada. Esto es un '
-                                             'error de programación, así que mejor se queje al '
-                                             'programador. ({})'.format(correo))
-
-                        dist = 'Beta~({}, {}, {}, {})'.format(paráms[0], paráms[1], paráms[2], paráms[3])
-
-                else:
-                    raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
-                                     '(R, inf). Si lo quieres añadir, ¡dale pués!')
-
-    return dist
 
 
 def límites_a_texto_dist(límites, cont=True):
@@ -845,9 +539,9 @@ def ajustar_dist(datos, límites, cont, usar_pymc=False, nombre=None, lista_dist
     # (y lo mismo para SciPy).
     if usar_pymc is True:
         if usar_pymc3:
-            dists_potenciales = [x for x in dists_potenciales if x in VarPyMC3.disp_dists()]
+            dists_potenciales = [x for x in dists_potenciales if x in VarPyMC3.dists_disp()]
         else:
-            dists_potenciales = [x for x in dists_potenciales if x in VarPyMC2.disp_dists()]
+            dists_potenciales = [x for x in dists_potenciales if x in VarPyMC2.dists_disp()]
     else:
         dists_potenciales = [x for x in dists_potenciales if Ds.dists[x]['scipy'] is not None]
 
@@ -1077,7 +771,430 @@ def calc_r2(y_obs, y_pred):
     return r2
 
 
-class VarCalib(object):
+class VarAlea(object):
+    def __init__(símismo, tipo_dist, paráms, nombre=None):
+        """
+
+        :param tipo_dist:
+        :type tipo_dist: str
+        :param paráms:
+        :type paráms: dict
+        :param nombre:
+        :type nombre: str
+        """
+
+        símismo.tipo_dist = tipo_dist
+        símismo.paráms = paráms
+        símismo.nombre = nombre
+
+    @classmethod
+    def de_texto(cls, texto, nombre=None):
+
+        # Primero, decidimos si tenemos una especificación de distribución por nombre o por rango (y densidad)
+        if '~' in texto:
+            # Si tenemos especificación por nombre...
+            return cls.de_texto_dist(texto, nombre=nombre)
+        else:
+            # Si tenemos especificación por rango (y/o densidad):
+
+            # Formato general: "(0, 1); 85%(0, 0.05)" o "(0, 1)"
+
+            if ';' in texto:
+                líms, txt_dens = texto.split(';')
+                líms = tuple(float(x) for x in líms.strip('()').split(','))
+
+                prcnt, líms_dens = txt_dens.split('%')
+                prcnt = float(prcnt)
+                líms_dens = tuple(float(x) for x in líms_dens.strip('()').split(','))
+
+                if prcnt == 100:
+                    return cls.de_líms(líms_dens)
+                else:
+                    return cls.de_densidad(prcnt=prcnt, líms_prcnt=líms_dens, líms=líms)
+
+            else:
+                líms = tuple(float(x) for x in texto.strip('()').split(','))
+
+                return cls.de_líms(líms)
+
+    def a_texto(símismo):
+        raise NotImplementedError
+
+    @classmethod
+    def ajust_dist(cls, datos, líms):
+        resultado = cls._ajust_dist(datos=datos, líms=líms)
+        if resultado['p'] <= 0.10:
+            avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(resultado['p'], 4))
+
+        return resultado['dist']
+
+    @classmethod
+    def de_densidad(cls, prcnt, líms_prcnt, líms, cont):
+        raise NotImplementedError
+
+    @classmethod
+    def _ajust_dist(cls, datos, líms):
+        raise NotImplementedError
+
+    @classmethod
+    def de_líms(cls, líms):
+        raise NotImplementedError
+
+    @classmethod
+    def de_texto_dist(cls, texto, nombre=None):
+
+        # Dividir el nombre de la distribución de sus parámetros.
+        tipo_dist, paráms = texto.split('~')
+        paráms = ast.literal_eval(paráms)
+
+        return cls(tipo_dist, paráms, nombre=nombre)
+
+    @staticmethod
+    def dists_disp():
+        """
+        Devuelve una lista de los nombres de distribuciones disponibles para este tipo de variable.
+        :return: La lista de distribuciones posibles.
+        :rtype: list[str]
+        """
+        raise NotImplementedError
+
+
+class VarSciPy(VarAlea):
+
+    def __init__(símismo, tipo_dist, paráms):
+        super().__init__(tipo_dist=tipo_dist, paráms=paráms)
+
+    def a_texto(símismo):
+        """
+        Esta función devuelve una representación de texto en formato de Tiko'n para la distribución.
+
+        :return: La versión texto de la distribución.
+        :rtype: str
+
+        """
+
+        texto_dist = '%s~(%s)' % (símismo.nombre, str(símismo.paráms))
+
+        return texto_dist
+
+    @classmethod
+    def de_densidad(cls, prcnt, rango, líms, cont):
+
+        # La precisión que querremos de nuestras distribuciones aproximadas
+        límite_precisión = 0.0001
+
+        # Leer los límites intrínsicos del parámetro
+        mín = líms[0]
+        máx = líms[1]
+
+        # Si el rango está al revés, arreglarlo.
+        if rango[0] > rango[1]:
+            rango = (rango[1], rango[0])
+
+        # Asegurarse de que el rango cabe en los límites
+        if rango[0] < mín or rango[1] > máx:
+            raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
+
+        # Si no decimos el contrario, no invertiremos la distribución.
+        inv = False
+
+        if prcnt == 1:
+            # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
+            if cont:
+                tipo_dist = 'Uniforme'
+                paráms = {'ubic': rango[0], 'escl': (rango[1] - rango[0])}
+            else:
+                tipo_dist = 'UnifDiscr'
+                paráms = {'low': rango[0], 'high': rango[1] + 1}
+
+        else:
+            # Si hay incertidumbre...
+
+            # Primero, hay que asegurarse que el máximo y mínimo del rango no sean iguales
+            if rango[0] == rango[1]:
+                raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores '
+                                 'mínimos y máximos iguales.')
+
+            # Una idea de la escala del rango de incertidumbre
+            # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
+            escala_rango = rango[1] / rango[0]
+
+            # Invertir distribuciones en (-inf, R]
+            if mín == -np.inf and máx != np.inf:
+                mín = -máx
+                máx = np.inf
+                inv = True
+
+            # Ahora, asignar una distribución según cada caso posible
+            if mín == -np.inf:
+                if máx == np.inf:  # El caso (-inf, +inf)
+                    if cont:
+                        mu = np.average(rango)
+                        # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
+                        sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - prcnt) / 2 + prcnt)
+                        tipo_dist = 'Normal'
+                        paráms = {'loc': mu, 'scale': sigma}
+                    else:
+                        raise ValueError(
+                            'No se pueden especificar a prioris con niveles de certidumbre inferiores a 100% '
+                            'con parámetros discretos en el rango (-inf, +inf).')
+
+                else:  # El caso (-np.inf, R)
+                    raise ValueError('Debería ser imposible llegar a este error en Tiko\'n.')
+
+            else:
+                if máx == np.inf:  # El caso [R, +inf)
+                    if cont:
+
+                        # Primero vamos a intentar crear una distribución gamma con la densidad especificada
+                        # (certidumbre) entre el rango especificado y 50% de la densidad no especificada de cada
+                        # lado del rango (así asegurándose que la densidad esté más o menos bien distribuida a través
+                        # del rango).
+
+                        área_cola = (1 - prcnt) / 2  # La densidad que querremos de cada lado (cola) del rango
+
+                        # La función de optimización.
+                        def calc_ajust_gamma_1(x):
+                            """
+                            Emplea un rango normalizado y toma como único argumento el parámetro a de la distribución
+                            gamma; devuelve el ajuste de la distribución.
+
+                            :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a
+                            :type x: np.ndarray
+
+                            :return: El ajust del modelo
+                            :rtype: float
+                            """
+
+                            # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
+                            # a la izquierda de este límite.
+                            mín_ajust = estad.gamma.ppf(área_cola, a=x[0])
+
+                            # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
+                            # especificados).
+                            máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
+
+                            # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
+                            # deseada.
+                            ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0]) - (1 - área_cola))
+
+                            return ajust  # Devolver el ajuste del modelo.
+
+                        # Hacer la optimización
+                        opt = minimizar(calc_ajust_gamma_1, x0=np.array([1]),
+                                        bounds=[(1, None)])
+
+                        # Calcular la escala
+                        escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0])
+
+                        # Calcular los parámetros
+                        tp_paráms = [opt.x[0], mín, escala]
+
+                        # Validar la optimización
+                        valid = abs((estad.gamma.cdf(rango[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
+                                     estad.gamma.cdf(rango[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
+                                    prcnt)
+
+                        # Si validó bien, todo está bien.
+                        if valid < límite_precisión:
+                            tipo_dist = 'Gamma'
+                            paráms = {'a': tp_paráms[0], 'ubic': tp_paráms[1], 'escl': tp_paráms[2]}
+
+                        else:
+                            # Si no validó bien, intentaremos otra cosa. Ahora vamos a permitir que el límite inferior
+                            # de la distribución gamma cambie un poco.
+                            # Esto puede ayudar en casos donde rango[1] - rango[0] << rango[0] - mín
+
+                            def calc_ajust_gamma_2(x):
+                                """
+                                Emplea un rango normalizado; devuelve el ajuste de la distribución.
+
+                                :param x: una matriz NumPy con los parámetros para calibrar. x[0] = a, x[1] = loc.
+                                :type x: np.ndarray
+
+                                :return: El ajust del modelo
+                                :rtype: float
+                                """
+
+                                # Primero, calcular dónde hay que ponder el límite inferior para tener la densidad querrida
+                                # a la izquierda de este límite.
+                                mín_ajust = estad.gamma.ppf(área_cola, a=x[0], loc=x[1])
+
+                                # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
+                                # especificados).
+                                máx_ajust = mín_ajust / (rango[0] - mín) * (rango[1] - mín)
+
+                                # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
+                                # deseada.
+                                ajust = abs(estad.gamma.cdf(máx_ajust, a=x[0], loc=x[1]) - (1 - área_cola))
+
+                                return ajust
+
+                            opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, mín]),
+                                            bounds=[(1, None), (mín, None)])
+
+                            escala = (rango[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
+
+                            tp_paráms = [opt.x[0], opt.x[1] * escala + mín, escala]
+
+                            # Validar que todo esté bien.
+                            valid = abs(
+                                (estad.gamma.cdf(rango[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
+                                 estad.gamma.cdf(rango[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
+                                prcnt)
+
+                            if valid < límite_precisión:
+                                # Si está bien, allí guardamos el resultado.
+                                tipo_dist = 'Gamma'
+                                paráms = {'a': tp_paráms[0], 'ubic': tp_paráms[1], 'escl': tp_paráms[2]}
+
+                            else:
+                                # Si todavía logramos encontrar una buena distribución, reconocemos que no podemos hacer
+                                # milagros y abandonamos la condición que las dos colas deben tener el mismo área.
+                                # Siempre guardamos el mínimo de la función gamma en mín (el mínimo teorético del
+                                # parámetro especificado por el usuario).
+                                # Esto puede ayudar en casos donde rango[0] - mín << rango[1] - mín y certidumbre >> 0.
+
+                                # OTRA función de optimización...
+                                mx_ajust = 5  # 5 es un buen número para evitar problemas.
+
+                                def calc_ajust_gamma_3(x):
+                                    """
+                                    Emplea un rango normalizado y toma como único argumento el parámetro a de la
+                                    distribución gamma; devuelve el ajuste de la distribución.
+
+                                    :param x: x[0] es el parámetro a de la distribución gamma, y x[1] la escala de la
+                                    distribución.
+                                    :type x: np.ndarray
+
+                                    :return: El ajust del modelo
+                                    :rtype: float
+
+                                    """
+
+                                    máx_ajust = mx_ajust  # El rango superior
+
+                                    # El rango inferior proporcional
+                                    mín_ajust = (rango[0] - mín) * máx_ajust / (rango[1] - mín)
+
+                                    # La densidad de la distribución abajo del límite inferior del rango
+                                    dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1])
+
+                                    # La densidad adentro de los límites del rango
+                                    dens_líms = estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1]) - \
+                                                estad.gamma.cdf(mín_ajust, a=x[0], scale=x[1])
+
+                                    # Devolver una medida del ajuste de la distribución. Lo más importante sería la
+                                    # densidad adentro del rango, pero también la densidad en la cola superior.
+                                    return abs(dens_líms - prcnt) * 100 + abs(dens_sup - área_cola)
+
+                                opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 1]),
+                                                bounds=[(1, None), (1e-10, None)])
+
+                                tp_paráms = [opt.x[0], mín, (rango[1] - mín) / mx_ajust * opt.x[1]]
+
+                                # Validar que todo esté bien.
+                                valid = abs((estad.gamma.cdf(rango[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
+                                             estad.gamma.cdf(rango[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
+                                            prcnt)
+
+                                # Si el error en la densidad de la distribución TODAVÍA queda superior al límite
+                                # acceptable...
+                                if valid > límite_precisión:
+                                    raise ValueError('Error en la optimización de la distribución especificada. '
+                                                     'Esto es un error de programación, así que mejor se queje al '
+                                                     'programador. ({})'.format(correo))
+
+                                # Guardar la distribución de todo modo.
+                                tipo_dist = 'Gamma'
+                                paráms = {'a': tp_paráms[0], 'ubic': tp_paráms[1], 'escl': tp_paráms[2]}
+
+                    else:
+                        raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
+                                         '(R, inf). Si lo quieres contribuir, ¡dale pués!')
+
+                else:  # El caso (R, R)
+                    if cont:
+
+                        # Una distribución normal truncada con límites especificados y mu en la mitad del rango
+                        # especificado
+                        mu = (rango[0] + rango[1]) / 2
+                        opt = minimizar(lambda x: abs((estad.truncnorm.cdf(rango[1], a=(mín - mu) / x, b=(máx - mu) / x,
+                                                                           loc=mu, scale=x) -
+                                                       estad.truncnorm.cdf(rango[0], a=(mín - mu) / x, b=(máx - mu) / x,
+                                                                           loc=mu, scale=x)) -
+                                                      prcnt),
+                                        # bounds=[(1e-10, None)],  # para hacer: activar este
+                                        x0=np.array([rango[1] - rango[0]]),
+                                        method='Nelder-Mead')
+
+                        tp_paráms = np.array([mu, opt.x[0], (mín - mu) / opt.x[0], (máx - mu) / opt.x[0]])
+
+                        # Validar la optimización
+                        valid = abs((estad.truncnorm.cdf(rango[1], loc=tp_paráms[0], scale=tp_paráms[1],
+                                                         a=tp_paráms[2], b=tp_paráms[3]) -
+                                     estad.truncnorm.cdf(rango[0], loc=tp_paráms[0], scale=tp_paráms[1],
+                                                         a=tp_paráms[2], b=tp_paráms[3], ))
+                                    - prcnt)
+
+                        # Si validó bien, guardar la distribución...
+                        if valid < límite_precisión:
+                            tipo_dist = 'NormalTrunc'
+                            paráms = {'a': tp_paráms[2], 'b': tp_paráms[3], 'ubic': tp_paráms[0], 'escl': tp_paráms[1]}
+
+                        else:
+                            # ... si no, intentar con una distribución beta.
+                            opt = minimizar(
+                                lambda x: abs((estad.beta.cdf(rango[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
+                                               estad.beta.cdf(rango[0], a=x[0], b=x[1], loc=mín, scale=máx - mín)) -
+                                              prcnt), bounds=[(1e-10, None), (1e-10, None)],
+                                x0=np.array([1e-10, 1e-10]))
+
+                            tp_paráms = [opt.x[0], opt.x[1], mín, máx - mín]
+
+                            valid = abs(
+                                (estad.beta.cdf(rango[1], a=tp_paráms[0], b=tp_paráms[1], loc=mín, scale=máx - mín) -
+                                 estad.beta.cdf(rango[0], a=tp_paráms[0], b=tp_paráms[1], loc=mín, scale=máx - mín)) -
+                                prcnt)
+
+                            # Avizar si todavía no optimizó bien
+                            if valid > límite_precisión:
+                                raise ValueError('Error en la optimización de la distribución especificada. Esto es un '
+                                                 'error de programación, así que mejor se queje al '
+                                                 'programador. ({})'.format(correo))
+
+                            tipo_dist = 'Beta'
+                            paráms = {'a': tp_paráms[0], 'b': tp_paráms[1], 'ubic': tp_paráms[2], 'escl': tp_paráms[3]}
+
+                    else:
+                        raise ValueError('Tikon no tiene funciones para especificar a priores discretos en un intervalo'
+                                         '(R, inf). Si lo quieres añadir, ¡dale pués!')
+
+        # Inversar la distribución si necesario
+        if inv:
+            paráms['scale'] = -paráms['scale']
+
+        return cls(tipo_dist=tipo_dist, paráms=paráms)
+
+    @classmethod
+    def _ajust_dist(cls, datos, líms):
+        pass
+
+    @classmethod
+    def de_líms(cls, líms):
+
+        pass
+
+    @classmethod
+    def de_texto_dist(cls, texto, nombre=None):
+        pass
+
+    @staticmethod
+    def dists_disp():
+        return [x for x, d in Ds.dists.items() if d['scipy'] is not None]
+
+
+class VarCalib(VarAlea):
     def __init__(símismo, nombre, tipo_dist, paráms):
         """
 
@@ -1089,9 +1206,8 @@ class VarCalib(object):
         :type paráms: dict
         """
 
-        símismo.nombre = nombre
-        símismo.tipo_dist = tipo_dist
-        símismo.paráms = paráms
+        super().__init__(tipo_dist=tipo_dist, nombre=nombre, paráms=paráms)
+
         símismo.var = NotImplemented
 
     def obt_var(símismo):
@@ -1099,14 +1215,6 @@ class VarCalib(object):
 
         :return:
         :rtype: list | pm2.Stochastic | pm3.model.FreeRV
-        """
-        raise NotImplementedError
-
-    def __float__(símismo):
-        """
-
-        :return:
-        :rtype: float
         """
         raise NotImplementedError
 
@@ -1121,8 +1229,12 @@ class VarCalib(object):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def disp_dists():
+    def __float__(símismo):
+        """
+
+        :return:
+        :rtype: float
+        """
         raise NotImplementedError
 
 
@@ -1355,8 +1467,29 @@ class VarPyMC2(VarCalib):
         except AttributeError:
             return np.array([])
 
+    @classmethod
+    def de_densidad(cls, prcnt, líms_prcnt, líms):
+        raise NotImplementedError
+
+    @classmethod
+    def _ajust_dist(cls, datos, líms):
+        raise NotImplementedError
+
+    @classmethod
+    def de_líms(cls, líms):
+        mín = líms[0] if líms[0] is not None else -np.inf
+        máx = líms[1] if líms[1] is not None else np.inf
+
+        if mín == -np.inf:
+            if máx == np.inf:
+                return
+
+    @classmethod
+    def de_texto_dist(cls, texto):
+        raise NotImplementedError
+
     @staticmethod
-    def disp_dists():
+    def dists_disp():
         return ['Beta', 'Cauchy', 'Chi2', 'Exponencial', 'WeibullExponencial', 'Gamma', 'MitadCauchy', 'MitadNormal',
                 'GammaInversa', 'Laplace', 'Logística', 'LogNormal', 'TNoCentral', 'Normal', 'Pareto', 'T',
                 'NormalTrunc', 'Uniforme', 'VonMises', 'Weibull', 'Bernoulli', 'Binomial', 'Geométrica',
@@ -1547,7 +1680,7 @@ class VarPyMC3(VarCalib):
         raise NotImplementedError('')
 
     @staticmethod
-    def disp_dists():
+    def dists_disp():
 
         return ['Beta', 'Cauchy', 'Chi2', 'Exponencial', 'Gamma', 'MitadCauchy', 'MitadNormal', 'GammaInversa',
                 'Laplace', 'Logística', 'LogNormal', 'Normal', 'Pareto', 'T', 'NormalTrunc', 'Uniforme', 'VonMises',
