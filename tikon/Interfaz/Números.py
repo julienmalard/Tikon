@@ -116,7 +116,7 @@ def tx_a_núm(texto):
             for j, i in enumerate(entero):
                 if i in l_núms:
                     v = _conv_tx_cifra(i, lengua)
-                    if j == len(entero) -1:
+                    if j == len(entero) - 1:
                         val_entero += v
                 elif i in l_bases:
 

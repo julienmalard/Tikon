@@ -183,8 +183,8 @@ class FileX(object):
             vars_parcela = "PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM".split()
             if '@' in línea and 'PAREA' in línea:
                 valores_parcela = doc[
-                    doc.index("@ PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM.........\n")+1
-                ].split()
+                    doc.index("@ PAREA  PRNO  PLEN  PLDR  PLSP  PLAY HAREA  HRNO  HLEN  HARM.........\n") + 1
+                    ].split()
                 for a in símismo.dic['GENERAL']:
                     símismo.dic['GENERAL'][a] = [valores_parcela[vars_parcela.index(a)]]
                 continue
@@ -202,9 +202,9 @@ class FileX(object):
                 if otra != "EXP.DETAILS" and otra != "GENERAL":
                     símismo.decodar(doc, otra)
 
-    def escribir(símismo, carpeta):      # Escribe un documento FILEX para uso en DSSAT
+    def escribir(símismo, carpeta):  # Escribe un documento FILEX para uso en DSSAT
         documento = os.path.join(carpeta, 'TKON0000')  # Sólo podemos tener un documento FILEX por carpeta (parcela)
-        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+        for i in símismo.dic:  # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
             if type(símismo.dic[i]) is dict:
                 for j in símismo.dic[i]:
                     if not len(símismo.dic[i][j]):
@@ -212,7 +212,7 @@ class FileX(object):
             else:
                 if símismo.dic[i] == '':
                     símismo.dic[i] = [["-99"]]
-        with open("FILEX.txt", "r") as d:    # Abrir el patrón general para archivos FILEX
+        with open("FILEX.txt", "r") as d:  # Abrir el patrón general para archivos FILEX
             doc = []
             for línea in d:
                 doc.append(línea)
@@ -237,7 +237,7 @@ class FileX(object):
                 break
 
         if prin:  # Si existe la sección
-            for línea, texto in enumerate(doc[prin:fin-1], start=prin):
+            for línea, texto in enumerate(doc[prin:fin - 1], start=prin):
                 if "@" in texto and 'AUTOMATIC MANAGEMENT' not in texto:
                     variables = texto.split()[1:]
                     for a, var in enumerate(variables):
@@ -248,7 +248,7 @@ class FileX(object):
                                 if len(b):
                                     variables.insert(a, b)
                             variables.remove(var)  # Terminado la acrobacia
-                    i = línea+1
+                    i = línea + 1
                     while "@" not in doc[i] and doc[i] != '\n':
                         valores = doc[i].replace('\n', '')[2:]
                         nivel = doc[i].split()[0]
@@ -261,10 +261,10 @@ class FileX(object):
                             if var in símismo.dic[sección]:  # Si la variable existe en la base de datos de fileX
                                 if len(símismo.dic[sección][var]) < nivel:
                                     símismo.dic[sección][var].append([])
-                                símismo.dic[sección][var][nivel-1].append(
-                                    valores[:símismo.prop_vars[sección][var]+1].strip()
+                                símismo.dic[sección][var][nivel - 1].append(
+                                    valores[:símismo.prop_vars[sección][var] + 1].strip()
                                 )
-                                valores = valores[símismo.prop_vars[sección][var]+1:]
+                                valores = valores[símismo.prop_vars[sección][var] + 1:]
                         i += 1
         else:
             return "No encontramos la sección " + sección + ". Si no eres un programador de Tiko'n, dígale " \
@@ -273,7 +273,7 @@ class FileX(object):
     # Esta funcción encoda una sección del diccionario en un formato de documento FILEX
     def encodar(símismo, doc, sección):
         prin = 0
-        while '*' not in doc[prin] and sección not in doc[prin]:    # Encontrar el principio de la sección
+        while '*' not in doc[prin] and sección not in doc[prin]:  # Encontrar el principio de la sección
             prin += 1
         línea = prin
 
@@ -284,11 +284,11 @@ class FileX(object):
                 texto.format(**símismo.dic)
                 doc.insert(línea, texto)
                 return
-            if '{' in texto:   # Si la línea tiene variables a llenar
+            if '{' in texto:  # Si la línea tiene variables a llenar
                 # Leer el primer variable de la línea (para calcular el número de niveles y repeticiones más adelante)
-                var = texto[texto.index("{")+2:texto.index("]")]
-                copia = texto   # Copiar la línea vacía (en caso que hayan otras líneas que agregar)
-                for i, a in enumerate(símismo.dic[sección][var]):    # Para cada nivel de tratamiento
+                var = texto[texto.index("{") + 2:texto.index("]")]
+                copia = texto  # Copiar la línea vacía (en caso que hayan otras líneas que agregar)
+                for i, a in enumerate(símismo.dic[sección][var]):  # Para cada nivel de tratamiento
                     # Para cada repetición del nivel (por ej., varias aplicaciones de riego al mismo tratamiento)
                     for j, b in enumerate(a):
                         if sección != "GENERAL":

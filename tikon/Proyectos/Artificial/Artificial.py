@@ -1,11 +1,11 @@
-from pprint import pprint
-import numpy as np
 import csv
+from pprint import pprint
 
+import numpy as np
+
+from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.Red_Opisina import gen_red
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
-from tikon.Matemáticas.Experimentos import Experimento
-
 
 """
 Genera datos artificiales y después intenta calibrar para re-descubrir los mismos parámetros conocidos.
@@ -20,15 +20,15 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-
-nombre = 'prueba'
+nombre = 'MA, i10k q2k pd1'
 print(nombre)
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
-quema = 0
-n_iter = 1000
-pedazitos = 5
+quema = 2000
+n_iter = 10000
+extr = 1
+pedazitos = None
 
-depurar = True
+depurar = False
 
 
 # Funciones útiles
@@ -43,7 +43,6 @@ def _aplicar_a_prioris(red, d_a_pr):
 
 
 def _sacar_vals_paráms(red):
-
     dic_egr = {}
 
     etps_interés = [i for i in range(len(red.etapas)) if all(i not in f.values() for f in red.fantasmas.values())]
@@ -71,7 +70,7 @@ def _sacar_vals_paráms(red):
                         except ValueError:
                             if n_etp in red.parasitoides['juvs']:
                                 if categ == 'Transiciones' and \
-                                                tipo_ec == red.etapas[n_etp]['dic']['ecs']['Transiciones'][s_categ]:
+                                        tipo_ec == red.etapas[n_etp]['dic']['ecs']['Transiciones'][s_categ]:
                                     n_ad_parás = red.parasitoides['juvs'][n_etp]
                                     n_etp_fant = red.parasitoides['adultos'][n_ad_parás]['n_fants'][-1]
                                     n_rel_etp = red.ecs[categ][s_categ][tipo_ec].index(n_etp_fant)
@@ -129,7 +128,6 @@ def _gen_a_prioris(vals, prec):
 
 
 def _simul_a_exp(red):
-
     preds = red.predics['Pobs']
 
     etps_interés = [i for i, _ in enumerate(red.etapas) if all(i not in f.values() for f in red.fantasmas.values())]
@@ -214,7 +212,6 @@ valid_perfecta = Red_coco.validar(nombre='{}, Valid con verdaderos'.format(nombr
 print('Validación Perfecta\n********************')
 pprint(valid_perfecta)
 
-
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
 for p in range(90, 10, -10):
     print('Calibrando con p={}.\n********************'.format(p))
@@ -226,7 +223,7 @@ for p in range(90, 10, -10):
                      dibujar=dib_valid, dib_dists=dib_dists, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
     print('\tCalibrando...')
     Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
-                      n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=1, método=método, dibujar=dib_calibs,
+                      n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=extr, método=método, dibujar=dib_calibs,
                       depurar=depurar, pedazitos=pedazitos)
     Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')

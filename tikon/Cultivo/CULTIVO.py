@@ -61,7 +61,7 @@ class Cultivo(Simulable):
             return "Falta un módulo para CropSyst."
         else:
             return "Modelo de cultivo no reconocido."
-        
+
         símismo.proceso = subprocess.Popen(comanda,
                                            shell=True,
                                            stdin=subprocess.PIPE,

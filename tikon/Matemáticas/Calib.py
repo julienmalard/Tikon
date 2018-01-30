@@ -17,7 +17,6 @@ class ModCalib(object):
     """
 
     def __init__(símismo, id_calib, lista_d_paráms, método):
-
         símismo.lista_parám = lista_d_paráms
         símismo.id = id_calib
         símismo.método = método
@@ -179,7 +178,8 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2}, db='sqlite',
+            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
+                                    db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')
         else:
@@ -321,7 +321,8 @@ class ModBayes(ModCalib):
 
 class ModGLUE(ModCalib):
 
-    def __init__(símismo):
+    def __init__(símismo, id_calib, lista_d_paráms, método):
+        super().__init__(id_calib=id_calib, lista_d_paráms=lista_d_paráms, método=método)
         raise NotImplementedError
 
     def calib(símismo, rep, quema, extraer):
@@ -329,5 +330,3 @@ class ModGLUE(ModCalib):
 
     def guardar(símismo, nombre=None):
         raise NotImplementedError
-
-

@@ -62,8 +62,8 @@ def adjust_for_anisotropy(x, y, xcenter, ycenter, scaling, angle):
 
     coords = np.vstack((x, y))
     stretch = np.array([[1, 0], [0, scaling]])
-    rotate = np.array([[np.cos(-angle * np.pi/180.0), -np.sin(-angle * np.pi/180.0)],
-                       [np.sin(-angle * np.pi/180.0), np.cos(-angle * np.pi/180.0)]])
+    rotate = np.array([[np.cos(-angle * np.pi / 180.0), -np.sin(-angle * np.pi / 180.0)],
+                       [np.sin(-angle * np.pi / 180.0), np.cos(-angle * np.pi / 180.0)]])
     rotated_coords = np.dot(stretch, np.dot(rotate, coords))
     x = rotated_coords[0, :].reshape(xshape)
     y = rotated_coords[1, :].reshape(yshape)
@@ -91,13 +91,13 @@ def adjust_for_anisotropy_3d(x, y, z, xcenter, ycenter, zcenter, scaling_y,
     coords = np.vstack((x, y, z))
     stretch = np.array([[1., 0., 0.], [0., scaling_y, 0.], [0., 0., scaling_z]])
     rotate_x = np.array([[1., 0., 0.],
-                         [0., np.cos(-angle_x * np.pi/180.), -np.sin(-angle_x * np.pi/180.)],
-                         [0., np.sin(-angle_x * np.pi/180.), np.cos(-angle_x * np.pi/180.)]])
-    rotate_y = np.array([[np.cos(-angle_y * np.pi/180.), 0., np.sin(-angle_y * np.pi/180.)],
+                         [0., np.cos(-angle_x * np.pi / 180.), -np.sin(-angle_x * np.pi / 180.)],
+                         [0., np.sin(-angle_x * np.pi / 180.), np.cos(-angle_x * np.pi / 180.)]])
+    rotate_y = np.array([[np.cos(-angle_y * np.pi / 180.), 0., np.sin(-angle_y * np.pi / 180.)],
                          [0., 1., 0.],
-                         [-np.sin(-angle_y * np.pi/180.), 0., np.cos(-angle_y * np.pi/180.)]])
-    rotate_z = np.array([[np.cos(-angle_z * np.pi/180.), -np.sin(-angle_z * np.pi/180.), 0.],
-                         [np.sin(-angle_z * np.pi/180.), np.cos(-angle_z * np.pi/180.), 0.],
+                         [-np.sin(-angle_y * np.pi / 180.), 0., np.cos(-angle_y * np.pi / 180.)]])
+    rotate_z = np.array([[np.cos(-angle_z * np.pi / 180.), -np.sin(-angle_z * np.pi / 180.), 0.],
+                         [np.sin(-angle_z * np.pi / 180.), np.cos(-angle_z * np.pi / 180.), 0.],
                          [0., 0., 1.]])
     rot_tot = np.dot(rotate_z, np.dot(rotate_y, rotate_x))
     rotated_coords = np.dot(stretch, np.dot(rot_tot, coords))
@@ -123,8 +123,8 @@ def initialize_variogram_model(x, y, z, variogram_model, variogram_model_paramet
     dx = x1 - x2
     dy = y1 - y2
     dz = z1 - z2
-    d = np.sqrt(dx**2 + dy**2)
-    g = 0.5 * dz**2
+    d = np.sqrt(dx ** 2 + dy ** 2)
+    g = 0.5 * dz ** 2
 
     indices = np.indices(d.shape)
     d = d[(indices[0, :, :] > indices[1, :, :])]
@@ -138,8 +138,8 @@ def initialize_variogram_model(x, y, z, variogram_model, variogram_model_paramet
     # is included in the semivariogram calculation.
     dmax = np.amax(d)
     dmin = np.amin(d)
-    dd = (dmax - dmin)/nlags
-    bins = [dmin + n*dd for n in range(nlags)]
+    dd = (dmax - dmin) / nlags
+    bins = [dmin + n * dd for n in range(nlags)]
     dmax += 0.001
     bins.append(dmax)
 
@@ -205,8 +205,8 @@ def initialize_variogram_model_3d(x, y, z, values, variogram_model, variogram_mo
     y1, y2 = np.meshgrid(y, y)
     z1, z2 = np.meshgrid(z, z)
     val1, val2 = np.meshgrid(values, values)
-    d = np.sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
-    g = 0.5 * (val1 - val2)**2
+    d = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2)
+    g = 0.5 * (val1 - val2) ** 2
 
     indices = np.indices(d.shape)
     d = d[(indices[0, :, :] > indices[1, :, :])]
@@ -218,8 +218,8 @@ def initialize_variogram_model_3d(x, y, z, values, variogram_model, variogram_mo
     # is included in the semivariogram calculation.
     dmax = np.amax(d)
     dmin = np.amin(d)
-    dd = (dmax - dmin)/nlags
-    bins = [dmin + n*dd for n in range(nlags)]
+    dd = (dmax - dmin) / nlags
+    bins = [dmin + n * dd for n in range(nlags)]
     dmax += 0.001
     bins.append(dmax)
 
@@ -267,9 +267,9 @@ def variogram_function_error(params, x, y, variogram_function, weight):
     if weight:
         weights = np.arange(x.size, 0.0, -1.0)
         weights /= np.sum(weights)
-        rmse = np.sqrt(np.average(diff**2, weights=weights))
+        rmse = np.sqrt(np.average(diff ** 2, weights=weights))
     else:
-        rmse = np.sqrt(np.mean(diff**2))
+        rmse = np.sqrt(np.mean(diff ** 2))
 
     return rmse
 
@@ -278,16 +278,16 @@ def calculate_variogram_model(lags, semivariance, variogram_model, variogram_fun
     """Function that fits a variogram model when parameters are not specified."""
 
     if variogram_model == 'linear':
-        x0 = [(np.amax(semivariance) - np.amin(semivariance))/(np.amax(lags) - np.amin(lags)),
+        x0 = [(np.amax(semivariance) - np.amin(semivariance)) / (np.amax(lags) - np.amin(lags)),
               np.amin(semivariance)]
         bnds = ((0.0, 1000000000.0), (0.0, np.amax(semivariance)))
     elif variogram_model == 'power':
-        x0 = [(np.amax(semivariance) - np.amin(semivariance))/(np.amax(lags) - np.amin(lags)),
+        x0 = [(np.amax(semivariance) - np.amin(semivariance)) / (np.amax(lags) - np.amin(lags)),
               1.1, np.amin(semivariance)]
         bnds = ((0.0, 1000000000.0), (0.01, 1.99), (0.0, np.amax(semivariance)))
     else:
-        x0 = [np.amax(semivariance), 0.5*np.amax(lags), np.amin(semivariance)]
-        bnds = ((0.0, 10*np.amax(semivariance)), (0.0, np.amax(lags)), (0.0, np.amax(semivariance)))
+        x0 = [np.amax(semivariance), 0.5 * np.amax(lags), np.amin(semivariance)]
+        bnds = ((0.0, 10 * np.amax(semivariance)), (0.0, np.amax(lags)), (0.0, np.amax(semivariance)))
 
     res = minimize(variogram_function_error, x0, args=(lags, semivariance, variogram_function, weight),
                    method='SLSQP', bounds=bnds)
@@ -296,76 +296,76 @@ def calculate_variogram_model(lags, semivariance, variogram_model, variogram_fun
 
 
 def krige(x, y, z, coords, variogram_function, variogram_model_parameters):
-        """Sets up and solves the kriging matrix for the given coordinate pair.
-        This function is now only used for the statistics calculations."""
+    """Sets up and solves the kriging matrix for the given coordinate pair.
+    This function is now only used for the statistics calculations."""
 
-        zero_index = None
-        zero_value = False
+    zero_index = None
+    zero_value = False
 
-        x1, x2 = np.meshgrid(x, x)
-        y1, y2 = np.meshgrid(y, y)
-        d = np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
-        bd = np.sqrt((x - coords[0])**2 + (y - coords[1])**2)
-        if np.any(np.absolute(bd) <= 1e-10):
-            zero_value = True
-            zero_index = np.where(bd <= 1e-10)[0][0]
+    x1, x2 = np.meshgrid(x, x)
+    y1, y2 = np.meshgrid(y, y)
+    d = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    bd = np.sqrt((x - coords[0]) ** 2 + (y - coords[1]) ** 2)
+    if np.any(np.absolute(bd) <= 1e-10):
+        zero_value = True
+        zero_index = np.where(bd <= 1e-10)[0][0]
 
-        n = x.shape[0]
-        a = np.zeros((n+1, n+1))
-        a[:n, :n] = - variogram_function(variogram_model_parameters, d)
-        np.fill_diagonal(a, 0.0)
-        a[n, :] = 1.0
-        a[:, n] = 1.0
-        a[n, n] = 0.0
+    n = x.shape[0]
+    a = np.zeros((n + 1, n + 1))
+    a[:n, :n] = - variogram_function(variogram_model_parameters, d)
+    np.fill_diagonal(a, 0.0)
+    a[n, :] = 1.0
+    a[:, n] = 1.0
+    a[n, n] = 0.0
 
-        b = np.zeros((n+1, 1))
-        b[:n, 0] = - variogram_function(variogram_model_parameters, bd)
-        if zero_value:
-            b[zero_index, 0] = 0.0
-        b[n, 0] = 1.0
+    b = np.zeros((n + 1, 1))
+    b[:n, 0] = - variogram_function(variogram_model_parameters, bd)
+    if zero_value:
+        b[zero_index, 0] = 0.0
+    b[n, 0] = 1.0
 
-        x_ = np.linalg.solve(a, b)
-        zinterp = np.sum(x_[:n, 0] * z)
-        sigmasq = np.sum(x_[:, 0] * -b[:, 0])
+    x_ = np.linalg.solve(a, b)
+    zinterp = np.sum(x_[:n, 0] * z)
+    sigmasq = np.sum(x_[:, 0] * -b[:, 0])
 
-        return zinterp, sigmasq
+    return zinterp, sigmasq
 
 
 def krige_3d(x, y, z, vals, coords, variogram_function, variogram_model_parameters):
-        """Sets up and solves the kriging matrix for the given coordinate pair.
-        This function is now only used for the statistics calculations."""
+    """Sets up and solves the kriging matrix for the given coordinate pair.
+    This function is now only used for the statistics calculations."""
 
-        zero_index = None
-        zero_value = False
+    zero_index = None
+    zero_value = False
 
-        x1, x2 = np.meshgrid(x, x)
-        y1, y2 = np.meshgrid(y, y)
-        z1, z2 = np.meshgrid(z, z)
-        d = np.sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
-        bd = np.sqrt((x - coords[0])**2 + (y - coords[1])**2 + (z - coords[2])**2)
-        if np.any(np.absolute(bd) <= 1e-10):
-            zero_value = True
-            zero_index = np.where(bd <= 1e-10)[0][0]
+    x1, x2 = np.meshgrid(x, x)
+    y1, y2 = np.meshgrid(y, y)
+    z1, z2 = np.meshgrid(z, z)
+    d = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2)
+    bd = np.sqrt((x - coords[0]) ** 2 + (y - coords[1]) ** 2 + (z - coords[2]) ** 2)
+    if np.any(np.absolute(bd) <= 1e-10):
+        zero_value = True
+        zero_index = np.where(bd <= 1e-10)[0][0]
 
-        n = x.shape[0]
-        a = np.zeros((n+1, n+1))
-        a[:n, :n] = - variogram_function(variogram_model_parameters, d)
-        np.fill_diagonal(a, 0.0)
-        a[n, :] = 1.0
-        a[:, n] = 1.0
-        a[n, n] = 0.0
+    n = x.shape[0]
+    a = np.zeros((n + 1, n + 1))
+    a[:n, :n] = - variogram_function(variogram_model_parameters, d)
+    np.fill_diagonal(a, 0.0)
+    a[n, :] = 1.0
+    a[:, n] = 1.0
+    a[n, n] = 0.0
 
-        b = np.zeros((n+1, 1))
-        b[:n, 0] = - variogram_function(variogram_model_parameters, bd)
-        if zero_value:
-            b[zero_index, 0] = 0.0
-        b[n, 0] = 1.0
+    b = np.zeros((n + 1, 1))
+    b[:n, 0] = - variogram_function(variogram_model_parameters, bd)
+    if zero_value:
+        b[zero_index, 0] = 0.0
+    b[n, 0] = 1.0
 
-        x_ = np.linalg.solve(a, b)
-        zinterp = np.sum(x_[:n, 0] * vals)
-        sigmasq = np.sum(x_[:, 0] * -b[:, 0])
+    x_ = np.linalg.solve(a, b)
+    zinterp = np.sum(x_[:n, 0] * vals)
+    sigmasq = np.sum(x_[:, 0] * -b[:, 0])
 
-        return zinterp, sigmasq
+    return zinterp, sigmasq
 
 
 def find_statistics(x, y, z, variogram_function, variogram_model_parameters):
@@ -386,7 +386,7 @@ def find_statistics(x, y, z, variogram_function, variogram_model_parameters):
 
     delta = delta[1:]
     sigma = sigma[1:]
-    epsilon = delta/sigma
+    epsilon = delta / sigma
 
     return delta, sigma, epsilon
 
@@ -410,18 +410,18 @@ def find_statistics_3d(x, y, z, vals, variogram_function, variogram_model_parame
 
     delta = delta[1:]
     sigma = sigma[1:]
-    epsilon = delta/sigma
+    epsilon = delta / sigma
 
     return delta, sigma, epsilon
 
 
 def calcQ1(epsilon):
-    return abs(np.sum(epsilon)/(epsilon.shape[0] - 1))
+    return abs(np.sum(epsilon) / (epsilon.shape[0] - 1))
 
 
 def calcQ2(epsilon):
-    return np.sum(epsilon**2)/(epsilon.shape[0] - 1)
+    return np.sum(epsilon ** 2) / (epsilon.shape[0] - 1)
 
 
 def calc_cR(Q2, sigma):
-    return Q2 * np.exp(np.sum(np.log(sigma**2))/sigma.shape[0])
+    return Q2 * np.exp(np.sum(np.log(sigma ** 2)) / sigma.shape[0])

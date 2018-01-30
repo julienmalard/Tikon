@@ -87,21 +87,21 @@ def cargar_estación(documento, coord, elev, fecha_inic=None, fecha_fin=None, ge
 
         # Convertir datos horarios a datos diario
         for n, i in enumerate(fechatiempos[1:]):
-            if i.date() == fechatiempos[n-1].date():
+            if i.date() == fechatiempos[n - 1].date():
                 # Sumar la lluvia y la radiación solar
                 lluvia_cum += precip_hora[n]
-                rad_sol_cum += (rad_sol_hora[n] + rad_sol_hora[n-1]) * \
-                               (fechatiempos[n].hour - fechatiempos[n-1].hour) / 2  # Interpolación trapezoidal
+                rad_sol_cum += (rad_sol_hora[n] + rad_sol_hora[n - 1]) * \
+                               (fechatiempos[n].hour - fechatiempos[n - 1].hour) / 2  # Interpolación trapezoidal
                 # Hacer una lista de las temperaturas en el día
                 temp_día.append(temp_hora[n])
             else:
                 dic['Datos']['Precip'].append(lluvia_cum)
-                lluvia_cum = precip_hora[n+1]
+                lluvia_cum = precip_hora[n + 1]
                 dic['Datos']['Rad_sol'].append(rad_sol_cum)
-                rad_sol_cum = rad_sol_hora[n+1]
+                rad_sol_cum = rad_sol_hora[n + 1]
                 dic['Datos']['Temp_mín'].append(min(temp_día))
                 dic['Datos']['Temp_máx'].append(max(temp_día))
-                temp_día = [temp_hora[n+1]]
+                temp_día = [temp_hora[n + 1]]
                 dic['Datos']['Fecha'].append(fechatiempos[n].date())
 
     else:  # Si el documento es ni un .csv, ni un objeto de datos diarios guardado
@@ -140,11 +140,11 @@ def cargar_estación(documento, coord, elev, fecha_inic=None, fecha_fin=None, ge
     # Verificar si faltan grandes extensiones (más de 10 días consecutivos) de datos
     while n < len(faltan_puntos[var]):
         consecutivos = 0
-        while (faltan_puntos[var][n+1] - faltan_puntos[var][n]).days == 1:
+        while (faltan_puntos[var][n + 1] - faltan_puntos[var][n]).days == 1:
             consecutivos += 1
             n += 1
         if consecutivos >= 9:
-            faltan_porciones[var] += (faltan_puntos[var][n-consecutivos], faltan_puntos[var][n])
+            faltan_porciones[var] += (faltan_puntos[var][n - consecutivos], faltan_puntos[var][n])
 
     for i in faltan_porciones[var]:  # Quitar estas fechas de la lista de datos puntuales que faltan
         faltan_puntos[var].pop(faltan_puntos[var].index(i))

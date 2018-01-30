@@ -17,12 +17,12 @@ References:
 Copyright (c) 2015 Benjamin S. Murphy
 """
 
-import Clima.PyKrige.core as core
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.linalg
 from scipy.spatial.distance import cdist
 
+import Clima.PyKrige.core as core
 import tikon.Clima.PyKrige.variogram_models as variogram_models
 
 
@@ -218,9 +218,9 @@ class UniversalKriging:
         (Cambridge University Press, 1997) 272 p.
     """
 
-    UNBIAS = True   # This can be changed to remove the unbiasedness condition
-                    # Really for testing purposes only...
-    eps = 1.e-10    # Cutoff for comparison to zero
+    UNBIAS = True  # This can be changed to remove the unbiasedness condition
+    # Really for testing purposes only...
+    eps = 1.e-10  # Cutoff for comparison to zero
     variogram_dict = {'linear': variogram_models.linear_variogram_model,
                       'power': variogram_models.power_variogram_model,
                       'gaussian': variogram_models.gaussian_variogram_model,
@@ -253,8 +253,8 @@ class UniversalKriging:
         if self.enable_plotting and self.verbose:
             print("Plotting Enabled\n")
 
-        self.XCENTER = (np.amax(self.X_ORIG) + np.amin(self.X_ORIG))/2.0
-        self.YCENTER = (np.amax(self.Y_ORIG) + np.amin(self.Y_ORIG))/2.0
+        self.XCENTER = (np.amax(self.X_ORIG) + np.amin(self.X_ORIG)) / 2.0
+        self.YCENTER = (np.amax(self.Y_ORIG) + np.amin(self.Y_ORIG)) / 2.0
         self.anisotropy_scaling = anisotropy_scaling
         self.anisotropy_angle = anisotropy_angle
         if self.verbose:
@@ -333,9 +333,9 @@ class UniversalKriging:
                 raise ValueError("Must specify coordinates of external Z drift terms.")
             self.external_Z_drift = True
             if external_drift.shape[0] != external_drift_y.shape[0] or \
-               external_drift.shape[1] != external_drift_x.shape[0]:
+                    external_drift.shape[1] != external_drift_x.shape[0]:
                 if external_drift.shape[0] == external_drift_x.shape[0] and \
-                   external_drift.shape[1] == external_drift_y.shape[0]:
+                        external_drift.shape[1] == external_drift_y.shape[0]:
                     self.external_Z_drift = np.array(external_drift.T)
                 else:
                     raise ValueError("External drift dimensions do not match provided "
@@ -437,7 +437,7 @@ class UniversalKriging:
                         yn = y[m, n]
 
                 if xn > np.amax(self.external_Z_array_x) or xn < np.amin(self.external_Z_array_x) or \
-                   yn > np.amax(self.external_Z_array_y) or yn < np.amin(self.external_Z_array_y):
+                        yn > np.amax(self.external_Z_array_y) or yn < np.amin(self.external_Z_array_y):
                     raise ValueError("External drift array does not cover specified kriging domain.")
 
                 # bilinear interpolation
@@ -499,7 +499,7 @@ class UniversalKriging:
         """Allows user to update variogram type and/or variogram model parameters."""
 
         if anisotropy_scaling != self.anisotropy_scaling or \
-           anisotropy_angle != self.anisotropy_angle:
+                anisotropy_angle != self.anisotropy_angle:
             if self.verbose:
                 print("Adjusting data for anisotropy...")
             self.anisotropy_scaling = anisotropy_scaling
@@ -603,7 +603,7 @@ class UniversalKriging:
         xy = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]), axis=1)
         d = cdist(xy, xy, 'euclidean')
         if self.UNBIAS:
-            a = np.zeros((n_withdrifts+1, n_withdrifts+1))
+            a = np.zeros((n_withdrifts + 1, n_withdrifts + 1))
         else:
             a = np.zeros((n_withdrifts, n_withdrifts))
         a[:n, :n] = - self.variogram_function(self.variogram_model_parameters, d)
@@ -619,8 +619,8 @@ class UniversalKriging:
             i += 1
         if self.point_log_drift:
             for well_no in range(self.point_log_array.shape[0]):
-                log_dist = np.log(np.sqrt((self.X_ADJUSTED - self.point_log_array[well_no, 0])**2 +
-                                          (self.Y_ADJUSTED - self.point_log_array[well_no, 1])**2))
+                log_dist = np.log(np.sqrt((self.X_ADJUSTED - self.point_log_array[well_no, 0]) ** 2 +
+                                          (self.Y_ADJUSTED - self.point_log_array[well_no, 1]) ** 2))
                 if np.any(np.isinf(log_dist)):
                     log_dist[np.isinf(log_dist)] = -100.0
                 a[:n, i] = - self.point_log_array[well_no, 2] * log_dist
@@ -665,7 +665,7 @@ class UniversalKriging:
             zero_index = np.where(np.absolute(bd) <= self.eps)
 
         if self.UNBIAS:
-            b = np.zeros((npt, n_withdrifts+1, 1))
+            b = np.zeros((npt, n_withdrifts + 1, 1))
         else:
             b = np.zeros((npt, n_withdrifts, 1))
         b[:, :n, 0] = - self.variogram_function(self.variogram_model_parameters, bd)
@@ -680,8 +680,8 @@ class UniversalKriging:
             i += 1
         if self.point_log_drift:
             for well_no in range(self.point_log_array.shape[0]):
-                log_dist = np.log(np.sqrt((xy[:, 0] - self.point_log_array[well_no, 0])**2 +
-                                          (xy[:, 1] - self.point_log_array[well_no, 1])**2))
+                log_dist = np.log(np.sqrt((xy[:, 0] - self.point_log_array[well_no, 0]) ** 2 +
+                                          (xy[:, 1] - self.point_log_array[well_no, 1]) ** 2))
                 if np.any(np.isinf(log_dist)):
                     log_dist[np.isinf(log_dist)] = -100.0
                 b[:, i, 0] = - self.point_log_array[well_no, 2] * log_dist
@@ -703,11 +703,11 @@ class UniversalKriging:
             b[:, n_withdrifts, 0] = 1.0
 
         if (~mask).any():
-            mask_b = np.repeat(mask[:, np.newaxis, np.newaxis], n_withdrifts+1, axis=1)
+            mask_b = np.repeat(mask[:, np.newaxis, np.newaxis], n_withdrifts + 1, axis=1)
             b = np.ma.array(b, mask=mask_b)
 
         if self.UNBIAS:
-            x = np.dot(a_inv, b.reshape((npt, n_withdrifts+1)).T).reshape((1, n_withdrifts+1, npt)).T
+            x = np.dot(a_inv, b.reshape((npt, n_withdrifts + 1)).T).reshape((1, n_withdrifts + 1, npt)).T
         else:
             x = np.dot(a_inv, b.reshape((npt, n_withdrifts)).T).reshape((1, n_withdrifts, npt)).T
         zvalues = np.sum(x[:, :n, 0] * self.Z, axis=1)
@@ -726,8 +726,8 @@ class UniversalKriging:
 
         a_inv = scipy.linalg.inv(a)
 
-        for j in np.nonzero(~mask)[0]:   # Note that this is the same thing as range(npt) if mask is not defined,
-            bd = bd_all[j]               # otherwise it takes the non-masked elements.
+        for j in np.nonzero(~mask)[0]:  # Note that this is the same thing as range(npt) if mask is not defined,
+            bd = bd_all[j]  # otherwise it takes the non-masked elements.
             if np.any(np.absolute(bd) <= self.eps):
                 zero_value = True
                 zero_index = np.where(np.absolute(bd) <= self.eps)
@@ -736,7 +736,7 @@ class UniversalKriging:
                 zero_value = False
 
             if self.UNBIAS:
-                b = np.zeros((n_withdrifts+1, 1))
+                b = np.zeros((n_withdrifts + 1, 1))
             else:
                 b = np.zeros((n_withdrifts, 1))
             b[:n, 0] = - self.variogram_function(self.variogram_model_parameters, bd)
@@ -751,8 +751,8 @@ class UniversalKriging:
                 i += 1
             if self.point_log_drift:
                 for well_no in range(self.point_log_array.shape[0]):
-                    log_dist = np.log(np.sqrt((xy[j, 0] - self.point_log_array[well_no, 0])**2 +
-                                              (xy[j, 1] - self.point_log_array[well_no, 1])**2))
+                    log_dist = np.log(np.sqrt((xy[j, 0] - self.point_log_array[well_no, 0]) ** 2 +
+                                              (xy[j, 1] - self.point_log_array[well_no, 1]) ** 2))
                     if np.any(np.isinf(log_dist)):
                         log_dist[np.isinf(log_dist)] = -100.0
                     b[i, 0] = - self.point_log_array[well_no, 2] * log_dist
@@ -880,7 +880,7 @@ class UniversalKriging:
                     else:
                         raise ValueError("Mask dimensions do not match specified grid dimensions.")
                 mask = mask.flatten()
-            npt = ny*nx
+            npt = ny * nx
             grid_x, grid_y = np.meshgrid(xpts, ypts)
             xpts = grid_x.flatten()
             ypts = grid_y.flatten()
@@ -937,7 +937,7 @@ class UniversalKriging:
         if style != 'masked':
             mask = np.zeros(npt, dtype='bool')
 
-        bd = cdist(xy_points,  xy_data, 'euclidean')
+        bd = cdist(xy_points, xy_data, 'euclidean')
         if backend == 'vectorized':
             zvalues, sigmasq = self._exec_vector(a, bd, xy_points, xy_points_original,
                                                  mask, n_withdrifts, spec_drift_grids)

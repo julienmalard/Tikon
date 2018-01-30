@@ -1,5 +1,3 @@
-
-
 class FechaUniversal(object):
 
     def __init__(símismo):
@@ -7,7 +5,6 @@ class FechaUniversal(object):
 
 
 class Fecha(object):
-
     fecha_ref = NotImplemented
 
     def __init__(símismo):
@@ -19,4 +16,3 @@ class Fecha(object):
 
 class CholQij(Fecha):
     pass
-

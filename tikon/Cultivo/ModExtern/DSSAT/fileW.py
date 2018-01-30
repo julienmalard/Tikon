@@ -41,11 +41,11 @@ class FileW(object):
     def escribir(símismo):
         cod_clim = símismo.dic["INSI"] + "TKON"
 
-        for i in símismo.dic:    # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
+        for i in símismo.dic:  # Llenar variables vacíos con -99 (el código de DSSAT para datos que faltan)
             if not len(símismo.dic[i]):
                 símismo.dic[i] = ["-99"]
 
-        with open("FILEW.txt", "r") as d:    # Abrir el esquema general para archivos FILEW
+        with open("FILEW.txt", "r") as d:  # Abrir el esquema general para archivos FILEW
             esquema = d.readlines()
         esquema.append("\n")  # Terminar con una línea vacía para marcar el fin del documento
 
@@ -74,23 +74,22 @@ class FileW(object):
                     valores = doc[núm_lin].replace('\n', '')
                     for j, var in enumerate(variables):
                         if var in símismo.dic:
-                            valor = valores[:símismo.prop_vars[var]+1].strip()
+                            valor = valores[:símismo.prop_vars[var] + 1].strip()
                             símismo.dic[var].append(valor)
-                            valores = valores[símismo.prop_vars[var]+1:]
+                            valores = valores[símismo.prop_vars[var] + 1:]
                     núm_lin += 1
 
     def encodar(símismo, doc_clima):
         for n, línea in enumerate(doc_clima):
             l = n
             texto = línea
-            if '{' in texto:   # Si la línea tiene variables a llenar
+            if '{' in texto:  # Si la línea tiene variables a llenar
                 # Leer el primer variable de la línea (para calcular el número de niveles de suelo más adelante)
-                var = texto[texto.index("{")+2:texto.index("]")]
-                for k, a in enumerate(símismo.dic[var]):    # Para cada nivel del perfil del suelo
+                var = texto[texto.index("{") + 2:texto.index("]")]
+                for k, a in enumerate(símismo.dic[var]):  # Para cada nivel del perfil del suelo
                     l += 1
                     nueva_línea = texto.replace('[', '').replace("]", "[" + str(k) + "]")
                     nueva_línea = nueva_línea.format(**símismo.dic)
                     doc_clima.insert(l, nueva_línea)
                 doc_clima.remove(texto)
         return doc_clima
-

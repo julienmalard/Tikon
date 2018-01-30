@@ -1,9 +1,8 @@
 import json
 import os.path
-
 from warnings import warn as avisar
-from pkg_resources import resource_filename
 
+from pkg_resources import resource_filename
 
 __author__ = 'Julien Malard'
 __email__ = __correo__ = 'julien.malard@mail.mcgill.ca'
@@ -12,7 +11,6 @@ with open(resource_filename('tikon', 'versión.txt')) as archivo_versión:
     versión = archivo_versión.read().strip()
 
 __version__ = versión
-
 
 # Buscar directorios de modelos de cultivos, si necesario
 archivo_ctrls = resource_filename('tikon', 'controles.json')

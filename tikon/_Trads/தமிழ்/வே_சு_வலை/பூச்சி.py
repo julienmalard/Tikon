@@ -14,7 +14,7 @@ class பூச்சி(Ins.Insecto):
 
 
 class ஒட்டுணி(Ins.Parasitoide):
-    def __init__(தாங்கள்,  பெயர், திட்டம், கூடு=False):
+    def __init__(தாங்கள், பெயர், திட்டம், கூடு=False):
         super().__init__(nombre=பெயர், proyecto=திட்டம், pupa=கூடு)
 
     def ஒட்டுணி_இல்லை(símismo, இரை, உள்ளே=None):
@@ -25,7 +25,7 @@ class ஒட்டுணி(Ins.Parasitoide):
 
 
 class ஸ்பெசிடெ(Ins.Esfécido):
-    def __init__(தாங்கள்,  பெயர், திட்டம்):
+    def __init__(தாங்கள், பெயர், திட்டம்):
         super().__init__(nombre=பெயர், proyecto=திட்டம்)
 
     def பிடிக்காது(தாங்கள், இரை, இரை_படி=None):
@@ -36,7 +36,7 @@ class ஸ்பெசிடெ(Ins.Esfécido):
 
 
 class எளியது(Ins.Sencillo):
-    def __init__(தாங்கள்,  பெயர், திட்டம்):
+    def __init__(தாங்கள், பெயர், திட்டம்):
         super().__init__(nombre=பெயர், proyecto=திட்டம்)
 
     def தின்றுகிறது(தாங்கள், இரை, இரை_படி=None, தின்றவர்_படி=None):
