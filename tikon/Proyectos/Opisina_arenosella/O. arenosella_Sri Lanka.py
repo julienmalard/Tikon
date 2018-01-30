@@ -1,10 +1,10 @@
 from pprint import pprint
 
-from tikon.RAE.Planta import Hojas
-from tikon.RAE.RedAE import Red
 import tikon.RAE.Insecto as Ins
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
+from tikon.RAE.Planta import Hojas
+from tikon.RAE.RedAE import Red
 
 # Opciones artísticas
 dibujar = True
@@ -59,9 +59,9 @@ print('Ajuste inicial: ', ajuste_inic)
 Red_coco_senc.calibrar(nombre='Sin a priori', exper=Experimento_A, n_iter=n_iter, quema=quema, extraer=extraer,
                        dibujar=dibujar, método=método, pedazitos=pedazitos)
 Red_coco_senc.validar(nombre='senc Sitio A, con calibración', exper=Experimento_A, dibujar=dibujar,
-                                    dib_dists=dibujar)
+                      dib_dists=dibujar)
 Red_coco_senc.validar(nombre='senc Sitio B, con calibración', exper=Experimento_B, dibujar=dibujar,
-                                    dib_dists=dibujar)
+                      dib_dists=dibujar)
 Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y parasitoide) para O. arenosella en coco, '
                                     'sin usar a prioris. Se aplicó el sitio A de Perera et al. para la calibración.',
                             utilizador='Julien Malard',
@@ -81,7 +81,7 @@ print('Ajuste con a priosis: ', ajuste_con_aprioris)
 
 # Intentar calibrar de nuevo
 Red_coco_senc.validar(nombre='senc Sitio A, con a prioris', exper=Experimento_A, opciones_dib=ops_dib, dibujar=dibujar,
-                                    dib_dists=dibujar)
+                      dib_dists=dibujar)
 Red_coco_senc.calibrar('senc Con aprioris', exper=Experimento_A, n_iter=n_iter, quema=quema, extraer=extraer,
                        dibujar=dibujar, método=método, pedazitos=pedazitos)
 Red_coco_senc.validar(nombre='senc Sitio A, con calib a prioris', exper=Experimento_A, opciones_dib=ops_dib,
@@ -119,7 +119,7 @@ Red_coco_senc.guardar_calib(descrip='Calibración de red sencilla (oruga y paras
                             contacto='julien.malard@mail.mcgill.ca')
 Red_coco_senc.guardar()
 
-del(Red_coco_senc)
+del (Red_coco_senc)
 
 # Intentemos algo más interesante ahora.
 O_arenosella = Ins.MetamCompleta('O. arenosella', proyecto=proyecto, njuvenil=5)

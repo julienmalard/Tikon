@@ -1,17 +1,17 @@
 import math as mat
 import os
 from copy import deepcopy as copiar_profundo
+from datetime import datetime as ft
 from warnings import warn as avisar
 
 import numpy as np
 
-from ..Coso import Simulable, dic_a_lista
-from ..Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
-from ..Matemáticas.Incert import validar_matr_pred
 from . import Insecto as Ins
 from .Gen_organismos import generar_org
 from .Organismo import Organismo
-from datetime import datetime as ft
+from ..Coso import Simulable, dic_a_lista
+from ..Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
+from ..Matemáticas.Incert import validar_matr_pred
 
 
 class Red(Simulable):
@@ -1440,7 +1440,7 @@ class Red(Simulable):
         antes = ft.now()
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
         ahora = ft.now()
-        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds/1000000
+        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
         verificar_estado('Depredación')
 
         # Una población que crece (misma etapa)
@@ -2089,7 +2089,6 @@ class Red(Simulable):
         d_preds_v = {}  # El diccionario de matrices de simulación que vinculados con observaciones
         d_días_obs = {}
 
-
         # Diccionario temporario para organizar los índices
         d_índs = {}
 
@@ -2593,13 +2592,13 @@ class Red(Simulable):
             edades = símismo.predics['Cohortes']['Edades']
 
             muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
-            
+
             totales_pobs = np.sum(pobs, axis=0)
             quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
             quitar[np.isnan(quitar)] = 0
 
             np.subtract(pobs, quitar, out=pobs)
-            
+
             np.subtract(muertes, quitar.sum(axis=0), out=muertes)
 
             cum_presente = np.cumsum(np.greater(pobs, 0), axis=0)
@@ -2622,7 +2621,6 @@ class Red(Simulable):
 
                 # Para cada cohorte...
                 for n_día in range(pobs.shape[0]):
-
                     # Las edades de las etapas que se quitaron
                     eds = edades[n_día, ...]
 
@@ -2738,7 +2736,6 @@ class Red(Simulable):
             dic['Matrices']['í_ejes_cohs'] = í_ejes_cohs
 
         # Ahora agregamos matrices para cálculos
-
 
         return dic
 

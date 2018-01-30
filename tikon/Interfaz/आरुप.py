@@ -1,4 +1,3 @@
-
 colores = {
     'Botón_normal': '',
     'Botón_sel': '',

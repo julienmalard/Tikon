@@ -43,7 +43,7 @@ for nombre, dist in sorted(dists.items()):
         if máx == np.inf:
             núms = estad.gamma.rvs(1, loc=mín, size=100)
         else:
-            núms = estad.uniform.rvs(mín, máx-mín, size=100)
+            núms = estad.uniform.rvs(mín, máx - mín, size=100)
 
     dist_scipy = Inc.ajustar_dist(datos=núms, límites=dist['límites'], cont=True,
                                   lista_dist=[nombre])[0]
@@ -66,7 +66,6 @@ for nombre, dist in sorted(dists.items()):
                                      lista_dist=[nombre])[0]
 
     if dibujar:
-
         dib.hist(núms, normed=True, color='red', histtype='stepfilled', alpha=0.2, bins=100)
 
         dib.hist(puntos_scipy, normed=True, color='blue', histtype='stepfilled', alpha=0.2, bins=100)

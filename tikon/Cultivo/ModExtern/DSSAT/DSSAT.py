@@ -1,17 +1,16 @@
 import datetime as ft
 import glob
-import numpy as np
 import os
 import re
 
-from tikon.Cultivo.ModExtern.DSSAT import fileC, fileS, fileX, fileW
 import tikon.Controles as Ctrl
+from tikon.Cultivo.ModExtern.DSSAT import fileC, fileS, fileX, fileW
 from tikon.Cultivo.Suelo import Suelo
 
 dir_DSSAT = Ctrl.dirs_modelos['DSSAT']
 
-def gen_ingr(nombre, cultivo=None, suelo=None, meteo=None, manejo=None):
 
+def gen_ingr(nombre, cultivo=None, suelo=None, meteo=None, manejo=None):
     fileC.escribir(nombre, cultivo)
     fileS.escribir(nombre, suelo)
     fileX.escribir(nombre, manejo, cultivo=nombre, suelo=nombre, meteo=nombre)
@@ -33,9 +32,7 @@ def leer_datos_egr(d, dic_vars, ):
     """
 
     with open(d, 'r', encoding='UTF-8') as d:
-
         l_vars = next(x for x in d.readline() if re.match('@', x))
-
 
     pass
 
@@ -300,7 +297,7 @@ class Experimento(object):
         símismo.gen_dssbatch()
 
     def gen_dssbatch(símismo):
-        with open("DSSBatchv46.txt", "r") as d:    # Abrir el esquema general para DSSBatch.v46
+        with open("DSSBatchv46.txt", "r") as d:  # Abrir el esquema general para DSSBatch.v46
             esquema = []
             for línea in d:
                 esquema.append(línea)

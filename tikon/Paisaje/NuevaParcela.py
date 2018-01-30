@@ -1,9 +1,8 @@
 import numpy as np
-from tikon.Cultivo.NuevoCultivo import Cultivo
 
 from tikon.Coso import Simulable
-from ..RAE.RedAE import Red
 from ..Cultivo.NuevoCultivo import Cultivo
+from ..RAE.RedAE import Red
 
 
 class Parcela(Simulable):

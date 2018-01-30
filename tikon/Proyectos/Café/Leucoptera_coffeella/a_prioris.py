@@ -26,7 +26,7 @@ a_prioris = {
              ),
         dict(etapa='huevo',
              ubic_parám=['Muertes', 'Ecuación', 'Constante', 'q'],
-             rango=(0.30/20, 0.532/5),
+             rango=(0.30 / 20, 0.532 / 5),
              certidumbre=1,
              ),
         dict(etapa='juvenil',
@@ -77,7 +77,7 @@ a_prioris = {
              certidumbre=.95),
         dict(etapa='adulto',
              ubic_parám=['Reproducción', 'Prob', 'Constante', 'a'],
-             rango=(12.5 / (14*2), 21.2 / (4*2)),
+             rango=(12.5 / (14 * 2), 21.2 / (4 * 2)),
              certidumbre=0.95)
     ],
 

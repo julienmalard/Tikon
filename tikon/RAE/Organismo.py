@@ -2,7 +2,6 @@ import os
 
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
-from tikon.Matemáticas.Incert import límites_a_texto_dist
 
 
 class Organismo(Coso):
@@ -281,10 +280,9 @@ class Organismo(Coso):
                                 for e_víc in etps_víctima:
                                     # Para cada etapa de la víctima...
                                     if e_víc not in dic[víctima.nombre]:
-                                        # Si ya no existía una entrada para esta etapa, generar un a priori no
-                                        # informativo
-                                        no_informativo = límites_a_texto_dist(límites=límites)
-                                        dic[víctima.nombre][e_víc] = {'0': no_informativo}
+                                        # Si ya no existía una entrada para esta etapa, guardar las límites
+                                        # para poder generar un a priori no informativo
+                                        dic[víctima.nombre][e_víc] = {'0': str(límites)}
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
         # todos los coeficientes necesarios para la nueva presa
@@ -398,7 +396,6 @@ class Organismo(Coso):
 
         # Permitir que 'juvenil' refiera a todas las etapas juveniles
         if 'juvenil' in lista_etps:
-
             # Quitar la palabra 'juvenil' (si hay una etapa que de verdad se llama 'juvenil', se agregará de nuevo
             # abajo de todo modo).
             lista_etps.remove('juvenil')
@@ -623,7 +620,7 @@ class Organismo(Coso):
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
                     tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
                     dic_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec]
-                    
+
                     dic_info = Ec.ecs_orgs[categ][sub_categ][tipo_ec]
 
                     for parám in sorted(dic_info):
