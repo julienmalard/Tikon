@@ -179,7 +179,7 @@ class Organismo(Coso):
         """
 
         # Verificar que las ecuaciones propuestas sean aceptables.
-        símismo.verificar_ecs(ecs=tipo_ec, etp=etapa)
+        # símismo.verificar_ecs(ecs=tipo_ec, etp=etapa)
 
         # Aplicar la ecuación.
         for categ, dic_categ in tipo_ec.items():
@@ -674,7 +674,7 @@ class Organismo(Coso):
             # Si las ecuaciones propuestas no tienen la categoría, hay un error.
             if categ not in ecs:
                 raise ValueError('Falta implementar ecuaciones de {} en etapa {} de organismo {}.'
-                                 .format(categ, etp, símismo.nombre))
+                                 .format(categ, etp['nombre'], símismo.nombre))
 
             # Para cada subcategoría de ecuaciones...
             for sub_categ, d_sub_categ in d_categ.items():
