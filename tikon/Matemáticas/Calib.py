@@ -140,9 +140,11 @@ class ModBayes(ModCalib):
             # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+            # prb = función(**dic_argums)
             @pm2.deterministic(trace=False)
             def simul(_=l_vars_final_paráms, a=vacío_05):
                 return función(**dic_argums)
+                # return prb
 
             # Ahora, las observaciones
             l_var_obs = []  # Una lista para los variables de observación

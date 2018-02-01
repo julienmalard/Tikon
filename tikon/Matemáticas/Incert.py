@@ -1366,14 +1366,16 @@ class VarPyMC2(VarCalib):
             var_base = pm2.Normal(nombre, mu=0, tau=1)
             var_base.keep_trace = False
             dist_transf = var_base * paráms['sigma'] + paráms['mu']
-            dist = pm2.Lambda('NormalExp_{}'.format(nombre), lambda x=dist_transf: np.exp(x))
+            nombre = 'NormalExp_{}'.format(nombre)
+            dist = pm2.Lambda(nombre, lambda x=dist_transf: np.exp(x))
             dist.keep_trace = True
 
         elif tipo_dist == 'LogitInv':
             var_base = pm2.Normal(nombre, mu=0, tau=1)
             var_base.keep_trace = False
             dist_transf = var_base * paráms['sigma'] + paráms['mu']
-            dist = pm2.InvLogit('LogitInv_{}'.format(nombre), dist_transf)
+            nombre = 'LogitInv_{}'.format(nombre)
+            dist = pm2.InvLogit(nombre, dist_transf)
             dist.keep_trace = True
 
         elif tipo_dist == 'Cauchy':
@@ -1399,27 +1401,14 @@ class VarPyMC2(VarCalib):
         if dist is None:
             dist = var_base
 
-        if paráms['escl'] != 1:
-            # Ya no guardar la traza del variable pariente
-            dist.keep_trace = False
-
-            nombre = '%s_m' % nombre
-            dist = pm2.Lambda(nombre, lambda x=dist, m=paráms['escl']: x * m)
-
-            # Guardar esta traza
-            dist.keep_trace = True
-
-        if paráms['ubic'] != 0:
-            # Ya no guardar la traza del variable pariente
-            dist.keep_trace = False
-
-            dist = pm2.Lambda('%s_s' % nombre, lambda x=dist, s=paráms['ubic']: x + s)
-
-            dist.keep_trace = True  # Guardar esta traza
+        símismo.mult = paráms['escl']
+        símismo.suma = paráms['ubic']
 
         símismo.var = dist
         símismo.var_base = var_base
         símismo.vars_mod = {dist, var_base}
+
+        símismo.tipo_dist = tipo_dist
 
     def obt_var_base(símismo):
 
@@ -1434,12 +1423,18 @@ class VarPyMC2(VarCalib):
             dist_stoc = símismo.var_base
             puntos = np.array([(dist_stoc.rand(), símismo.var.value)[1] for _ in range(n)])
 
+        # Transformaciones necesarias
+        puntos = np.add(np.multiply(puntos, símismo.mult), símismo.suma)
+
+        # Crear el histograma
         y, delim = np.histogram(puntos, normed=True, bins=n // 100)
         x = 0.5 * (delim[1:] + delim[:-1])
 
+        # Dibujar el histograma
         ejes[0].plot(x, y, 'b-', lw=2, alpha=0.6)
         ejes[0].set_title('Distribución')
 
+        # Dibujar la traza sí misma
         ejes[1].plot(símismo.traza())
         ejes[1].set_title('Traza')
 
@@ -1451,9 +1446,13 @@ class VarPyMC2(VarCalib):
         :rtype: np.ndarray
         """
 
-        # Intentar obtener la traza.
+        # Devolver la traza si existe.
         try:
-            return símismo.var.trace(chain=None)[:]
+            # Intentar obtener la traza.
+            trz = símismo.var.trace(chain=None)[:]
+
+            # Devolver la traza con las transformaciones necesaria.
+            return np.add(np.multiply(trz, símismo.mult), símismo.suma)
 
         except (AttributeError, TypeError):
             # Si hubo error, devolver una matriz vacía.
@@ -1693,7 +1692,7 @@ class VarPyMC2(VarCalib):
                 ]
 
     def __float__(símismo):
-        return float(símismo.var.value)
+        return float(símismo.var.value) * símismo.mult + símismo.suma
 
 
 class VarPyMC3(VarCalib):

@@ -17,7 +17,7 @@ método = 'Metrópolis adaptivo'
 n_iter = 10000
 quema = 0
 extraer = 1
-pedazitos = 5
+pedazitos = 10
 
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)

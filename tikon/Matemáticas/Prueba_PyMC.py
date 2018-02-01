@@ -174,59 +174,84 @@ if __name__ == '__main__':
 
             obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True,
                               observed=True)
-            mod_prueba = pymc.MCMC((var_mu, var_s, func_todo, var_mu_trans, var_s_trans, obs, var_0, *l))
+            variables = (var_mu, var_s, func_todo, var_mu_trans, var_s_trans, obs, var_0, *l)
+            mod_prueba = pymc.MCMC(variables)
             if adaptivo:
                 mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
             mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
         else:
             from tikon.Matemáticas.Incert import VarPyMC2
 
-            var_mu = VarPyMC2('mu', 'Uniforme', {'ubic': 0, 'escl': 10})
-            var_s = VarPyMC2('sigma', 'Gamma', {'a': 1, 'ubic': 0, 'escl': 10})
-            var_mu_trans = var_mu.var * fac
-            var_s_trans = var_s.var * fac
+            var_mu = VarPyMC2('mu', 'Uniforme', {'ubic': 0, 'escl': 10 * fac})
+            var_s = VarPyMC2('sigma', 'Gamma', {'a': 1, 'ubic': 0, 'escl': 10 * fac})
             var_0 = VarPyMC2('0', 'Uniforme', {'ubic': 0, 'escl': 10})
             l_0 = [VarPyMC2('z_{}'.format(i), 'Normal', {'ubic': 1, 'escl': 2}) for i in range(100)]
-            l_vars_mod = [v.vars_mod for v in l_0]
+            l_vars_mod = [i for v in l_0 for i in v.vars_mod]
             l_vars = [v.var for v in l_0]
 
             # Unas pruebitas de variables generados a base de densidad y de límites. No afectan el modelo prueba aquí.
             l_pruebas_extr = [
-                VarPyMC2.de_densidad(nombre='prueba_uni', dens=0.8, líms_dens=(-3, 4), líms=(-5, 5), cont=True),
-                VarPyMC2.de_densidad(nombre='prueba_uni2', dens=1, líms_dens=(-3, 4), líms=(-5, 5), cont=True),
-
-                VarPyMC2.de_densidad(nombre='prueba_gamma', dens=0.8, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True),
-                VarPyMC2.de_densidad(nombre='prueba_gamma2', dens=1, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True),
-
-                VarPyMC2.de_densidad(nombre='prueba_norm', dens=0.8, líms_dens=(-3, 4), líms=(None, None), cont=True),
-                VarPyMC2.de_densidad(nombre='prueba_norm2', dens=1, líms_dens=(-3, 4), líms=(None, None), cont=True)
+                # VarPyMC2.de_densidad(nombre='prueba_uni', dens=0.8, líms_dens=(-3, 4), líms=(-5, 5), cont=True),
+                # VarPyMC2.de_densidad(nombre='prueba_uni2', dens=1, líms_dens=(-3, 4), líms=(-5, 5), cont=True),
+                #
+                # VarPyMC2.de_densidad(nombre='prueba_gamma', dens=0.8, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True),
+                # VarPyMC2.de_densidad(nombre='prueba_gamma2', dens=1, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True),
+                #
+                # VarPyMC2.de_densidad(nombre='prueba_norm', dens=0.8, líms_dens=(-3, 4), líms=(None, None), cont=True),
+                # VarPyMC2.de_densidad(nombre='prueba_norm2', dens=1, líms_dens=(-3, 4), líms=(None, None), cont=True)
             ]
 
+
             @pymc.deterministic()
-            def func_todo(mu=var_mu_trans, s=var_s_trans, _=l_vars):
-                return {'mu': mu}
+            def func_todo(mu=var_mu.var, s=var_s.var, _=l_vars):
+                d = {'mu': float(var_mu), 'sigma': float(var_s)}
+                print(d)
+                return d
 
 
-            obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True,
+            obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / func_todo['sigma'] ** 2, value=datos, trace=True,
                               observed=True)
-            mod_prueba = pymc.MCMC((var_mu.vars_mod, var_s.vars_mod, func_todo, var_mu_trans, var_s_trans, obs,
-                                    var_0.vars_mod, *l_vars_mod,
-                                    *[x.vars_mod for x in l_pruebas_extr]
-                                    ))
+            variables = {var_mu, var_s, func_todo, obs,
+                         var_0, *l_vars_mod,
+                         *l_pruebas_extr
+                         }
+            vars_mod = []
+            for v in variables:
+                if isinstance(v, VarPyMC2):
+                    vars_mod.extend(v.vars_mod)
+                else:
+                    vars_mod.append(v)
+            mod_prueba = pymc.MCMC(vars_mod)
             if adaptivo:
                 mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
             mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
 
-        for v in mod_prueba.variables:
-            if 'z' not in v.__name__ and v.__name__ != 'func_todo':
+        for v in variables:
+            if isinstance(v, VarPyMC2):
+                if 'z' not in v.nombre and v.nombre != 'func_todo':
+                    try:
+                        dib.plot(v.traza())
+                        dib.title(v.nombre)
+                        dib.show()
+
+                    except (TypeError, KeyError):
+                        pass
                 try:
-                    dib.plot(mod_prueba.trace(v.__name__)[:])
-                    dib.title(v.__name__)
-                    dib.show()
+                    print('{}\n\t'.format(v.nombre), v.traza())
+                    print('************')
                 except (TypeError, KeyError):
                     pass
-            try:
-                print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
-                print('************')
-            except (TypeError, KeyError):
-                pass
+
+            else:
+                if 'z' not in v.__name__ and v.__name__ != 'func_todo':
+                    try:
+                        dib.plot(mod_prueba.trace(v.__name__)[:])
+                        dib.title(v.__name__)
+                        dib.show()
+                    except (TypeError, KeyError):
+                        pass
+                try:
+                    print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
+                    print('************')
+                except (TypeError, KeyError):
+                    pass
