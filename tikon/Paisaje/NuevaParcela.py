@@ -30,7 +30,7 @@ class Parcela(Simulable):
         símismo.cultivo = cultivo
         símismo.red = red
 
-        símismo.receta['estr'][] =
+#        símismo.receta['estr'][] =
 
         símismo.predics = {'Suelo': {'prof_nivel': np.array([]),
                                      'dens_apar_húm': np.array([]),

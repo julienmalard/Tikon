@@ -12,6 +12,11 @@ from .Organismo import Organismo
 from ..Coso import Simulable, dic_a_lista
 from ..Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
 from ..Matemáticas.Incert import validar_matr_pred
+from ..Paisaje.Geog import Lugar
+from . import Insecto as Ins
+from .Gen_organismos import generar_org
+from .Organismo import Organismo
+from datetime import datetime as ft
 
 
 class Red(Simulable):
@@ -52,6 +57,7 @@ class Red(Simulable):
         símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
         símismo.etapas = []  # Una lista de las recetas (y más) de las etapas de los organismos en la red
         símismo.núms_etapas = {}
+        símismo.lugar = None
 
         # Un diccionario para las distribuciones de transiciones y de reproducción
         símismo.dists = {'Trans': {}, 'Repr': {}}
@@ -2785,9 +2791,17 @@ class Red(Simulable):
 
         return dic
 
+    def ubicar(símismo, lugar):
+        """
+        Conecta la Red a un Lugar. Útil para conectar la red con datos de clima, etc.
+        :param lugar:
+        :type lugar: Lugar
+        :return:
+        """
+        símismo.lugar = lugar
+
 
 # Funciones auxiliares
-
 def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
     """
     Esta función calcula los días grados basados en vectores de temperaturas mínimas y máximas diarias.

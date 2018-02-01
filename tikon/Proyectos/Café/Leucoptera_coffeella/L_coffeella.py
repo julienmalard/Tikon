@@ -1,10 +1,9 @@
-from tikon.Paisaje.Geog import Lugar
-
 import tikon.RAE.Insecto as Ins
-import tikon.RAE.Planta as Plt
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Proyectos.Café.Leucoptera_coffeella.a_prioris import a_prioris
 from tikon.RAE.RedAE import Red
+import tikon.RAE.Planta as Plt
+from tikon.Paisaje.Geog import Lugar
 
 # Opciones artísticas
 dib_aprioris = True
@@ -49,10 +48,10 @@ Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Caf
 
 Red_café.añadir_exp(El_Encanto,
                     corresp={'L. coffeella': {'juvenil': ['Juvenil']
-                                              #                                              'huevo': ['Huevo'],
-                                              #                                              'pupa': ['Pupa'],
-                                              #                                              'adulto': ['Adulto']
-                                              },
+#                                              'huevo': ['Huevo'],
+#                                              'pupa': ['Pupa'],
+#                                              'adulto': ['Adulto']
+                                                },
                              'Parasitoide larvas': {'juvenil': ['Para_larva']}}
                     )
 
@@ -67,12 +66,14 @@ for org in [L_coffeella, Parasitoide_larvas]:
 from pprint import pprint
 
 pprint(Red_café.ver_coefs_no_espec())
-Finca_el_Encanto = Lugar('El Encanto', lat=, long=, alt=)
-Finca_el_Encanto.observar_clima(freq='Mensual', archivo='Algo.csv', meses='Meses', años='Años',
-                                cols_datos={'Precipitación': 'Lluvia',
-                                            'Temperatura máxima': 'Temp máx',
-                                            'Temperatura mínima': 'Temp mín'},
-                                conv=1)
+
+
+Finca_el_Encanto = Lugar('El Encanto',lat=14.98916667, long=-91.16527778, elev=480)
+Finca_el_Encanto.observar_mensuales(archivo='Finca_El_Encanto.csv', meses='Meses', años='Años',
+                            cols_datos={'Precipitación': 'Lluvia',
+                                        'Temperatura máxima': 'Temp máx',
+                                        'Temperatura mínima': 'Temp mín'},
+                            )
 Red_café.ubicar(Finca_el_Encanto)
 
 Red_café.sensibilidad(nombre='Sensib_sobol', tiempo_final=15, exper=El_Encanto, n=2, dibujar=True)

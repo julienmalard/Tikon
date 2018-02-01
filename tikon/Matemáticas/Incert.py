@@ -7,7 +7,7 @@ import pymc as pm2
 import scipy.stats as estad
 from scipy.optimize import minimize as minimizar
 
-from Matemáticas import Distribuciones as Ds
+from tikon.Matemáticas import Distribuciones as Ds
 from tikon import __email__ as correo
 from tikon.Controles import usar_pymc3
 
