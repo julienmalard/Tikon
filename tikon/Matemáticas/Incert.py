@@ -627,6 +627,21 @@ class VarAlea(object):
 
     @classmethod
     def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
+        """
+
+        :param datos:
+        :type datos:
+        :param líms:
+        :type líms:
+        :param cont:
+        :type cont:
+        :param lista_dist:
+        :type lista_dist:
+        :param nombre:
+        :type nombre:
+        :return:
+        :rtype: dict
+        """
         raise NotImplementedError
 
     @classmethod
@@ -1131,7 +1146,10 @@ class VarSciPy(VarAlea):
 
                 if prms is not None:
                     # Medir el ajuste de la distribución
-                    p = estad.kstest(rvs=datos, cdf=dic_dist['scipy'](**prms).cdf)[1]
+                    prms_scipy = prms.copy()
+                    prms_scipy['loc'] = prms_scipy.pop('ubic')
+                    prms_scipy['scale'] = prms_scipy.pop('escl')
+                    p = estad.kstest(rvs=datos, cdf=dic_dist['scipy'](**prms_scipy).cdf)[1]
 
                     # Si el ajuste es mejor que el mejor ajuste anterior...
                     if p > mejor_ajuste['p'] or mejor_ajuste['tipo'] == '':
@@ -1625,6 +1643,7 @@ class VarPyMC2(VarCalib):
         if mín == -np.inf:
             if máx == np.inf:
                 ajustado = VarSciPy.approx_dist(datos=datos, líms=(-np.inf, np.inf), cont=cont, lista_dist=lista_dist)
+                paráms = ajustado['prms']  # Sacar el los parámetros de la distribución
 
             else:
                 raise ValueError('No debería ser posible llegar hasta este error.')
@@ -1638,25 +1657,24 @@ class VarPyMC2(VarCalib):
 
                 log_datos = np.log(datos)
                 ajustado = VarSciPy.approx_dist(datos=log_datos, líms=(-np.inf, np.inf),
-                                                cont=cont, lista_dist=lista_dist)
+                                                cont=cont, lista_dist=['Normal'])
+                tipo_dist = 'NormalExp'
+                paráms = {'mu': ajustado['prms']['ubic'], 'sigma': ajustado['prms']['escl'],
+                          'ubic': transf['suma'], 'escl': transf['mult']}
 
             else:
                 transf['mult'] *= máx
                 datos = np.divide(datos, máx)  # No borrar datos originales
 
-                lgt_datos = np.log(np.divide(datos, np.subtract(1, datos)))
+                lgt_datos = _logit(datos)
 
                 ajustado = VarSciPy.approx_dist(datos=lgt_datos, líms=(-np.inf, np.inf), cont=cont,
-                                                lista_dist=lista_dist)
+                                                lista_dist=['Normal'])
+                tipo_dist = 'LogitInv'
+                paráms = {'mu': ajustado['prms']['ubic'], 'sigma': ajustado['prms']['escl'],
+                          'ubic': transf['suma'], 'escl': transf['mult']}
 
-        # Sacar el tipo de distribución y sus parámetros
-        tipo_dist = ajustado['nombre']
-        paráms = ajustado['prms']
-
-        # Agregar las transformaciones a los parámetros
-        paráms.update(transf)
-
-        return cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
+        return {'dist': cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms), 'p': ajustado['p']}
 
     @classmethod
     def de_líms(cls, líms, cont, nombre):
