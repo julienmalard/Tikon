@@ -2009,9 +2009,11 @@ class Simulable(Coso):
         if nombre is None:
             nombre = int(random.random() * 1e10)
 
-            # Evitar el caso muy improbable que el código aleatorio ya existe
+            # Evitar el caso muy improbable de que el código aleatorio ya existe
             while nombre in símismo.receta['Calibraciones']:
                 nombre = int(random.random() * 1e10)
+
+            avisar('Nombre aleatorio ("{}") escogido como nombre de esta calibración.'.format(nombre))
 
         return str(nombre)
 
