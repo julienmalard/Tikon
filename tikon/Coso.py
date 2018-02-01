@@ -759,7 +759,7 @@ class Simulable(Coso):
                 tiempo_final[exp] = t_final
 
         # Preparar la lista de parámetros de interés
-        lista_paráms = símismo._gen_lista_coefs_interés_todos()[0]
+        lista_paráms, _, ubics_paráms = símismo._gen_lista_coefs_interés_todos()
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
                                                usar_especificadas=usar_especificadas)
 
@@ -769,7 +769,8 @@ class Simulable(Coso):
                               comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
 
         # Llenar las matrices internas de coeficientes
-        símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
+        símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, ubics_paráms=ubics_paráms,
+                              dib_dists=dib_dists, calibs=lista_calibs)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
@@ -1286,7 +1287,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, calibs=None):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, ubics_paráms=None, calibs=None):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
         Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas

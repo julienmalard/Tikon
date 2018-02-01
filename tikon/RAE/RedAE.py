@@ -246,7 +246,7 @@ class Red(Simulable):
                 n += 1
 
         # Crear etapas fantasmas para huéspedes infectados
-        for n_etp, etp in enumerate(símismo.etapas):
+        for n_etp, etp in enumerate(símismo.etapas):  # type: int, dict
             # Para cada etapa de la Red...
 
             # El diccionario de huéspedes de la etapa
@@ -2237,11 +2237,12 @@ class Red(Simulable):
             # Guardar los valores
             d_obs_c['Normal'][r[0]:r[1]] = m[parc, etps, días]
 
-    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, calibs=None, dib_dists=False):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, ubics_paráms=None, calibs=None, dib_dists=False):
         """
         Ver la documentación de Coso.
 
         :type n_rep_parám: int
+        :type ubics_paráms: list[list[str]]
         :type calibs: list | str
         :type dib_dists: bool
         :type calibs: list
@@ -2317,7 +2318,27 @@ class Red(Simulable):
 
                                     título = símismo.etapas[n_etp]['org'] + ', ' + símismo.etapas[n_etp]['nombre']
 
-                                    Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs
+                                    if ubics_paráms is None:
+                                        calibs_i = []
+                                    else:
+                                        org = símismo.etapas[n_etp]['org']
+                                        etp = símismo.etapas[n_etp]['nombre']
+                                        i_hués = next((i_f for i_f, d in símismo.fantasmas.items()
+                                                       if org in d and d[org] == n_etp), None)
+                                        if i_hués is None:
+                                            ubic = [org, etp, categ, subcateg, parám]
+                                            i_c = ubics_paráms.index(ubic)
+                                        else:
+                                            org_hués = símismo.etapas[i_hués]['org']
+                                            etp_hués = símismo.etapas[i_hués]['nombre']
+                                            try:
+                                                ubic = [org_hués, etp_hués, categ, subcateg, parám]
+                                                i_c = ubics_paráms.index(ubic)
+                                            except ValueError:
+                                                ubic = [org, 'juvenil', categ, subcateg, parám]
+                                                i_c = ubics_paráms.index(ubic)
+                                        calibs_i = calibs[i_c]
+                                    Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs_i
                                                                and type(d) is str], valores=matr_etp, título=título,
                                                         archivo=directorio_dib)
 
@@ -2370,12 +2391,37 @@ class Red(Simulable):
                                                             directorio=directorio_dib)
 
                                                         título = símismo.etapas[n_etp]['org'] + ', ' + \
-                                                                 símismo.etapas[n_etp]['nombre'] + \
-                                                                 ' _ ' + org_víc + ', ' + etp_víc
+                                                                 símismo.etapas[n_etp][
+                                                                     'nombre'] + ' _ ' + org_víc + ', ' + etp_víc
+
+                                                        if ubics_paráms is None:
+                                                            calibs_i = []
+                                                        else:
+                                                            org = símismo.etapas[n_etp]['org']
+                                                            etp = símismo.etapas[n_etp]['nombre']
+                                                            i_hués = next((i_f for i_f, d in símismo.fantasmas.items()
+                                                                           if org in d and d[org] == n_etp), None)
+                                                            if i_hués is None:
+                                                                ubic = [org, etp, categ, subcateg, parám, org_víc,
+                                                                        etp_víc]
+                                                                i_c = ubics_paráms.index(ubic)
+                                                            else:
+                                                                org_hués = símismo.etapas[i_hués]['org']
+                                                                etp_hués = símismo.etapas[i_hués]['nombre']
+                                                                try:
+                                                                    ubic = [org_hués, etp_hués, categ, subcateg, parám,
+                                                                            org_víc, etp_víc]
+                                                                    i_c = ubics_paráms.index(ubic)
+                                                                except ValueError:
+                                                                    ubic = [org, 'juvenil', categ, subcateg, parám,
+                                                                            org_víc, etp_víc]
+                                                                    i_c = ubics_paráms.index(ubic)
+
+                                                            calibs_i = calibs[i_c]
 
                                                         Arte.graficar_dists(
                                                             dists=[d for x, d in d_parám_etp[org_víc][etp_víc].items()
-                                                                   if x in calibs and type(d) is str],
+                                                                   if x in calibs_i and type(d) is str],
                                                             valores=matr_etp[:, n], título=título,
                                                             archivo=directorio_dib)
 

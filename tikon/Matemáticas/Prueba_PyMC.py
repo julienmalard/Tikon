@@ -24,7 +24,7 @@ class ModBayes(object):
         # Quitar variables sin incertidumbre. Por una razón muy rara, simul() no funcionará en PyMC sino. # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
         l_var_paráms_final = []
         for v in l_var_paráms:
-            vrs = v.obt_var()
+            vrs = v.obt_var_base()
             if isinstance(vrs, list):
                 l_var_paráms_final.extend(vrs)
             else:
@@ -152,37 +152,74 @@ if __name__ == '__main__':
             m.calib(rep=n_iter, quema=0, extraer=1)
 
     else:
-        # Prueba estúpidamente sencilla (porque las otras pruebas no funcionan...)
-        var_mu = pymc.Uniform('mu', 0, 10)
-        var_s = pymc.Gamma('sigma', 1, 10)
-        var_mu_trans = var_mu * fac
-        var_s_trans = var_s * fac
-        var_0 = pymc.Uniform('0', 0, 10)
-        l = [pymc.Normal('z_{}'.format(i), 1, 2) for i in range(100)]
+        if False:
+            # Prueba estúpidamente sencilla (porque las otras pruebas no funcionan...)
+            var_mu = pymc.Uniform('mu', 0, 10)
+            var_s = pymc.Gamma('sigma', 1, 10)
+            var_mu_trans = var_mu * fac
+            var_s_trans = var_s * fac
+            var_0 = pymc.Uniform('0', 0, 10)
+            l = [pymc.Normal('z_{}'.format(i), 1, 2) for i in range(100)]
 
 
-        @pymc.deterministic()
-        def func_todo(mu=var_mu_trans, s=var_s_trans, _=l):
-            a = [x / 10000 for x in _]
-            return {'mu': mu}
+            @pymc.deterministic()
+            def func_todo(mu=var_mu_trans, s=var_s_trans, _=l):
+                a = [x / 10000 for x in _]
+                return {'mu': mu}
 
 
-        obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True, observed=True)
-        mod_prueba = pymc.MCMC((var_mu, var_s, func_todo, var_mu_trans, var_s_trans, obs, var_0, *l))
-        if adaptivo:
-            mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
-        mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
+            obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True,
+                              observed=True)
+            mod_prueba = pymc.MCMC((var_mu, var_s, func_todo, var_mu_trans, var_s_trans, obs, var_0, *l))
+            if adaptivo:
+                mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
+            mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
+        else:
+            from tikon.Matemáticas.Incert import VarPyMC2
+
+            var_mu = VarPyMC2('mu', 'Uniforme', {'ubic': 0, 'escl': 10})
+            var_s = VarPyMC2('sigma', 'Gamma', {'a': 1, 'ubic': 0, 'escl': 10})
+            var_mu_trans = var_mu.var * fac
+            var_s_trans = var_s.var * fac
+            var_0 = VarPyMC2('0', 'Uniforme', {'ubic': 0, 'escl': 10})
+            l_0 = [VarPyMC2('z_{}'.format(i), 'Normal', {'ubic': 1, 'escl': 2}) for i in range(100)]
+            l_vars_mod = [v.vars_mod for v in l_0]
+            l_vars = [v.var for v in l_0]
+            # prueba_uni = VarPyMC2.de_densidad(nombre='prueba_uni', dens=0.8, líms_dens=(-3, 4), líms=(-5, 5), cont=True)
+            # prueba_uni2 = VarPyMC2.de_densidad(nombre='prueba_uni2', dens=1, líms_dens=(-3, 4), líms=(-5, 5), cont=True)
+
+            # prueba_gamma = VarPyMC2.de_densidad(nombre='prueba_gamma', dens=0.8, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True)
+            # prueba_gamma2 = VarPyMC2.de_densidad(nombre='prueba_gamma2', dens=1, líms_dens=(-3, 4), líms=(-5, np.inf), cont=True)
+
+            # prueba_norm = VarPyMC2.de_densidad(nombre='prueba_norm', dens=0.8, líms_dens=(-3, 4), líms=(None, None), cont=True)
+            # prueba_norm2 = VarPyMC2.de_densidad(nombre='prueba_norm2', dens=1, líms_dens=(-3, 4), líms=(None, None), cont=True)
+
+
+            @pymc.deterministic()
+            def func_todo(mu=var_mu_trans, s=var_s_trans, _=l_vars):
+                return {'mu': mu}
+
+
+            obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / var_s_trans ** 2, value=datos, trace=True,
+                              observed=True)
+            mod_prueba = pymc.MCMC((var_mu.vars_mod, var_s.vars_mod, func_todo, var_mu_trans, var_s_trans, obs,
+                                    var_0.vars_mod, *l_vars_mod,
+                                    # prueba_uni, prueba_uni2, prueba_gamma, prueba_gamma2, prueba_norm, prueba_norm2
+                                    ))
+            if adaptivo:
+                mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
+            mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
 
         for v in mod_prueba.variables:
-            if v.__name__[0] != 'z':
+            if 'z' not in v.__name__:
                 try:
                     dib.plot(mod_prueba.trace(v.__name__)[:])
                     dib.title(v.__name__)
                     dib.show()
                 except (TypeError, KeyError):
                     pass
-                try:
-                    print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
-                    print('************')
-                except (TypeError, KeyError):
-                    pass
+            try:
+                print('{}\n\t'.format(v.__name__), mod_prueba.trace(v.__name__)[:])
+                print('************')
+            except (TypeError, KeyError):
+                pass

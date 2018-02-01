@@ -20,7 +20,7 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'MA, i10k q2k pd1'
+nombre = 'MA, i10k q2k'
 print(nombre)
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
 quema = 2000
@@ -189,7 +189,7 @@ Red_coco.añadir_exp(Exper, corresp={'O. arenosella': {'juvenil_1': ['Estado 1']
 
 # Generar una simulación con UNA repetición paramétrica (y estocástica)
 print('Generando datos artificiales...')
-Red_coco.simular(exper=Exper, nombre='{}, Datos artificiales'.format(nombre), n_rep_parám=1, n_rep_estoc=1,
+Red_coco.simular(exper=Exper, nombre='Datos artificiales'.format(nombre), n_rep_parám=1, n_rep_estoc=1,
                  mostrar=False, detalles=False, usar_especificadas=True, dib_dists=dib_dists,
                  dibujar=dib_simul, depurar=depurar)
 
@@ -206,14 +206,14 @@ _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 # Validar con estos valores
 print('Validación inicial...')
 _agregar_exp(red=Red_coco, exper=Exper_artificial)
-valid_perfecta = Red_coco.validar(nombre='{}, Valid con verdaderos'.format(nombre), exper=Exper_artificial,
+valid_perfecta = Red_coco.validar(nombre='Valid con verdaderos'.format(nombre), exper=Exper_artificial,
                                   usar_especificadas=True, detalles=False, dibujar=dib_valid_perf, dib_dists=dib_dists,
                                   n_rep_parám=30, n_rep_estoc=30, depurar=depurar)
 print('Validación Perfecta\n********************')
 pprint(valid_perfecta)
 
 # Intentar calibrar, y validar, con rangos de menos en menos restringidos
-for p in range(90, 10, -10):
+for p in range(90, -10, -10):
     print('Calibrando con p={}.\n********************'.format(p))
     a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
     _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
@@ -221,7 +221,7 @@ for p in range(90, 10, -10):
     Red_coco.validar(nombre='Vld antes clb prec {}'.format(p), exper=Exper_artificial,
                      usar_especificadas=True, detalles=False, guardar=True,
                      dibujar=dib_valid, dib_dists=dib_dists, n_rep_parám=10, n_rep_estoc=10, depurar=depurar)
-    print('\tCalibrando...')
+    print('\tCalibrando con p={}...'.format(p))
     Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
                       n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=extr, método=método, dibujar=dib_calibs,
                       depurar=depurar, pedazitos=pedazitos)

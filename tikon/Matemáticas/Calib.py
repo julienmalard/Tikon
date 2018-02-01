@@ -119,20 +119,18 @@ class ModBayes(ModCalib):
             l_var_paráms = trazas_a_dists(id_simul=símismo.id, l_d_pm=lista_d_paráms, l_lms=lista_líms,
                                           l_trazas=aprioris, formato='calib', comunes=False)
 
-            # Quitar variables sin incertidumbre. Sino, por una razón muy rara, simul() no funcionará en PyMC.
-            l_var_paráms_final = []
-            for v in l_var_paráms:
-                vrs = v.obt_var()
-                if isinstance(vrs, list):
-                    l_var_paráms_final.extend(vrs)
-                else:
-                    l_var_paráms_final.append(vrs)
+            # Crear una lista de los variables "finales" de los parámetros
+            l_vars_final_paráms = [v.var for v in l_var_paráms]
+
+            # Otra lista con los variables PyMC para incluir en el modelo.
+            l_vars_mod_paráms = [x for v in l_var_paráms for x in v.vars_mod]
+
 
             # Un variable de prueba
             vacío_2 = pm2.Normal('vacío_2', 0, 1)
-            l_var_paráms_final.append(vacío_2)
+            l_vars_mod_paráms.append(vacío_2)
             vacío_1 = pm2.Normal('vacío_1', 0, 1)
-            l_var_paráms.append(vacío_1)
+            l_vars_mod_paráms.append(vacío_1)
             vacío_05 = pm2.Normal('vacío_0.5', 0, 1)
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
@@ -143,7 +141,7 @@ class ModBayes(ModCalib):
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
             @pm2.deterministic(trace=False)
-            def simul(_=l_var_paráms_final, a=vacío_05):
+            def simul(_=l_vars_final_paráms, a=vacío_05):
                 return función(**dic_argums)
 
             # Ahora, las observaciones
@@ -178,7 +176,7 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_var_paráms_final, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
+            símismo.MCMC = pm2.MCMC({simul, *l_vars_mod_paráms, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
                                     db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')
@@ -291,8 +289,8 @@ class ModBayes(ModCalib):
         id_calib = str(símismo.id)
 
         # Reabrir la base de datos SQLite
-        bd = pm2.database.sqlite.load(id_calib)
-        bd.connect_model(símismo.MCMC)
+        # bd = pm2.database.sqlite.load(id_calib)
+        # bd.connect_model(símismo.MCMC)
 
         # Si no se especificó nombre, se empleará el mismo nombre que el id de la calibración.
         if nombre is None:
