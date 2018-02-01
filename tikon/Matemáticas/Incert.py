@@ -557,7 +557,7 @@ class VarAlea(object):
                 if prcnt == 100:
                     return cls.de_líms(líms_dens, cont=True, nombre=nombre)
                 else:
-                    return cls.de_densidad(prcnt=prcnt, líms_prcnt=líms_dens, líms=líms, cont=True,
+                    return cls.de_densidad(dens=prcnt, líms_dens=líms_dens, líms=líms, cont=True,
                                            nombre=nombre)
 
             else:
@@ -602,16 +602,16 @@ class VarAlea(object):
         return resultado['dist']
 
     @classmethod
-    def de_densidad(cls, prcnt, líms_prcnt, líms, cont, nombre=None):
+    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
         """
         Esta función genera distribuciones estadísticas dado un rango de valores y la densidad de
         probabilidad en este rango, además de las límites intrínsicas del parámetro.
 
-        :param líms_prcnt: Un rango de valores.
-        :type líms_prcnt: tuple
+        :param líms_dens: Un rango de valores.
+        :type líms_dens: tuple
 
-        :param prcnt: La probabilidad de que el variable se encuentre a dentro del rango.
-        :type prcnt: float
+        :param dens: La probabilidad de que el variable se encuentre a dentro del rango.
+        :type dens: float
 
         :param líms: Los límites intrínsicos del parámetro.
         :type líms: tuple
@@ -681,12 +681,16 @@ class VarSciPy(VarAlea):
             paráms['scale'] = paráms.pop('escl')
 
         # Transformaciones manuales a la escala de la distribución.
+        símismo.suma = 0
         if paráms['scale'] == 0:
             símismo.mult = 0
+            símismo.suma = paráms['loc']
             paráms['scale'] = 1
         elif paráms['scale'] < 0:
             símismo.mult = -paráms['scale']
+
             paráms['scale'] = -paráms['scale']
+            paráms['loc'] = -paráms['ubic']
 
         símismo.var = Ds.dists[tipo_dist]['scipy'](**paráms)
 
@@ -694,13 +698,24 @@ class VarSciPy(VarAlea):
         return símismo.var.ppf(q * símismo.mult)
 
     def muestra_alea(símismo, n):
-        return símismo.var.rvs(n) * símismo.mult
+        return símismo.var.rvs(n) * símismo.mult + símismo.suma
 
     def fdp(símismo, x):
         return símismo.var.pdf(x / símismo.mult)
 
+    def dibujar(símismo, ejes):
+
+        n = 10000
+        puntos = símismo.muestra_alea(n)
+
+        y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+        x = 0.5 * (delim[1:] + delim[:-1])
+
+        ejes.plot(x, y, 'b-', lw=2, alpha=0.6)
+        ejes.set_title('Distribución')
+
     @classmethod
-    def de_densidad(cls, prcnt, líms_prcnt, líms, cont, nombre=None):
+    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
 
         # La precisión que querremos de nuestras distribuciones aproximadas
         límite_precisión = 0.0001
@@ -710,36 +725,36 @@ class VarSciPy(VarAlea):
         máx = líms[1]
 
         # Si el rango está al revés, arreglarlo.
-        if líms_prcnt[0] > líms_prcnt[1]:
-            líms_prcnt = (líms_prcnt[1], líms_prcnt[0])
+        if líms_dens[0] > líms_dens[1]:
+            líms_dens = (líms_dens[1], líms_dens[0])
 
         # Asegurarse de que el rango cabe en los límites
-        if líms_prcnt[0] < mín or líms_prcnt[1] > máx:
+        if líms_dens[0] < mín or líms_dens[1] > máx:
             raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
 
         # Si no decimos el contrario, no invertiremos la distribución.
         inv = False
 
-        if prcnt == 1:
+        if dens == 1:
             # Si no hay incertidumbre, usar una distribución uniforme entre el rango.
             if cont:
                 tipo_dist = 'Uniforme'
-                paráms = {'ubic': líms_prcnt[0], 'escl': (líms_prcnt[1] - líms_prcnt[0])}
+                paráms = {'ubic': líms_dens[0], 'escl': (líms_dens[1] - líms_dens[0])}
             else:
                 tipo_dist = 'UnifDiscr'
-                paráms = {'low': líms_prcnt[0], 'high': líms_prcnt[1] + 1}
+                paráms = {'low': líms_dens[0], 'high': líms_dens[1] + 1}
 
         else:
             # Si hay incertidumbre...
 
             # Primero, hay que asegurarse que el máximo y mínimo del rango no sean iguales
-            if líms_prcnt[0] == líms_prcnt[1]:
+            if líms_dens[0] == líms_dens[1]:
                 raise ValueError('Un rango para una distribucion con certidumbre inferior a 1 no puede tener valores '
                                  'mínimos y máximos iguales.')
 
             # Una idea de la escala del rango de incertidumbre
             # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
-            escala_rango = líms_prcnt[1] / líms_prcnt[0]
+            escala_rango = líms_dens[1] / líms_dens[0]
 
             # Invertir distribuciones en (-inf, R]
             if mín == -np.inf and máx != np.inf:
@@ -751,9 +766,9 @@ class VarSciPy(VarAlea):
             if mín == -np.inf:
                 if máx == np.inf:  # El caso (-inf, +inf)
                     if cont:
-                        mu = np.average(líms_prcnt)
+                        mu = np.average(líms_dens)
                         # Calcular sigma por dividir el rango por el inverso (bilateral) de la distribución cumulativa.
-                        sigma = ((líms_prcnt[1] - líms_prcnt[0]) / 2) / estad.norm.ppf((1 - prcnt) / 2 + prcnt)
+                        sigma = ((líms_dens[1] - líms_dens[0]) / 2) / estad.norm.ppf((1 - dens) / 2 + dens)
                         tipo_dist = 'Normal'
                         paráms = {'ubic': mu, 'escl': sigma}
                     else:
@@ -773,7 +788,7 @@ class VarSciPy(VarAlea):
                         # lado del rango (así asegurándose que la densidad esté más o menos bien distribuida a través
                         # del rango).
 
-                        área_cola = (1 - prcnt) / 2  # La densidad que querremos de cada lado (cola) del rango
+                        área_cola = (1 - dens) / 2  # La densidad que querremos de cada lado (cola) del rango
 
                         # La función de optimización.
                         def calc_ajust_gamma_1(x):
@@ -794,7 +809,7 @@ class VarSciPy(VarAlea):
 
                             # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
                             # especificados).
-                            máx_ajust = mín_ajust / (líms_prcnt[0] - mín) * (líms_prcnt[1] - mín)
+                            máx_ajust = mín_ajust / (líms_dens[0] - mín) * (líms_dens[1] - mín)
 
                             # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
                             # deseada.
@@ -807,16 +822,16 @@ class VarSciPy(VarAlea):
                                         bounds=[(1, None)])
 
                         # Calcular la escala
-                        escala = (líms_prcnt[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0])
+                        escala = (líms_dens[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0])
 
                         # Calcular los parámetros
                         tp_paráms = [opt.x[0], mín, escala]
 
                         # Validar la optimización
                         valid = abs(
-                            (estad.gamma.cdf(líms_prcnt[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
-                             estad.gamma.cdf(líms_prcnt[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
-                            prcnt)
+                            (estad.gamma.cdf(líms_dens[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
+                             estad.gamma.cdf(líms_dens[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
+                            dens)
 
                         # Si validó bien, todo está bien.
                         if valid < límite_precisión:
@@ -845,7 +860,7 @@ class VarSciPy(VarAlea):
 
                                 # Ahora, calcular el límite superior proporcional (según el rango y límite teorético
                                 # especificados).
-                                máx_ajust = mín_ajust / (líms_prcnt[0] - mín) * (líms_prcnt[1] - mín)
+                                máx_ajust = mín_ajust / (líms_dens[0] - mín) * (líms_dens[1] - mín)
 
                                 # Calcular a cuál punto la densidad abajo del rango superior coincide con la densidad
                                 # deseada.
@@ -856,15 +871,15 @@ class VarSciPy(VarAlea):
                             opt = minimizar(calc_ajust_gamma_2, x0=np.array([1, mín]),
                                             bounds=[(1, None), (mín, None)])
 
-                            escala = (líms_prcnt[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
+                            escala = (líms_dens[0] - mín) / estad.gamma.ppf(área_cola, a=opt.x[0], loc=opt.x[1])
 
                             tp_paráms = [opt.x[0], opt.x[1] * escala + mín, escala]
 
                             # Validar que todo esté bien.
                             valid = abs(
-                                (estad.gamma.cdf(líms_prcnt[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
-                                 estad.gamma.cdf(líms_prcnt[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
-                                prcnt)
+                                (estad.gamma.cdf(líms_dens[1], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2]) -
+                                 estad.gamma.cdf(líms_dens[0], a=tp_paráms[0], loc=tp_paráms[1], scale=tp_paráms[2])) -
+                                dens)
 
                             if valid < límite_precisión:
                                 # Si está bien, allí guardamos el resultado.
@@ -898,7 +913,7 @@ class VarSciPy(VarAlea):
                                     máx_ajust = mx_ajust  # El rango superior
 
                                     # El rango inferior proporcional
-                                    mín_ajust = (líms_prcnt[0] - mín) * máx_ajust / (líms_prcnt[1] - mín)
+                                    mín_ajust = (líms_dens[0] - mín) * máx_ajust / (líms_dens[1] - mín)
 
                                     # La densidad de la distribución abajo del límite inferior del rango
                                     dens_sup = 1 - estad.gamma.cdf(máx_ajust, a=x[0], scale=x[1])
@@ -909,19 +924,19 @@ class VarSciPy(VarAlea):
 
                                     # Devolver una medida del ajuste de la distribución. Lo más importante sería la
                                     # densidad adentro del rango, pero también la densidad en la cola superior.
-                                    return abs(dens_líms - prcnt) * 100 + abs(dens_sup - área_cola)
+                                    return abs(dens_líms - dens) * 100 + abs(dens_sup - área_cola)
 
                                 opt = minimizar(calc_ajust_gamma_3, x0=np.array([2, 1]),
                                                 bounds=[(1, None), (1e-10, None)])
 
-                                tp_paráms = [opt.x[0], mín, (líms_prcnt[1] - mín) / mx_ajust * opt.x[1]]
+                                tp_paráms = [opt.x[0], mín, (líms_dens[1] - mín) / mx_ajust * opt.x[1]]
 
                                 # Validar que todo esté bien.
-                                valid = abs((estad.gamma.cdf(líms_prcnt[1], a=tp_paráms[0], loc=tp_paráms[1],
+                                valid = abs((estad.gamma.cdf(líms_dens[1], a=tp_paráms[0], loc=tp_paráms[1],
                                                              scale=tp_paráms[2]) -
-                                             estad.gamma.cdf(líms_prcnt[0], a=tp_paráms[0], loc=tp_paráms[1],
+                                             estad.gamma.cdf(líms_dens[0], a=tp_paráms[0], loc=tp_paráms[1],
                                                              scale=tp_paráms[2])) -
-                                            prcnt)
+                                            dens)
 
                                 # Si el error en la densidad de la distribución TODAVÍA queda superior al límite
                                 # acceptable...
@@ -943,25 +958,25 @@ class VarSciPy(VarAlea):
 
                         # Una distribución normal truncada con límites especificados y mu en la mitad del rango
                         # especificado
-                        mu = (líms_prcnt[0] + líms_prcnt[1]) / 2
+                        mu = (líms_dens[0] + líms_dens[1]) / 2
                         opt = minimizar(
-                            lambda x: abs((estad.truncnorm.cdf(líms_prcnt[1], a=(mín - mu) / x, b=(máx - mu) / x,
+                            lambda x: abs((estad.truncnorm.cdf(líms_dens[1], a=(mín - mu) / x, b=(máx - mu) / x,
                                                                loc=mu, scale=x) -
-                                           estad.truncnorm.cdf(líms_prcnt[0], a=(mín - mu) / x, b=(máx - mu) / x,
+                                           estad.truncnorm.cdf(líms_dens[0], a=(mín - mu) / x, b=(máx - mu) / x,
                                                                loc=mu, scale=x)) -
-                                          prcnt),
+                                          dens),
                             # bounds=[(1e-10, None)],  # para hacer: activar este
-                            x0=np.array([líms_prcnt[1] - líms_prcnt[0]]),
+                            x0=np.array([líms_dens[1] - líms_dens[0]]),
                             method='Nelder-Mead')
 
                         tp_paráms = np.array([mu, opt.x[0], (mín - mu) / opt.x[0], (máx - mu) / opt.x[0]])
 
                         # Validar la optimización
-                        valid = abs((estad.truncnorm.cdf(líms_prcnt[1], loc=tp_paráms[0], scale=tp_paráms[1],
+                        valid = abs((estad.truncnorm.cdf(líms_dens[1], loc=tp_paráms[0], scale=tp_paráms[1],
                                                          a=tp_paráms[2], b=tp_paráms[3]) -
-                                     estad.truncnorm.cdf(líms_prcnt[0], loc=tp_paráms[0], scale=tp_paráms[1],
+                                     estad.truncnorm.cdf(líms_dens[0], loc=tp_paráms[0], scale=tp_paráms[1],
                                                          a=tp_paráms[2], b=tp_paráms[3], ))
-                                    - prcnt)
+                                    - dens)
 
                         # Si validó bien, guardar la distribución...
                         if valid < límite_precisión:
@@ -971,20 +986,20 @@ class VarSciPy(VarAlea):
                         else:
                             # ... si no, intentar con una distribución beta.
                             opt = minimizar(
-                                lambda x: abs((estad.beta.cdf(líms_prcnt[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
-                                               estad.beta.cdf(líms_prcnt[0], a=x[0], b=x[1], loc=mín,
+                                lambda x: abs((estad.beta.cdf(líms_dens[1], a=x[0], b=x[1], loc=mín, scale=máx - mín) -
+                                               estad.beta.cdf(líms_dens[0], a=x[0], b=x[1], loc=mín,
                                                               scale=máx - mín)) -
-                                              prcnt), bounds=[(1e-10, None), (1e-10, None)],
+                                              dens), bounds=[(1e-10, None), (1e-10, None)],
                                 x0=np.array([1e-10, 1e-10]))
 
                             tp_paráms = [opt.x[0], opt.x[1], mín, máx - mín]
 
                             valid = abs(
-                                (estad.beta.cdf(líms_prcnt[1], a=tp_paráms[0], b=tp_paráms[1], loc=mín,
+                                (estad.beta.cdf(líms_dens[1], a=tp_paráms[0], b=tp_paráms[1], loc=mín,
                                                 scale=máx - mín) -
-                                 estad.beta.cdf(líms_prcnt[0], a=tp_paráms[0], b=tp_paráms[1], loc=mín,
+                                 estad.beta.cdf(líms_dens[0], a=tp_paráms[0], b=tp_paráms[1], loc=mín,
                                                 scale=máx - mín)) -
-                                prcnt)
+                                dens)
 
                             # Avizar si todavía no optimizó bien
                             if valid > límite_precisión:
@@ -1029,7 +1044,7 @@ class VarSciPy(VarAlea):
         mín_parám, máx_parám = líms
 
         # Un diccionario para guardar el mejor ajuste
-        mejor_ajuste = dict(prms='', tipo='', p=0.0)
+        mejor_ajuste = dict(prms={}, tipo='', p=0.0)
 
         # Sacar las distribuciones del buen tipo (contínuas o discretas)
         if cont:
@@ -1188,7 +1203,7 @@ class VarCalib(VarAlea):
 
         símismo.var = NotImplemented
 
-    def obt_var(símismo):
+    def obt_var_base(símismo):
         """
 
         :return:
@@ -1208,7 +1223,7 @@ class VarCalib(VarAlea):
         raise NotImplementedError
 
     @classmethod
-    def de_densidad(cls, prcnt, líms_prcnt, líms, cont, nombre=None):
+    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
         raise NotImplementedError
 
     @classmethod
@@ -1253,67 +1268,95 @@ class VarPyMC2(VarCalib):
         # Sacar los límites y también verificar que existe este variable
         if tipo_dist in Ds.dists:
             líms_dist = Ds.dists[tipo_dist]['límites']
-        elif tipo_dist in ['ExpNormal', 'LogitInv']:
+        elif tipo_dist in ['NormalExp', 'LogitInv']:
             líms_dist = (-np.inf, np.inf)
         else:
             raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC2.' %
                              tipo_dist)
 
         # Hacer transformaciones de forma de distribución si necesario
+
+        # El caso (-inf, R] se transforma a [-R, inf)
+        if líms_dist[0] == -np.inf and líms_dist[1] != np.inf:
+            líms_dist[0] = -líms_dist[1]
+            líms_dist[1] = np.inf
+            inv = True  # Invertimos la distribución
+            nombre = 'inv_{}'.format(nombre)
+        else:
+            inv = False
+
+        # Transformar distribuciones con límites a distribuciones aproximativas con límites.
         if líms_dist[0] != -np.inf:
             if líms_dist[1] != np.inf:
-                avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el logit inverso'
+
+                # El caso [R, R] se transforma con logit.
+                avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el logit inverso '
                        'de una distribución normal en vez.'.format(tipo_dist))
+
+                # Normalizar la distribución inicial al rango [0, 1]
                 d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
                 norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
                 norm_mult = 1 / (paráms['escl'] * (líms_dist[1] - líms_dist[0]))
+
+                # Tomar la mitad de la densidad de esta distribución normalizada como el mu de nuestra distribución
+                # normal
                 mu = _logit((d_scipy.percentiles(0.5) + norm_suma) * norm_mult)
-                p25 = d_scipy.percentiles(0.25)
-                p75 = d_scipy.percentiles(0.75)
-                sigma = (-_logit((p25 + norm_suma) * norm_mult) + _logit((p75 + norm_suma) * norm_mult)) / 2
+
+                # Aproximar sigma según los percentiles de la distribución original que corresponden a 1 desviación
+                # estándar de la distribución normal.
+                p16 = d_scipy.percentiles(estad.norm.cdf(-1))
+                p84 = d_scipy.percentiles(estad.norm.cdf(1))
+                sigma = (-_logit((p16 + norm_suma) * norm_mult) + _logit((p84 + norm_suma) * norm_mult)) / 2
+
+                # Establecer la distribución Logit Inversa y sus parámetros
                 paráms = {'mu': mu, 'sigma': sigma, 'escl': 1 / norm_mult, 'ubic': -norm_suma}
                 tipo_dist = 'LogitInv'
+
             else:
-                avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el exponencial'
+
+                # El caso [R, inf) se transforma con log.
+                avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el exponencial '
                        'de una distribución normal en vez.'.format(tipo_dist))
+
+                # Normalizar la distribución inicial para tener 99.9% se su densidad en el rango [0, 1]
                 d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
                 norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
-                norm_mult = 1 / (paráms['escl'] * (líms_dist[1] - líms_dist[0]))
-                mu = mat.log((d_scipy.percentiles(0.5) + norm_suma) * norm_mult)
-                p25 = d_scipy.percentiles(0.25)
-                p75 = d_scipy.percentiles(0.75)
-                sigma = (-mat.exp((p25 + norm_suma) * norm_mult) + mat.exp((p75 + norm_suma) * norm_mult)) / 2
-                paráms = {'mu': mu, 'sigma': sigma, 'escl': 1 / norm_mult, 'ubic': -norm_suma}
-                tipo_dist = 'ExpNormal'
-        else:
-            if líms_dist[1] != np.inf:
-                avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el negativo del '
-                       'exponencial de una distribución normal en vez.'.format(tipo_dist))
+                norm_mult = 1 / (paráms['escl'] * (d_scipy.percentiles(0.999) - líms_dist[0]))
 
-                paráms['ubic'] = -paráms['ubic']
-                paráms['escl'] *= -1
-
-                tipo_dist = 'ExpNormal'
-                d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
-                norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
-                norm_mult = 1 / (paráms['escl'] * (líms_dist[1] - líms_dist[0]))
+                # Tomar la mitad de la densidad de esta distribución normalizada como el mu de nuestra distribución
+                # normal
                 mu = mat.log((d_scipy.percentiles(0.5) + norm_suma) * norm_mult)
-                p25 = d_scipy.percentiles(0.25)
-                p75 = d_scipy.percentiles(0.75)
-                sigma = (-mat.exp((p25 + norm_suma) * norm_mult) + mat.exp((p75 + norm_suma) * norm_mult)) / 2
-                paráms = {'mu': mu, 'sigma': sigma, 'escl': -1 / norm_mult, 'ubic': norm_suma}
+
+                # Aproximar sigma según los percentiles de la distribución original que corresponden a 1 desviación
+                # estándar de la distribución normal.
+                p16 = d_scipy.percentiles(estad.norm.cdf(-1))
+                p84 = d_scipy.percentiles(estad.norm.cdf(1))
+                sigma = (-mat.log((p16 + norm_suma) * norm_mult) + mat.log((p84 + norm_suma) * norm_mult)) / 2
+
+                # Establecer la distribución Normal Exponencial y sus parámetros
+                if inv:
+                    # De-invertir la distribución, si necesario.
+                    paráms = {'mu': mu, 'sigma': sigma, 'escl': -1 / norm_mult, 'ubic': norm_suma}
+                else:
+                    paráms = {'mu': mu, 'sigma': sigma, 'escl': 1 / norm_mult, 'ubic': -norm_suma}
+
+                tipo_dist = 'NormalExp'
 
         # Generar la distribución y sus parámetros
         dist = None
-        if tipo_dist == 'ExpNormal':
+        if tipo_dist == 'NormalExp':
             var_base = pm2.Normal(nombre, mu=0, tau=1)
-            dist_transf = (var_base + paráms['mu']) * paráms['sigma']
-            dist = pm2.exp(dist_transf)
+            var_base.keep_trace = False
+            dist_transf = var_base * paráms['sigma'] + paráms['mu']
+            dist = pm2.Lambda('NormalExp_{}'.format(nombre), lambda x=dist_transf: np.log(x))
+            dist.keep_trace = True
 
         elif tipo_dist == 'LogitInv':
             var_base = pm2.Normal(nombre, mu=0, tau=1)
-            dist_transf = (var_base + paráms['mu']) * paráms['sigma']
-            dist = pm2.InvLogit('InvLgt_{}'.format(nombre), dist_transf)
+            var_base.keep_trace = False
+            dist_transf = var_base * paráms['sigma'] + paráms['mu']
+            dist = pm2.InvLogit('LogitInv_{}'.format(nombre), dist_transf)
+            dist.keep_trace = True
 
         elif tipo_dist == 'Cauchy':
             var_base = pm2.Cauchy(nombre, alpha=0, beta=1)
@@ -1358,8 +1401,9 @@ class VarPyMC2(VarCalib):
 
         símismo.var = dist
         símismo.var_base = var_base
+        símismo.vars_mod = {dist, var_base}
 
-    def obt_var(símismo):
+    def obt_var_base(símismo):
 
         return símismo.var_base
 
@@ -1382,64 +1426,170 @@ class VarPyMC2(VarCalib):
         ejes[1].set_title('Traza')
 
     def traza(símismo):
+        """
+        Devuelve la traza del variable. Si no hay traza, devuelve un matriz vacía.
 
+        :return: La traza del variable.
+        :rtype: np.ndarray
+        """
+
+        # Intentar obtener la traza.
         try:
             return símismo.var.trace(chain=None)[:]
-        except AttributeError:
+
+        except (AttributeError, TypeError):
+            # Si hubo error, devolver una matriz vacía.
             return np.array([])
 
     @classmethod
-    def de_densidad(cls, prcnt, líms_prcnt, líms, cont, nombre=None):
+    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
+        """
+        Devuelve un objeto de variable PyMC2 a base de información de distribución de densidad y de límites teoréticos.
 
+        :param dens: La fracción (en ``[0, 1]``) de densidad que caye adentro de ``líms_prcnt``. 
+        :type dens: float | int
+
+        :param líms_dens: Los límites adentro de cuales ``frac`` densidad cae.
+        :type líms_dens: np.ndarray | list | tuple
+
+        :param líms: Los límites teoréticos del variable.
+        :type líms: np.ndarray | list | tuple
+
+        :param cont: Si es una distribución continua o no.
+        :type cont: bool
+
+        :param nombre: El nombre del variable.
+        :type nombre: str
+
+        :return: El variable PyMC2.
+        :rtype: VarPyMC2
+
+        """
+
+        # Convertir None a infinidad en los límites de densidad y teoréticos.
         mín = líms[0] if líms[0] is not None else -np.inf
         máx = líms[1] if líms[1] is not None else np.inf
 
-        rango = np.array([líms_prcnt[0] if líms_prcnt[0] is not None else -np.inf,
-                          líms_prcnt[1] if líms_prcnt[1] is not None else np.inf])
+        rango = np.array([líms_dens[0] if líms_dens[0] is not None else -np.inf,
+                          líms_dens[1] if líms_dens[1] is not None else np.inf])  # Los límites de densidad
 
-        transf = {'mult': 1, 'suma': 0}
+        # Validar los rangos y límites
+        if rango[0] < mín or rango[1] > máx:
+            raise ValueError('Los límites de densidad ({}, {}) están afuera del rango teorético ({}, {}).'
+                             .format(rango[0], rango[1], mín, máx))
+
+        # Inicializar el diccionario de parámetros.
+        paráms = {'escl': 1, 'ubic': 0}
+
+        # Primero, arreglar unos casos especiales que nos podrían causar problemas después...
+
+        # Si tenemos una densidad de 100% en el rango especificado...
+        if dens == 1:
+            # Generar la distribución con este rango en vez.
+            return cls.de_líms(líms=rango, cont=cont, nombre=nombre)
+
+        # No se puede tener límites de densidad iguales con densidad < 1, por supuesto.
+        if líms_dens[0] == líms_dens[1]:
+            raise ValueError('No se puede tener una densidad < 1 en un rango [a, b] si a = b.')
+
+        # Si los rangos de la densidad corresponden con los rangos teoréticos, pero con densidad < 1...
+        if rango[0] == mín and rango[1] == máx:
+            raise ValueError('No se puede tener una densidad < 1 en un rango igual al rango teorético.')
+
+        # Invertir distribuciones entre (-inf, R]
         if mín == -np.inf and máx != np.inf:
             mín = -máx
             máx = np.inf
-            transf['mult'] = -1
+            paráms['escl'] = -1
 
+        # Ahora, crear la distribución apriopiada.
         if mín == -np.inf:
             if máx == np.inf:
-                mu = np.mean(rango)
-                sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - prcnt) / 2 + prcnt)
+                # El caso (-inf, inf). Muy facil.
 
+                # Calcular los parámetros de una distribución normal.
+                mu = np.mean(rango)  # El promedio del rango de densidad
+                # Calcular sigma analíticamente
+                sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - dens) / 2 + dens)
+
+                # Especificar la distribución.
                 tipo_dist = 'Normal'
                 paráms = {'ubic': mu, 'escl': sigma}
+
             else:
+                # Ya convertimos distribuciones en (-inf, R] a [-R, inf), así que no debería ser posible llegar
+                # hasta este error.
                 raise ValueError('No debería ser posible llegar hasta este error.')
+
         else:
-            # Normalizar el límite inferior.
-            transf['suma'] += mín
-            rango -= mín
+
+            # Primero, normalizar el límite inferior.
+            paráms['ubic'] += mín
+            rango = np.subtract(rango, mín)
             máx -= mín
 
             if máx == np.inf:
+                # El caso [R, inf)
 
-                log_rango = np.log(rango)
-                mu = np.mean(log_rango)
-                sigma = ((log_rango[1] - log_rango[0]) / 2) / estad.norm.ppf((1 - prcnt) / 2 + prcnt)
+                if rango[0] == 0:
+                    # Si el límite inferior del rango de densidad es igual al límite teorético, solamente tenemos
+                    # que asegurarnos que ``dens`` densidad quede abajo del límite inferior transformado.
 
-                tipo_dist = 'ExpNormal'
-                paráms = {'mu': mu, 'sigma': sigma}
+                    lím_norm_sup = np.log(rango[1])  # El límite superior de densidad en la distribución normal
+
+                    sigma = 1  # Tomar un sigma de 1, por simplicidad. De verdad no importa mucho.
+                    mu = lím_norm_sup - estad.norm(0, 1).ppf(dens)  # Mu en función de sigma y la densidad
+
+                else:
+                    # Sino, tenemos que asegurarnos que la densidad caiga entre los dos límites transformados.
+                    log_rango = np.log(rango)
+
+                    mu = np.mean(log_rango)  # Mu es el promedio entre ambos límites de densidad
+
+                    # Sigma se calcular analíticamente
+                    sigma = ((log_rango[1] - log_rango[0]) / 2) / estad.norm.ppf((1 - dens) / 2 + dens)
+
+                # Especificar la distribución Normal Exponencial
+                tipo_dist = 'NormalExp'
+                paráms['mu'] = mu
+                paráms['sigma'] = sigma
 
             else:
-                transf['mult'] *= máx
-                rango /= máx
+                # El caso [R, R]
 
-                lgt_rango = np.log(np.divide(rango, np.subtract(1, rango)))
-                mu = np.mean(lgt_rango)
-                sigma = ((lgt_rango[1] - lgt_rango[0]) / 2) / estad.norm.ppf((1 - prcnt) / 2 + prcnt)
+                # Normalizar la distribución
+                paráms['escl'] *= máx
+                rango = np.divide(rango, máx)
 
+                if rango[0] == 0:
+                    # Si el límite inferior del rango de densidad es igual al límite teorético, solamente tenemos
+                    # que asegurarnos que ``dens`` densidad quede abajo del límite superior transformado.
+                    lím_norm_sup = _logit(rango[1])
+
+                    sigma = 1  # Tomar un sigma de 1, por simplicidad. De verdad no importa mucho.
+                    mu = lím_norm_sup - estad.norm(0, 1).ppf(dens)  # Mu en función de sigma y la densidad
+
+                elif rango[1] == 1:
+                    # Si el límite superior del rango de densidad es igual al límite teorético, solamente tenemos
+                    # que asegurarnos que la densidad quede arriba del límite inferior transformado.
+                    lím_norm_inf = _logit(rango[0])
+
+                    sigma = 1  # Tomar un sigma de 1, por simplicidad. De verdad no importa mucho.
+                    mu = lím_norm_inf - estad.norm(0, 1).ppf(1 - dens)  # Mu en función de sigma y la densidad
+
+                else:
+                    # Sino, tenemos que asegurarnos que la densidad caiga entre los dos límites transformados.
+                    lgt_rango = np.log(np.divide(rango, np.subtract(1, rango)))
+
+                    mu = np.mean(lgt_rango)  # Mu es el promedio entre ambos límites de densidad
+
+                    # Sigma se calcular analíticamente
+                    sigma = ((lgt_rango[1] - lgt_rango[0]) / 2) / estad.norm.ppf((1 - dens) / 2 + dens)
+
+                # Especificar la distribución Logit Inverso
                 tipo_dist = 'LogitInv'
-                paráms = {'mu': mu, 'sigma': sigma}
-
-        # Agregar las transformaciones a los parámetros
-        paráms.update(transf)
+                paráms['mu'] = mu
+                paráms['sigma'] = sigma
 
         return cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
 
@@ -1521,7 +1671,7 @@ class VarPyMC2(VarCalib):
                 'GammaInversa', 'Laplace', 'Logística', 'LogNormal', 'Normal', 'Pareto', 'T',
                 'NormalTrunc', 'Uniforme', 'VonMises', 'Weibull', 'Bernoulli', 'Binomial', 'Geométrica',
                 'Hypergeométrica', 'BinomialNegativo', 'Poisson', 'UnifDiscr',
-                'ExpNormal', 'LogitInv'  # Funciones auxiliares para transformaciones
+                'NormalExp', 'LogitInv'  # Funciones auxiliares para transformaciones
                 ]
 
     def __float__(símismo):
@@ -1686,7 +1836,7 @@ class VarPyMC3(VarCalib):
         # Guardar la distribución a priori (para gráficos).
         símismo.a_priori = a_priori
 
-    def obt_var(símismo):
+    def obt_var_base(símismo):
         return símismo.var
 
     def dibujar(símismo, ejes):
@@ -1706,7 +1856,7 @@ class VarPyMC3(VarCalib):
             return trz.get_values(símismo.var)
 
     @classmethod
-    def de_densidad(cls, prcnt, líms_prcnt, líms, cont, nombre=None):
+    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
         raise NotImplementedError
 
     @classmethod
@@ -1780,3 +1930,8 @@ def _líms_a_dist(líms, cont):
 
 def _logit(x):
     return np.log(x / (1 - x))
+
+
+def _inv_logit(x):
+    return np.divide(np.exp(x), np.add(np.exp(x), 1))
+
