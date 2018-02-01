@@ -1348,7 +1348,7 @@ class VarPyMC2(VarCalib):
             var_base = pm2.Normal(nombre, mu=0, tau=1)
             var_base.keep_trace = False
             dist_transf = var_base * paráms['sigma'] + paráms['mu']
-            dist = pm2.Lambda('NormalExp_{}'.format(nombre), lambda x=dist_transf: np.log(x))
+            dist = pm2.Lambda('NormalExp_{}'.format(nombre), lambda x=dist_transf: np.exp(x))
             dist.keep_trace = True
 
         elif tipo_dist == 'LogitInv':
