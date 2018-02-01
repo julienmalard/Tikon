@@ -20,13 +20,13 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'MA, i10k q2k'
+nombre = 'MA, i10k q2k pd5'
 print(nombre)
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
 quema = 2000
 n_iter = 10000
 extr = 1
-pedazitos = None
+pedazitos = 5
 
 depurar = False
 
