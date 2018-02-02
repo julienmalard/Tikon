@@ -20,13 +20,13 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'MA, i10k q2k pd10'
+nombre = 'MA, i10k q2k'
 print(nombre)
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
 quema = 2000
 n_iter = 10000
 extr = 1
-pedazitos = 10
+pedazitos = None
 
 depurar = False
 
@@ -112,7 +112,7 @@ def _gen_a_prioris(vals, prec):
             u_p = dic['ubic_parám']
 
             a_pr_orgnl = next((d_a for d_a in a_prioris[org] if d_a['etapa'] == etp and d_a['ubic_parám'] == u_p), None)
-            if a_pr_orgnl is None:
+            if a_pr_orgnl is None or u_p[0] == 'Error':
                 continue
             rango = a_pr_orgnl['rango']
             dim_rango = rango[1] - rango[0]
@@ -235,8 +235,8 @@ _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 #     plt.clf()
 #
 # raise SystemExit(0)
-#
-# # Fin borrar  # para hacer
+
+# Fin borrar  # para hacer
 
 # Validar con estos valores
 print('Validación inicial...')
