@@ -769,7 +769,7 @@ class VarSciPy(VarAlea):
 
             # Una idea de la escala del rango de incertidumbre
             # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
-            escala_rango = líms_dens[1] / líms_dens[0]
+            escala_rango = líms_dens[1] - líms_dens[0]
 
             # Invertir distribuciones en (-inf, R]
             if mín == -np.inf and máx != np.inf:
