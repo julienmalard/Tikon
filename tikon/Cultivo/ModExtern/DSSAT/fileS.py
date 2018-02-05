@@ -1,9 +1,9 @@
-import numpy as np
 import re
+
+import numpy as np
 import pkg_resources
 
 from tikon.Matemáticas import Ecuaciones as Ec
-
 
 # Un diccionario para convertir códigos de variables DSSAT a nombres de variables de Tiko'n
 DSSAT_a_Tikon = dict([(x['cód_DSSAT'], x) for x in Ec.ecs_suelo if 'cód_DSSAT' in x.keys()])

@@ -1,5 +1,3 @@
-
-
 class Unidad(object):
     """
 
@@ -136,4 +134,4 @@ if __name__ == '__main__':
     a = Unidad('m3s-1')
     print('a:', a)
     b = 's2'
-    print('a*b:', a*b)
+    print('a*b:', a * b)

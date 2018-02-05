@@ -1,7 +1,8 @@
 import डिब्बा
-from tikon.Interfaz.மத்திய import பக்கம்_மத்திய
 from tikon.Interfaz.ஆரம்பு import பக்கம்_ஆரம்பு
 from tikon.Interfaz.மொழிகள் import பக்கம்_மொழிகள்
+
+from tikon.Interfaz.மத்திய import பக்கம்_மத்திய
 
 பயன்பாடு = डिब्बा.अनुप्रयोग.अनुप्रयोग(नाम='பயிற்சி')
 

@@ -21,7 +21,7 @@ def generarmeteo(dic, fecha_inic, fecha_fin):
     for mes in dic['Mes']:
         if mes.day == 1:
             día_mes = calendario.monthrange(mes.year, mes.mes)
-            mes.replace(day=round(día_mes/2))
+            mes.replace(day=round(día_mes / 2))
 
     parám['Mes'] = meses = dic['Mes']
 
@@ -61,7 +61,7 @@ def wgenparám(parám, fecha_inic, fecha_fin):
     inic = meses.index(ft.date(fecha_inic.year, fecha_inic.month, 1))
     fin = meses.index(ft.date(fecha_fin.year, fecha_fin.month + 1, 1) - ft.timedelta(1))
     for p in parám:
-        parám[p] = parám[p][inic-1:fin+2]
+        parám[p] = parám[p][inic - 1:fin + 2]
     alpha_distgamma_prec = parám['Alpha_distgamma_prec']
     prec_total_prom_mens = parám['Prec_total_prom_mens']
     prob_lluv_después_seco = parám['Prob_lluv_después_seco']
@@ -69,20 +69,20 @@ def wgenparám(parám, fecha_inic, fecha_fin):
 
     prob_lluv_después_lluv = parám['Prob_lluv_después_lluv'] = []
     beta_distgamma_prec = parám['Beta_distgamma_prec'] = []
-    for mes in range(inic, fin+1):
+    for mes in range(inic, fin + 1):
         if abs(prom_días_prec_mens) < 1E-4 or abs(prec_total_prom_mens) < 1E-4:
             prob_lluv_después_seco.append(0)
             prob_lluv_después_lluv.append(0)
             alpha_distgamma_prec.append(0.44)
             beta_distgamma_prec.append(0)
         else:
-            núm_días = calendario.monthrange(fecha_inic.year + mat.floor(mes/12), mes % 12 + 1)[1]
-            prob_lluv = prom_días_prec_mens[mes]/núm_días
-            prob_lluv_después_lluv.append(1 - prob_lluv_después_seco * (1-prob_lluv)/prob_lluv)
+            núm_días = calendario.monthrange(fecha_inic.year + mat.floor(mes / 12), mes % 12 + 1)[1]
+            prob_lluv = prom_días_prec_mens[mes] / núm_días
+            prob_lluv_después_lluv.append(1 - prob_lluv_después_seco * (1 - prob_lluv) / prob_lluv)
             prob_lluv_después_lluv.append(min(max(prob_lluv_después_lluv[mes], 0), 1))
             alpha_distgamma_prec.append(min(max(alpha_distgamma_prec[mes], 0.01), 0.998))
-            prom_precip_día_lluv = prec_total_prom_mens[mes]/prom_días_prec_mens[mes]
-            beta_distgamma_prec.append(max(prom_precip_día_lluv/alpha_distgamma_prec[mes], 0))
+            prom_precip_día_lluv = prec_total_prom_mens[mes] / prom_días_prec_mens[mes]
+            beta_distgamma_prec.append(max(prom_precip_día_lluv / alpha_distgamma_prec[mes], 0))
 
     return parám
 
@@ -93,7 +93,7 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
     inic = meses.index(ft.date(fecha_inic.year, fecha_inic.month, 1))
     fin = meses.index(ft.date(fecha_fin.year, fecha_fin.month + 1, 1) - ft.timedelta(1))
     for p in parám:
-        parám[p] = parám[p][inic-1:fin+1]
+        parám[p] = parám[p][inic - 1:fin + 1]
 
     rad_prom_mens = parám['Rad_prom_mens']
     tdía_máx_prom_mens = parám['Tdía_máx_prom_mens']
@@ -106,7 +106,7 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
     prob_lluv_después_lluv = parám['Prob_lluv_después_lluv'] = []
     beta_distgamma_prec = parám['Beta_distgamma_prec'] = []
 
-    for mes in range(inic, fin+1):
+    for mes in range(inic, fin + 1):
         if abs(prom_días_prec_mens) < 1E-4 or abs(prec_total_prom_mens) < 1E-4:
             prob_lluv.append(0)
             prob_lluv_después_seco.append(0)
@@ -114,14 +114,14 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
             alpha_distgamma_prec.append(0.44)
             beta_distgamma_prec.append(0)
         else:
-            núm_días = calendario.monthrange(fecha_inic.year + mat.floor(mes/12), mes % 12 + 1)[1]
+            núm_días = calendario.monthrange(fecha_inic.year + mat.floor(mes / 12), mes % 12 + 1)[1]
             prob_lluv.append(prom_días_prec_mens / núm_días)
             prob_lluv_después_seco.append(0.75 * prob_lluv)
-            temp = 1 - prob_lluv_después_seco[-1] * (1 - prob_lluv[-1])/prob_lluv[-1]
+            temp = 1 - prob_lluv_después_seco[-1] * (1 - prob_lluv[-1]) / prob_lluv[-1]
             prob_lluv_después_lluv.append(min(max(temp, 0), 1))
             prom_precip_día_lluv = prec_total_prom_mens / prom_días_prec_mens
             beta_distgamma_prec.append(max(-2.16 + 1.83 * prom_precip_día_lluv, 0.01))
-            alpha_distgamma_prec.append(min(max(prom_precip_día_lluv/beta_distgamma_prec, 0.01), 0.998))
+            alpha_distgamma_prec.append(min(max(prom_precip_día_lluv / beta_distgamma_prec, 0.01), 0.998))
 
     prom_prob_lluv = np.average(prob_lluv)
     prom_prob_lluv_después_seco = np.average(prob_lluv_después_seco)
@@ -130,12 +130,12 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
     savg = 23.87 * fourier_rad_prom_mens[0]
     sdiff = abs(410. - 3.21 * lat - 0.350 * savg)
     fourier_prom_rad_dia_seco_mens = np.zeros(3)
-    fourier_prom_rad_dia_seco_mens[0] = (savg+prom_prob_lluv*sdiff) * 0.04189
+    fourier_prom_rad_dia_seco_mens[0] = (savg + prom_prob_lluv * sdiff) * 0.04189
     fourier_prom_rad_dia_seco_mens[1] = fourier_rad_prom_mens[1]
     fourier_prom_rad_dia_seco_mens[2] = fourier_rad_prom_mens[2]
 
     fourier_prom_rad_dia_lluv_mens = np.zeros(3)
-    fourier_prom_rad_dia_lluv_mens[0] = (savg-(1.0-prom_prob_lluv)*sdiff) * 0.04189
+    fourier_prom_rad_dia_lluv_mens[0] = (savg - (1.0 - prom_prob_lluv) * sdiff) * 0.04189
     fourier_prom_rad_dia_lluv_mens[1] = fourier_rad_prom_mens[1]
     fourier_prom_rad_dia_lluv_mens[2] = fourier_rad_prom_mens[2]
 
@@ -150,14 +150,14 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
     srwcvf[2] = fourier_rad_prom_mens[2]
 
     fourier_tdía_máx_prom_mens = fourcf(tdía_máx_prom_mens)
-    tdiff = abs(9.67-27.4 * prom_prob_lluv_después_seco) * 5/9
+    tdiff = abs(9.67 - 27.4 * prom_prob_lluv_después_seco) * 5 / 9
     fourier_prom_temp_dia_seco_mens = np.zeros(3)
-    fourier_prom_temp_dia_seco_mens[0] = fourier_tdía_máx_prom_mens[0] + prom_prob_lluv*tdiff
+    fourier_prom_temp_dia_seco_mens[0] = fourier_tdía_máx_prom_mens[0] + prom_prob_lluv * tdiff
     fourier_prom_temp_dia_seco_mens[1] = fourier_tdía_máx_prom_mens[1]
     fourier_prom_temp_dia_seco_mens[2] = fourier_tdía_máx_prom_mens[2]
 
     fourier_prom_temp_dia_lluv_mens = np.zeros(3)
-    fourier_prom_temp_dia_lluv_mens[0] = fourier_tdía_máx_prom_mens[0] - (1.-prom_prob_lluv)*tdiff
+    fourier_prom_temp_dia_lluv_mens[0] = fourier_tdía_máx_prom_mens[0] - (1. - prom_prob_lluv) * tdiff
     fourier_prom_temp_dia_lluv_mens[1] = fourier_tdía_máx_prom_mens[1]
     fourier_prom_temp_dia_lluv_mens[2] = fourier_tdía_máx_prom_mens[2]
 
@@ -170,7 +170,7 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
     prom_temp_dia_lluv_mens = []
     varia_temp_dia_min_prom = []
     varia_temp_dia_lluv_mens = []
-    for m in range(inic, fin+1):
+    for m in range(inic, fin + 1):
         mes = m % 12 + 1
         prom_rad_dia_seco_mens.append(fourin(fourier_prom_rad_dia_seco_mens, mes))
         prom_rad_dia_lluv_mens.append(fourin(fourier_prom_rad_dia_lluv_mens, mes))
@@ -181,9 +181,9 @@ def simmeteogenparám(parám, lat, fecha_inic, fecha_fin):
 
         prom_temp_dia_seco_mens.append(fourin(fourier_prom_temp_dia_seco_mens, mes))
         prom_temp_dia_lluv_mens.append(fourin(fourier_prom_temp_dia_lluv_mens, mes))
-        varia_temp_dia_seco_mens.append(max(5.8-0.09 * prom_temp_dia_seco_mens[-1], 0.5))
-        varia_temp_dia_lluv_mens.append(max(5.8-0.09 * prom_temp_dia_lluv_mens[-1], 0.5))
-        varia_temp_dia_min_prom.append(max(5.2-0.13 * tdía_mín_prom_mens[m], 0.5))
+        varia_temp_dia_seco_mens.append(max(5.8 - 0.09 * prom_temp_dia_seco_mens[-1], 0.5))
+        varia_temp_dia_lluv_mens.append(max(5.8 - 0.09 * prom_temp_dia_lluv_mens[-1], 0.5))
+        varia_temp_dia_min_prom.append(max(5.2 - 0.13 * tdía_mín_prom_mens[m], 0.5))
 
     parám['Prom_rad_dia_seco_mens'] = prom_rad_dia_seco_mens
     parám['Varia_rad_dia_seco_mens'] = varia_rad_dia_seco_mens
@@ -220,8 +220,8 @@ def generar(parám, lat, fecha_inic, fecha_fin):
                     if f < m:
                         continue
                     else:
-                        diff = parám[p][k] - parám[p][k-1]
-                        estimo = parám[p][k-1] + diff * (f-parám['Mes'][k-1]).days
+                        diff = parám[p][k] - parám[p][k - 1]
+                        estimo = parám[p][k - 1] + diff * (f - parám['Mes'][k - 1]).days
                         corrección = correcciones[p][k]
                         parám_día[p] = estimo + corrección
 
@@ -247,24 +247,24 @@ def generar(parám, lat, fecha_inic, fecha_fin):
         if (not llovió_ayer and alea < prob_lluv_después_seco) or (llovió_ayer and alea < prob_lluv_después_lluv):
             aa = 1 / alpha_distgamma_prec
             ab = 1 / (1 - alpha_distgamma_prec)
-            tr1 = mat.exp(-18.42/aa)
-            tr2 = mat.exp(-18.42/ab)
+            tr1 = mat.exp(-18.42 / aa)
+            tr2 = mat.exp(-18.42 / ab)
             s1 = 1
             s2 = 1
 
-            while (s1+s2) > 1:
+            while (s1 + s2) > 1:
                 alea = aleatorio.uniform(0, 1)
                 if alea <= tr1:
                     s1 = 0
                 else:
-                    s1 = alea**aa
+                    s1 = alea ** aa
                 alea = aleatorio.uniform(0, 1)
                 if alea <= tr2:
                     s2 = 0
                 else:
                     s2 = alea ** ab
 
-            z = s1 / (s1+s2)
+            z = s1 / (s1 + s2)
             alea = aleatorio.uniform(0, 1)
             precip = max(-z * mat.log(alea) * beta_distgamma_prec, 0.1)
         else:
@@ -292,7 +292,7 @@ def generar(parám, lat, fecha_inic, fecha_fin):
         while k <= 2:
             alea_1 = aleatorio.uniform(0, 1)
             alea_2 = aleatorio.uniform(0, 1)
-            v = mat.sqrt(-2 * mat.log(alea_1))*mat.cos(2 * mat.pi * alea_2)
+            v = mat.sqrt(-2 * mat.log(alea_1)) * mat.cos(2 * mat.pi * alea_2)
             if abs(v) <= 2.5:
                 e[k] = v
                 k += 1
@@ -332,16 +332,16 @@ def generar(parám, lat, fecha_inic, fecha_fin):
 
 def rad_entrando(día, lat):
     radios = mat.pi / 180
-    t = 2 * mat.pi * (día + 10)/365
+    t = 2 * mat.pi * (día + 10) / 365
     c1 = mat.cos(t)
     dec = - 23.45 * c1
-    ssin = mat.sin(radios*dec) * mat.sin(radios * lat)
-    ccos = mat.cos(radios*dec) * mat.cos(radios*lat)
+    ssin = mat.sin(radios * dec) * mat.sin(radios * lat)
+    ccos = mat.cos(radios * dec) * mat.cos(radios * lat)
     soc = ssin / ccos
     soc = min(max(soc, -1), 1)
-    dayl = 12 + 24 * mat.asin(soc)/mat.pi
-    dsinb = 3600 * (dayl*ssin + 24/mat.pi*ccos*mat.sqrt(1-soc**2))
-    sc = 1368 * (1 + 0.033*mat.cos(2*mat.pi*día/365))
+    dayl = 12 + 24 * mat.asin(soc) / mat.pi
+    dsinb = 3600 * (dayl * ssin + 24 / mat.pi * ccos * mat.sqrt(1 - soc ** 2))
+    sc = 1368 * (1 + 0.033 * mat.cos(2 * mat.pi * día / 365))
 
     s0d = sc * dsinb
     rad = s0d / 1E6
@@ -355,7 +355,7 @@ def corregir(parám):
         correcciones[p] = []
         if p != 'Mes':
             for m in parám['Mes']:
-                corrección = parám[p][m] - (0.25 * (parám[p][m-1] + 2 * parám[p][m] + parám[p][m+1]))
+                corrección = parám[p][m] - (0.25 * (parám[p][m - 1] + 2 * parám[p][m] + parám[p][m + 1]))
                 correcciones[p].append(corrección)
     return correcciones
 
@@ -366,7 +366,7 @@ def fourcf(y):
     sum1 = 0.0
     sum2 = 0.0
     for m in range(len(y)):
-        x = rad * ((m+1)-0.5)
+        x = rad * ((m + 1) - 0.5)
         sum0 += y[m]
         sum1 += y[m] * mat.cos(x)
         sum2 += y[m] * mat.sin(x)
@@ -385,6 +385,6 @@ def fourcf(y):
 
 def fourin(coef, mes):
     rad = 2 * mat.pi / 12
-    x = rad * (mes-0.5)
+    x = rad * (mes - 0.5)
 
-    return coef[0] + coef[1] * mat.cos(x-coef[2])
+    return coef[0] + coef[1] * mat.cos(x - coef[2])

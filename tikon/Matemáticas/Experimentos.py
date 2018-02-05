@@ -83,7 +83,7 @@ class Experimento(object):
             if por_parcela:
                 # Simplificar el código
                 datos = dic_egr['datos']  # type: np.ndarray
-                parc = dic_egr['parc'].tolist()    # type: str
+                parc = dic_egr['parc'].tolist()  # type: str
 
                 # Calcular superficies
                 superficies = símismo.superficies(parc=parc)
@@ -197,7 +197,7 @@ class Experimento(object):
                     índ_p = nombres.index(p)  # Puede causar un ValueError aquí...
                     sfc = símismo.datos['Parcelas']['Superficies'][índ_p]
                     if sfc == np.nan:
-                        raise ValueError   # ...¡o aquí!
+                        raise ValueError  # ...¡o aquí!
                     else:
                         superficies[i] = sfc
 
@@ -417,7 +417,6 @@ class Experimento(object):
 
                 # Si posible, calcular la superficie
                 if dic_parc['Polígonos'][í_p] is not None:
-
                     coords = dic_parc['Polígonos'][í_p]
 
                     # Una función obscura...
@@ -493,7 +492,7 @@ class Experimento(object):
             # Si no se especificaron parcelas, nombrar la única parcela "1".
             v_parc = np.ones(n_obs, dtype=int).astype(str)
         parc_únicas = np.unique(v_parc)  # Nombres de parcelas únicos, en orden alfabético
-        v_í_parc = np.array([np.argwhere(parc_únicas==x)[0][0] for x in v_parc])
+        v_í_parc = np.array([np.argwhere(parc_únicas == x)[0][0] for x in v_parc])
 
         # La fecha inicial y el vector de días relativos a la fecha inicial.
         fecha_inic, v_días = bd.obt_días(col=col_tiempo)
@@ -501,7 +500,7 @@ class Experimento(object):
         # Actualizar las fechas del Experimento, si necesario.
         símismo.actualizar_fechas(nueva_fecha_inic=fecha_inic, días=v_días)
         días_únicos = np.unique(v_días)  # Vector de días únicos
-        v_í_días = np.array([np.argwhere(días_únicos==x)[0][0] for x in v_días])
+        v_í_días = np.array([np.argwhere(días_únicos == x)[0][0] for x in v_días])
 
         # El número de parcelas, días y etapas únicas.
         n_parc = parc_únicas.shape[0]
@@ -842,7 +841,7 @@ class BDtexto(BD):
         with open(símismo.archivo) as d:
             lector = csv.DictReader(d)
             for n_f, f in enumerate(lector):
-                m_datos[:, n_f] = [float(f[c]) if f[c] != '' else np.nan for c in cols]
+                m_datos[:, n_f] = [float(f[c]) if f[c].strip() != '' else np.nan for c in cols]
 
         if len(cols) == 1:
             m_datos = m_datos[0]
@@ -860,7 +859,7 @@ class BDtexto(BD):
         if not isinstance(cols, list):
             cols = [cols]
 
-        l_datos = [['']*símismo.n_obs]*len(cols)
+        l_datos = [[''] * símismo.n_obs] * len(cols)
 
         with open(símismo.archivo) as d:
             lector = csv.DictReader(d)

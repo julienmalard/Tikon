@@ -138,7 +138,7 @@ class Hojas(Planta):
     Una planta muy sencilla, con crecimiento logístico. Puede ser util para plantas vivaces y pruebas de modelos.
     """
 
-    def __init__(símismo, nombre, proyecto=None,):
+    def __init__(símismo, nombre, proyecto=None, ):
         """
         Una planta Sencilla tiene una única parte de la planta, llamada "planta".
 

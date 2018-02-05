@@ -1,12 +1,10 @@
 import os
 
 import numpy as np
-from tikon.Matemáticas.Incert import VarCalib
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
-from scipy import stats as estad
 
-from tikon.Matemáticas.Incert import texto_a_dist
+from tikon.Matemáticas.Incert import VarCalib, VarSciPy
 from tikon.Controles import valid_archivo
 
 
@@ -43,7 +41,7 @@ def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, dire
     x = np.arange(datos.shape[0])
 
     # Dibujar la línea
-    fig=Figura()
+    fig = Figura()
     TelaFigura(fig)
     ejes = fig.add_subplot(111)
     ejes.set_aspect('equal')
@@ -56,9 +54,8 @@ def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, dire
 
     ejes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
-
     if directorio[-4:] != '.png':
-        válidos = (' ', '.','_')
+        válidos = (' ', '.', '_')
         nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
         directorio = os.path.join(directorio, nombre_arch)
     fig.savefig(directorio)
@@ -97,10 +94,7 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_
     :param incert: El tipo de incertidumbre para mostrar (o no). Puede ser None, 'confianza', o 'descomponer'.
     :type incert: str | None
 
-    :param todas_líneas: Si hay que mostrar todas las líneas de las repeticiones o no.
-    :type todas_líneas: bool
-
-    :param n_líneas:
+    :param n_líneas: El número de líneas de repeticiones para mostrar.
     :type n_líneas: int
 
     :param directorio: El archivo donde guardar el gráfico
@@ -122,7 +116,6 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_
     fig = Figura()
     TelaFigura(fig)
     ejes = fig.add_subplot(111)
-    ejes.set_aspect('equal')
 
     # El vector de días
     x = np.arange(matr_predic.shape[2])
@@ -161,15 +154,14 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_
 
         # Para cada percentil...
         for n, p in enumerate(percentiles):
-
             # Percentiles máximos y mínimos
-            máx_perc = np.percentile(matr_predic, 50+p/2, axis=(0, 1))
-            mín_perc = np.percentile(matr_predic, (100-p)/2, axis=(0, 1))
+            máx_perc = np.percentile(matr_predic, 50 + p / 2, axis=(0, 1))
+            mín_perc = np.percentile(matr_predic, (100 - p) / 2, axis=(0, 1))
 
             # Calcular el % de opacidad y dibujar
             op_máx = 0.5
             op_mín = 0.01
-            opacidad = (1-n/(len(percentiles)-1)) * (op_máx - op_mín) + op_mín
+            opacidad = (1 - n / (len(percentiles) - 1)) * (op_máx - op_mín) + op_mín
 
             ejes.fill_between(x, máx_perc_ant, máx_perc,
                               facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
@@ -234,7 +226,7 @@ def graficar_pred(matr_predic, título, vector_obs=None, tiempos_obs=None, etiq_
     ejes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
     if directorio[-4:] != '.png':
-        válidos = (' ', '.','_')
+        válidos = (' ', '.', '_')
         nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
         directorio = os.path.join(directorio, nombre_arch)
     fig.savefig(directorio)
@@ -285,16 +277,15 @@ def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
         else:
 
             if isinstance(dist, str):
-                dist = texto_a_dist(texto=dist, usar_pymc=False)
+                dist = VarSciPy.de_texto(texto=dist)
 
-            if isinstance(dist, estad._distn_infrastructure.rv_frozen):
-                x = np.linspace(dist.ppf(0.01), dist.ppf(0.99), n)
-                y = dist.pdf(x)
+            if isinstance(dist, VarSciPy):
+                x = np.linspace(dist.percentiles(0.01), dist.percentiles(0.99), n)
+                y = dist.fdp(x)
             else:
                 raise TypeError('El tipo de distribución "%s" no se reconoce como distribución aceptada.' % type(dist))
 
             ejes = fig.add_subplot(111)
-            ejes.set_aspect('equal')
 
             # Dibujar la distribución
             ejes.plot(x, y, 'b-', lw=2, alpha=0.6)

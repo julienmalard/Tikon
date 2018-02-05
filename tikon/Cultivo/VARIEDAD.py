@@ -5,7 +5,8 @@ from tikon.Coso import Coso
 class Variedad(Coso):
     def __init__(símismo, nombre, directorio):
         # El diccionario de los datos para cada variedad de cultivo
-        dic = dict(Nombre=nombre, Día_corto_crít=(), Pend_desarroll_fotoper=(), Tiempo_emerg_flor=(), Tiempo_flor_fruta=(),
+        dic = dict(Nombre=nombre, Día_corto_crít=(), Pend_desarroll_fotoper=(), Tiempo_emerg_flor=(),
+                   Tiempo_flor_fruta=(),
                    Tiempo_flor_sem=(), Tiempo_sem_matur=(), Tiempo_flor_finhoja=(), Foto_máx=(),
                    Superfi_spec_hoja=(), Tamañ_hoja_máx=(), Máx_crec_semfrut=(), Peso_sem_máx=(),
                    Tiempo_llenar_sem=(), Sem_por_frut=(), Tiempo_llen_sem_opt=(), Ratio_sem_frut=(),

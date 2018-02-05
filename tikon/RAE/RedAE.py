@@ -1,10 +1,14 @@
 import math as mat
 import os
 from copy import deepcopy as copiar_profundo
+from datetime import datetime as ft
 from warnings import warn as avisar
 
 import numpy as np
 
+from . import Insecto as Ins
+from .Gen_organismos import generar_org
+from .Organismo import Organismo
 from ..Coso import Simulable, dic_a_lista
 from ..Matemáticas import Distribuciones as Ds, Ecuaciones as Ec, Arte
 from ..Matemáticas.Incert import validar_matr_pred
@@ -248,7 +252,7 @@ class Red(Simulable):
                 n += 1
 
         # Crear etapas fantasmas para huéspedes infectados
-        for n_etp, etp in enumerate(símismo.etapas):
+        for n_etp, etp in enumerate(símismo.etapas):  # type: int, dict
             # Para cada etapa de la Red...
 
             # El diccionario de huéspedes de la etapa
@@ -1442,7 +1446,7 @@ class Red(Simulable):
         antes = ft.now()
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
         ahora = ft.now()
-        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds/1000000
+        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
         verificar_estado('Depredación')
 
         # Una población que crece (misma etapa)
@@ -2091,7 +2095,6 @@ class Red(Simulable):
         d_preds_v = {}  # El diccionario de matrices de simulación que vinculados con observaciones
         d_días_obs = {}
 
-
         # Diccionario temporario para organizar los índices
         d_índs = {}
 
@@ -2240,11 +2243,12 @@ class Red(Simulable):
             # Guardar los valores
             d_obs_c['Normal'][r[0]:r[1]] = m[parc, etps, días]
 
-    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, calibs=None, dib_dists=False):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, ubics_paráms=None, calibs=None, dib_dists=False):
         """
         Ver la documentación de Coso.
 
         :type n_rep_parám: int
+        :type ubics_paráms: list[list[str]]
         :type calibs: list | str
         :type dib_dists: bool
         :type calibs: list
@@ -2320,7 +2324,27 @@ class Red(Simulable):
 
                                     título = símismo.etapas[n_etp]['org'] + ', ' + símismo.etapas[n_etp]['nombre']
 
-                                    Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs
+                                    if ubics_paráms is None:
+                                        calibs_i = []
+                                    else:
+                                        org = símismo.etapas[n_etp]['org']
+                                        etp = símismo.etapas[n_etp]['nombre']
+                                        i_hués = next((i_f for i_f, d in símismo.fantasmas.items()
+                                                       if org in d and d[org] == n_etp), None)
+                                        if i_hués is None:
+                                            ubic = [org, etp, categ, subcateg, parám]
+                                            i_c = ubics_paráms.index(ubic)
+                                        else:
+                                            org_hués = símismo.etapas[i_hués]['org']
+                                            etp_hués = símismo.etapas[i_hués]['nombre']
+                                            try:
+                                                ubic = [org_hués, etp_hués, categ, subcateg, parám]
+                                                i_c = ubics_paráms.index(ubic)
+                                            except ValueError:
+                                                ubic = [org, 'juvenil', categ, subcateg, parám]
+                                                i_c = ubics_paráms.index(ubic)
+                                        calibs_i = calibs[i_c]
+                                    Arte.graficar_dists(dists=[d for x, d in d_parám_etp.items() if x in calibs_i
                                                                and type(d) is str], valores=matr_etp, título=título,
                                                         archivo=directorio_dib)
 
@@ -2373,12 +2397,37 @@ class Red(Simulable):
                                                             directorio=directorio_dib)
 
                                                         título = símismo.etapas[n_etp]['org'] + ', ' + \
-                                                                 símismo.etapas[n_etp]['nombre'] + \
-                                                                 ' _ ' + org_víc + ', ' + etp_víc
+                                                                 símismo.etapas[n_etp][
+                                                                     'nombre'] + ' _ ' + org_víc + ', ' + etp_víc
+
+                                                        if ubics_paráms is None:
+                                                            calibs_i = []
+                                                        else:
+                                                            org = símismo.etapas[n_etp]['org']
+                                                            etp = símismo.etapas[n_etp]['nombre']
+                                                            i_hués = next((i_f for i_f, d in símismo.fantasmas.items()
+                                                                           if org in d and d[org] == n_etp), None)
+                                                            if i_hués is None:
+                                                                ubic = [org, etp, categ, subcateg, parám, org_víc,
+                                                                        etp_víc]
+                                                                i_c = ubics_paráms.index(ubic)
+                                                            else:
+                                                                org_hués = símismo.etapas[i_hués]['org']
+                                                                etp_hués = símismo.etapas[i_hués]['nombre']
+                                                                try:
+                                                                    ubic = [org_hués, etp_hués, categ, subcateg, parám,
+                                                                            org_víc, etp_víc]
+                                                                    i_c = ubics_paráms.index(ubic)
+                                                                except ValueError:
+                                                                    ubic = [org, 'juvenil', categ, subcateg, parám,
+                                                                            org_víc, etp_víc]
+                                                                    i_c = ubics_paráms.index(ubic)
+
+                                                            calibs_i = calibs[i_c]
 
                                                         Arte.graficar_dists(
                                                             dists=[d for x, d in d_parám_etp[org_víc][etp_víc].items()
-                                                                   if x in calibs and type(d) is str],
+                                                                   if x in calibs_i and type(d) is str],
                                                             valores=matr_etp[:, n], título=título,
                                                             archivo=directorio_dib)
 
@@ -2595,13 +2644,13 @@ class Red(Simulable):
             edades = símismo.predics['Cohortes']['Edades']
 
             muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
-            
+
             totales_pobs = np.sum(pobs, axis=0)
             quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
             quitar[np.isnan(quitar)] = 0
 
             np.subtract(pobs, quitar, out=pobs)
-            
+
             np.subtract(muertes, quitar.sum(axis=0), out=muertes)
 
             cum_presente = np.cumsum(np.greater(pobs, 0), axis=0)
@@ -2624,7 +2673,6 @@ class Red(Simulable):
 
                 # Para cada cohorte...
                 for n_día in range(pobs.shape[0]):
-
                     # Las edades de las etapas que se quitaron
                     eds = edades[n_día, ...]
 
@@ -2741,7 +2789,6 @@ class Red(Simulable):
 
         # Ahora agregamos matrices para cálculos
 
-
         return dic
 
     def ubicar(símismo, lugar):
@@ -2752,6 +2799,7 @@ class Red(Simulable):
         :return:
         """
         símismo.lugar = lugar
+
 
 # Funciones auxiliares
 def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
@@ -2962,4 +3010,3 @@ def copiar_dic_coefs(d, c=None):
             c[ll] = v
 
     return c
-

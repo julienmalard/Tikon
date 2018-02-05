@@ -8,16 +8,15 @@ from datetime import datetime as ft
 from warnings import warn as avisar
 
 import numpy as np
-import pymc
-import pymc3
 
+from tikon.Matemáticas.Incert import VarCalib, VarSciPy
 from tikon import __correo__
-from tikon.Matemáticas.Incert import VarCalib
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
 from tikon.Matemáticas.Calib import ModBayes, ModGLUE, ModCalib
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Matemáticas.Sensib import prep_anal_sensib
+
 
 class Coso(object):
     """
@@ -346,8 +345,7 @@ class Coso(object):
         except KeyError:
             raise KeyError('Ubicación de parámetro erróneo.')
 
-        texto_dist = Incert.rango_a_texto_dist(líms=líms, rango=rango, certidumbre=certidumbre,
-                                               cont=True)
+        texto_dist = '{}; {}en{}'.format(str(líms), certidumbre, str(rango))
 
         # Si hay interacciones, buscar
         if inter is None:
@@ -559,8 +557,8 @@ class Coso(object):
 
                     líms = d_ecs['límites']
 
-                    dist = Incert.ajustar_dist(datos=datos, cont=cont, límites=líms, usar_pymc=False)[0]
-                    d[ll] = Incert.dist_a_texto(dist)
+                    dist = VarSciPy.ajust_dist(datos=datos, cont=cont, líms=líms)
+                    d[ll] = dist.a_texto()
 
         # Generar un diccionario para guardar los a prioris
         dic_aprioris = gen_dic_vacío(dic_info_ecs)
@@ -765,7 +763,7 @@ class Simulable(Coso):
                 tiempo_final[exp] = t_final
 
         # Preparar la lista de parámetros de interés
-        lista_paráms = símismo._gen_lista_coefs_interés_todos()[0]
+        lista_paráms, _, ubics_paráms = símismo._gen_lista_coefs_interés_todos()
         lista_calibs = símismo._filtrar_calibs(calibs=calibs, l_paráms=lista_paráms,
                                                usar_especificadas=usar_especificadas)
 
@@ -775,7 +773,8 @@ class Simulable(Coso):
                               comunes=(calibs == 'Comunes'), n_rep_parám=n_rep_parám)
 
         # Llenar las matrices internas de coeficientes
-        símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, dib_dists=dib_dists, calibs=lista_calibs)
+        símismo._llenar_coefs(nombre_simul=nombre, n_rep_parám=n_rep_parám, ubics_paráms=ubics_paráms,
+                              dib_dists=dib_dists, calibs=lista_calibs)
 
         # Simular los experimentos
         dic_argums = símismo._prep_args_simul_exps(exper=exper, paso=paso, tiempo_final=tiempo_final)
@@ -848,8 +847,6 @@ class Simulable(Coso):
         # 4. Preparar el diccionario de argumentos para la función "simul_calib", según los experimentos escogidos
         # para la calibración.
         exper = símismo._prep_lista_exper(exper=exper)  # La lista de experimentos
-
-
 
         # 0.5 Hacer calibración por pedazitos, si lo queremos
         nombre_pdzt_ant = None
@@ -1294,7 +1291,7 @@ class Simulable(Coso):
 
         raise NotImplementedError
 
-    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, calibs=None):
+    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, ubics_paráms=None, calibs=None):
         """
         Transforma los diccionarios de coeficientes a matrices internas (para aumentar la rapidez de la simulación).
         Las matrices internas, por supuesto, dependerán del tipo de Simulable en cuestión. No obstante, todas
@@ -1469,13 +1466,11 @@ class Simulable(Coso):
 
         # Para cada experimento...
         for exp in exper:
-
             obj_exp = símismo.exps[exp]['Exp']
 
             # La superficie de cada parcela (en ha)
             parc = obj_exp.obt_parcelas(tipo=símismo.ext)
             tamaño_parcelas = obj_exp.superficies(parc=parc)
-
 
             n_pasos = mat.ceil(tiempo_final[exp] / paso) + 1
 
@@ -1505,17 +1500,17 @@ class Simulable(Coso):
         :param exper:
         :type exper:
         :param n_rep_estoc:
-        :type n_rep_estoc:
+        :type n_rep_estoc: int
         :param n_rep_paráms:
-        :type n_rep_paráms:
+        :type n_rep_paráms: int
         :param paso:
-        :type paso:
-        :param tiempo_final:
-        :type tiempo_final:
+        :type paso: int
+        :param n_pasos:
+        :type n_pasos: int
         :param detalles:
-        :type detalles:
+        :type detalles: bool
         :param tipo:
-        :type tipo:
+        :type tipo: str
         :return:
         :rtype:
         """
@@ -2018,9 +2013,11 @@ class Simulable(Coso):
         if nombre is None:
             nombre = int(random.random() * 1e10)
 
-            # Evitar el caso muy improbable que el código aleatorio ya existe
+            # Evitar el caso muy improbable de que el código aleatorio ya existe
             while nombre in símismo.receta['Calibraciones']:
                 nombre = int(random.random() * 1e10)
+
+            avisar('Nombre aleatorio ("{}") escogido como nombre de esta calibración.'.format(nombre))
 
         return str(nombre)
 
@@ -2099,7 +2096,7 @@ def prep_receta_json(d, d_egr=None):
             # Transformar matrices numpy a texto
             d_egr[ll] = v.tolist()
 
-        elif isinstance(v, pymc.Stochastic) or isinstance(v, pymc.Deterministic) or isinstance(v, pymc3.model.TensorVariable):
+        elif isinstance(v, VarCalib):
 
             # Si el itema es un variable de PyMC, borrarlo
             d_egr.pop(ll)

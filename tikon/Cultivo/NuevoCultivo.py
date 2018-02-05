@@ -1,6 +1,7 @@
-import numpy as np
 import os
 import subprocess
+
+import numpy as np
 
 from tikon.Coso import Simulable
 from tikon.Cultivo import Controles as ctrl
@@ -171,7 +172,7 @@ class EnvolturaModCult(object):
                     ('Í', 'I'), ('Ó', 'O'), ('Ú', 'U')]
         for c in conv_utf:
             tx_daño_plagas.replace(c[0], c[1])
-        
+
         # Agregar el paso
         tx = 'paso: {}:'.format(paso) + tx_daño_plagas
 
@@ -182,7 +183,7 @@ class EnvolturaModCult(object):
         # Los egresos llegarán en el formato siguiente:
         # raices: valor; hojas: valor; ...
         l_egr = egr.split(';')
-        
+
         # Guardar los valores comunicados por el modelo externo
         for e in l_egr:
             nmb, val = e.split(': ')
@@ -217,7 +218,6 @@ class EnvolturaDSSAT(EnvolturaModCult):
 dic_info = {
     'exe_DSSAT': 'DSCSM046_TKN.EXE'
 }
-
 
 mods_cult = {
     'Maíz': {
