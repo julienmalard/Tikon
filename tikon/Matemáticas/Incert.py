@@ -619,6 +619,9 @@ class VarAlea(object):
         :param cont: Indica si la distribución es una distribución contínua o discreta.
         :type cont: bool
 
+        :param nombre: El nombre de la distribución (se emplea únicamente para variables PyMC).
+        :type nombre: str
+
         :return: Una distribución con las características deseadas.
         :rtype: VarAlea
 
@@ -769,7 +772,7 @@ class VarSciPy(VarAlea):
 
             # Una idea de la escala del rango de incertidumbre
             # Para hacer: ¿utilizar distribuciones exponenciales para escalas grandes?
-            escala_rango = líms_dens[1] - líms_dens[0]
+            # escala_rango = líms_dens[1] - líms_dens[0]
 
             # Invertir distribuciones en (-inf, R]
             if mín == -np.inf and máx != np.inf:
@@ -1037,10 +1040,10 @@ class VarSciPy(VarAlea):
 
     @classmethod
     def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
-        return cls.approx_dist(datos=datos, líms=líms, cont=cont)
+        return cls.aprox_dist(datos=datos, líms=líms, cont=cont)
 
     @classmethod
-    def approx_dist(cls, datos, líms, cont, lista_dist=None):
+    def aprox_dist(cls, datos, líms, cont, lista_dist=None):
         """
 
         :param datos:
@@ -1069,7 +1072,7 @@ class VarSciPy(VarAlea):
 
         dists_potenciales = [x for x in Ds.dists if Ds.dists[x]['tipo'] == categ_dist]
 
-        if lista_dist is None:
+        if lista_dist is not None:
             dists_potenciales = [x for x in dists_potenciales if x in lista_dist]
 
         dists_potenciales = [x for x in dists_potenciales if x in cls.dists_disp()]
@@ -1083,9 +1086,6 @@ class VarSciPy(VarAlea):
 
             # El diccionario de la distribución
             dic_dist = Ds.dists[nombre_dist]
-
-            # El tipo de distribución (nombre SciPy)
-            nombre_scipy = dic_dist['scipy'].name
 
             # El máximo y el mínimo de la distribución
             mín_dist, máx_dist = dic_dist['límites']
@@ -1622,7 +1622,7 @@ class VarPyMC2(VarCalib):
         :type cont:
         :param lista_dist: La lsita de distribuciones posibles. Si no se especifica, se tomará la lista de
           distribuciones disponibles para este tipo de variable. El uso de límites (-inf, +inf) en las llamadas a
-          :func:`VarSciPy.approx_dist` aseguran que éste únicamente tome distribuciones sin límites.
+          :func:`VarSciPy.aprox_dist` aseguran que éste únicamente tome distribuciones sin límites.
         :type lista_dist: list[str]
         :param nombre:
         :type nombre:
@@ -1641,7 +1641,8 @@ class VarPyMC2(VarCalib):
 
         if mín == -np.inf:
             if máx == np.inf:
-                ajustado = VarSciPy.approx_dist(datos=datos, líms=(-np.inf, np.inf), cont=cont, lista_dist=lista_dist)
+                ajustado = VarSciPy.aprox_dist(datos=datos, líms=(-np.inf, np.inf), cont=cont, lista_dist=lista_dist)
+                tipo_dist = ajustado['nombre']
                 paráms = ajustado['prms']  # Sacar el los parámetros de la distribución
 
             else:
@@ -1652,11 +1653,17 @@ class VarPyMC2(VarCalib):
             máx -= mín
             datos = np.subtract(datos, mín)  # No borrar datos originales
 
+            # Evitar log(0) y logit(0)
+            if np.min(datos) == 0:
+                transf['suma'] -= 1e-5
+                máx += 1e-5
+                datos = np.add(datos, 1e-5)
+
             if máx == np.inf:
 
                 log_datos = np.log(datos)
-                ajustado = VarSciPy.approx_dist(datos=log_datos, líms=(-np.inf, np.inf),
-                                                cont=cont, lista_dist=['Normal'])
+                ajustado = VarSciPy.aprox_dist(datos=log_datos, líms=(-np.inf, np.inf),
+                                               cont=cont, lista_dist=['Normal'])
                 tipo_dist = 'NormalExp'
                 paráms = {'mu': ajustado['prms']['ubic'], 'sigma': ajustado['prms']['escl'],
                           'ubic': transf['suma'], 'escl': transf['mult']}
@@ -1665,10 +1672,15 @@ class VarPyMC2(VarCalib):
                 transf['mult'] *= máx
                 datos = np.divide(datos, máx)  # No borrar datos originales
 
+                # Evitar logit(1)
+                if np.max(datos) == 1:
+                    transf['mult'] /= (1 - 1e-5)
+                    datos = np.multiply(datos, 1 - 1e-5)
+
                 lgt_datos = _logit(datos)
 
-                ajustado = VarSciPy.approx_dist(datos=lgt_datos, líms=(-np.inf, np.inf), cont=cont,
-                                                lista_dist=['Normal'])
+                ajustado = VarSciPy.aprox_dist(datos=lgt_datos, líms=(-np.inf, np.inf), cont=cont,
+                                               lista_dist=['Normal'])
                 tipo_dist = 'LogitInv'
                 paráms = {'mu': ajustado['prms']['ubic'], 'sigma': ajustado['prms']['escl'],
                           'ubic': transf['suma'], 'escl': transf['mult']}
@@ -1951,4 +1963,3 @@ def _logit(x):
 
 def _inv_logit(x):
     return np.divide(np.exp(x), np.add(np.exp(x), 1))
-
