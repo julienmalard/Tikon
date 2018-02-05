@@ -643,8 +643,8 @@ class Simulable(Coso):
         # Predicciones de datos (para simulaciones normales)
         símismo.predics = {}
 
-    def info_clima(símismo, T_mín, T_máx, precip, HR):
-        
+    def info_clima(símismo):
+
         raise NotImplementedError
 
     def actualizar(símismo):
