@@ -643,6 +643,10 @@ class Simulable(Coso):
         # Predicciones de datos (para simulaciones normales)
         símismo.predics = {}
 
+    def info_clima(símismo, T_mín, T_máx, precip, HR):
+        
+        raise NotImplementedError
+
     def actualizar(símismo):
         """
         Esta función actualiza las matrices internas del Simulable para prepararlo para una simulación.
