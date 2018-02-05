@@ -24,9 +24,9 @@ class Diario(Coso):
     def buscar(símismo, fecha_inic, fecha_fin):
 
         lugar = símismo.dic['Lugar']
-#        país = símismo.dic['País']
-#        departamento = símismo.dic['Departamento']
-#        municipio = símismo.dic['Municipio']
+        #        país = símismo.dic['País']
+        #        departamento = símismo.dic['Departamento']
+        #        municipio = símismo.dic['Municipio']
         coord = (símismo.dic['Lat'], símismo.dic['Long'])
 
         encontrado = faltan_pt = faltan_por = faltan = generamos = False
@@ -42,10 +42,10 @@ class Diario(Coso):
         col_lat = datos.index('Latitud')
         col_alt = datos.index('Altitud')
         col_municipio = datos.index('Municipio')
-        
+
         for lín in doc[1:]:
             datos = lín.split(',')
-            estaciones[datos[col_estación]] = dict(Estación=datos[col_estación], Lat=datos[col_lat], 
+            estaciones[datos[col_estación]] = dict(Estación=datos[col_estación], Lat=datos[col_lat],
                                                    Long=datos[col_long], Elev=datos[col_alt],
                                                    Municipio=datos[col_municipio])
 
@@ -111,7 +111,7 @@ class Diario(Coso):
 
                             # Aplicar la ecuación generada para las fechas para cuales hay datos en la otra estación
                             fechas_predecidas = [x for x in d['Fecha'] if x in tipo_f[var] and not
-                                                 np.isnan(d[var].index(x))]
+                            np.isnan(d[var].index(x))]
                             predictores = [x[var] for x in d if d['Fecha'] in fechas_predecidas]
                             estimaciones = [a + x * b for x in predictores]
 
@@ -180,13 +180,12 @@ class Clima(Coso):
 
     # Convierte los datos de clima en datos simulados de clima diario
     def gendiario(símismo, fecha_inic, fecha_fin):
-
         diario = Diario(nombre=símismo.nombre, coord=(símismo.dic['Lat'], símismo.dic['Long']))
         diario.dic['Lugar'] = símismo.dic['Lugar']
         diario.dic['Cód_lugar'] = símismo.dic['Cód_lugar']
         diario.dic['Elev'] = símismo.dic['Elev']
 
-        diario.dic['Fecha'] = [fecha_inic + ft.timedelta(days=x) for x in range((fecha_fin-fecha_inic).days)]
+        diario.dic['Fecha'] = [fecha_inic + ft.timedelta(days=x) for x in range((fecha_fin - fecha_inic).days)]
 
         # Generar datos diarios
         generados = generarmeteo(símismo.dic, fecha_inic, fecha_fin)

@@ -2,7 +2,6 @@ from tikon.RAE.Organismo import Organismo
 
 
 class Enfermedad(Organismo):
-
     ext = '.enf'  # La extensión para guardar archivos de esta clase.
 
     # ¡Marcela esta es para ti! :)
@@ -87,5 +86,4 @@ class EnfermedadHoja(Enfermedad):
 class DosHuéspedes(EnfermedadHoja):
 
     def __init__(símismo, nombre, huésped_1, huésped_2, proyecto):
-
         super().__init__(nombre=nombre, proyecto=proyecto, huéspedes=[huésped_1, huésped_2])

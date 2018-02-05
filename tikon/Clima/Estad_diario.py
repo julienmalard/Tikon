@@ -37,15 +37,15 @@ def ktrl(x, y):
 
     w = x.size()
     k = []
-    for i in range(w-1, 1, -1):
-        for j in range(0, i-2):
-            yk = y[i]-y[j]
-            xk = x[i]-x[j]
+    for i in range(w - 1, 1, -1):
+        for j in range(0, i - 2):
+            yk = y[i] - y[j]
+            xk = x[i] - x[j]
             k.append(yk / xk)
 
     k = np.array(k)
     b_ktrl = np.nanmedian(k)
-    a_ktrl = np.nanmedian(y)-(b_ktrl*(np.nanmedian(x)))
+    a_ktrl = np.nanmedian(y) - (b_ktrl * (np.nanmedian(x)))
 
     return a_ktrl[0], b_ktrl[0]
 
@@ -64,14 +64,14 @@ def ktrl2(x, y):
 
     k2 = []
     for i in range(18, 1, -1):
-        for j in range(0, i-2):
-            yk2 = qy[i]-qy[j]
-            xk2 = qx[i]-qx[j]
-            k2.append(yk2/xk2)
+        for j in range(0, i - 2):
+            yk2 = qy[i] - qy[j]
+            xk2 = qx[i] - qx[j]
+            k2.append(yk2 / xk2)
 
     k2 = np.array(k2)
     b_ktrl2 = np.nanmedian(k2)
-    a_ktrl2 = np.nanmedian(y)-(b_ktrl2*(np.nanmedian(x)))
+    a_ktrl2 = np.nanmedian(y) - (b_ktrl2 * (np.nanmedian(x)))
 
     return a_ktrl2[0], b_ktrl2[0]
 
@@ -94,7 +94,7 @@ def rloc(x, y):
     b_rloc = (qy[14] - qy[4]) / (qx[14] - qx[4])
     if r < 0:
         b_rloc *= -1
-    a_rloc = np.nanmedian(y)-(b_rloc*(np.nanmedian(x)))
+    a_rloc = np.nanmedian(y) - (b_rloc * (np.nanmedian(x)))
 
     return a_rloc[0], b_rloc[0]
 
@@ -126,7 +126,6 @@ def verificar_atípicos(x, nivel=3.5):
 
 
 def eval_estaciones(var, lugar, cercanas, tipo):
-
     # Inicializar unos variables
     a_final = b_final = r2 = datos = None
 

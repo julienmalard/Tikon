@@ -1,13 +1,11 @@
-from tikon.RAE.RedAE import Red
 import tikon.RAE.Insecto as Ins
 import tikon.RAE.Planta as Plt
-
+from tikon.RAE.RedAE import Red
 
 proyecto = 'Opisina_arenosella'
 
 
 def gen_red(nombre=None, araña=False):
-
     Coco = Plt.Hojas('Coco', proyecto=proyecto)
     Ins.Sencillo('Araña', proyecto=proyecto)
 

@@ -1,8 +1,8 @@
-import os.path
 import json
-import pathvalidate
+import os.path
 from warnings import warn as avisar
 
+import pathvalidate
 from pkg_resources import resource_filename
 
 usar_pymc3 = False
@@ -24,7 +24,6 @@ dirs_modelos = dic_ctrls['dirs_mods_cult']
 
 
 def espec_dir_modelo_cult(modelo, directorio):
-
     if modelo not in dirs_modelos.keys():
         raise ValueError('Modelo "{}" no reconocido.'.format(modelo))
 
@@ -38,7 +37,6 @@ def espec_dir_modelo_cult(modelo, directorio):
 
 
 def valid_archivo(archivo):
-
     direc, nombre = os.path.split(archivo)
     disco, direc = os.path.splitdrive(direc)
 

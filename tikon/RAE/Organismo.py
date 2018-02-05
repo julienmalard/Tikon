@@ -2,7 +2,6 @@ import os
 
 from tikon.Coso import Coso
 from tikon.Matemáticas import Ecuaciones as Ec
-from tikon.Matemáticas.Incert import límites_a_texto_dist
 
 
 class Organismo(Coso):
@@ -70,7 +69,7 @@ class Organismo(Coso):
         # Actualizar la lista de etapas según el orden cronológico de dichas etapas.
         símismo.etapas = sorted([x for x in símismo.receta['estr'].values()], key=lambda d: d['posición'])
 
-    def añadir_etapa(símismo, nombre, posición, ecuaciones, lím_error=0.1):
+    def añadir_etapa(símismo, nombre, posición, ecuaciones, lím_error=0.10, cert_error=0.90):
         """
         Esta función añade una etapa al organismo.
 
@@ -131,7 +130,7 @@ class Organismo(Coso):
         # Aplicar límites a la estocasticidad diaria potenticial para este organismo.
         if lím_error is not None:
             símismo.especificar_apriori(etapa=nombre, ubic_parám=['Error', 'Dist', 'Normal', 'sigma'],
-                                        rango=(0, lím_error), certidumbre=1)
+                                        rango=(0, lím_error), certidumbre=cert_error)
 
     def quitar_etapa(símismo, nombre):
         """
@@ -281,10 +280,9 @@ class Organismo(Coso):
                                 for e_víc in etps_víctima:
                                     # Para cada etapa de la víctima...
                                     if e_víc not in dic[víctima.nombre]:
-                                        # Si ya no existía una entrada para esta etapa, generar un a priori no
-                                        # informativo
-                                        no_informativo = límites_a_texto_dist(límites=límites)
-                                        dic[víctima.nombre][e_víc] = {'0': no_informativo}
+                                        # Si ya no existía una entrada para esta etapa, guardar las límites
+                                        # para poder generar un a priori no informativo
+                                        dic[víctima.nombre][e_víc] = {'0': str(límites)}
 
         # Reactualizar el organismo (necesario para asegurarse que las ecuaciones de depredador y prese tienen
         # todos los coeficientes necesarios para la nueva presa
@@ -398,7 +396,6 @@ class Organismo(Coso):
 
         # Permitir que 'juvenil' refiera a todas las etapas juveniles
         if 'juvenil' in lista_etps:
-
             # Quitar la palabra 'juvenil' (si hay una etapa que de verdad se llama 'juvenil', se agregará de nuevo
             # abajo de todo modo).
             lista_etps.remove('juvenil')
@@ -623,7 +620,7 @@ class Organismo(Coso):
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
                     tipo_ec = símismo.receta['estr'][etp['nombre']]['ecs'][categ][sub_categ]
                     dic_coefs = símismo.receta['coefs'][etp['nombre']][categ][sub_categ][tipo_ec]
-                    
+
                     dic_info = Ec.ecs_orgs[categ][sub_categ][tipo_ec]
 
                     for parám in sorted(dic_info):
@@ -677,7 +674,7 @@ class Organismo(Coso):
             # Si las ecuaciones propuestas no tienen la categoría, hay un error.
             if categ not in ecs:
                 raise ValueError('Falta implementar ecuaciones de {} en etapa {} de organismo {}.'
-                                 .format(categ, etp['nombre'], símismo.nombre))
+                                 .format(categ, etp, símismo.nombre))
 
             # Para cada subcategoría de ecuaciones...
             for sub_categ, d_sub_categ in d_categ.items():
