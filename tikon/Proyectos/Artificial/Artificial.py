@@ -20,16 +20,18 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'MA, i10k q2k'
-print(nombre)
+nombre = 'prueba'
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
-quema = 2000
-n_iter = 10000
+quema = 0
+n_iter = 10
 extr = 1
-pedazitos = None
-
+pedazitos = 10
+nombre = '{} i{} q{}{}'.format(nombre, n_iter / 1000 if n_iter>=1000 else n_iter,
+                               quema / 1000 if quema>=1000 else quema, ' pd{}'.format(pedazitos) if pedazitos else '')
 depurar = False
 
+print(nombre)
+print('Dibujar: ', dib)
 
 # Funciones útiles
 def _aplicar_a_prioris(red, d_a_pr):
@@ -235,8 +237,8 @@ _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 #     plt.clf()
 #
 # raise SystemExit(0)
-
-# Fin borrar  # para hacer
+#
+# # Fin borrar  # para hacer
 
 # Validar con estos valores
 print('Validación inicial...')

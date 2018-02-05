@@ -308,10 +308,10 @@ class ModBayes(ModCalib):
                 vec_np = np.zeros(símismo.n_iter)
                 vec_np[:] = float(d_parám[id_calib])
 
-            # Quitar el nombre inicial
+            # Quitar el nombre y variable inicial
             d_parám.pop(id_calib)
 
-            # Guardar bajo el nuevo nombre
+            # Guardar la traza bajo el nuevo nombre
             d_parám[nombre] = vec_np
 
         # Cerrar la base de datos de nuevo
