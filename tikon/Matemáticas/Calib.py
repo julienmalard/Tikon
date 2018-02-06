@@ -120,17 +120,13 @@ class ModBayes(ModCalib):
                                           l_trazas=aprioris, formato='calib', comunes=False)
 
             # Crear una lista de los variables "finales" de los parámetros
-            l_vars_final_paráms = [v.var for v in l_var_paráms]
-
-            # Otra lista con los variables PyMC para incluir en el modelo.
-            l_vars_mod_paráms = [x for v in l_var_paráms for x in v.vars_mod]
-
+            l_vars_pymc = [v.var for v in l_var_paráms]
 
             # Un variable de prueba
             vacío_2 = pm2.Normal('vacío_2', 0, 1)
-            l_vars_mod_paráms.append(vacío_2)
+            l_vars_pymc.append(vacío_2)
             vacío_1 = pm2.Normal('vacío_1', 0, 1)
-            l_vars_mod_paráms.append(vacío_1)
+            l_vars_pymc.append(vacío_1)
             vacío_05 = pm2.Normal('vacío_0.5', 0, 1)
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
@@ -141,7 +137,7 @@ class ModBayes(ModCalib):
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
             @pm2.deterministic(trace=False)
-            def simul(_=l_vars_final_paráms, a=vacío_05, d=d_obs):
+            def simul(_=l_vars_pymc, a=vacío_05, d=d_obs):
                 res = función(**dic_argums)
                 return res
 
@@ -177,7 +173,7 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_vars_mod_paráms, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
+            símismo.MCMC = pm2.MCMC({simul, *l_vars_pymc, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
                                     db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')

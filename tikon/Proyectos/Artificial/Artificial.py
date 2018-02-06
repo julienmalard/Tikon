@@ -33,6 +33,7 @@ depurar = False
 print(nombre)
 print('Dibujar: ', dib)
 
+
 # Funciones útiles
 def _aplicar_a_prioris(red, d_a_pr):
     for org in red.organismos.values():
@@ -205,40 +206,40 @@ a_pr_verd = _gen_a_prioris(vals=vals_paráms, prec=100)
 # Aplicar a prioris restringidos basados en los valores aplicados para la simulación
 _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr_verd)
 
-# # Para borrar  # para hacer: borrar
-# p = 90
-# print('\tCalibrando con p={}...'.format(p))
-# a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
-# _aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
-# _agregar_exp(red=Red_coco, exper=Exper_artificial)
-# Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
-#                   n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=extr, método=método, dibujar=dib_calibs,
-#                   depurar=depurar, pedazitos=pedazitos)
-# Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
-#                            utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
-# arch = 'C:\\Users\jmalar1\PycharmProjects\Tikon\\tikon\Proyectos\\Artificial\\{}'.format('{}, Clb prec. {}'.format(nombre, p))
-# import os, shutil
-# dir_base = os.path.split(arch)[0]
-# dir_imgs = os.path.join(dir_base, 'imgs_trazas' + nombre)
-# from pymc.database.sqlite import load
-# import matplotlib.pyplot as plt
-#
-# bd = load(arch)
-# if os.path.isdir(dir_imgs):
-#     shutil.rmtree(dir_imgs)
-# os.mkdir(dir_imgs)
-#
-# for v in bd.trace_names[0]:
-#
-#     trz = bd.trace(v, chain=None)[:]
-#     plt.plot(trz)
-#     plt.title(v)
-#     plt.savefig(os.path.join(dir_imgs, v + '.png'))
-#     plt.clf()
-#
-# raise SystemExit(0)
-#
-# # Fin borrar  # para hacer
+# Para borrar  # para hacer: borrar
+p = 90
+print('\tCalibrando con p={}...'.format(p))
+a_pr = _gen_a_prioris(vals=vals_paráms, prec=p)
+_aplicar_a_prioris(red=Red_coco, d_a_pr=a_pr)
+_agregar_exp(red=Red_coco, exper=Exper_artificial)
+Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artificial,
+                  n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=extr, método=método, dibujar=dib_calibs,
+                  depurar=depurar, pedazitos=pedazitos)
+Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
+                           utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
+arch = 'C:\\Users\jmalar1\PycharmProjects\Tikon\\tikon\Proyectos\\Artificial\\{}'.format('{}, Clb prec. {}'.format(nombre, p))
+import os, shutil
+dir_base = os.path.split(arch)[0]
+dir_imgs = os.path.join(dir_base, 'imgs_trazas' + nombre)
+from pymc.database.sqlite import load
+import matplotlib.pyplot as plt
+
+bd = load(arch)
+if os.path.isdir(dir_imgs):
+    shutil.rmtree(dir_imgs)
+os.mkdir(dir_imgs)
+
+for v in bd.trace_names[0]:
+
+    trz = bd.trace(v, chain=None)[:]
+    plt.plot(trz)
+    plt.title(v)
+    plt.savefig(os.path.join(dir_imgs, v + '.png'))
+    plt.clf()
+
+raise SystemExit(0)
+
+# Fin borrar  # para hacer
 
 # Validar con estos valores
 print('Validación inicial...')
