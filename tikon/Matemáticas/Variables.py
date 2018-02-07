@@ -109,8 +109,6 @@ class VarAlea(object):
 
         resultado = cls._ajust_dist(datos=datos, líms=líms, cont=cont, nombre=nombre,
                                     lista_dist=lista_dist)
-        if resultado['p'] <= 0.10:
-            avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(resultado['p'], 4))
 
         return resultado['dist']
 
@@ -815,7 +813,7 @@ class VarPyMC2(VarCalib):
 
                 # El caso [R, R] se transforma con logit.
                 if transf is None:
-                    avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el logit inverso '
+                    avisar('A PyMC2 no le gustan distribuciones con límites, como "{}". Tomaremos el logit inverso '
                            'de una distribución normal en vez.'.format(tipo_dist))
 
                     # Normalizar la distribución inicial al rango [0, 1]
@@ -845,8 +843,8 @@ class VarPyMC2(VarCalib):
 
                 # El caso [R, inf) se transforma con log.
                 if transf is None:
-                    avisar('A PyMC2 no le gustan distribuciones sin límites, como "{}". Tomaremos el exponencial '
-                           'de una distribución normal en vez.'.format(tipo_dist))
+                    avisar('A PyMC2 no le gustan distribuciones con límite inferior, como "{}". Tomaremos el '
+                           'exponencial de una distribución normal en vez.'.format(tipo_dist))
                     # Normalizar la distribución inicial para tener 99.9% se su densidad en el rango [0, 1]
                     d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
                     norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
@@ -965,8 +963,8 @@ class VarPyMC2(VarCalib):
             else:
                 raise ValueError('')
 
-            np.multiply(vals_transf, mult, out=vals_transf)
-            np.add(vals_transf, suma, out=vals_transf)
+            vals_transf = np.multiply(vals_transf, mult)
+            vals_transf = np.add(vals_transf, suma)
 
             return vals_transf
 
@@ -1188,10 +1186,10 @@ class VarPyMC2(VarCalib):
 
                 log_datos = np.log(datos)
                 ajustado = VarSciPy.aprox_dist(datos=log_datos, líms=(-np.inf, np.inf),
-                                               cont=cont, lista_dist=cls.dists_disp)
-                tipo_dist = ajustado['dist']
+                                               cont=cont, lista_dist=cls.dists_disp())
+                tipo_dist = ajustado['nombre']
                 transf['tipo'] = 'Exp'
-                paráms = {'ubic': ajustado['prms']['ubic'], 'escl': ajustado['prms']['escl']}
+                paráms = ajustado['prms']
 
             else:
                 transf['mult'] *= máx
@@ -1206,9 +1204,9 @@ class VarPyMC2(VarCalib):
 
                 ajustado = VarSciPy.aprox_dist(datos=lgt_datos, líms=(-np.inf, np.inf), cont=cont,
                                                lista_dist=cls.dists_disp())
-                tipo_dist = ajustado['dist']
+                tipo_dist = ajustado['nombre']
                 transf['tipo'] = 'LogitInv'
-                paráms = {'ubic': ajustado['prms']['ubic'], 'escl': ajustado['prms']['escl']}
+                paráms = ajustado['prms']
 
         return {'dist': cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms, transf=transf), 'p': ajustado['p']}
 

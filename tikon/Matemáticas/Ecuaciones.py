@@ -1,7 +1,5 @@
 import numpy as np
 
-import tikon.Matemáticas.Incert as Incert
-
 # Aquí ponemos la información de los parámetros para todas las ecuaciones posibles. Cada parámetro necesita dos
 # pedazos de inforamción: 1) sus límites y 2) si interactua con la estructura del modelo. Por ejemplo, si un
 # parámetro de un ecuación de depredación se debe repetir por cada presa del organismo (digamos el número de presa
@@ -289,7 +287,7 @@ ecs_orgs = {
         #       },
     },
 
-    'Error': {
+    'Estoc': {
         'Dist': {
             'Normal': {'sigma': {'límites': (0, 1),
                                  'inter': None}
