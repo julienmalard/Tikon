@@ -1,4 +1,6 @@
+import math as mat
 from tempfile import mkdtemp
+from warnings import warn as avisar
 
 import numpy as np
 import pymc as pm2
@@ -9,6 +11,7 @@ from theano.compile.ops import as_op
 
 from tikon.Controles import usar_pymc3
 from tikon.Matemáticas.Incert import trazas_a_dists
+from tikon.Matemáticas.Variables import VarPyMC2
 
 
 class ModCalib(object):
@@ -125,9 +128,6 @@ class ModBayes(ModCalib):
             # Un variable de prueba
             vacío_2 = pm2.Normal('vacío_2', 0, 1)
             l_vars_pymc.append(vacío_2)
-            vacío_1 = pm2.Normal('vacío_1', 0, 1)
-            l_vars_pymc.append(vacío_1)
-            vacío_05 = pm2.Normal('vacío_0.5', 0, 1)
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
             función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -136,9 +136,64 @@ class ModBayes(ModCalib):
             # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+
+            # Para hacer: formalizar
+            avisar('Código experimental--¡¡probablemente no funcional!!')
+            error_mu = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': .1, 'ubic': 0})
+                        for x in range(12)]
+            n_mem = [VarPyMC2('n_mem_error_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 1})
+                     for x in range(12)]
+            l_vars_pymc.extend([v.var for v in error_mu])
+            l_vars_pymc.extend([v.var for v in n_mem])
+
+            def calc_err(mu, mag, n_mem, n_etps=12):
+                e = np.zeros_like(mu, dtype=float)
+                tam = len(mu) // n_etps
+
+                for n in range(mu.shape[0]):
+
+                    rest = n % tam
+                    div = n // tam
+
+                    mem = n_mem[div]
+                    mitad_mem = (mem - 1) / 2
+
+                    if rest <= mitad_mem:
+                        lím_inf = div * tam
+                        lím_sup = div * tam + float(mem)
+
+                    elif rest >= tam - mitad_mem:
+                        lím_inf = (div + 1) * tam - float(mem)
+                        lím_sup = (div + 1) * tam
+                    else:
+                        lím_inf = n - mitad_mem
+                        lím_sup = n + mitad_mem + 1
+
+                    vals_extra = []
+                    if lím_inf != int(lím_inf):
+                        vals_extra.append(np.interp(lím_inf, range(mu.shape[0]), mu))
+
+                    if lím_sup != int(lím_sup):
+                        vals_extra.append(np.interp(lím_sup, range(mu.shape[0]), mu))
+
+                    lím_inf = int(lím_inf)
+                    lím_sup = int(lím_sup)
+
+                    error = np.max(mu[lím_inf:lím_sup])
+                    vals_extra.append(error)
+                    error = np.max(vals_extra)
+
+                    e[n] = error * mag[div]
+
+                return np.maximum(e, 1)
+
+            # fin de para hacer: formalizar
+
             @pm2.deterministic(trace=False)
-            def simul(_=l_vars_pymc, a=vacío_05, d=d_obs):
+            def simul(_=l_vars_pymc, d=d_obs):
                 res = función(**dic_argums)
+
+                res['Normal']['error'] = calc_err(res['Normal']['mu'], mag=error_mu, n_mem=n_mem)
                 return res
 
             # Ahora, las observaciones
@@ -161,9 +216,13 @@ class ModBayes(ModCalib):
                 elif tipo == 'Normal':
                     # Si tenemos distribución normal de las observaciones...
                     tau = simul['Normal']['sigma'] ** -2
-                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+                    mu = pm2.Normal('mu_error', mu=simul['Normal']['mu'], tau=1 / simul['Normal']['error'] ** 2,
+                                    trace=False)
+
+                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=mu, tau=tau,
                                          value=m_obs, observed=True, trace=False)
-                    nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
+
+                    nuevos = [var_obs, tau, mu, var_obs.parents['mu'],
                               tau.parents['a'], tau.parents['a'].parents['self']]
                     l_var_obs.extend(nuevos)
                 else:
@@ -173,7 +232,7 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_vars_pymc, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
+            símismo.MCMC = pm2.MCMC({simul, *l_vars_pymc, *l_var_obs, vacío_0, vacío_2},
                                     db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')

@@ -20,10 +20,10 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'prueba'
+nombre = 'prueba2'
 método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
 quema = 0
-n_iter = 10
+n_iter = 1000
 extr = 1
 pedazitos = 10
 nombre = '{} i{} q{}{}'.format(nombre, '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,

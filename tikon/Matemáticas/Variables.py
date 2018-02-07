@@ -2,13 +2,14 @@ import ast
 import math as mat
 from warnings import warn as avisar
 
+import matplotlib.pyplot as dib
 import numpy as np
 import pymc as pm2
 import pymc3 as pm3
 from scipy import stats as estad
 from scipy.optimize import minimize as minimizar
 
-from Matemáticas import Distribuciones as Ds
+from tikon.Matemáticas import Distribuciones as Ds
 from tikon import __email__ as correo
 
 
@@ -731,7 +732,13 @@ class VarCalib(VarAlea):
         símismo.var = NotImplemented  # type: pm2.Stochastic | pm3.model.FreeRV
         super().__init__(tipo_dist=tipo_dist, nombre=nombre, paráms=paráms)
 
-    def dibujar(símismo, ejes):
+    def dibujar(símismo, ejes=None):
+        if ejes is None:
+            fig, ejes = dib.subplots(1, 2)
+
+        símismo._dibujar(ejes=ejes)
+
+    def _dibujar(símismo, ejes):
         raise NotImplementedError
 
     def traza(símismo):
@@ -765,6 +772,39 @@ class VarCalib(VarAlea):
         :rtype: float
         """
         raise NotImplementedError
+
+    def __abs__(símismo):
+        return abs(símismo.__float__())
+
+    def __sub__(símismo, otro):
+        return símismo.__float__() - float(otro)
+
+    def __add__(símismo, otro):
+        return símismo.__float__() + float(otro)
+
+    def __pow__(símismo, exp, módulo=None):
+        return (símismo.__float__() ** float(exp)) % float(módulo)
+
+    def __mul__(símismo, otro):
+        return símismo.__float__() * float(otro)
+
+    def __truediv__(símismo, otro):
+        return símismo.__float__() / float(otro)
+
+    def __floordiv__(símismo, otro):
+        return símismo.__float__() // float(otro)
+
+    def __radd__(símismo, otro):
+        return símismo + otro
+
+    def __rsub__(símismo, otro):
+        return otro - símismo.__float__()
+
+    def __rmul__(símismo, otro):
+        return símismo * otro
+
+    def __rtruediv__(símismo, otro):
+        return otro / símismo.__float__()
 
 
 class VarPyMC2(VarCalib):
@@ -906,7 +946,7 @@ class VarPyMC2(VarCalib):
 
         símismo.tipo_dist = tipo_dist
 
-    def dibujar(símismo, ejes):
+    def _dibujar(símismo, ejes):
 
         n = 10000
         puntos = np.array([símismo.var.rand() for _ in range(n)])
@@ -1389,7 +1429,7 @@ class VarPyMC3(VarCalib):
         # Guardar la distribución a priori (para gráficos).
         símismo.a_priori = a_priori
 
-    def dibujar(símismo, ejes):
+    def _dibujar(símismo, ejes):
         trz = símismo.traza_modelo
         if trz is None:
             raise ValueError('Todavía no se ha hecho una calibración con este variable.')
