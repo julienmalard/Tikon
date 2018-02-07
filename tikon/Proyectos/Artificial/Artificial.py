@@ -11,7 +11,7 @@ from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 Genera datos artificiales y después intenta calibrar para re-descubrir los mismos parámetros conocidos.
 """
 
-dib = True
+dib = False
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib
@@ -26,8 +26,9 @@ quema = 0
 n_iter = 10
 extr = 1
 pedazitos = 10
-nombre = '{} i{} q{}{}'.format(nombre, n_iter / 1000 if n_iter>=1000 else n_iter,
-                               quema / 1000 if quema>=1000 else quema, ' pd{}'.format(pedazitos) if pedazitos else '')
+nombre = '{} i{} q{}{}'.format(nombre, '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,
+                               '{}k'.format(quema / 1000) if quema >= 1000 else quema,
+                               ' pd{}'.format(pedazitos) if pedazitos else '')
 depurar = False
 
 print(nombre)
@@ -115,7 +116,7 @@ def _gen_a_prioris(vals, prec):
             u_p = dic['ubic_parám']
 
             a_pr_orgnl = next((d_a for d_a in a_prioris[org] if d_a['etapa'] == etp and d_a['ubic_parám'] == u_p), None)
-            if a_pr_orgnl is None or u_p[0] == 'Error':
+            if a_pr_orgnl is None or u_p[0] == 'Estoc':
                 continue
             rango = a_pr_orgnl['rango']
             dim_rango = rango[1] - rango[0]
@@ -220,7 +221,7 @@ Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.
 arch = 'C:\\Users\jmalar1\PycharmProjects\Tikon\\tikon\Proyectos\\Artificial\\{}'.format('{}, Clb prec. {}'.format(nombre, p))
 import os, shutil
 dir_base = os.path.split(arch)[0]
-dir_imgs = os.path.join(dir_base, 'imgs_trazas' + nombre)
+dir_imgs = os.path.join(dir_base, 'imgs_trazas ' + nombre)
 from pymc.database.sqlite import load
 import matplotlib.pyplot as plt
 

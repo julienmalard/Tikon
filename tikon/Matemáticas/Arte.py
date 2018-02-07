@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 
-from tikon.Matemáticas.Incert import VarCalib, VarSciPy
+from Matemáticas.Variables import VarSciPy, VarCalib
 from tikon.Controles import valid_archivo
 
 
