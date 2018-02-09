@@ -677,6 +677,7 @@ class VarSciPy(VarAlea):
         # Si no logramos un buen aujste, avisar al usuario.
         if mejor_ajuste['p'] <= 0.10:
             avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
+            # Para hacer: ¿Permitir transformaciones adicionales a los datos?
 
         # Devolver la distribución con el mejor ajuste, tanto como el valor de su ajuste.
         resultado = {'dist': VarSciPy(tipo_dist=mejor_ajuste['tipo'], paráms=mejor_ajuste['prms']),
@@ -1226,7 +1227,7 @@ class VarPyMC2(VarCalib):
 
                 log_datos = np.log(datos)
                 ajustado = VarSciPy.aprox_dist(datos=log_datos, líms=(-np.inf, np.inf),
-                                               cont=cont, lista_dist=cls.dists_disp())
+                                               cont=cont, lista_dist=lista_dist)
                 tipo_dist = ajustado['nombre']
                 transf['tipo'] = 'Exp'
                 paráms = ajustado['prms']
@@ -1243,7 +1244,7 @@ class VarPyMC2(VarCalib):
                 lgt_datos = _logit(datos)
 
                 ajustado = VarSciPy.aprox_dist(datos=lgt_datos, líms=(-np.inf, np.inf), cont=cont,
-                                               lista_dist=cls.dists_disp())
+                                               lista_dist=lista_dist)
                 tipo_dist = ajustado['nombre']
                 transf['tipo'] = 'LogitInv'
                 paráms = ajustado['prms']

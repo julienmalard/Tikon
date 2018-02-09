@@ -3,13 +3,14 @@ import numpy as np
 import pymc
 
 from Matemáticas.Incert import trazas_a_dists
+from Matemáticas.Variables import VarPyMC2
 
 """
 Código únicamente para pruebas de algoritmos y variables de calibración bayesiana con PyMC.
 """
 
 i = 0
-adaptivo = True
+adaptivo = False
 emp = 0
 fin = 60
 print(emp, fin)
@@ -180,7 +181,6 @@ if __name__ == '__main__':
                 mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
             mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
         else:
-            from Matemáticas.Variables import VarPyMC2
 
             var_mu = VarPyMC2('mu', 'Uniforme', {'ubic': 0, 'escl': 10 * fac})
             var_s = VarPyMC2('sigma', 'Gamma', {'a': 1, 'ubic': 0, 'escl': 10 * fac})

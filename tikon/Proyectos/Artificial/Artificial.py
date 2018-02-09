@@ -20,15 +20,20 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'prueba2'
-método = 'Metrópolis adaptivo'  # 'Metrópolis Adaptivo'
+nombre = 'prueba f'
+adaptivo = True
+if adaptivo:
+    método = 'Metrópolis Adaptivo'
+else:
+    método = 'Metrópolis'
 quema = 0
-n_iter = 1000
+n_iter = 3000
 extr = 1
-pedazitos = 10
-nombre = '{} i{} q{}{}'.format(nombre, '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,
-                               '{}k'.format(quema / 1000) if quema >= 1000 else quema,
-                               ' pd{}'.format(pedazitos) if pedazitos else '')
+pedazitos = 5
+nombre = '{} {} i{} q{}{}'.format('MA' if adaptivo else 'M', nombre,
+                                  '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,
+                                  '{}k'.format(quema / 1000) if quema >= 1000 else quema,
+                                  ' pd{}'.format(pedazitos) if pedazitos else '')
 depurar = False
 
 print(nombre)
