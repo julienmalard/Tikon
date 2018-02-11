@@ -20,7 +20,7 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'prueba f'
+nombre = 'prueba'
 adaptivo = True
 if adaptivo:
     método = 'Metrópolis Adaptivo'
@@ -29,7 +29,7 @@ else:
 quema = 0
 n_iter = 3000
 extr = 1
-pedazitos = 5
+pedazitos = None
 nombre = '{} {} i{} q{}{}'.format('MA' if adaptivo else 'M', nombre,
                                   '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,
                                   '{}k'.format(quema / 1000) if quema >= 1000 else quema,

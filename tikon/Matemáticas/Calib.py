@@ -139,7 +139,7 @@ class ModBayes(ModCalib):
 
             # Para hacer: formalizar
             avisar('Código experimental--¡¡probablemente no funcional!!')
-            err_temp = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': .1, 'ubic': 0})
+            err_temp = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 0})
                         for x in range(12)]
             l_err_temp = [v.var for v in err_temp]
             n_mem = [VarPyMC2('n_mem_error_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 1})
@@ -183,7 +183,7 @@ class ModBayes(ModCalib):
                         máx_preds = max(máx_preds, val_lím_sup)
                         mín_preds = min(mín_preds, val_lím_sup)
 
-                    rango_preds = máx_preds - mín_preds
+                    rango_preds = np.maximum(0, máx_preds - mín_preds - mu)
 
                     e[n] = rango_preds * mag[div]
 
