@@ -9,7 +9,7 @@ from warnings import warn as avisar
 
 import numpy as np
 
-from Matemáticas.Variables import VarSciPy, VarCalib
+from tikon.Matemáticas.Variables import VarSciPy, VarCalib
 from tikon import __correo__
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert

@@ -3,7 +3,7 @@ from warnings import warn as avisar
 import numpy as np
 import scipy.stats as estad
 
-from Matemáticas.Variables import VarSciPy, VarCalib, VarPyMC2, VarPyMC3
+from tikon.Matemáticas.Variables import VarSciPy, VarCalib, VarPyMC2, VarPyMC3
 from tikon import __email__ as correo
 from tikon.Controles import usar_pymc3
 
