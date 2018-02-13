@@ -1,4 +1,6 @@
+import math as mat
 from tempfile import mkdtemp
+from warnings import warn as avisar
 
 import numpy as np
 import pymc as pm2
@@ -9,6 +11,7 @@ from theano.compile.ops import as_op
 
 from tikon.Controles import usar_pymc3
 from tikon.Matemáticas.Incert import trazas_a_dists
+from tikon.Matemáticas.Variables import VarPyMC2
 
 
 class ModCalib(object):
@@ -120,18 +123,11 @@ class ModBayes(ModCalib):
                                           l_trazas=aprioris, formato='calib', comunes=False)
 
             # Crear una lista de los variables "finales" de los parámetros
-            l_vars_final_paráms = [v.var for v in l_var_paráms]
-
-            # Otra lista con los variables PyMC para incluir en el modelo.
-            l_vars_mod_paráms = [x for v in l_var_paráms for x in v.vars_mod]
-
+            l_vars_pymc = [v.var for v in l_var_paráms]
 
             # Un variable de prueba
             vacío_2 = pm2.Normal('vacío_2', 0, 1)
-            l_vars_mod_paráms.append(vacío_2)
-            vacío_1 = pm2.Normal('vacío_1', 0, 1)
-            l_vars_mod_paráms.append(vacío_1)
-            vacío_05 = pm2.Normal('vacío_0.5', 0, 1)
+            l_vars_pymc.append(vacío_2)
 
             # Llenamos las matrices de coeficientes con los variables PyMC recién creados.
             función_llenar_coefs(nombre_simul=id_calib, n_rep_parám=1, dib_dists=False)
@@ -140,10 +136,72 @@ class ModBayes(ModCalib):
             # pasamos los argumentos necesarios, si aplican. Hay que incluir los parámetros de la lista l_var_pymc,
             # porque si no PyMC no se dará cuenta de que la función simular() depiende de los otros parámetros y se le
             # olvidará de recalcularla cada vez que cambian los valores de los parámetros.
+
+            # Para hacer: formalizar
+            avisar('Código experimental--¡¡probablemente no funcional!!')
+            err_temp = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 0})
+                        for x in range(12)]
+            l_err_temp = [v.var for v in err_temp]
+            n_mem = [VarPyMC2('n_mem_error_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 1})
+                     for x in range(12)]
+            l_n_mem = [v.var for v in n_mem]
+            l_vars_err = l_err_temp + l_n_mem
+
+            def calc_err(mu, mag, n_mem, n_etps=12):
+                e = np.zeros_like(mu, dtype=float)
+                tam = len(mu) // n_etps
+
+                for n in range(mu.shape[0]):
+
+                    rest = n % tam
+                    div = n // tam
+
+                    mem = n_mem[div]
+                    mitad_mem = mem / 2
+
+                    if rest <= mitad_mem:
+                        lím_inf = div * tam
+                        lím_sup = div * tam + mem
+
+                    elif rest >= tam - mitad_mem:
+                        lím_inf = (div + 1) * tam - mem - 1
+                        lím_sup = (div + 1) * tam - 1
+                    else:
+                        lím_inf = n - mitad_mem
+                        lím_sup = n + mitad_mem
+
+                    máx_preds = np.max(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
+                    mín_preds = np.min(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
+
+                    if lím_inf != int(lím_inf):
+                        val_lím_inf = np.interp(lím_inf, range(mu.shape[0]), mu)
+                        máx_preds = max(máx_preds, val_lím_inf)
+                        mín_preds = min(mín_preds, val_lím_inf)
+
+                    if lím_sup != int(lím_sup):
+                        val_lím_sup = np.interp(lím_sup, range(mu.shape[0]), mu)
+                        máx_preds = max(máx_preds, val_lím_sup)
+                        mín_preds = min(mín_preds, val_lím_sup)
+
+                    rango_preds = np.maximum(0, máx_preds - mín_preds - mu)
+
+                    e[n] = rango_preds * mag[div]
+
+                return np.maximum(e, 1)
+
+            # fin de para hacer: formalizar
+
             @pm2.deterministic(trace=False)
-            def simul(_=l_vars_final_paráms, a=vacío_05, d=d_obs):
+            def simul(_=l_vars_pymc, d=d_obs):
                 res = función(**dic_argums)
+
                 return res
+
+            @pm2.deterministic(trace=False)
+            def calc_error(r=simul, e=l_err_temp, n=l_n_mem, d=d_obs):
+
+                error = calc_err(r['Normal']['mu'], mag=err_temp, n_mem=n_mem)
+                return error
 
             # Ahora, las observaciones
             l_var_obs = []  # Una lista para los variables de observación
@@ -164,10 +222,14 @@ class ModBayes(ModCalib):
 
                 elif tipo == 'Normal':
                     # Si tenemos distribución normal de las observaciones...
+                    mu = pm2.Normal('mu_error', mu=simul['Normal']['mu'], tau=1 / calc_error ** 2,
+                                    trace=False)
                     tau = simul['Normal']['sigma'] ** -2
-                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=simul['Normal']['mu'], tau=tau,
+
+                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=mu, tau=tau,
                                          value=m_obs, observed=True, trace=False)
-                    nuevos = [var_obs, tau, var_obs.parents['mu'], var_obs.parents['mu'].parents['self'],
+
+                    nuevos = [var_obs, tau, mu, var_obs.parents['mu'],
                               tau.parents['a'], tau.parents['a'].parents['self']]
                     l_var_obs.extend(nuevos)
                 else:
@@ -177,7 +239,7 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, *l_vars_mod_paráms, *l_var_obs, vacío_0, vacío_05, vacío_1, vacío_2},
+            símismo.MCMC = pm2.MCMC({simul, calc_error, *l_vars_pymc, *l_vars_err, *l_var_obs, vacío_0, vacío_2},
                                     db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')

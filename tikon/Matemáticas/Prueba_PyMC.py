@@ -3,17 +3,18 @@ import numpy as np
 import pymc
 
 from Matemáticas.Incert import trazas_a_dists
+from Matemáticas.Variables import VarPyMC2
 
 """
 Código únicamente para pruebas de algoritmos y variables de calibración bayesiana con PyMC.
 """
 
 i = 0
-adaptivo = True
+adaptivo = False
 emp = 0
 fin = 60
 print(emp, fin)
-n_iter = 1000
+n_iter = 10000
 
 
 class ModBayes(object):
@@ -180,13 +181,11 @@ if __name__ == '__main__':
                 mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
             mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
         else:
-            from tikon.Matemáticas.Incert import VarPyMC2
 
             var_mu = VarPyMC2('mu', 'Uniforme', {'ubic': 0, 'escl': 10 * fac})
             var_s = VarPyMC2('sigma', 'Gamma', {'a': 1, 'ubic': 0, 'escl': 10 * fac})
             var_0 = VarPyMC2('0', 'Uniforme', {'ubic': 0, 'escl': 10})
             l_0 = [VarPyMC2('z_{}'.format(i), 'Normal', {'ubic': 1, 'escl': 2}) for i in range(100)]
-            l_vars_mod = [i for v in l_0 for i in v.vars_mod]
             l_vars = [v.var for v in l_0]
 
             # Unas pruebitas de variables generados a base de densidad y de límites. No afectan el modelo prueba aquí.
@@ -205,28 +204,22 @@ if __name__ == '__main__':
             @pymc.deterministic()
             def func_todo(mu=var_mu.var, s=var_s.var, _=l_vars):
                 d = {'mu': float(var_mu), 'sigma': float(var_s)}
-                print(d)
                 return d
 
 
             obs = pymc.Normal('obs', mu=func_todo['mu'], tau=1 / func_todo['sigma'] ** 2, value=datos, trace=True,
                               observed=True)
-            variables = {var_mu, var_s, func_todo, obs,
-                         var_0, *l_vars_mod,
-                         *l_pruebas_extr
+            vars_pymc = {var_mu, var_s, var_0, *l_0, *l_pruebas_extr}
+            variables = {func_todo, obs,
+                         *[v.var for v in vars_pymc]
                          }
-            vars_mod = []
-            for v in variables:
-                if isinstance(v, VarPyMC2):
-                    vars_mod.extend(v.vars_mod)
-                else:
-                    vars_mod.append(v)
-            mod_prueba = pymc.MCMC(vars_mod)
+
+            mod_prueba = pymc.MCMC(variables)
             if adaptivo:
                 mod_prueba.use_step_method(pymc.AdaptiveMetropolis, mod_prueba.stochastics)
             mod_prueba.sample(iter=n_iter, burn=0, thin=1, verbose=0)
 
-        for v in variables:
+        for v in vars_pymc:
             if isinstance(v, VarPyMC2):
                 if 'z' not in v.nombre and v.nombre != 'func_todo':
                     try:
