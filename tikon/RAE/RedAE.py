@@ -1265,8 +1265,8 @@ class Red(Simulable):
         # La
         ruido = np.empty(pobs.shape)
 
-        tipos_ruido = símismo.ecs['Error']['Dist']  # type: dict
-        coefs_ruido = símismo.coefs_act_númzds['Error']['Dist']  # type: dict
+        tipos_ruido = símismo.ecs['Estoc']['Dist']  # type: dict
+        coefs_ruido = símismo.coefs_act_númzds['Estoc']['Dist']  # type: dict
 
         # Para cada tipo de ruido...
         for tp_ruido, í_etps in tipos_ruido.items():
@@ -1337,6 +1337,9 @@ class Red(Simulable):
 
         edades = símismo.predics['Edades']
 
+        # Ruido aleatorio
+        símismo._calc_ruido(pobs=pobs, paso=paso)
+
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
         # Una especie que mata a otra.
         símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
@@ -1359,9 +1362,6 @@ class Red(Simulable):
         if mov:
             # Movimientos de organismos de una parcela a otra.
             símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
-
-        # Ruido aleatorio
-        símismo._calc_ruido(pobs=pobs, paso=paso)
 
     def _incrementar_depurar(símismo, paso, i, detalles, d_tiempo, mov=False, extrn=None):
         """
@@ -1441,6 +1441,14 @@ class Red(Simulable):
         edades = símismo.predics['Edades']
 
         # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
+
+        # Ruido aleatorio
+        antes = ft.now()
+        símismo._calc_ruido(pobs=pobs, paso=paso)
+        ahora = ft.now()
+        d_tiempo['Ruido'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
+        verificar_estado('Ruido')
+
         # Una especie que mata a otra.
         verificar_estado('Inicio')
         antes = ft.now()
@@ -1490,13 +1498,6 @@ class Red(Simulable):
             ahora = ft.now()
             d_tiempo['Movimiento'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
             verificar_estado('Movimiento')
-
-        # Ruido aleatorio
-        antes = ft.now()
-        símismo._calc_ruido(pobs=pobs, paso=paso)
-        ahora = ft.now()
-        d_tiempo['Ruido'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Ruido')
 
         return d_tiempo
 

@@ -129,7 +129,7 @@ class Organismo(Coso):
 
         # Aplicar límites a la estocasticidad diaria potenticial para este organismo.
         if lím_error is not None:
-            símismo.especificar_apriori(etapa=nombre, ubic_parám=['Error', 'Dist', 'Normal', 'sigma'],
+            símismo.especificar_apriori(etapa=nombre, ubic_parám=['Estoc', 'Dist', 'Normal', 'sigma'],
                                         rango=(0, lím_error), certidumbre=cert_error)
 
     def quitar_etapa(símismo, nombre):
@@ -614,7 +614,7 @@ class Organismo(Coso):
             for categ in sorted(Ec.ecs_orgs):
 
                 # No contar a prioris de errores que faltan
-                if categ == 'Error':
+                if categ == 'Estoc':
                     continue
 
                 for sub_categ in sorted(Ec.ecs_orgs[categ]):
@@ -664,9 +664,9 @@ class Organismo(Coso):
         """
 
         # Implementar error estocástico normal si no ha sido especificado ya.
-        if 'Error' not in ecs:
-            ecs['Error'] = {}
-            ecs['Error']['Dist'] = 'Normal'
+        if 'Estoc' not in ecs:
+            ecs['Estoc'] = {}
+            ecs['Estoc']['Dist'] = 'Normal'
 
         # Para cada categoría de ecuaciones...
         for categ, d_categ in símismo.dic_info_ecs.items():
