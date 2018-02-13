@@ -11,7 +11,7 @@ from tikon.Proyectos.Opisina_arenosella.a_prioris import a_prioris
 Genera datos artificiales y después intenta calibrar para re-descubrir los mismos parámetros conocidos.
 """
 
-dib = True
+dib = False
 dib_aprioris = dib
 dib_valid_perf = dib
 dib_simul = dib

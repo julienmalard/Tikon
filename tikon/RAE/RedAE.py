@@ -2800,6 +2800,20 @@ class Red(Simulable):
         """
         símismo.lugar = lugar
 
+    def info_clima(símismo):
+        """
+        Esta función extrae el típo de datos que se necesitan para calcular las dinámicas de poblaciones de un lugar
+        específico.
+
+        :return: conjunto con información climática que se va a extraer de Taqdir
+        :rtype: set
+        """
+        info_clima_dict = set()
+        if 'Días grados' in símismo.ecs['Edad']['Ecuación']:
+            info_clima_dict.update({'Temperatura máxima','Temperatura mínima'})
+
+        return info_clima_dict
+
 
 # Funciones auxiliares
 def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
