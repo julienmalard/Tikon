@@ -778,22 +778,22 @@ class VarCalib(VarAlea):
         return abs(símismo.__float__())
 
     def __sub__(símismo, otro):
-        return símismo.__float__() - float(otro)
+        return símismo.__float__() - otro
 
     def __add__(símismo, otro):
-        return símismo.__float__() + float(otro)
+        return símismo.__float__() + otro
 
     def __pow__(símismo, exp, módulo=None):
-        return (símismo.__float__() ** float(exp)) % float(módulo)
+        return (símismo.__float__() ** exp) % módulo
 
     def __mul__(símismo, otro):
-        return símismo.__float__() * float(otro)
+        return símismo.__float__() * otro
 
     def __truediv__(símismo, otro):
-        return símismo.__float__() / float(otro)
+        return símismo.__float__() / otro
 
     def __floordiv__(símismo, otro):
-        return símismo.__float__() // float(otro)
+        return símismo.__float__() // otro
 
     def __radd__(símismo, otro):
         return símismo + otro
