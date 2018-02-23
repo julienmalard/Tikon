@@ -1,5 +1,4 @@
 import csv
-from pprint import pprint
 
 import numpy as np
 
@@ -20,16 +19,16 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'prueba'
+nombre = 'bprueba 20-2'
 adaptivo = True
 if adaptivo:
     método = 'Metrópolis Adaptivo'
 else:
     método = 'Metrópolis'
 quema = 0
-n_iter = 3000
+n_iter = 30
 extr = 1
-pedazitos = None
+pedazitos = 10
 nombre = '{} {} i{} q{}{}'.format('MA' if adaptivo else 'M', nombre,
                                   '{}k'.format(n_iter / 1000) if n_iter >= 1000 else n_iter,
                                   '{}k'.format(quema / 1000) if quema >= 1000 else quema,
@@ -222,9 +221,11 @@ Red_coco.calibrar(nombre='{}, Clb prec. {}'.format(nombre, p), exper=Exper_artif
                   n_rep_estoc=20, quema=quema, n_iter=n_iter, extraer=extr, método=método, dibujar=dib_calibs,
                   depurar=depurar, pedazitos=pedazitos)
 Red_coco.guardar_calib(descrip='Calib con datos artificiales, precisión de {}'.format(p),
-                           utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
-arch = 'C:\\Users\jmalar1\PycharmProjects\Tikon\\tikon\Proyectos\\Artificial\\{}'.format('{}, Clb prec. {}'.format(nombre, p))
+                       utilizador='Julien Malard', contacto='julien.malard@mail.mcgill.ca')
+arch = 'C:\\Users\jmalar1\PycharmProjects\Tikon\\tikon\Proyectos\\Artificial\\{}'.format(
+    '{}, Clb prec. {}'.format(nombre, p))
 import os, shutil
+
 dir_base = os.path.split(arch)[0]
 dir_imgs = os.path.join(dir_base, 'imgs_trazas ' + nombre)
 from pymc.database.sqlite import load
@@ -236,7 +237,6 @@ if os.path.isdir(dir_imgs):
 os.mkdir(dir_imgs)
 
 for v in bd.trace_names[0]:
-
     trz = bd.trace(v, chain=None)[:]
     plt.plot(trz)
     plt.title(v)

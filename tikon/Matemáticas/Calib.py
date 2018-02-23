@@ -139,69 +139,82 @@ class ModBayes(ModCalib):
 
             # Para hacer: formalizar
             avisar('Código experimental--¡¡probablemente no funcional!!')
-            err_temp = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 0})
-                        for x in range(12)]
-            l_err_temp = [v.var for v in err_temp]
-            n_mem = [VarPyMC2('n_mem_error_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 1})
-                     for x in range(12)]
-            l_n_mem = [v.var for v in n_mem]
-            l_vars_err = l_err_temp + l_n_mem
-
-            def calc_err(mu, mag, n_mem, n_etps=12):
-                e = np.zeros_like(mu, dtype=float)
-                tam = len(mu) // n_etps
-
-                for n in range(mu.shape[0]):
-
-                    rest = n % tam
-                    div = n // tam
-
-                    mem = n_mem[div]
-                    mitad_mem = mem / 2
-
-                    if rest <= mitad_mem:
-                        lím_inf = div * tam
-                        lím_sup = div * tam + mem
-
-                    elif rest >= tam - mitad_mem:
-                        lím_inf = (div + 1) * tam - mem - 1
-                        lím_sup = (div + 1) * tam - 1
-                    else:
-                        lím_inf = n - mitad_mem
-                        lím_sup = n + mitad_mem
-
-                    máx_preds = np.max(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
-                    mín_preds = np.min(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
-
-                    if lím_inf != int(lím_inf):
-                        val_lím_inf = np.interp(lím_inf, range(mu.shape[0]), mu)
-                        máx_preds = max(máx_preds, val_lím_inf)
-                        mín_preds = min(mín_preds, val_lím_inf)
-
-                    if lím_sup != int(lím_sup):
-                        val_lím_sup = np.interp(lím_sup, range(mu.shape[0]), mu)
-                        máx_preds = max(máx_preds, val_lím_sup)
-                        mín_preds = min(mín_preds, val_lím_sup)
-
-                    rango_preds = np.maximum(0, máx_preds - mín_preds - mu)
-
-                    e[n] = rango_preds * mag[div]
-
-                return np.maximum(e, 1)
+            # err_temp = [VarPyMC2('error_mu_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 1, 'ubic': 0})
+            #             for x in range(12)]
+            # l_err_temp = [v.var for v in err_temp]
+            # n_mem = [VarPyMC2('n_mem_error_{}'.format(x), tipo_dist='Gamma', paráms={'a': 1, 'escl': 10, 'ubic': 1})
+            #          for x in range(12)]
+            # l_n_mem = [v.var for v in n_mem]
+            # l_vars_err = l_err_temp + l_n_mem
+            #
+            # def calc_err(mu, mag, n_mem, n_etps=12):
+            #     e = np.zeros_like(mu, dtype=float)
+            #     tam = len(mu) // n_etps
+            #
+            #     for n in range(mu.shape[0]):
+            #
+            #         rest = n % tam
+            #         div = n // tam
+            #
+            #         mem = n_mem[div]
+            #         mitad_mem = mem / 2
+            #
+            #         if rest <= mitad_mem:
+            #             lím_inf = div * tam
+            #             lím_sup = div * tam + mem
+            #
+            #         elif rest >= tam - mitad_mem:
+            #             lím_inf = (div + 1) * tam - mem - 1
+            #             lím_sup = (div + 1) * tam - 1
+            #         else:
+            #             lím_inf = n - mitad_mem
+            #             lím_sup = n + mitad_mem
+            #
+            #         lím_inf = np.maximum(lím_inf, div * tam)
+            #         lím_sup = np.minimum(lím_sup, (div+1) * tam - 1)
+            #
+            #         máx_preds = np.max(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
+            #         mín_preds = np.min(mu[mat.ceil(lím_inf):mat.floor(lím_sup) + 1])
+            #
+            #         if lím_inf != int(lím_inf):
+            #             val_lím_inf = np.interp(lím_inf, range(mu.shape[0]), mu)
+            #             máx_preds = max(máx_preds, val_lím_inf)
+            #             mín_preds = min(mín_preds, val_lím_inf)
+            #
+            #         if lím_sup != int(lím_sup):
+            #             val_lím_sup = np.interp(lím_sup, range(mu.shape[0]), mu)
+            #             máx_preds = max(máx_preds, val_lím_sup)
+            #             mín_preds = min(mín_preds, val_lím_sup)
+            #
+            #         rango_preds = np.maximum(0, máx_preds - mín_preds)
+            #
+            #         e[n] = rango_preds * mag[div]
+            #
+            #     return np.maximum(e, 1)
 
             # fin de para hacer: formalizar
+
+            # res = función(**dic_argums)
+
 
             @pm2.deterministic(trace=False)
             def simul(_=l_vars_pymc, d=d_obs):
                 res = función(**dic_argums)
-
                 return res
 
+            var_error = VarPyMC2('error_mod', tipo_dist='Gamma', paráms={'a': 1, 'escl': .01, 'ubic': 0})
+            # var_error = pm2.Gamma('error_mod', alpha=1, beta=1/0.1)
+            #
             @pm2.deterministic(trace=False)
-            def calc_error(r=simul, e=l_err_temp, n=l_n_mem, d=d_obs):
-
-                error = calc_err(r['Normal']['mu'], mag=err_temp, n_mem=n_mem)
-                return error
+            def calc_tau_mod(r=simul, ve=var_error.var):
+            #     return 1 / float(var_error)**2
+                return 1 / np.maximum(1, (var_error*r['Normal']['mu'])**2)
+            #
+            # @pm2.deterministic(trace=False)
+            # def calc_error_temp(r=simul, e=l_err_temp, n=l_n_mem, d=d_obs, ve=var_error):
+            #
+            #     error = calc_err(r['Normal']['mu'], mag=err_temp, n_mem=n_mem)
+            #     return error
 
             # Ahora, las observaciones
             l_var_obs = []  # Una lista para los variables de observación
@@ -222,15 +235,25 @@ class ModBayes(ModCalib):
 
                 elif tipo == 'Normal':
                     # Si tenemos distribución normal de las observaciones...
-                    mu = pm2.Normal('mu_error', mu=simul['Normal']['mu'], tau=1 / calc_error ** 2,
-                                    trace=False)
-                    tau = simul['Normal']['sigma'] ** -2
+                    #
+                    # mu_final = pm2.Normal('mu_final', mu=mu, tau=calc_tau_mod, trace=False)
 
-                    var_obs = pm2.Normal('obs_{}'.format(tipo), mu=mu, tau=tau,
+                    # tau = simul['Normal']['sigma'] ** -2
+                    tau = pm2.HalfNormal('mitau', tau=1e6)
+                    # mu = pm2.Normal('mu_error', mu=simul['Normal']['mu'], tau=tau, trace=False)
+                    var_obs = pm2.Normal('obs_{}'.format(tipo),
+                                         # mu=mu_final,
+                                         tau=calc_tau_mod,
+                                         mu=simul['Normal']['mu'],
                                          value=m_obs, observed=True, trace=False)
 
-                    nuevos = [var_obs, tau, mu, var_obs.parents['mu'],
-                              tau.parents['a'], tau.parents['a'].parents['self']]
+                    nuevos = [var_obs,
+                              tau,
+                              # mu,
+                              # mu_final,
+                              # var_obs.parents['mu'],
+                              # tau.parents['a'], tau.parents['a'].parents['self']
+                              ]
                     l_var_obs.extend(nuevos)
                 else:
                     raise ValueError
@@ -239,7 +262,14 @@ class ModBayes(ModCalib):
             vacío_0 = pm2.Normal('vacío_0', 0, 1)
 
             # Y, por fin, el objeto MCMC de PyMC que trae todos estos componentes juntos.
-            símismo.MCMC = pm2.MCMC({simul, calc_error, *l_vars_pymc, *l_vars_err, *l_var_obs, vacío_0, vacío_2},
+            símismo.MCMC = pm2.MCMC({simul,
+#                                      calc_error_temp,
+                                     calc_tau_mod,
+                                     # var_error.var,
+                                     *l_vars_pymc[0:1],
+                                     var_error.var,
+#                                      *l_vars_err,
+                                     *l_var_obs, vacío_0, vacío_2},
                                     db='sqlite',
                                     dbname=símismo.id,
                                     dbmode='w')
@@ -321,14 +351,17 @@ class ModBayes(ModCalib):
             # Utilizar el algoritmo Metrópolis Adaptivo para la calibración. Sería probablemente mejor utilizar NUTS, pero
             # para eso tendría que implementar pymc3 aquí y de verdad no quiero.
             if símismo.método.lower() == 'metrópolis adaptivo':
-                símismo.MCMC.use_step_method(pm2.AdaptiveMetropolis, símismo.MCMC.stochastics)
+                símismo.MCMC.use_step_method(pm2.AdaptiveMetropolis, símismo.MCMC.stochastics,
+                                             delay=200, interval=200,
+                                             greedy=False, shrink_if_necessary=True, verbose=4
+                                             )
             elif símismo.método.lower() == 'metrópolis':
                 pass
             else:
                 raise ValueError
 
             # Llamar la función "sample" (muestrear) del objeto MCMC de PyMC
-            símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1)
+            símismo.MCMC.sample(iter=rep, burn=quema, thin=extraer, verbose=1, tune_interval=10)
 
         else:
             if símismo.método.lower() == 'mcs':
