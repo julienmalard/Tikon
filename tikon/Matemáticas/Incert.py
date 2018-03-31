@@ -124,7 +124,7 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
 
                 # Generar la distribución PyMC
                 if usar_pymc3:
-                    dist = VarPyMC2.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_pymc)
+                    dist = VarPyMC3.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_pymc)
                 else:
                     dist = VarPyMC2.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_pymc)
 
