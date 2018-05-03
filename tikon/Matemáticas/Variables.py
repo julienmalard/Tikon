@@ -783,6 +783,9 @@ class VarCalib(VarAlea):
     def __add__(símismo, otro):
         return símismo.__float__() + otro
 
+    def __neg__(símismo):
+        return -1*símismo
+
     def __pow__(símismo, exp, módulo=None):
         return (símismo.__float__() ** exp) % módulo
 
