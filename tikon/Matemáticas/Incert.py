@@ -3,9 +3,8 @@ from warnings import warn as avisar
 import numpy as np
 import scipy.stats as estad
 
-from tikon.Matemáticas.Variables import VarSciPy, VarCalib, VarPyMC2, VarPyMC3
 from tikon import __email__ as correo
-from tikon.Controles import usar_pymc3
+from tikon.Matemáticas.Variables import VarSciPy, VarSpotPy
 
 try:
     import pymc3 as pm3
@@ -88,13 +87,10 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
                 # Si querremos generar distribuciones para una calibración, generar un variable PyMC directamente.
 
                 # El nombre para el variable PyMC
-                nombre_pymc = 'parám_{}'.format(n)
+                nombre_spotpy = 'parám_{}'.format(n)
 
                 # Convertir el texto directamente en distribución
-                if usar_pymc3:
-                    dist = VarPyMC3.de_texto(texto=d_parám[trzs_texto[0]], nombre=nombre_pymc)
-                else:
-                    dist = VarPyMC2.de_texto(texto=d_parám[trzs_texto[0]], nombre=nombre_pymc)
+                dist = VarSpotPy.de_texto(texto=d_parám[trzs_texto[0]], nombre=nombre_spotpy)
 
             elif formato == 'valid':
                 # Si querremos una distribución para una validación, generar una traza en NumPy
@@ -110,23 +106,23 @@ def trazas_a_dists(id_simul, l_d_pm, l_trazas, formato, comunes, l_lms=None, n_r
                 dist = VarSciPy.de_texto(texto=d_parám[trzs_texto[0]])
 
             else:
-                raise ValueError
+                raise ValueError(formato)
 
         else:
             # Si tenemos más que una calibración aplicable o esta está en formato de matriz...
 
             if formato == 'calib':
                 # El nombre para el variable PyMC
-                nombre_pymc = 'parám_%i' % n
+                nombre_spotpy = 'parám_%i' % n
 
                 # Un vector numpy de la traza de datos para generar la distribución PyMC.
                 vec_np = gen_vector_coefs(d_parám=d_parám, í_trazas=l_í_trazas[n])
 
                 # Generar la distribución PyMC
                 if usar_pymc3:
-                    dist = VarPyMC3.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_pymc)
+                    dist = VarPyMC3.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_spotpy)
                 else:
-                    dist = VarPyMC2.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_pymc)
+                    dist = VarPyMC2.ajust_dist(datos=vec_np, líms=l_lms[n], cont=True, nombre=nombre_spotpy)
 
             elif formato == 'valid':
                 # En el caso de validación, simplemente querremos una distribución NumPy

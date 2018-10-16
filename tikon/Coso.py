@@ -9,13 +9,13 @@ from warnings import warn as avisar
 
 import numpy as np
 
-from tikon.Matemáticas.Variables import VarSciPy, VarCalib
 from tikon import __correo__
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
-from tikon.Matemáticas.Calib import ModBayes, ModGLUE, ModCalib
+from tikon.Matemáticas.Calib import ModSpotPy, ModCalib
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Matemáticas.Sensib import prep_anal_sensib
+from tikon.Matemáticas.Variables import VarSciPy
 
 
 class Coso(object):
@@ -898,23 +898,18 @@ class Simulable(Coso):
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
 
-        # 6. Creamos el modelo ModCalib de calibración, lo cual genera variables PyMC
-        if método.lower() == 'metrópolis' or método.lower() == 'metrópolis adaptivo':
-            símismo.ModCalib = ModBayes(función=símismo._simul_exps,
-                                        dic_argums=dic_argums,
-                                        d_obs=d_obs,
-                                        lista_d_paráms=lista_paráms,
-                                        aprioris=lista_aprioris,
-                                        lista_líms=lista_líms,
-                                        id_calib=nombre,
-                                        función_llenar_coefs=símismo._llenar_coefs,
-                                        método=método
-                                        )
-        elif método.lower() == 'glue':
-            símismo.ModCalib = ModGLUE()
-
-        else:
-            raise ValueError
+        # 6. Creamos el modelo ModCalib de calibración, lo cual genera variables SpotPy
+        símismo.ModCalib = ModSpotPy(
+            función=símismo._simul_exps,
+            dic_argums=dic_argums,
+            d_obs=d_obs,
+            lista_d_paráms=lista_paráms,
+            aprioris=lista_aprioris,
+            lista_líms=lista_líms,
+            id_calib=nombre,
+            función_llenar_coefs=símismo._llenar_coefs,
+            método=método
+        )
 
         if nombre_pdzt_ant is not None:
             símismo.borrar_calib(id_calib=nombre_pdzt_ant)

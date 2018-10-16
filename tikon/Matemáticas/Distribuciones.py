@@ -1,12 +1,6 @@
 import math as mat
 
 import numpy as np
-
-try:
-    import pymc3 as pm3
-except ImportError:
-    pm3 = None
-
 import scipy.stats as estad
 
 # Par asimplificar el código (un poquitísimo)
@@ -130,10 +124,6 @@ dists = {'Alpha': {'scipy': estad.alpha,
                             'límites': (0, inf),
                             'tipo': 'cont'
                             },
-         # 'FrechetIzquierda': {'scipy': estad.frechet_l,
-         #               'pymc': None,
-         #               'límites': (-inf, 0)
-         #               },
          'LogísticaGeneral': {'scipy': estad.genlogistic,
                               'paráms': ['c', 'ubic', 'escl'],
                               'límites': (0, inf),
@@ -319,16 +309,11 @@ dists = {'Alpha': {'scipy': estad.alpha,
                         'límites': (0, inf),
                         'tipo': 'cont'
                         },
-
-         # Desactivada por complicación de conversión PyMC-SciPy
-         #
-         # 'TNoCentral': {'scipy': estad.nct,
-         #                'paráms': ['df', 'nc', 'ubic', 'escl'],
-         #                'pymc': NoncentralT,
-         #                'límites': (-inf, inf),
-         #                'tipo': 'cont'
-         #                },
-
+         'TNoCentral': {'scipy': estad.nct,
+                        'paráms': ['df', 'nc', 'ubic', 'escl'],
+                        'límites': (-inf, inf),
+                        'tipo': 'cont'
+                        },
          'Normal': {'scipy': estad.norm,
                     'paráms': ['ubic', 'escl'],
                     'límites': (-inf, inf),
