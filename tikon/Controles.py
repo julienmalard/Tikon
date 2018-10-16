@@ -5,7 +5,6 @@ from warnings import warn as avisar
 import pathvalidate
 from pkg_resources import resource_filename
 
-usar_pymc3 = False
 
 # Este documento contiene información general para el programa Tiko'n
 

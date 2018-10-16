@@ -1,7 +1,7 @@
 import datetime as ft
 import pandas as pd
-from taqdir.مقام import مقام
-from taqdir.ذرائع.مشاہدات import دن_مشا, مہنہ_مشا, سال_مشا
+from تقدیر.مقام import مقام
+from تقدیر.ذرائع.مشاہدات import دن_مشا, مہنہ_مشا, سال_مشا
 
 # Ofrecemos la oportunidad de utilizar تقدیر, taqdir, en español
 
