@@ -2193,7 +2193,7 @@ class Red(Simulable):
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
         símismo.dic_simul['l_días_obs_todas'].extend(l_días_obs_todas)
 
-    def _gen_dics_calib(símismo, exper):
+    def _gen_dics_calib(símismo, exper, n_rep_estoc):
 
         # El diccionario de observaciones para la validación...
         l_obs_v = dic_a_lista(símismo.dic_simul['d_obs_valid'])
@@ -2226,10 +2226,7 @@ class Red(Simulable):
             n_obs_cumul += n_obs
 
         # El diccionario vacío para guardar predicciones
-        símismo.dic_simul['d_calib']['Normal'] = {
-            'mu': np.empty(n_obs_cumul),
-            'sigma': np.empty(n_obs_cumul)
-        }
+        símismo.dic_simul['d_calib']['Normal'] = np.empty((n_obs_cumul, n_rep_estoc))
 
         # El diccionario de observaciones para la calibración
         d_obs_c['Normal'] = np.empty(n_obs_cumul)

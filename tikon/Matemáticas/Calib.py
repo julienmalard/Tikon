@@ -4,8 +4,11 @@ from warnings import warn as avisar
 
 import numpy as np
 import spotpy
+import scipy.stats as estad
 
+from tikon.Matemáticas.Experimentos import BDtexto
 from tikon.Matemáticas.Incert import trazas_a_dists
+from tikon.Matemáticas.Variables import _inv_logit
 
 
 class ModCalib(object):
@@ -341,9 +344,9 @@ class ModSpotPy(ModCalib):
                 muestreador.sample(rep)
             egr_spotpy = BDtexto(temp.name + '.csv')
 
-            cols_prm = [c for c in egr_spotpy.obt_nombres_cols() if c.startswith('par')]
-            trzs = egr_spotpy.obt_datos(cols_prm)
-            probs = egr_spotpy.obt_datos('like1')['like1']
+            cols_prm = [c for c in egr_spotpy.sacar_cols() if c.startswith('par')]
+            trzs = [pr._transf_vals(v) for pr, v in zip(símismo.paráms, egr_spotpy.obt_datos(cols_prm))]
+            probs = egr_spotpy.obt_datos('like1')
 
             if os.path.isfile(temp.name + '.csv'):
                 os.remove(temp.name + '.csv')
@@ -352,8 +355,8 @@ class ModSpotPy(ModCalib):
                 trzs = trzs[-rep:]
                 probs = probs[-rep:]
             elif símismo.método != 'mcmc':
-                buenas = (probs >= 0.80)
-                trzs = {p: trzs[p][buenas] for p in cols_prm}
+                buenas = (probs >= np.quantile(probs, 0.90))
+                trzs = {p: trzs[i][buenas] for i, p in enumerate(cols_prm)}
                 probs = probs[buenas]
 
             rango_prob = (probs.min(), probs.max())
@@ -430,7 +433,9 @@ class ParaSpotPy(object):
         símismo.func = func
         símismo.args_f = args_f
 
-        símismo.obs_norm, símismo.mu_obs, símismo.sg_obs = símismo._normalizar(obs)
+        símismo.obs = obs
+
+        símismo.res = None
 
     def parameters(símismo):
         return spotpy.parameter.generate([p.var for p in símismo.paráms])
@@ -439,24 +444,29 @@ class ParaSpotPy(object):
         for v, p in zip(x, símismo.paráms):
             p.val = v
 
-        res = símismo.func(**símismo.args_f)
-
-        return símismo._normalizar(res, símismo.mu_obs, símismo.sg_obs)[0]
-
-    @staticmethod
-    def _normalizar(d_obs, mu=None, sg=None):
-        if mu is None and sg is None:
-            # para hacer: normalizar por especie
-            mu = {tp: np.mean(matr) for tp, matr in d_obs.items()}
-            sg = {tp: np.std(matr) for tp, matr in d_obs.items()}
-
-        d_norm = {tp: (matr - mu[tp])/sg[tp] for tp, matr in d_obs.items()}
-        return d_norm, mu, sg
+        símismo.res = símismo.func(**símismo.args_f)['d_calib']['Normal']
+        return [0]
 
     def evaluation(símismo):
-        return símismo.obs_norm
+        return símismo.obs['Normal']
 
     def objectivefunction(símismo, simulation, evaluation, params=None):
         # like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)
 
-        return _dens_con_pred(evaluation, simulation)
+        return _dens_con_pred(evaluation, símismo.res)
+
+
+def _dens_con_pred(obs, sim):
+    res = []
+    for s, o in zip(sim, obs):
+        d = (np.mean(s) - o)
+        if d == 0:
+            res.append(1)  # para hacer
+        else:
+            s = s / d
+            o = o / d
+            try:
+                res.append(estad.gaussian_kde(s)(o)[0])
+            except np.linalg.linalg.LinAlgError:
+                res.append(1 if o == s[0] else 0)
+    return _inv_logit(np.mean(res))

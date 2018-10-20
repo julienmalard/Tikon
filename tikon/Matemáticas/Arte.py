@@ -265,7 +265,7 @@ def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
     # Poner cada distribución en el gráfico
     for dist in dists:
 
-        if isinstance(dist, VarCalib):
+        if isinstance(dist, VarSpotPy):
             ejes = fig.subplots(1, 2)
 
             dist.dibujar(ejes=ejes)

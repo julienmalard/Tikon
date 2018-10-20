@@ -13,11 +13,11 @@ ops_dib = {'n_líneas': 5}
 # Empezamos las cosas serias ahora
 proyecto = 'Opisina_arenosella'
 
-método = 'Metrópolis adaptivo'
-n_iter = 10000
+método = 'mle'
+n_iter = 100
 quema = 0
 extraer = 1
-pedazitos = 5
+pedazitos = 1
 
 O_arenosella_senc = Ins.Sencillo(nombre='O. arenosella_senc', proyecto=proyecto)
 Parasitoide_senc = Ins.Sencillo(nombre='Parasitoide_senc', proyecto=proyecto)
