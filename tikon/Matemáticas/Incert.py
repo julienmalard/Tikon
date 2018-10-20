@@ -228,7 +228,7 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
                     índs = np.random.choice(range(tamaño_máx), size=rep_per_calib[i], replace=devolv)
                 d_índs[nombre_trz] = índs
 
-            elif isinstance(dist, VarCalib):
+            elif isinstance(dist, VarSpotPy):
                 # ..y si es un variable de calibración activa, poner el variable sí mismo en la matriz
                 d_índs[nombre_trz] = None
 
@@ -296,7 +296,7 @@ def gen_vector_coefs(d_parám, í_trazas):
             dist_sp = VarSciPy.de_texto(d_parám[trz])
             vector.append(dist_sp.muestra_alea(n=índs))
 
-        elif isinstance(d_parám[trz], VarCalib):
+        elif isinstance(d_parám[trz], VarSpotPy):
             # Variables de calibraciones activas (PyMC) se agregan directamente
             vector.append(d_parám[trz])
 
