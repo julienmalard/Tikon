@@ -1551,9 +1551,6 @@ class Red(Simulable):
 
         """
 
-        matr_preds_total = None
-        vector_obs_total = None
-
         # El diccionario de validación por etapa
         valids_detalles = {}
 
@@ -1564,6 +1561,8 @@ class Red(Simulable):
         d_matrs_valid = símismo.dic_simul['matrs_valid']
 
         n_etps = len(símismo.etapas)
+
+        d_res_valid = {}
 
         # Para cada experimento...
         for exp, d_obs_exp in d_obs_valid.items():
@@ -1594,21 +1593,19 @@ class Red(Simulable):
 
                         valids_detalles[exp][org][etp] = {}
 
-                        valids_detalles[exp][org][etp][parc] = validar_matr_pred(
+                        valids = validar_matr_pred(
                             matr_predic=matr_preds,
                             vector_obs=vec_obs
                         )
+                        valids_detalles[exp][org][etp][parc] = valids
+                        for ll, v in valids.items():
+                            if ll not in d_res_valid:
+                                d_res_valid[ll] = []
+                            d_res_valid[ll].append(v)
 
-                        if matr_preds_total is None:
-                            matr_preds_total = matr_preds
-                            vector_obs_total = vec_obs
-                        else:
-                            matr_preds_total = np.append(matr_preds_total, matr_preds, axis=-1)
-                            vector_obs_total = np.append(vector_obs_total, vec_obs, axis=-1)
+        d_res_valid = {ll: np.mean(v) for ll, v in d_res_valid.items()}
 
-        valid = validar_matr_pred(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
-
-        return {'Valid': valid, 'Valid detallades': valids_detalles}
+        return {'Valid': d_res_valid, 'Valid detallades': valids_detalles}
 
     def _procesar_matrs_sens(símismo):
         """
