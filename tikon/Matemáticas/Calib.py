@@ -336,7 +336,7 @@ class ModSpotPy(ModCalib):
 
             mod_spotpy = ParaSpotPy(func=símismo.func, args_f=símismo.args_f, paráms=símismo.paráms, obs=símismo.d_obs)
 
-            muestreador = _algs_spotpy[símismo.método](mod_spotpy, dbname=temp.name, dbformat='csv')
+            muestreador = _algs_spotpy[símismo.método](mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
 
             if símismo.método == 'dream':
                 muestreador.sample(repetitions=2000 + rep, runs_after_convergence=rep)
@@ -345,7 +345,7 @@ class ModSpotPy(ModCalib):
             egr_spotpy = BDtexto(temp.name + '.csv')
 
             cols_prm = [c for c in egr_spotpy.sacar_cols() if c.startswith('par')]
-            trzs = [pr._transf_vals(v) for pr, v in zip(símismo.paráms, egr_spotpy.obt_datos(cols_prm))]
+            trzs = np.array([pr._transf_vals(v) for pr, v in zip(símismo.paráms, egr_spotpy.obt_datos(cols_prm))])
             probs = egr_spotpy.obt_datos('like1')
 
             if os.path.isfile(temp.name + '.csv'):
