@@ -253,7 +253,7 @@ class VarSciPy(VarAlea):
         n = 10000
         puntos = símismo.muestra_alea(n)
 
-        y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+        y, delim = np.histogram(puntos, density=True, bins=n // 100)
         x = 0.5 * (delim[1:] + delim[:-1])
 
         ejes.plot(x, y, 'b-', lw=2, alpha=0.6)

@@ -432,7 +432,7 @@ def validar_matr_pred(matr_predic, vector_obs):
 
     :return: Devuelve los valores de R2, de RCNEP (Raíz cuadrada normalizada del error promedio), y el R2 de la
     exactitud de los intervalos de confianza (1.0 = exactitud perfecta).
-    :rtype: (float, float, float)
+    :rtype: dict
     """
 
     # Quitar observaciones que faltan
