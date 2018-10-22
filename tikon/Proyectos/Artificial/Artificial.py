@@ -20,11 +20,23 @@ dib_valid = dib
 dib_calibs = dib
 proyecto = 'Artificial'
 
-nombre = 'Pruebita algs'
-métodos = ['mle', 'rope', 'sceua', 'mc', 'mcmc', 'lhs', 'sa', 'abc', 'fscabc', 'dream', 'fast']
+nombre = 'Pruebita algs 2'
+métodos = [
+    'mle',
+    'rope',
+    # 'sceua',
+    'mc',
+    'mcmc',
+    'lhs',
+    'sa',
+    'abc',
+    'fscabc',
+    'dream',
+    'fast'
+]
 método = ''
 quema = 0
-n_iter = 10
+n_iter = 300
 n_rep_parám = 30
 n_rep_estoc = 30
 extr = 1
