@@ -300,7 +300,7 @@ def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
             # Si hay valores, hacer un histrograma
             if valores is not None:
                 valores = valores.astype(float)
-                ejes.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+                ejes.hist(valores, density=True, color='green', histtype='stepfilled', alpha=0.2)
 
             # Si se especificó un título, ponerlo
             if título is not None:

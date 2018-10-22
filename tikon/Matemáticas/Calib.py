@@ -354,18 +354,18 @@ class ModSpotPy(ModCalib):
             if símismo.método == 'dream':
                 trzs = trzs[-rep:]
                 probs = probs[-rep:]
-            elif símismo.método != 'mcmc':
-                buenas = (probs >= np.quantile(probs, 0.90))
-                trzs = {p: trzs[i][buenas] for i, p in enumerate(cols_prm)}
+            else:
+                buenas = probs >= np.quantile(probs, 0.95)
+                trzs = trzs[:, buenas]
                 probs = probs[buenas]
 
             rango_prob = (probs.min(), probs.max())
             pesos = (probs - rango_prob[0]) / (rango_prob[1] - rango_prob[0])
 
             res = {}
-            for p in símismo.paráms:
-                col_p = ('par' + str(p)).replace(' ', '_')
-                p.traza = trzs[col_p]
+            for i, p in enumerate(símismo.paráms):
+                # col_p = ('par' + str(p)).replace(' ', '_')
+                p.traza = trzs[i]
 
             return res
 
@@ -445,7 +445,7 @@ class ParaSpotPy(object):
             p.val = v
 
         símismo.res = símismo.func(**símismo.args_f)['d_calib']['Normal']
-        return [0]
+        return np.mean(símismo.res, axis=1)
 
     def evaluation(símismo):
         return símismo.obs['Normal']
@@ -459,14 +459,14 @@ class ParaSpotPy(object):
 def _dens_con_pred(obs, sim):
     res = []
     for s, o in zip(sim, obs):
-        d = (np.mean(s) - o)
-        if d == 0:
-            res.append(1)  # para hacer
-        else:
-            s = s / d
-            o = o / d
-            try:
-                res.append(estad.gaussian_kde(s)(o)[0])
-            except np.linalg.linalg.LinAlgError:
-                res.append(1 if o == s[0] else 0)
-    return _inv_logit(np.mean(res))
+        d = o*(1+np.exp(-o*2)) / (1-np.exp(-o*2))
+        if np.isnan(d):
+            d = 1
+
+        s = s / d
+        o = o / d
+        try:
+            res.append(_inv_logit(estad.gaussian_kde(s)(o)[0]))
+        except np.linalg.linalg.LinAlgError:
+            res.append(1 if o == s[0] else 0)
+    return np.mean(res)

@@ -66,11 +66,11 @@ for nombre, dist in sorted(dists.items()):
                                      lista_dist=[nombre])[0]
 
     if dibujar:
-        dib.hist(núms, normed=True, color='red', histtype='stepfilled', alpha=0.2, bins=100)
+        dib.hist(núms, density=True, color='red', histtype='stepfilled', alpha=0.2, bins=100)
 
-        dib.hist(puntos_scipy, normed=True, color='blue', histtype='stepfilled', alpha=0.2, bins=100)
+        dib.hist(puntos_scipy, density=True, color='blue', histtype='stepfilled', alpha=0.2, bins=100)
 
-        dib.hist(puntos_pymc, normed=True, color='green', histtype='stepfilled', alpha=0.2, bins=100)
+        dib.hist(puntos_pymc, density=True, color='green', histtype='stepfilled', alpha=0.2, bins=100)
 
         x = np.linspace(dist_scipy.ppf(0.01), dist_scipy.ppf(0.99), 100)
         dib.plot(x, dist_scipy.pdf(x), 'b-', lw=2, alpha=0.6)
