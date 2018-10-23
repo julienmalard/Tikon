@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 
-from tikon.Matemáticas.Variables import VarSciPy, VarCalib
+from tikon.Matemáticas.Variables import VarSciPy, VarSpotPy
 from tikon.Controles import valid_archivo
 
 
@@ -265,7 +265,7 @@ def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
     # Poner cada distribución en el gráfico
     for dist in dists:
 
-        if isinstance(dist, VarCalib):
+        if isinstance(dist, VarSpotPy):
             ejes = fig.subplots(1, 2)
 
             dist.dibujar(ejes=ejes)
@@ -300,7 +300,7 @@ def graficar_dists(dists, valores=None, rango=None, título=None, archivo=None):
             # Si hay valores, hacer un histrograma
             if valores is not None:
                 valores = valores.astype(float)
-                ejes.hist(valores, normed=True, color='green', histtype='stepfilled', alpha=0.2)
+                ejes.hist(valores, density=True, color='green', histtype='stepfilled', alpha=0.2)
 
             # Si se especificó un título, ponerlo
             if título is not None:

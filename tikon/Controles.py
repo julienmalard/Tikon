@@ -5,7 +5,6 @@ from warnings import warn as avisar
 import pathvalidate
 from pkg_resources import resource_filename
 
-usar_pymc3 = False
 
 # Este documento contiene información general para el programa Tiko'n
 
@@ -39,6 +38,7 @@ def espec_dir_modelo_cult(modelo, directorio):
 def valid_archivo(archivo):
     direc, nombre = os.path.split(archivo)
     disco, direc = os.path.splitdrive(direc)
+    return os.path.join(disco, direc, nombre)
 
     direc = pathvalidate.sanitize_file_path(direc, replacement_text='_')
     nombre = pathvalidate.sanitize_filename(nombre, replacement_text='_')

@@ -9,13 +9,13 @@ from warnings import warn as avisar
 
 import numpy as np
 
-from tikon.Matemáticas.Variables import VarSciPy, VarCalib
 from tikon import __correo__
 from tikon.Controles import directorio_base, dir_proyectos
 from tikon.Matemáticas import Arte, Incert
-from tikon.Matemáticas.Calib import ModBayes, ModGLUE, ModCalib
+from tikon.Matemáticas.Calib import ModSpotPy, ModCalib
 from tikon.Matemáticas.Experimentos import Experimento
 from tikon.Matemáticas.Sensib import prep_anal_sensib
+from tikon.Matemáticas.Variables import VarSciPy, VarSpotPy
 
 
 class Coso(object):
@@ -790,7 +790,7 @@ class Simulable(Coso):
             símismo.dibujar(exper=exper, directorio=directorio_dib, mostrar=mostrar, **opciones_dib)
 
     def calibrar(símismo, nombre=None, aprioris=None, exper=None, paso=1, n_rep_estoc=10, tiempo_final=None,
-                 n_iter=10000, quema=100, extraer=10, método='Metrópolis adaptivo', pedazitos=None,
+                 n_iter=10000, quema=100, extraer=10, método='mle', pedazitos=None,
                  usar_especificadas=True, dibujar=False, depurar=False):
         """
         Esta función calibra un Simulable. Para calibrar un modelo, hay algunas cosas que hacer:
@@ -898,23 +898,18 @@ class Simulable(Coso):
         # 5. Conectar a las observaciones
         d_obs = símismo.dic_simul['d_obs_calib']  # type: dict[dict[np.ndarray]]
 
-        # 6. Creamos el modelo ModCalib de calibración, lo cual genera variables PyMC
-        if método.lower() == 'metrópolis' or método.lower() == 'metrópolis adaptivo':
-            símismo.ModCalib = ModBayes(función=símismo._simul_exps,
-                                        dic_argums=dic_argums,
-                                        d_obs=d_obs,
-                                        lista_d_paráms=lista_paráms,
-                                        aprioris=lista_aprioris,
-                                        lista_líms=lista_líms,
-                                        id_calib=nombre,
-                                        función_llenar_coefs=símismo._llenar_coefs,
-                                        método=método
-                                        )
-        elif método.lower() == 'glue':
-            símismo.ModCalib = ModGLUE()
-
-        else:
-            raise ValueError
+        # 6. Creamos el modelo ModCalib de calibración, lo cual genera variables SpotPy
+        símismo.ModCalib = ModSpotPy(
+            función=símismo._simul_exps,
+            dic_argums=dic_argums,
+            d_obs=d_obs,
+            lista_d_paráms=lista_paráms,
+            aprioris=lista_aprioris,
+            lista_líms=lista_líms,
+            id_calib=nombre,
+            función_llenar_coefs=símismo._llenar_coefs,
+            método=método
+        )
 
         if nombre_pdzt_ant is not None:
             símismo.borrar_calib(id_calib=nombre_pdzt_ant)
@@ -1050,9 +1045,6 @@ class Simulable(Coso):
 
         :param mostrar: Si hay que mostrar los gráficos generados
         :type mostrar: bool
-
-        :param dib_dists: Si hay que dibujar las distribuciones utilizadas para la simulación.
-        :type dib_dists: bool
 
         :param dib_dists: Si hay que dibujar las distribuciones utilizadas para la simulación.
         :type dib_dists: bool
@@ -1529,7 +1521,7 @@ class Simulable(Coso):
                                     n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_paráms)
 
         if tipo == 'calib':
-            símismo._gen_dics_calib(exper=exper)
+            símismo._gen_dics_calib(exper=exper, n_rep_estoc=n_rep_estoc)
 
     def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         raise NotImplementedError
@@ -1537,7 +1529,7 @@ class Simulable(Coso):
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
         raise NotImplementedError
 
-    def _gen_dics_calib(símismo, exper):
+    def _gen_dics_calib(símismo, exper, n_rep_estoc):
         raise NotImplementedError
 
     def _simul_exps(símismo, paso, n_pasos, extrn, detalles, devolver_calib, depurar=False):
@@ -1580,23 +1572,15 @@ class Simulable(Coso):
             print('Simulación (%s) calculada en: ' % exp, time.time() - antes)
 
         # Procesar los egresos de la simulación.
-        antes = time.time()
         símismo._procesar_simul()
-        dif_p_s = time.time() - antes
 
         if devolver_calib:
             # Convertir los diccionarios de predicciones en un vector numpy.
-            antes = time.time()
             símismo._procesar_valid()
-            dif_p_v = time.time() - antes
-            antes = time.time()
             símismo._procesar_calib()
-            dif_p_c = time.time() - antes
-            print('Procesando predicciones: \n\tSimul: {}\n\tValid: {}\n\tCalib: {}\n\tTotal: {}'
-                  .format(dif_p_s, dif_p_v, dif_p_c, dif_p_s + dif_p_v + dif_p_c))
 
             # Devolver las predicciones.
-            return símismo.dic_simul['d_calib']
+            return símismo.dic_simul
 
     def _procesar_simul(símismo):
         """
@@ -1658,22 +1642,15 @@ class Simulable(Coso):
         for t_dist, l_matr_v in d_l_m_valid.items():
             d_dist = d_calib[t_dist]  # type: dict
 
-            # Por una razón extraña, PyMC se queja si no hacemos copias aquí. A ver si hay que hacer lo mismo con PyMC3.
-            d_dist['mu'] = np.zeros_like(d_dist['mu'])
-            d_dist['sigma'] = np.zeros_like(d_dist['sigma'])
-
             for i, m in enumerate(l_matr_v):
                 r = d_índs[t_dist][i]['rango']
                 parc, etps, días = d_índs[t_dist][i]['índs']
 
                 if t_dist == 'Normal':
-                    d_dist['mu'][r[0]:r[1]] = np.mean(m[parc, :, 0, etps, días], axis=1)
-
-                    # Evitar sigmas de 0. Causan muchos problemas después.
-                    d_dist['sigma'][r[0]:r[1]] = np.maximum(1, np.std(m[parc, :, 0, etps, días], axis=1))
+                    d_dist[r[0]:r[1]] = m[parc, :, 0, etps, días]
 
                 else:
-                    raise ValueError
+                    raise ValueError(t_dist)
 
     def _procesar_matrs_sens(símismo):
         """
@@ -1886,7 +1863,7 @@ class Simulable(Coso):
                     u.append(ll)
                     sacar_dists_de_dic(d=v, l=l, u=u)
 
-                elif isinstance(v, VarCalib):
+                elif isinstance(v, VarSpotPy):
                     u.append(ll)
                     l.append((u.copy(), v))
                     u.pop()
@@ -2096,7 +2073,7 @@ def prep_receta_json(d, d_egr=None):
             # Transformar matrices numpy a texto
             d_egr[ll] = v.tolist()
 
-        elif isinstance(v, VarCalib):
+        elif isinstance(v, VarSpotPy):
 
             # Si el itema es un variable de PyMC, borrarlo
             d_egr.pop(ll)

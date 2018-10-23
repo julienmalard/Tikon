@@ -1551,9 +1551,6 @@ class Red(Simulable):
 
         """
 
-        matr_preds_total = None
-        vector_obs_total = None
-
         # El diccionario de validación por etapa
         valids_detalles = {}
 
@@ -1564,6 +1561,8 @@ class Red(Simulable):
         d_matrs_valid = símismo.dic_simul['matrs_valid']
 
         n_etps = len(símismo.etapas)
+
+        d_res_valid = {}
 
         # Para cada experimento...
         for exp, d_obs_exp in d_obs_valid.items():
@@ -1594,21 +1593,19 @@ class Red(Simulable):
 
                         valids_detalles[exp][org][etp] = {}
 
-                        valids_detalles[exp][org][etp][parc] = validar_matr_pred(
+                        valids = validar_matr_pred(
                             matr_predic=matr_preds,
                             vector_obs=vec_obs
                         )
+                        valids_detalles[exp][org][etp][parc] = valids
+                        for ll, v in valids.items():
+                            if ll not in d_res_valid:
+                                d_res_valid[ll] = []
+                            d_res_valid[ll].append(v)
 
-                        if matr_preds_total is None:
-                            matr_preds_total = matr_preds
-                            vector_obs_total = vec_obs
-                        else:
-                            matr_preds_total = np.append(matr_preds_total, matr_preds, axis=-1)
-                            vector_obs_total = np.append(vector_obs_total, vec_obs, axis=-1)
+        d_res_valid = {ll: np.mean(v) for ll, v in d_res_valid.items()}
 
-        valid = validar_matr_pred(matr_predic=matr_preds_total, vector_obs=vector_obs_total)
-
-        return {'Valid': valid, 'Valid detallades': valids_detalles}
+        return {'Valid': d_res_valid, 'Valid detallades': valids_detalles}
 
     def _procesar_matrs_sens(símismo):
         """
@@ -2193,7 +2190,7 @@ class Red(Simulable):
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
         símismo.dic_simul['l_días_obs_todas'].extend(l_días_obs_todas)
 
-    def _gen_dics_calib(símismo, exper):
+    def _gen_dics_calib(símismo, exper, n_rep_estoc):
 
         # El diccionario de observaciones para la validación...
         l_obs_v = dic_a_lista(símismo.dic_simul['d_obs_valid'])
@@ -2226,10 +2223,7 @@ class Red(Simulable):
             n_obs_cumul += n_obs
 
         # El diccionario vacío para guardar predicciones
-        símismo.dic_simul['d_calib']['Normal'] = {
-            'mu': np.empty(n_obs_cumul),
-            'sigma': np.empty(n_obs_cumul)
-        }
+        símismo.dic_simul['d_calib']['Normal'] = np.empty((n_obs_cumul, n_rep_estoc))
 
         # El diccionario de observaciones para la calibración
         d_obs_c['Normal'] = np.empty(n_obs_cumul)
