@@ -820,7 +820,7 @@ class BDtexto(BD):
 
         :rtype: int
         """
-        with open(símismo.archivo) as d:
+        with open(símismo.archivo, encoding='utf8') as d:
             n_filas = sum(1 for f in d if len(f)) - 1  # Sustrayemos la primera fila
 
         return n_filas

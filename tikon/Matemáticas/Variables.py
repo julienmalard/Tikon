@@ -1,16 +1,16 @@
 import ast
 import math as mat
+import re
 from warnings import warn as avisar
 
 import matplotlib.pyplot as dib
 import numpy as np
-import pymc as pm2
-import pymc3 as pm3
+import spotpy
 from scipy import stats as estad
 from scipy.optimize import minimize as minimizar
 
-from tikon.Matemáticas import Distribuciones as Ds
 from tikon import __email__ as correo
+from tikon.Matemáticas import Distribuciones as Ds
 
 
 # Clases de variables
@@ -28,12 +28,13 @@ class VarAlea(object):
         """
 
         if tipo_dist not in símismo.dists_disp():
-            raise ValueError('La distribución "{}" no está implementada para el tipo de variable "{}".'
-                             .format(tipo_dist, símismo.__class__.__name__))
+            raise ValueError(
+                'La distribución "{}" no está implementada para el tipo de variable "{}".'
+                    .format(tipo_dist, símismo.__class__.__name__)
+            )
 
         símismo.tipo_dist = tipo_dist
         símismo.paráms = paráms
-        símismo.nombre = nombre
 
     def a_texto(símismo):
         """
@@ -54,7 +55,7 @@ class VarAlea(object):
         # Primero, decidimos si tenemos una especificación de distribución por nombre o por rango (y densidad)
         if '~' in texto:
             # Si tenemos especificación por nombre...
-            return cls.de_texto_dist(texto, nombre=nombre)
+            return cls.de_texto_dist(texto)
         else:
             # Si tenemos especificación por rango (y/o densidad):
 
@@ -71,8 +72,7 @@ class VarAlea(object):
                 if prcnt == 100:
                     return cls.de_líms(líms_dens, cont=True, nombre=nombre)
                 else:
-                    return cls.de_densidad(dens=prcnt, líms_dens=líms_dens, líms=líms, cont=True,
-                                           nombre=nombre)
+                    return cls.de_densidad(dens=prcnt, líms_dens=líms_dens, líms=líms, cont=True, nombre=nombre)
 
             else:
                 líms = tuple(float(x) for x in texto.strip('()').split(','))
@@ -80,7 +80,7 @@ class VarAlea(object):
                 return cls.de_líms(líms, cont=True, nombre=nombre)
 
     @classmethod
-    def ajust_dist(cls, datos, líms, cont, lista_dist=None, nombre=None):
+    def ajust_dist(cls, datos, líms, cont, lista_dist=None):
         """
         Esta función, tomando las límites teoréticas de una distribución y una serie de datos proveniendo de dicha
         distribución, escoge la distribución más apropriada y ajusta sus parámetros.
@@ -94,13 +94,11 @@ class VarAlea(object):
         :param líms: Las límites teoréticas de la distribucion (p. ej., (0, np.inf), (-np.inf, np.inf), etc.)
         :type líms: tuple
 
-        :param nombre: El nombre del variable, si vamos a generar un variable de PyMC
-        :type nombre: str
 
         :param lista_dist: Una lista de los nombres de distribuciones a considerar. dist=None las considerará todas.
         :type lista_dist: list
 
-        :return: Distribución PyMC o de Scipy su ajuste (p)
+        :return: Distribución PyMC o de Scipy
         :rtype: VarAlea
 
         """
@@ -108,8 +106,7 @@ class VarAlea(object):
         if lista_dist is None:
             lista_dist = cls.dists_disp()
 
-        resultado = cls._ajust_dist(datos=datos, líms=líms, cont=cont, nombre=nombre,
-                                    lista_dist=lista_dist)
+        resultado = cls._ajust_dist(datos=datos, líms=líms, cont=cont, lista_dist=lista_dist)
 
         return resultado['dist']
 
@@ -131,9 +128,6 @@ class VarAlea(object):
         :param cont: Indica si la distribución es una distribución contínua o discreta.
         :type cont: bool
 
-        :param nombre: El nombre de la distribución (se emplea únicamente para variables PyMC).
-        :type nombre: str
-
         :return: Una distribución con las características deseadas.
         :rtype: VarAlea
 
@@ -141,7 +135,7 @@ class VarAlea(object):
         raise NotImplementedError
 
     @classmethod
-    def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
+    def _ajust_dist(cls, datos, líms, cont, lista_dist):
         """
 
         :param datos:
@@ -161,24 +155,45 @@ class VarAlea(object):
 
     @classmethod
     def de_líms(cls, líms, cont, nombre):
-        raise NotImplementedError
+        """
+                Esta función toma una "tupla" de límites para un parámetro de una función y devuelve una distribución
+                Scipy correspondiente. Se usa en la inicialización de las
+                distribuciones de los parámetros de ecuaciones.
+
+                :param líms: Los límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
+                -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf).
+                :type líms: tuple
+
+                :param cont: Determina si el variable es continuo o discreto
+                :type cont: bool
+
+                :param nombre: Nombre para algunos tipos de distribuciones. Inútil para SciPy.
+                :type nombre: str
+
+                :return: Destribución no informativa conforme a las límites especificadas.
+                :rtype: str
+                """
+
+        tipo_dist, paráms = _líms_a_dist(líms, cont)
+
+        return cls(tipo_dist=tipo_dist, paráms=paráms, nombre=nombre)
 
     @classmethod
-    def de_texto_dist(cls, texto, nombre=None):
+    def de_texto_dist(cls, texto):
 
         # Dividir el nombre de la distribución de sus parámetros.
         tipo_dist, paráms = texto.split('~')
         paráms = ast.literal_eval(paráms)
 
-        return cls(tipo_dist=tipo_dist, paráms=paráms, nombre=nombre)
+        return cls(tipo_dist=tipo_dist, paráms=paráms)
 
     @classmethod
-    def de_scipy(cls, dist_scipy, nombre):
+    def de_scipy(cls, dist_scipy):
 
         tipo_dist = NotImplemented
         paráms = NotImplemented
 
-        return cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
+        return cls(tipo_dist=tipo_dist, paráms=paráms)
 
     @staticmethod
     def dists_disp():
@@ -192,7 +207,7 @@ class VarAlea(object):
 
 class VarSciPy(VarAlea):
 
-    def __init__(símismo, tipo_dist, paráms):
+    def __init__(símismo, tipo_dist, paráms, nombre=None):
         """
 
         :param tipo_dist:
@@ -238,7 +253,7 @@ class VarSciPy(VarAlea):
         n = 10000
         puntos = símismo.muestra_alea(n)
 
-        y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+        y, delim = np.histogram(puntos, density=True, bins=n // 100)
         x = 0.5 * (delim[1:] + delim[:-1])
 
         ejes.plot(x, y, 'b-', lw=2, alpha=0.6)
@@ -260,7 +275,7 @@ class VarSciPy(VarAlea):
 
         # Asegurarse de que el rango cabe en los límites
         if líms_dens[0] < mín or líms_dens[1] > máx:
-            raise ValueError('El rango tiene que caber entre los límites teoréticos del variable.')
+            raise ValueError()
 
         # Si no decimos el contrario, no invertiremos la distribución.
         inv = False
@@ -687,141 +702,17 @@ class VarSciPy(VarAlea):
 
         return resultado
 
-    @classmethod
-    def de_líms(cls, líms, cont, nombre=None):
-        """
-        Esta función toma una "tupla" de límites para un parámetro de una función y devuelve una distribución
-        Scipy correspondiente. Se usa en la inicialización de las
-        distribuciones de los parámetros de ecuaciones.
-
-        :param líms: Los límites para los valores posibles del parámetro. Para límites infinitas, usar np.inf y
-        -np.inf. Ejemplos: (0, np.inf), (-10, 10), (-np.inf, np.inf).
-        :type líms: tuple
-
-        :param cont: Determina si el variable es continuo o discreto
-        :type cont: bool
-
-        :param nombre: Nombre para algunos tipos de distribuciones. Inútil para SciPy.
-        :type nombre: str
-
-        :return: Destribución no informativa conforme a las límites especificadas.
-        :rtype: str
-        """
-
-        tipo_dist, paráms = _líms_a_dist(líms, cont)
-
-        return cls(tipo_dist=tipo_dist, paráms=paráms)
-
     @staticmethod
     def dists_disp():
         return [x for x, d in Ds.dists.items() if d['scipy'] is not None]
 
 
-class VarCalib(VarAlea):
-
-    def __init__(símismo, nombre, tipo_dist, paráms):
-        """
-
-        :param nombre:
-        :type nombre: str
-        :param tipo_dist: El tipo de distribución. (P.ej., ``Normal``, ``Uniforme``, etc.)
-        :type tipo_dist: str
-        :param paráms:
-        :type paráms: dict
-        """
-
-        símismo.var = NotImplemented  # type: pm2.Stochastic | pm3.model.FreeRV
-        super().__init__(tipo_dist=tipo_dist, nombre=nombre, paráms=paráms)
-
-    def dibujar(símismo, ejes=None):
-        if ejes is None:
-            fig, ejes = dib.subplots(1, 2)
-
-        símismo._dibujar(ejes=ejes)
-
-    def _dibujar(símismo, ejes):
-        raise NotImplementedError
-
-    def traza(símismo):
-        """
-
-        :return:
-        :rtype: np.ndarray
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
-        raise NotImplementedError
-
-    @classmethod
-    def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
-        raise NotImplementedError
-
-    @classmethod
-    def de_líms(cls, líms, cont, nombre):
-        raise NotImplementedError
-
-    @staticmethod
-    def dists_disp():
-        raise NotImplementedError
-
-    def __float__(símismo):
-        """
-
-        :return:
-        :rtype: float
-        """
-        raise NotImplementedError
-
-    def __abs__(símismo):
-        return abs(símismo.__float__())
-
-    def __sub__(símismo, otro):
-        return símismo.__float__() - otro
-
-    def __add__(símismo, otro):
-        return símismo.__float__() + otro
-
-    def __neg__(símismo):
-        return -1*símismo
-
-    def __pow__(símismo, exp, módulo=None):
-        return (símismo.__float__() ** exp) % módulo
-
-    def __mul__(símismo, otro):
-        return símismo.__float__() * otro
-
-    def __truediv__(símismo, otro):
-        return símismo.__float__() / otro
-
-    def __floordiv__(símismo, otro):
-        return símismo.__float__() // otro
-
-    def __radd__(símismo, otro):
-        return símismo + otro
-
-    def __rsub__(símismo, otro):
-        return otro - símismo.__float__()
-
-    def __rmul__(símismo, otro):
-        return símismo * otro
-
-    def __rtruediv__(símismo, otro):
-        return otro / símismo.__float__()
-
-
-class VarPyMC2(VarCalib):
-    """
-    Esta clase representa variables de PyMC v2.
-    """
+class VarSpotPy(VarAlea):
 
     def __init__(símismo, nombre, tipo_dist, paráms, transf=None):
         """
 
-        :param nombre:
-        :type nombre: str
-        :param tipo_dist:
+        :param tipo_dist: El tipo de distribución. (P.ej., ``Normal``, ``Uniforme``, etc.)
         :type tipo_dist: str
         :param paráms:
         :type paráms: dict
@@ -829,7 +720,15 @@ class VarPyMC2(VarCalib):
         :type transf: dict[str, str | float | int]
         """
 
-        super().__init__(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
+        super().__init__(tipo_dist=tipo_dist, paráms=paráms)
+
+        símismo.traza = np.array([])
+
+        símismo.val = None
+        símismo.modelo = None
+
+        nombre = re.sub('\W|^(?=\d)', '_', nombre)
+        símismo.nombre = nombre
 
         # Sacar los límites y también verificar que existe este variable
         if tipo_dist in Ds.dists:
@@ -837,7 +736,7 @@ class VarPyMC2(VarCalib):
         elif tipo_dist in ['NormalExp', 'LogitInv']:
             líms_dist = (-np.inf, np.inf)
         else:
-            raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones PyMC2.' %
+            raise ValueError('La distribución %s no existe en la base de datos de Tikon para distribuciones SpotPy.' %
                              tipo_dist)
 
         # Hacer transformaciones de forma de distribución si necesario
@@ -847,119 +746,66 @@ class VarPyMC2(VarCalib):
             líms_dist[0] = -líms_dist[1]
             líms_dist[1] = np.inf
             inv = True  # Invertimos la distribución
-            nombre = 'inv_{}'.format(nombre)
         else:
             inv = False
 
-        # Transformar distribuciones con límites a distribuciones aproximativas con límites.
-        if líms_dist[0] != -np.inf:
-            if líms_dist[1] != np.inf:
-
-                # El caso [R, R] se transforma con logit.
-                if transf is None:
-                    avisar('A PyMC2 no le gustan distribuciones con límites, como "{}". Tomaremos el logit inverso '
-                           'de una distribución normal en vez.'.format(tipo_dist))
-
-                    # Normalizar la distribución inicial al rango [0, 1]
-                    d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
-                    norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
-                    norm_mult = 1 / (paráms['escl'] * (líms_dist[1] - líms_dist[0]))
-
-                    # Tomar la mitad de la densidad de esta distribución normalizada como el mu de nuestra distribución
-                    # normal
-                    mu = _logit((d_scipy.percentiles(0.5) + norm_suma) * norm_mult)
-
-                    # Aproximar sigma según los percentiles de la distribución original que corresponden a 1 desviación
-                    # estándar de la distribución normal.
-                    p16 = d_scipy.percentiles(estad.norm.cdf(-1))
-                    p84 = d_scipy.percentiles(estad.norm.cdf(1))
-                    sigma = (-_logit((p16 + norm_suma) * norm_mult) + _logit((p84 + norm_suma) * norm_mult)) / 2
-
-                    # Establecer la distribución Logit Inversa y sus parámetros
-                    tipo_dist = 'Normal'
-                    paráms = {'escl': sigma, 'ubic': mu}
-                    transf = {'tipo': 'LogitInv', 'mult': 1 / norm_mult, 'suma': -norm_suma}
-
-                elif transf['tipo'] != 'LogitInv':
-                    raise ValueError('Debes utilizar una transformación Logit Inversa ("LogitInv") con distribuciones'
-                                     'en el rango [R, R] con PyMC2.')
-            else:
-
-                # El caso [R, inf) se transforma con log.
-                if transf is None:
-                    avisar('A PyMC2 no le gustan distribuciones con límite inferior, como "{}". Tomaremos el '
-                           'exponencial de una distribución normal en vez.'.format(tipo_dist))
-                    # Normalizar la distribución inicial para tener 99.9% se su densidad en el rango [0, 1]
-                    d_scipy = VarSciPy(tipo_dist=tipo_dist, paráms=paráms)
-                    norm_suma = - (líms_dist[0] * paráms['escl'] + paráms['ubic'])
-                    norm_mult = 1 / (paráms['escl'] * (d_scipy.percentiles(0.999) - líms_dist[0]))
-
-                    # Tomar la mitad de la densidad de esta distribución normalizada como el mu de nuestra distribución
-                    # normal
-                    mu = mat.log((d_scipy.percentiles(0.5) + norm_suma) * norm_mult)
-
-                    # Aproximar sigma según los percentiles de la distribución original que corresponden a 1 desviación
-                    # estándar de la distribución normal.
-                    p16 = d_scipy.percentiles(estad.norm.cdf(-1))
-                    p84 = d_scipy.percentiles(estad.norm.cdf(1))
-                    sigma = (-mat.log((p16 + norm_suma) * norm_mult) + mat.log((p84 + norm_suma) * norm_mult)) / 2
-
-                    # Establecer la distribución Normal Exponencial y sus parámetros
-                    tipo_dist = 'Normal'
-                    if inv:
-                        # De-invertir la distribución, si necesario.
-                        paráms = {'ubic': mu, 'escl': sigma}
-                        transf = {'tipo': 'Exp', 'mult': -1 / norm_mult, 'suma': norm_suma}
-                    else:
-                        paráms = {'ubic': mu, 'escl': sigma}
-                        transf = {'tipo': 'Exp', 'mult': 1 / norm_mult, 'suma': -norm_suma}
-
-                elif transf['tipo'] != 'Exp':
-                    raise ValueError('Debes utilizar una transformación Exponencial ("Exp") con distribuciones'
-                                     'en el rango [R, inf) o (-inf, R] con PyMC2.')
-
         # Generar la distribución y sus parámetros
-        if tipo_dist == 'Cauchy':
-            var = pm2.Cauchy(nombre, alpha=0, beta=1)
+        if tipo_dist == 'Chi2':
+            raise NotImplementedError
+            var = spotpy.parameter.Chisquare(símismo.nombre, dt=paráms['df'])
 
-        elif tipo_dist == 'Laplace':
-            var = pm2.Laplace(nombre, mu=0, tau=1)
+        elif tipo_dist == 'Exponencial':
+            var = spotpy.parameter.Exponential(símismo.nombre, scale=1)
 
-        elif tipo_dist == 'Logística':
-            var = pm2.Logistic(nombre, mu=0, tau=1)
+        elif tipo_dist == 'Gamma':
+            raise NotImplementedError
+            var = spotpy.parameter.Gamma(símismo.nombre, k=paráms['a'])
+
+        elif tipo_dist == 'LogNormal':
+            raise NotImplementedError
+            var = spotpy.parameter.logNormal(símismo.nombre)
 
         elif tipo_dist == 'Normal':
-            var = pm2.Normal(nombre, mu=0, tau=1)
+            var = spotpy.parameter.Normal(símismo.nombre, mean=0, stddev=1)
 
-        elif tipo_dist == 'T':
-            var = pm2.T(nombre, nu=paráms['df'])
+        elif tipo_dist == 'Uniforme':
+            var = spotpy.parameter.Uniform(símismo.nombre, low=0, high=1)
+
+        elif tipo_dist == 'Weibull':
+            raise NotImplementedError
+            var = spotpy.parameter.Weibull(símismo.nombre)
 
         else:
-            raise ValueError('La distribución "{}" existe en la base de datos de Tiko\'n para distribuciones PyMC2,'
-                             'pero no está configurada en la clase VarPyMC2.'.format(tipo_dist))
+            raise ValueError(
+                'La distribución "{}" existe en la base de datos de Tiko\'n para distribuciones SpotPy,'
+                'pero no está configurada en la clase VarSpotPy.'.format(tipo_dist))
 
         # Hacer transformaciones necesarias
         símismo.transf = transf
         if transf is not None and transf['tipo'] not in ['Exp', 'LogitInv']:
-            raise ValueError('')
+            raise ValueError(transf['tipo'])
 
         símismo.mult = paráms['escl']
         símismo.suma = paráms['ubic']
+        if inv:
+            símismo.mult *= -1
 
         símismo.var = var
 
         símismo.tipo_dist = tipo_dist
 
-    def _dibujar(símismo, ejes):
+    def dibujar(símismo, ejes=None):
+        if ejes is None:
+            fig, ejes = dib.subplots(1, 2)
 
         n = 10000
-        puntos = np.array([símismo.var.rand() for _ in range(n)])
+        puntos = símismo.var(size=n)
 
         # Transformaciones necesarias
         puntos = símismo._transf_vals(puntos)
 
         # Crear el histograma
-        y, delim = np.histogram(puntos, normed=True, bins=n // 100)
+        y, delim = np.histogram(puntos, density=True, bins=n // 100)
         x = 0.5 * (delim[1:] + delim[:-1])
 
         # Dibujar el histograma
@@ -967,105 +813,38 @@ class VarPyMC2(VarCalib):
         ejes[0].set_title('Distribución')
 
         # Dibujar la traza sí misma
-        ejes[1].plot(símismo.traza())
+        ejes[1].plot(símismo.traza)
         ejes[1].set_title('Traza')
-
-    def traza(símismo):
-        """
-        Devuelve la traza del variable. Si no hay traza, devuelve un matriz vacía.
-
-        :return: La traza del variable.
-        :rtype: np.ndarray
-        """
-
-        # Devolver la traza si existe.
-        try:
-            # Intentar obtener la traza.
-            trz = símismo.var.trace(chain=None)[:]
-
-            # Devolver la traza con las transformaciones necesaria.
-            return símismo._transf_vals(trz)
-
-        except (AttributeError, TypeError):
-            # Si hubo error, devolver una matriz vacía.
-            return np.array([])
-
-    def _transf_vals(símismo, vals):
-
-        vals_transl = np.add(np.multiply(vals, símismo.mult), símismo.suma)
-
-        if símismo.transf is None:
-            return vals_transl
-        else:
-            mult = símismo.transf['mult']
-            suma = símismo.transf['suma']
-            tipo = símismo.transf['tipo']
-            if tipo == 'Exp':
-                vals_transf = np.exp(vals_transl)
-            elif tipo == 'LogitInv':
-                vals_transf = _inv_logit(vals_transl)
-            else:
-                raise ValueError('')
-
-            vals_transf = np.multiply(vals_transf, mult)
-            vals_transf = np.add(vals_transf, suma)
-
-            return vals_transf
 
     @classmethod
     def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
-        """
-        Devuelve un objeto de variable PyMC2 a base de información de distribución de densidad y de límites teoréticos.
-
-        :param dens: La fracción (en ``[0, 1]``) de densidad que caye adentro de ``líms_prcnt``.
-        :type dens: float | int
-
-        :param líms_dens: Los límites adentro de cuales ``frac`` densidad cae.
-        :type líms_dens: np.ndarray | list | tuple
-
-        :param líms: Los límites teoréticos del variable.
-        :type líms: np.ndarray | list | tuple
-
-        :param cont: Si es una distribución continua o no.
-        :type cont: bool
-
-        :param nombre: El nombre del variable.
-        :type nombre: str
-
-        :return: El variable PyMC2.
-        :rtype: VarPyMC2
-
-        """
-
         # Convertir None a infinidad en los límites de densidad y teoréticos.
         mín = líms[0] if líms[0] is not None else -np.inf
         máx = líms[1] if líms[1] is not None else np.inf
 
-        rango = np.array([líms_dens[0] if líms_dens[0] is not None else -np.inf,
-                          líms_dens[1] if líms_dens[1] is not None else np.inf])  # Los límites de densidad
-
-        # Validar los rangos y límites
-        if rango[0] < mín or rango[1] > máx:
-            raise ValueError('Los límites de densidad ({}, {}) están afuera del rango teorético ({}, {}).'
-                             .format(rango[0], rango[1], mín, máx))
-
-        # Inicializar el diccionario de parámetros.
-        paráms = {'escl': 1, 'ubic': 0}
+        if líms_dens[0] < mín or líms_dens[1] > máx:
+            raise ValueError(
+                'Los límites de densidad ({}, {}) están afuera del rango teorético ({}, {}).'
+                    .format(*líms_dens, mín, máx)
+            )
 
         # Primero, arreglar unos casos especiales que nos podrían causar problemas después...
 
         # Si tenemos una densidad de 100% en el rango especificado...
         if dens == 1:
-            # Generar la distribución con este rango en vez.
-            return cls.de_líms(líms=rango, cont=cont, nombre=nombre)
+            # Generar una distribución uniforme en este rango.
+            return cls(nombre, 'Uniforme', paráms={'ubic': líms_dens[0], 'escl': líms_dens[1] - líms_dens[0]})
 
         # No se puede tener límites de densidad iguales con densidad < 1, por supuesto.
         if líms_dens[0] == líms_dens[1]:
             raise ValueError('No se puede tener una densidad < 1 en un rango [a, b] si a = b.')
 
         # Si los rangos de la densidad corresponden con los rangos teoréticos, pero con densidad < 1...
-        if rango[0] == mín and rango[1] == máx:
+        if líms_dens[0] == mín and líms_dens[1] == máx:
             raise ValueError('No se puede tener una densidad < 1 en un rango igual al rango teorético.')
+
+        # Inicializar el diccionario de parámetros.
+        paráms = {'escl': 1, 'ubic': 0}
 
         # Invertir distribuciones entre (-inf, R]
         if mín == -np.inf and máx != np.inf:
@@ -1075,46 +854,37 @@ class VarPyMC2(VarCalib):
 
         # Ahora, crear la distribución apriopiada.
         if mín == -np.inf:
-            if máx == np.inf:
-                # El caso (-inf, inf). Muy facil.
+            # Ya convertimos distribuciones en (-inf, R] a [-R, inf), así que no es posible tener máx != inf.
 
-                # Calcular los parámetros de una distribución normal.
-                mu = np.mean(rango)  # El promedio del rango de densidad
-                # Calcular sigma analíticamente
-                sigma = ((rango[1] - rango[0]) / 2) / estad.norm.ppf((1 - dens) / 2 + dens)
+            # El caso (-inf, inf). Muy facil.
+            mu = np.mean(líms_dens)
+            sigma = mu / estad.norm.ppf((1 - dens) / 2 + dens)
 
-                # Especificar la distribución.
-                tipo_dist = 'Normal'
-                paráms = {'ubic': mu, 'escl': sigma}
-                transf = None
-
-            else:
-                # Ya convertimos distribuciones en (-inf, R] a [-R, inf), así que no debería ser posible llegar
-                # hasta este error.
-                raise ValueError('No debería ser posible llegar hasta este error.')
+            tipo_dist = 'Normal'
+            paráms = {'ubic': mu, 'escl': sigma}
+            transf = None
 
         else:
 
             # Primero, normalizar el límite inferior.
             paráms['ubic'] += mín
-            rango = np.subtract(rango, mín)
+            líms_dens = np.subtract(líms_dens, mín)
             máx -= mín
 
             if máx == np.inf:
                 # El caso [R, inf)
-
-                if rango[0] == 0:
+                if líms_dens[0] == 0:
                     # Si el límite inferior del rango de densidad es igual al límite teorético, solamente tenemos
                     # que asegurarnos que ``dens`` densidad quede abajo del límite inferior transformado.
 
-                    lím_norm_sup = np.log(rango[1])  # El límite superior de densidad en la distribución normal
+                    lím_norm_sup = np.log(líms_dens[1])  # El límite superior de densidad en la distribución normal
 
                     sigma = 1  # Tomar un sigma de 1, por simplicidad. De verdad no importa mucho.
                     mu = lím_norm_sup - estad.norm(0, 1).ppf(dens)  # Mu en función de sigma y la densidad
 
                 else:
                     # Sino, tenemos que asegurarnos que la densidad caiga entre los dos límites transformados.
-                    log_rango = np.log(rango)
+                    log_rango = np.log(líms_dens)
 
                     mu = np.mean(log_rango)  # Mu es el promedio entre ambos límites de densidad
 
@@ -1125,18 +895,14 @@ class VarPyMC2(VarCalib):
                 tipo_dist = 'Normal'
 
                 # Pasar escala y ubicación a la transformación...
-                transf = {'tipo': 'Exp', 'mult': paráms['escl'], 'suma': paráms['ubic']}
-
-                # ... Y guardar mu y sigma como la ubicación y la escala de la distribución normal
-                paráms['ubic'] = mu
-                paráms['escl'] = sigma
+                transf = {'tipo': 'Exp', 'mult': sigma, 'suma': mu}
 
             else:
                 # El caso [R, R]
 
                 # Normalizar la distribución
                 paráms['escl'] *= máx
-                rango = np.divide(rango, máx)
+                rango = np.divide(líms_dens, máx)
 
                 if rango[0] == 0:
                     # Si el límite inferior del rango de densidad es igual al límite teorético, solamente tenemos
@@ -1144,7 +910,7 @@ class VarPyMC2(VarCalib):
                     lím_norm_sup = _logit(rango[1])
 
                     sigma = 1  # Tomar un sigma de 1, por simplicidad. De verdad no importa mucho.
-                    mu = lím_norm_sup - estad.norm(0, 1).ppf(dens)  # Mu en función de sigma y la densidad
+                    mu = lím_norm_sup - estad.norm(0, sigma).ppf(dens)  # Mu en función de sigma y la densidad
 
                 elif rango[1] == 1:
                     # Si el límite superior del rango de densidad es igual al límite teorético, solamente tenemos
@@ -1167,33 +933,29 @@ class VarPyMC2(VarCalib):
                 tipo_dist = 'Normal'
 
                 # Pasar escala y ubicación a la transformación...
-                transf = {'tipo': 'LogitInv', 'suma': paráms['ubic'], 'mult': paráms['escl']}
-
-                # ... Y guardar mu y sigma como la ubicación y la escala de la distribución normal
-                paráms['ubic'] = mu
-                paráms['escl'] = sigma
+                transf = {'tipo': 'LogitInv', 'suma': mu, 'mult': sigma}
 
         return cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms, transf=transf)
 
+    def _transf_vals(símismo, vals):
+
+        if símismo.transf is None:
+            return vals * símismo.mult + símismo.suma
+        else:
+            mult = símismo.transf['mult']
+            suma = símismo.transf['suma']
+            tipo = símismo.transf['tipo']
+            if tipo == 'Exp':
+                vals_transf = np.exp(vals * mult + suma)
+            elif tipo == 'LogitInv':
+                vals_transf = _inv_logit(vals * mult + suma)
+            else:
+                raise ValueError(tipo)
+
+            return vals_transf * símismo.mult + símismo.suma
+
     @classmethod
     def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
-        """
-
-        :param datos:
-        :type datos:
-        :param líms:
-        :type líms:
-        :param cont:
-        :type cont:
-        :param lista_dist: La lsita de distribuciones posibles. Si no se especifica, se tomará la lista de
-          distribuciones disponibles para este tipo de variable. El uso de límites (-inf, +inf) en las llamadas a
-          :func:`VarSciPy.aprox_dist` aseguran que éste únicamente tome distribuciones sin límites.
-        :type lista_dist: list[str]
-        :param nombre:
-        :type nombre:
-        :return:
-        :rtype:
-        """
 
         mín = líms[0] if líms[0] is not None else -np.inf
         máx = líms[1] if líms[1] is not None else np.inf
@@ -1254,222 +1016,62 @@ class VarPyMC2(VarCalib):
 
         return {'dist': cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms, transf=transf), 'p': ajustado['p']}
 
-    @classmethod
-    def de_líms(cls, líms, cont, nombre):
-
-        tipo_dist, paráms = _líms_a_dist(líms=líms, cont=cont)
-
-        return cls(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
-
     @staticmethod
     def dists_disp():
-        return ['Beta', 'Cauchy', 'Chi2', 'Exponencial', 'WeibullExponencial', 'Gamma', 'MitadCauchy', 'MitadNormal',
-                'GammaInversa', 'Laplace', 'Logística', 'LogNormal', 'Normal', 'Pareto', 'T',
-                'NormalTrunc', 'Uniforme', 'VonMises', 'Weibull', 'Bernoulli', 'Binomial', 'Geométrica',
-                'Hypergeométrica', 'BinomialNegativo', 'Poisson', 'UnifDiscr',
-                'NormalExp', 'LogitInv'  # Funciones auxiliares para transformaciones
-                ]
+        return [
+            'Chi2', 'Exponencial', 'Gamma', 'LogNormal', 'Normal', 'Uniforme', 'Weibull',
+            'NormalExp', 'LogitInv'  # Funciones auxiliares para transformaciones
+        ]
+
+    def poner_val(símismo, val):
+        símismo.val = val
 
     def __float__(símismo):
+        """
 
-        return símismo._transf_vals(float(símismo.var.value))
+        :return:
+        :rtype: float
+        """
+        return símismo._transf_vals(símismo.val)
 
+    def __abs__(símismo):
+        return abs(símismo.__float__())
 
-class VarPyMC3(VarCalib):
-    """
-    Esta clase representa variables de PyMC v3.
-    """
+    def __sub__(símismo, otro):
+        return símismo.__float__() - otro
 
-    def __init__(símismo, nombre, tipo_dist, paráms):
-        super().__init__(nombre=nombre, tipo_dist=tipo_dist, paráms=paráms)
+    def __add__(símismo, otro):
+        return símismo.__float__() + otro
 
-        if pm3 is None:
-            raise ImportError(
-                'PyMC 3 (pymc3) no está instalado en esta máquina.\nDeberías de instalarlo un día. De verdad que'
-                'es muy chévere.')
+    def __neg__(símismo):
+        return -1 * símismo
 
-        símismo.traza_modelo = None
+    def __pow__(símismo, exp, módulo=None):
+        return (símismo.__float__() ** exp) % módulo
 
-        transform_pymc = {'mult': 1, 'sum': 0}
+    def __mul__(símismo, otro):
+        return símismo.__float__() * otro
 
-        if tipo_dist == 'Beta':
-            dist = pm3.Beta(nombre=nombre, alpha=paráms['a'], beta=paráms['b'])
-            a_priori = pm3.Beta.dist(alpha=paráms['a'], beta=paráms['b'])
-            transform_pymc['mult'] = paráms['scale']
-            transform_pymc['sum'] = paráms['loc']
+    def __truediv__(símismo, otro):
+        return símismo.__float__() / otro
 
-        elif tipo_dist == 'Cauchy':
-            dist = pm3.Cauchy(nombre=nombre, alpha=paráms['a'], beta=paráms['scale'])
-            a_priori = pm3.Cauchy.dist(alpha=paráms['a'], beta=paráms['scale'])
+    def __floordiv__(símismo, otro):
+        return símismo.__float__() // otro
 
-        elif tipo_dist == 'Chi2':
-            dist = pm3.ChiSquared(nombre=nombre, nu=paráms['df'])
-            a_priori = pm3.ChiSquared.dist(nu=paráms['df'])
-            transform_pymc['mult'] = paráms['scale']
-            transform_pymc['sum'] = paráms['loc']
+    def __radd__(símismo, otro):
+        return símismo + otro
 
-        elif tipo_dist == 'Exponencial':
-            dist = pm3.Exponential(nombre=nombre, lam=1 / paráms['scale'])
-            a_priori = pm3.Exponential.dist(lam=1 / paráms['scale'])
-            transform_pymc['sum'] = paráms['loc']
+    def __rsub__(símismo, otro):
+        return otro - símismo.__float__()
 
-        elif tipo_dist == 'Gamma':
-            dist = pm3.Gamma(nombre=nombre, alpha=paráms['alpha'], beta=1 / paráms['scale'])
-            a_priori = pm3.Gamma.dist(alpha=paráms['alpha'], beta=1 / paráms['scale'])
-            transform_pymc['sum'] = paráms['loc']
+    def __rmul__(símismo, otro):
+        return símismo * otro
 
-        elif tipo_dist == 'MitadCauchy':
-            dist = pm3.HalfCauchy(nombre=nombre, beta=paráms['scale'])
-            a_priori = pm3.HalfCauchy.dist(beta=paráms['scale'])
-            transform_pymc['sum'] = paráms['loc']
+    def __rtruediv__(símismo, otro):
+        return otro / símismo.__float__()
 
-        elif tipo_dist == 'MitadNormal':
-            dist = pm3.HalfNormal(nombre=nombre, sd=paráms['scale'])
-            a_priori = pm3.HalfNormal.dist(sd=paráms['scale'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'GammaInversa':
-            dist = pm3.InverseGamma(nombre=nombre, alpha=paráms['a'], beta=paráms['scale'])
-            a_priori = pm3.InverseGamma.dist(alpha=paráms['a'], beta=paráms['scale'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'Laplace':
-            dist = pm3.Laplace(nombre=nombre, mu=paráms['loc'], b=paráms['scale'])
-            a_priori = pm3.Laplace.dist(mu=paráms['loc'], b=paráms['scale'])
-
-        elif tipo_dist == 'Logística':
-            dist = pm3.Logistic(nombre=nombre, mu=paráms['loc'], s=paráms['scale'])
-            a_priori = pm3.Logistic.dist(mu=paráms['loc'], s=paráms['scale'])
-
-        elif tipo_dist == 'LogNormal':
-            dist = pm3.Lognormal(nombre=nombre, mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
-            a_priori = pm3.Lognormal.dist(mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
-
-        elif tipo_dist == 'Normal':
-            dist = pm3.Normal(nombre=nombre, mu=paráms['loc'], sd=paráms['scale'])
-            a_priori = pm3.Normal.dist(mu=paráms['loc'], sd=paráms['scale'])
-
-        elif tipo_dist == 'Pareto':
-            dist = pm3.Pareto(nombre=nombre, alpha=paráms['b'], m=paráms['scale'])  # para hacer: verificar
-            a_priori = pm3.Pareto.dist(alpha=paráms['b'], m=paráms['scale'])  # para hacer: verificar
-
-        elif tipo_dist == 'T':
-            dist = pm3.StudentT(nombre=nombre, nu=paráms['df'], mu=paráms['loc'],
-                                sd=paráms['scale'])  # para hacer: verificar
-            a_priori = pm3.StudentT.dist(nu=paráms['df'], mu=paráms['loc'], sd=paráms['scale'])  # para hacer: verificar
-
-        elif tipo_dist == 'NormalTrunc':
-            mín, máx = min(paráms[0], paráms[1]), max(paráms[0], paráms[1])  # SciPy, aparamente, los puede inversar
-            mín_abs, máx_abs = mín * paráms['scale'] + paráms['mu'], máx * paráms['scale'] + paráms['mu']
-            NormalTrunc = pm3.Bound(pm3.Normal, lower=mín_abs, upper=máx_abs)
-            dist = NormalTrunc(nombre=nombre, mu=paráms['loc'], sd=paráms['scale'])
-            a_priori = NormalTrunc.dist(mu=paráms['loc'], sd=paráms['scale'])
-
-        elif tipo_dist == 'Uniforme':
-            dist = pm3.Uniform(nombre=nombre, lower=paráms['loc'], upper=paráms['loc'] + paráms['scale'])
-            a_priori = pm3.Uniform.dist(lower=paráms['loc'], upper=paráms['loc'] + paráms['scale'])
-
-        elif tipo_dist == 'VonMises':
-            dist = pm3.VonMises(nombre=nombre, mu=paráms['loc'], kappa=paráms['kappa'])
-            a_priori = pm3.VonMises.dist(mu=paráms['loc'], kappa=paráms['kappa'])
-            transform_pymc['mult'] = paráms['scale']
-
-        elif tipo_dist == 'Weibull':
-            raise NotImplementedError  # Para hacer: implementar la distrubución Weibull (minweibull en SciPy)
-            dist = pm3.Weibull()
-            a_priori = pm3.Weibull.dist()
-
-        elif tipo_dist == 'Bernoulli':
-            dist = pm3.Bernoulli(nombre=nombre, p=paráms['p'])
-            a_priori = pm3.Bernoulli.dist(p=paráms['p'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'Binomial':
-            dist = pm3.Binomial(nombre=nombre, n=paráms['n'], p=paráms['p'])
-            a_priori = pm3.Binomial.dist(n=paráms['n'], p=paráms['p'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'Geométrica':
-            dist = pm3.Geometric(nombre=nombre, p=paráms['p'])
-            a_priori = pm3.Geometric.dist(p=paráms['p'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'BinomialNegativo':
-            n = paráms['n']
-            p = paráms['p']
-            dist = pm3.NegativeBinomial(nombre=nombre, mu=n(1 - p) / p, alpha=n)
-            a_priori = pm3.NegativeBinomial.dist(mu=n(1 - p) / p, alpha=n)
-            avisar('Tenemos que verificar esta distribución')  # para hacer: verificar
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'Poisson':
-            dist = pm3.Poisson(nombre=nombre, mu=paráms['mu'])
-            a_priori = pm3.Poisson.dist(mu=paráms['mu'])
-            transform_pymc['sum'] = paráms['loc']
-
-        elif tipo_dist == 'UnifDiscr':
-            dist = pm3.DiscreteUniform(nombre=nombre, lower=paráms['low'], upper=paráms['high'])
-            a_priori = pm3.DiscreteUniform.dist(lower=paráms['low'], upper=paráms['high'])
-            transform_pymc['sum'] = paráms['loc']
-
-        else:
-            raise ValueError(
-                'La distribución %s no existe en la base de datos de Tiko\'n para distribuciones de PyMC 3.' %
-                tipo_dist)
-
-        # Hacer modificaciones, si necesario.
-        if transform['mult'] != 1:
-            a_priori = None
-            if transform['sum'] == 0:
-                dist = pm3.Deterministic('{}_m'.format(nombre), dist * transform['mult'])
-            else:
-                dist = pm3.Deterministic('{}_m_s'.format(nombre), dist * transform['mult'] + transform['sum'])
-        elif transform['sum'] != 0:
-            dist = pm3.Deterministic('{}_s'.format(nombre), dist + transform['sum'])
-
-        # Guardar el variable
-        símismo.var = dist
-
-        # Guardar la distribución a priori (para gráficos).
-        símismo.a_priori = a_priori
-
-    def _dibujar(símismo, ejes):
-        trz = símismo.traza_modelo
-        if trz is None:
-            raise ValueError('Todavía no se ha hecho una calibración con este variable.')
-
-        pm3.traceplot(trace=trz, varnames=símismo.nombre, priors=[símismo.a_priori], ax=ejes)
-
-    def traza(símismo):
-
-        trz = símismo.traza_modelo
-
-        if trz is None:
-            return []
-        else:
-            return trz.get_values(símismo.var)
-
-    @classmethod
-    def de_densidad(cls, dens, líms_dens, líms, cont, nombre=None):
-        raise NotImplementedError
-
-    @classmethod
-    def _ajust_dist(cls, datos, líms, cont, lista_dist, nombre=None):
-        raise NotImplementedError
-
-    @classmethod
-    def de_líms(cls, líms, cont, nombre):
-        raise NotImplementedError
-
-    @staticmethod
-    def dists_disp():
-
-        return ['Beta', 'Cauchy', 'Chi2', 'Exponencial', 'Gamma', 'MitadCauchy', 'MitadNormal', 'GammaInversa',
-                'Laplace', 'Logística', 'LogNormal', 'Normal', 'Pareto', 'T', 'NormalTrunc', 'Uniforme', 'VonMises',
-                'Weibull', 'Bernoulli', 'Binomial', 'Geométrica', 'BinomialNegativo', 'Poisson', 'UnifDiscr']
-
-    def __float__(símismo):
-        raise NotImplementedError('')
+    def __str__(self):
+        return self.nombre
 
 
 # Funciones auxiliares

@@ -223,7 +223,7 @@ if __name__ == '__main__':
             if isinstance(v, VarPyMC2):
                 if 'z' not in v.nombre and v.nombre != 'func_todo':
                     try:
-                        dib.plot(v.traza())
+                        dib.plot(v.traza)
                         dib.title(v.nombre)
                         dib.show()
 
