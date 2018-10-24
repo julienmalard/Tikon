@@ -890,7 +890,7 @@ class Red(Simulable):
                 k = np.nansum(np.multiply(pobs[..., np.newaxis, :], cf['K']), axis=-1)  # Calcular la capacidad de carga
                 np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
 
-                # Evitar péridadas de poblaciones superiores a la población.
+                # Evitar pérdidas de poblaciones superiores a la población.
                 np.maximum(crec_etp, -pobs_etps, out=crec_etp)
 
             elif tp_ec == 'Logístico Depredación':
