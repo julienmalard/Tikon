@@ -5,23 +5,28 @@ ID_NO_INFORM = '0'
 
 class ÁrbolEcs(object):
     def __init__(símismo, nombre, categs=None):
+        """
+
+        Parameters
+        ----------
+        nombre: str
+        categs: list[CategEc]
+
+        """
+
         símismo.nombre = nombre
 
-        categs = set(categs) if categs is not None else set()
-
-        símismo.categs = categs
+        if categs is None:
+            categs = {}
+        símismo.categs = {str(cat): cat for cat in categs}
 
     def agregar_categ(símismo, categ):
-        símismo.categs.add(categ)
-
-    def __getitem__(símismo, itema):
-        try:
-            return next(c for c in símismo.categs if str(c) == itema)
-        except StopIteration:
-            raise KeyError(itema)
+        símismo.categs[str(categ)] = categ
 
     def espec_apriori(símismo, categ, sub_categ, ec, parám, rango, certidumbre, índs=None):
-        pass
+
+        obj_parám = símismo.categs[categ][sub_categ][ec][parám]  # type: Parám
+        obj_parám.agregar_a_priori(rango, certidumbre, índs=índs)
 
     def leer(símismo, arch):
         pass
@@ -29,9 +34,12 @@ class ÁrbolEcs(object):
     def escribir(símismo, arch):
         pass
 
+    def __getattr__(símismo, itema):
+        return símismo.categs[itema]
+
     def __copy__(símismo):
         copia = símismo.__class__(str(símismo))
-        for cat in símismo.categs:
+        for cat in símismo.categs.values():
             copia.agregar_categ(cat.__copy__())
         return copia
 
@@ -41,21 +49,28 @@ class ÁrbolEcs(object):
 
 class CategEc(object):
     def __init__(símismo, nombre, subs=None):
+        """
+
+        Parameters
+        ----------
+        nombre
+        subs
+        """
         símismo.nombre = nombre
-        símismo.subcategs = set(subs) if subs is not None else set()
+
+        if subs is None:
+            subs = {}
+        símismo.subcategs = {str(sub): sub for sub in subs}
 
     def agregar_subcateg(símismo, subcateg):
-        símismo.subcategs.add(subcateg)
+        símismo.subcategs[str(subcateg)] = subcateg
 
     def __getitem__(símismo, itema):
-        try:
-            return next(s for s in símismo.subcategs if str(s) == itema)
-        except StopIteration:
-            raise KeyError(itema)
+        return símismo.subcategs[itema]
 
     def __copy__(símismo):
         copia = símismo.__class__(str(símismo))
-        for sub in símismo.subcategs:
+        for sub in símismo.subcategs.values():
             copia.agregar_subcateg(sub.__copy__())
         return copia
 
@@ -66,10 +81,12 @@ class CategEc(object):
 class SubCategEc(object):
     def __init__(símismo, nombre, ecs=None):
         símismo.nombre = nombre
-        símismo.ecs = set(ecs) if ecs is not None else set()
+        if ecs is None:
+            ecs = {}
+        símismo.ecs = {str(ec): ec for ec in ecs}
 
     def agregar_ec(símismo, ec):
-        símismo.ecs.add(ec)
+        símismo.ecs[str(ec)] = ec
 
     def __getitem__(símismo, itema):
         try:
@@ -79,7 +96,7 @@ class SubCategEc(object):
 
     def __copy__(símismo):
         copia = símismo.__class__(str(símismo))
-        for ec in símismo.ecs:
+        for ec in símismo.ecs.values():
             copia.agregar_ec(ec.__copy__())
         return copia
 
@@ -88,23 +105,32 @@ class SubCategEc(object):
 
 
 class Ecuación(object):
-    def __init__(símismo, nombre, paráms=None):
+    def __init__(símismo, nombre, paráms=None, fun=None, ref=None, dscr=None):
         símismo.nombre = nombre
+        símismo.ref = ref
+        símismo.dscr=dscr
+        símismo.fun = fun
 
-        símismo.paráms = set(paráms) if paráms is not None else set()
+        if paráms is None:
+            paráms = {}
+        símismo.paráms = {str(prm): prm for prm in paráms}
 
     def agregar_parám(símismo, parám):
-        símismo.paráms.add(parám)
+        símismo.paráms[str(parám)] = parám
+
+    def __call__(símismo, cf, paso, matr_egr=None, **argspc):
+        if símismo.fun is not None:
+            return símismo.fun(cf, paso, matr_egr, **argspc)
 
     def __getitem__(símismo, itema):
-        try:
-            return next(p for p in símismo.paráms if str(p) == itema)
-        except StopIteration:
-            raise KeyError(itema)
+        return símismo.paráms[itema]
 
     def __copy__(símismo):
         copia = símismo.__class__(str(símismo))
-        for prm in símismo.paráms:
+        copia.ref = símismo.ref
+        copia.dscr = símismo.dscr
+
+        for prm in símismo.paráms.values():
             copia.agregar_parám(prm.__copy__())
         return copia
 
@@ -112,25 +138,35 @@ class Ecuación(object):
         return símismo.nombre
 
 
+
 class Parám(object):
-    def __init__(símismo, nombre, líms, inter=None):
+    def __init__(símismo, nombre, líms, inter=None, unids=None):
         símismo.nombre = nombre
         símismo.líms = líms
         símismo.inter = inter
 
         símismo.calibs = {}
-        símismo.calibs_inter = {}
+        símismo.a_prioris = {}
 
         símismo.agregar_calib(id_cal=ID_NO_INFORM, val=símismo.líms)
 
-    def agregar_calib(símismo, id_cal, val, inter=None):
+    def agregar_calib(símismo, id_cal, val, índs=None):
+
+        if id_cal not in símismo.calibs:
+            símismo.calibs[id_cal] = {}
+
         if inter is None:
-            símismo.calibs[id_cal] = val
+            símismo.calibs[id_cal]['val'] = val
         else:
-            if inter not in símismo.calibs_inter:
+            símismo.calibs[id_cal][]
+        if inter not in símismo.calibs_inter:
                 símismo.calibs_inter[inter] = {}
 
             símismo.calibs_inter[inter][id_cal] = [val]
+
+    def agregar_a_priori(símismo, rango, certidumbre, índs=None):
+        if inter is None:
+            símismo.a_prioris =
 
     def __copy__(símismo):
         copia = símismo.__class__(str(símismo), símismo.líms, símismo.inter)
@@ -139,4 +175,3 @@ class Parám(object):
 
     def __str__(símismo):
         return símismo.nombre
-
