@@ -9,7 +9,7 @@ from .crec import ecs_crec
 from tikon.calibs import ÁrbolEcs
 
 
-ecs_orgs = ÁrbolEcs(
+ecs_etps_orgs = ÁrbolEcs(
     'organismo',
     categs=[ecs_crec, ecs_depred, ecs_muert, ecs_edad, ecs_trans, ecs_repr, ecs_mov, ecs_estoc]
 )

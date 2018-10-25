@@ -89,7 +89,8 @@ ecs_depred = CategEc(
                         Parám('b', (0, inf), inter=['presa', 'huésped'])
                     ]
                 )
-            ]
+            ],
+            activa='Kovai'
         )
     ]
 )
