@@ -1,6 +1,7 @@
 from copy import deepcopy
+from typing import Dict
 
-ID_NO_INFORM = '0'
+from tikon.calibs.dists import DistAnalítica
 
 
 class ÁrbolEcs(object):
@@ -26,7 +27,13 @@ class ÁrbolEcs(object):
     def espec_apriori(símismo, categ, sub_categ, ec, parám, rango, certidumbre, índs=None):
 
         obj_parám = símismo.categs[categ][sub_categ][ec][parám]  # type: Parám
-        obj_parám.agregar_a_priori(rango, certidumbre, índs=índs)
+        obj_parám.espec_a_priori(rango, certidumbre, índs=índs)
+
+    def activas(símismo):
+        return [cat.activas() for cat in símismo.categs]
+
+    def activar_ec(símismo, categ, subcateg, ec):
+        símismo[categ].activar_ec(subcateg, ec)
 
     def leer(símismo, arch):
         pass
@@ -65,6 +72,12 @@ class CategEc(object):
     def agregar_subcateg(símismo, subcateg):
         símismo.subcategs[str(subcateg)] = subcateg
 
+    def activas(símismo):
+        return [sub.activa() for sub in símismo.subcategs]
+
+    def activar_ec(símismo, subcateg, ec):
+        símismo[subcateg].activar_ec(ec)
+
     def __getitem__(símismo, itema):
         return símismo.subcategs[itema]
 
@@ -79,11 +92,26 @@ class CategEc(object):
 
 
 class SubCategEc(object):
-    def __init__(símismo, nombre, ecs=None):
+    def __init__(símismo, nombre, ecs, activa=None):
         símismo.nombre = nombre
         if ecs is None:
-            ecs = {}
+            ecs = []
         símismo.ecs = {str(ec): ec for ec in ecs}
+        símismo._activa = ''
+
+        if activa is None:
+            activa = ecs[0]
+        símismo.activar_ec(activa)
+
+    def activar_ec(símismo, ec):
+
+        if ec not in símismo.ecs:
+            raise ValueError(ec)
+
+        símismo._activa = str(ec)
+
+    def activa(símismo):
+        return símismo.ecs[símismo._activa]
 
     def agregar_ec(símismo, ec):
         símismo.ecs[str(ec)] = ec
@@ -108,7 +136,7 @@ class Ecuación(object):
     def __init__(símismo, nombre, paráms=None, fun=None, ref=None, dscr=None):
         símismo.nombre = nombre
         símismo.ref = ref
-        símismo.dscr=dscr
+        símismo.dscr = dscr
         símismo.fun = fun
 
         if paráms is None:
@@ -138,40 +166,90 @@ class Ecuación(object):
         return símismo.nombre
 
 
-
 class Parám(object):
     def __init__(símismo, nombre, líms, inter=None, unids=None):
         símismo.nombre = nombre
         símismo.líms = líms
         símismo.inter = inter
+        símismo.unids = unids
 
-        símismo.calibs = {}
-        símismo.a_prioris = {}
-
-        símismo.agregar_calib(id_cal=ID_NO_INFORM, val=símismo.líms)
+        símismo.calibs = {}  # type: Dict[str, MnjdrDistsClbs]
+        símismo._a_priori = MnjdrDistsClbs()
 
     def agregar_calib(símismo, id_cal, val, índs=None):
 
         if id_cal not in símismo.calibs:
-            símismo.calibs[id_cal] = {}
+            símismo.calibs[id_cal] = MnjdrDistsClbs()
 
-        if inter is None:
-            símismo.calibs[id_cal]['val'] = val
+        símismo.calibs[id_cal].actualizar(val, índs)
+
+    def espec_a_priori(símismo, rango, certidumbre, índs=None):
+
+        dist = DistAnalítica.de_dens(dens=certidumbre, líms_dens=rango, líms=símismo.líms)
+        if índs is None:
+            símismo._a_priori.actualizar(val=dist, índs=índs)
+
+    def calib_base(símismo):
+        return DistAnalítica.de_líms(símismo.líms)
+
+    def obt_vals(símismo, n, calibs=None, índs=None):
+        if isinstance(n, int):
+            raise NotImplementedError
         else:
-            símismo.calibs[id_cal][]
-        if inter not in símismo.calibs_inter:
-                símismo.calibs_inter[inter] = {}
+            raise NotImplementedError
 
-            símismo.calibs_inter[inter][id_cal] = [val]
-
-    def agregar_a_priori(símismo, rango, certidumbre, índs=None):
-        if inter is None:
-            símismo.a_prioris =
+    def a_priori(símismo, índs=None):
+        return símismo._a_priori.obt_val(índs)
 
     def __copy__(símismo):
-        copia = símismo.__class__(str(símismo), símismo.líms, símismo.inter)
-        copia.calibs = deepcopy(símismo.calibs)
-        copia.calibs_inter = deepcopy(símismo.calibs_inter)
+        return deepcopy(símismo)
+        # copia = símismo.__class__(str(símismo), símismo.líms, símismo.inter, unids=símismo.unids)
+        # copia.calibs = deepcopy(símismo.calibs)
+        # copia.a_prioris = deepcopy(símismo.a_prioris)
 
     def __str__(símismo):
         return símismo.nombre
+
+
+class MnjdrDistsClbs(object):
+    def __init__(símismo):
+        símismo.val = None
+        símismo.índs = {}
+
+    def actualizar(símismo, val, índs=None):
+        if isinstance(índs, str):
+            índs = [índs]
+        else:
+            índs = list(índs)  # generar copia
+
+        if índs is None or not len(índs):
+            símismo.val = val
+        else:
+            í = índs.pop(0)
+            sub_dist = MnjdrDistsClbs()
+            sub_dist.actualizar(val, índs)
+            símismo.índs[í] = sub_dist
+
+    def obt_val(símismo, índs=None):
+
+        if isinstance(índs, str):
+            índs = [índs]
+        else:
+            índs = list(índs)  # generar copia
+
+        if índs is None or not len(índs):
+            return símismo.val
+        else:
+            í = índs.pop(0)
+            if í in símismo.índs:
+                return símismo.índs[í].obt_val(índs)
+            else:
+                return símismo.val
+
+    def __getitem__(símismo, itema):
+        return símismo.índs[itema]
+
+
+class FuncEc(object):
+    def __call__(self, cf, paso, módulo, matr_egr=None):
+        raise NotImplementedError
