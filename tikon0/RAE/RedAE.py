@@ -2246,7 +2246,7 @@ class Red(Simulable):
         :type ubics_paráms: list[list[str]]
         :type calibs: list | str
         :type dib_dists: bool
-        :type calibs: list
+        :type ecs: list
 
         """
 

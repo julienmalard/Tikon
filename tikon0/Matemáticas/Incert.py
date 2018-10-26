@@ -178,7 +178,7 @@ def gen_índ_trazas(l_d_pm, l_trazas, n_rep_parám, comunes):
         """
 
         # Calcular el número de repeticiones paramétricas por calibración. Produce una lista, en el mismo orden
-        # que calibs, del número de repeticiones para cada calibración.
+        # que ecs, del número de repeticiones para cada calibración.
         n_calibs = len(l_trza)
         rep_per_calib = np.array([n_rep_parám // n_calibs] * n_calibs)
 

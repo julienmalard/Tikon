@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.calibs import CategEc
+from tikon.ecs import CategEc
 
 inf = np.inf
 

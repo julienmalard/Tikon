@@ -6,7 +6,7 @@ from .repr import ecs_repr
 from .trans import ecs_trans
 from .depred import ecs_depred
 from .crec import ecs_crec
-from tikon.calibs import ÁrbolEcs
+from tikon.ecs import ÁrbolEcs
 
 
 ecs_etps_orgs = ÁrbolEcs(

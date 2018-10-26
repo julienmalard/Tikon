@@ -1015,7 +1015,7 @@ class Simulable(Coso):
         :param nombre: El nombre de la validación.
         :type nombre: str
 
-        :param calibs: Las calibraciones que hay que usar para la validación. Si calibs == None, se usará la
+        :param calibs: Las calibraciones que hay que usar para la validación. Si ecs == None, se usará la
         calibración activa, si hay; si no hay, se usará todas las calibraciones existentes.
         :type calibs: list | str | None
 
@@ -1717,17 +1717,17 @@ class Simulable(Coso):
 
         """
 
-        # Preparar el parámetro "calibs"
+        # Preparar el parámetro "ecs"
         if calibs is None:
             calibs = ['0']
 
         if type(calibs) is str and calibs not in ['Todos', 'Comunes', 'Correspondientes']:
-            # Si calibs es el nombre de una calibración (y no un nombre especial)...
+            # Si ecs es el nombre de una calibración (y no un nombre especial)...
 
             # Convertirlo en lista
             calibs = [calibs]
 
-        # Si calibs es una lista...
+        # Si ecs es una lista...
         if type(calibs) is list:
 
             # Para cada elemento de la lista...
@@ -1735,11 +1735,11 @@ class Simulable(Coso):
                 # Asegurarse de que es en formato de texto.
                 calibs[n] = str(calib)
 
-        # Ahora, preparar la lista de calibraciones según las especificaciones en "calibs". Primero, los casos
+        # Ahora, preparar la lista de calibraciones según las especificaciones en "ecs". Primero, los casos
         # especiales.
 
         if type(calibs) is str:
-            # Si "calibs" es un nombre especial...
+            # Si "ecs" es un nombre especial...
 
             if calibs == 'Todos' or calibs == 'Correspondientes':
                 # Tomamos todas las calibraciones existentes en cualquier de los parámetros.
@@ -1785,8 +1785,8 @@ class Simulable(Coso):
             else:
 
                 # Si se especificó otro valor (lo que no debería ser posible dado la preparación que damos a
-                # "calibs" arriba), hay un error.
-                raise ValueError("Parámetro 'calibs' inválido.")
+                # "ecs" arriba), hay un error.
+                raise ValueError("Parámetro 'ecs' inválido.")
 
             # Quitar la distribución a priori no informativa, si hay otras alternativas.
             if '0' in conj_calibs and len(conj_calibs) > 1:
@@ -1797,8 +1797,8 @@ class Simulable(Coso):
             conj_calibs = set(calibs)
 
         else:
-            # Si "calibs" no era ni texto ni una lista, hay un error.
-            raise ValueError("Parámetro 'calibs' inválido.")
+            # Si "ecs" no era ni texto ni una lista, hay un error.
+            raise ValueError("Parámetro 'ecs' inválido.")
 
         # Verificar el conjunto de calibraciones generada
         if len(conj_calibs) == 0:

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Dict
 
-from tikon.calibs.dists import DistAnalítica
+from tikon.ecs.dists import DistAnalítica, DistCalib
 
 
 class ÁrbolEcs(object):
@@ -173,21 +173,34 @@ class Parám(object):
         símismo.inter = inter
         símismo.unids = unids
 
-        símismo.calibs = {}  # type: Dict[str, MnjdrDistsClbs]
-        símismo._a_priori = MnjdrDistsClbs()
+        símismo._calibs = {}  # type: Dict[str, MnjdrDists]
+        símismo._a_priori = MnjdrDists()
+        símismo._calib_activa = None  # type: MnjdrDistsClbs
 
     def agregar_calib(símismo, id_cal, val, índs=None):
 
-        if id_cal not in símismo.calibs:
-            símismo.calibs[id_cal] = MnjdrDistsClbs()
+        if id_cal not in símismo._calibs:
+            símismo._calibs[id_cal] = MnjdrDists()
 
-        símismo.calibs[id_cal].actualizar(val, índs)
+        símismo._calibs[id_cal].actualizar(val, índs)
 
     def espec_a_priori(símismo, rango, certidumbre, índs=None):
 
         dist = DistAnalítica.de_dens(dens=certidumbre, líms_dens=rango, líms=símismo.líms)
         if índs is None:
             símismo._a_priori.actualizar(val=dist, índs=índs)
+
+    def agregar_calib_activa(símismo, val, índs=None):
+
+        if símismo._calib_activa is None:
+            símismo._calib_activa = MnjdrDistsClbs()
+
+        símismo._calib_activa.actualizar(val, índs=índs)
+
+    def guardar_calib(símismo, id_cal):
+
+        símismo._calibs[id_cal] = símismo._calib_activa.obt_trazas()
+        símismo._calib_activa = None
 
     def calib_base(símismo):
         return DistAnalítica.de_líms(símismo.líms)
@@ -204,14 +217,14 @@ class Parám(object):
     def __copy__(símismo):
         return deepcopy(símismo)
         # copia = símismo.__class__(str(símismo), símismo.líms, símismo.inter, unids=símismo.unids)
-        # copia.calibs = deepcopy(símismo.calibs)
+        # copia.ecs = deepcopy(símismo.ecs)
         # copia.a_prioris = deepcopy(símismo.a_prioris)
 
     def __str__(símismo):
         return símismo.nombre
 
 
-class MnjdrDistsClbs(object):
+class MnjdrDists(object):
     def __init__(símismo):
         símismo.val = None
         símismo.índs = {}
@@ -226,7 +239,7 @@ class MnjdrDistsClbs(object):
             símismo.val = val
         else:
             í = índs.pop(0)
-            sub_dist = MnjdrDistsClbs()
+            sub_dist = símismo.__class__()
             sub_dist.actualizar(val, índs)
             símismo.índs[í] = sub_dist
 
@@ -248,6 +261,24 @@ class MnjdrDistsClbs(object):
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
+
+
+class MnjdrDistsClbs(MnjdrDists):
+
+    def actualizar(símismo, val, índs=None):
+        if not isinstance(val, DistCalib):
+            raise TypeError
+        super().actualizar(val=val, índs=índs)
+
+    def obt_trazas(símismo, mnjdr=None):
+        if mnjdr is None:
+            mnjdr = MnjdrDists()
+        mnjdr.actualizar(val=símismo.val.gen_traza())
+
+        for í, mnjdr_í in símismo.índs:
+            mnjdr.actualizar(mnjdr_í.obt_trazas(mnjdr=mnjdr), índs=í)
+
+        return mnjdr
 
 
 class FuncEc(object):
