@@ -179,23 +179,22 @@ class Parám(object):
 
     def agregar_calib(símismo, id_cal, val, índs=None):
 
-        if id_cal not in símismo._calibs:
-            símismo._calibs[id_cal] = MnjdrDists()
+        if isinstance(val, DistCalib):
+            if símismo._calib_activa is None:
+                símismo._calib_activa = MnjdrDistsClbs()
 
-        símismo._calibs[id_cal].actualizar(val, índs)
+            símismo._calib_activa.actualizar(val, índs=índs)
+        else:
+            if id_cal not in símismo._calibs:
+                símismo._calibs[id_cal] = MnjdrDists()
+
+            símismo._calibs[id_cal].actualizar(val, índs)
 
     def espec_a_priori(símismo, rango, certidumbre, índs=None):
 
         dist = DistAnalítica.de_dens(dens=certidumbre, líms_dens=rango, líms=símismo.líms)
         if índs is None:
             símismo._a_priori.actualizar(val=dist, índs=índs)
-
-    def agregar_calib_activa(símismo, val, índs=None):
-
-        if símismo._calib_activa is None:
-            símismo._calib_activa = MnjdrDistsClbs()
-
-        símismo._calib_activa.actualizar(val, índs=índs)
 
     def guardar_calib(símismo, id_cal):
 
