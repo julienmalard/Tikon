@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.calibs import CategEc, SubCategEc, Ecuación, Parám, FuncEc
+from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, Parám, FuncEc
 
 inf = np.inf
 
