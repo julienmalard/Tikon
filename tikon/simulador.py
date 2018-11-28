@@ -1,23 +1,23 @@
-from typing import Dict
 import math as mat
 
 from tikon.calib import gen_calibrador
 from tikon.experimentos import Exper
-from tikon.result.valid import Validación
-from .módulo import Módulo
+from tikon.rsltd.valid import Validación
 
 
 class Simulador(object):
 
-    def __init__(símismo):
-        símismo.módulos = {}  # type: Dict[str, Módulo]
+    def __init__(símismo, módulos):
+        símismo.módulos = MnjdrMódulos(módulos)
         símismo.exper = Exper()
 
     def simular(
             símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30
     ):
-        if exper is None:
-            exper = símismo.exper
+
+        exper = exper or símismo.exper
+        días = días or exper.días()
+        f_inic = f_inic or exper.f_inic()
 
         n_pasos = mat.ceil(días / paso)
 
@@ -27,7 +27,7 @@ class Simulador(object):
 
     def iniciar(símismo, días, f_inic, paso, n_rep_estoc, n_rep_parám):
 
-        for m in símismo.módulos.values():
+        for m in símismo.módulos:
             m.iniciar(días, f_inic, paso, n_rep_estoc, n_rep_parám)
 
     def correr(símismo, paso, n_pasos):
@@ -36,11 +36,11 @@ class Simulador(object):
             símismo.incrementar(paso)
 
     def incrementar(símismo, paso):
-        for m in símismo.módulos.values():
+        for m in símismo.módulos:
             m.incrementar(paso)
 
     def cerrar(símismo):
-        for m in símismo.módulos.values():
+        for m in símismo.módulos:
             m.cerrar()
 
     def validar(símismo, exper=None, paso=1, calibs=None, n_rep_estoc=30, n_rep_parám=30):
@@ -53,6 +53,27 @@ class Simulador(object):
 
         tipo_clbrd = gen_calibrador(método)
 
-        clbrd = tipo_clbrd()
+        símismo.iniciar(paso=paso, n_rep_estoc=n_rep_estoc, n_rep_parám=1)
+
+        func = símismo._func_calib()
+        clbrd = tipo_clbrd(func)
 
         clbrd.calibrar(n_iter=n_iter, método=método)
+
+    def _func_calib(símismo, paso):
+
+
+
+class MnjdrMódulos(object):
+    def __init__(símismo, módulos):
+        símismo.módulos = {}
+
+    def obt_valor(símismo, mód, var):
+        return símismo[mód].
+
+    def __iter__(símismo):
+        for m in símismo.módulos.values():
+            yield m
+
+    def __getitem__(símismo, itema):
+        return símismo.módulos[itema]

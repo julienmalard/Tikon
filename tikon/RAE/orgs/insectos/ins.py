@@ -1,4 +1,4 @@
-from tikon.RAE.organismo import Organismo, Etapa
+from tikon.RAE.orgs.organismo import Organismo, Etapa
 
 JUVENIL = 'juvenil'
 
@@ -39,8 +39,7 @@ class Insecto(Organismo):
         if adulto:
             símismo.añadir_etapa('adulto', pos=pos)
 
-        if tipo_ecuaciones is not None:
-            símismo.activar_ecs(tipo_ecuaciones)
+        símismo.activar_ecs(tipo_ecuaciones)
 
     def resolver_etapas(símismo, etapas):
         if isinstance(etapas, (str, Etapa)):

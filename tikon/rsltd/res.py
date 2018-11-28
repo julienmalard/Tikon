@@ -30,11 +30,11 @@ class Obs(object):
 
 
 class Dims(object):
-    def __init__(símismo, n_estoc, n_parám, n_parc, dims=None):
-        if dims is None:
-            dims = {}
-        símismo._frm = (n_parc, n_estoc, n_parám, *dims.values())
-        símismo.dims = dims
+    def __init__(símismo, n_estoc, n_parám, n_parc, coords=None):
+        if coords is None:
+            coords = {}
+        símismo._frm = (n_parc, n_estoc, n_parám, *coords.values())
+        símismo.coords = coords
 
     def
 

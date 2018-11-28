@@ -1,6 +1,7 @@
 import numpy as np
 from warnings import warn as avisar
 
+
 class Dist(object):
     pass
 
