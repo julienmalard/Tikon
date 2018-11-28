@@ -1,4 +1,4 @@
-from tikon.RAE.insectos.ins import Insecto
+from tikon.RAE.orgs.insectos.ins import Insecto
 
 
 class Parasitoide(Insecto):

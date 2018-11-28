@@ -1,6 +1,6 @@
 from tikon.RAE import Organismo
 from tikon.módulo import Módulo
-from tikon.result.res import Resultado, Dims
+from tikon.rsltd.res import Resultado, Dims
 
 
 class RedAE(Módulo):
@@ -21,6 +21,10 @@ class RedAE(Módulo):
         except KeyError:
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
+    def iniciar(símismo, días, f_inic, paso, n_rep_estoc, n_rep_parám):
+
+        super().iniciar()
+
     def incrementar(símismo, paso):
 
         símismo._calc_edad(paso)
@@ -32,6 +36,8 @@ class RedAE(Módulo):
         símismo._calc_mov(paso)
         símismo._calc_estoc(paso)
 
+    def cerrar(símismo):
+        pass
 
     def n_etapas(símismo, fantasmas=False):
         pass
@@ -64,13 +70,13 @@ class RedAE(Módulo):
 
         n_etps = símismo.n_etapas(fantasmas=True)
         dims_base = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, dims={'etapa': n_etps}
+            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps}
         )
         dims_inter = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, dims={'etapa': n_etps, 'víctima': n_etps}
+            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'víctima': n_etps}
         )
         dims_mov = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, dims={'etapa': n_etps, 'dest': n_parc}
+            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'dest': n_parc}
         )
 
         obs = símismo._gen_obs()

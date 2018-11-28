@@ -15,6 +15,9 @@ class Módulo(object):
     def cerrar(símismo):
         raise NotImplementedError
 
+    def obt_val_extern(símismo):
+        pass
+
     def _gen_resultados(símismo, í_pasos, n_rep_estoc, n_rep_parám, n_parc):
         raise NotImplementedError
 

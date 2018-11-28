@@ -1,0 +1,2 @@
+class Cohortes(object):
+    pass

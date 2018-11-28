@@ -1,6 +1,3 @@
-from .organismo import Organismo
-from .insectos.ins import Insecto
-from .insectos.gnrc import Sencillo, MetamCompleta, MetamIncompleta
-from .insectos.paras import Parasitoide, Esfécido
+from tikon.RAE.orgs.organismo import Organismo
+from tikon.RAE.orgs.insectos.ins import Insecto
 
-from .ecs import ecs_etps_orgs
