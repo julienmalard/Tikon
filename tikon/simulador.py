@@ -1,8 +1,7 @@
-import math as mat
-
 from tikon.calib import gen_calibrador
 from tikon.experimentos import Exper
 from tikon.rsltd.valid import Validación
+from tikon.tiempo import Tiempo
 
 
 class Simulador(object):
@@ -10,34 +9,48 @@ class Simulador(object):
     def __init__(símismo, módulos):
         símismo.módulos = MnjdrMódulos(módulos)
         símismo.exper = Exper()
+        símismo.tiempo = None  # type: Tiempo
+        símismo.corrida = None  # type: Corrida
 
-    def simular(
-            símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30
-    ):
+    def simular(símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30):
 
-        exper = exper or símismo.exper
-        días = días or exper.días()
-        f_inic = f_inic or exper.f_inic()
-
-        n_pasos = mat.ceil(días / paso)
-
-        símismo.iniciar(días, f_inic, paso, n_rep_estoc, n_rep_parám)
-        símismo.correr(paso, n_pasos)
+        símismo.iniciar(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám)
+        símismo.correr()
         símismo.cerrar()
 
-    def iniciar(símismo, días, f_inic, paso, n_rep_estoc, n_rep_parám):
+        return símismo.corrida
+
+    def iniciar(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám):
+
+        símismo.iniciar_estruc(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám)
+        símismo.iniciar_vals()
+
+    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám):
+
+        exper = exper or símismo.exper
+        n_días = días or exper.días()
+        f_inic = f_inic or exper.f_inic()
+
+        símismo.tiempo = Tiempo(día=0, f_inic=f_inic, paso=paso, n_días=n_días)
 
         for m in símismo.módulos:
-            m.iniciar(días, f_inic, paso, n_rep_estoc, n_rep_parám)
+            m.iniciar_estruc(símismo.tiempo, símismo.módulos, calibs, n_rep_estoc, n_rep_parám)
 
-    def correr(símismo, paso, n_pasos):
+    def iniciar_vals(símismo):
 
-        for _ in range(n_pasos):
-            símismo.incrementar(paso)
-
-    def incrementar(símismo, paso):
+        símismo.corrida = Corrida(símismo.módulos, símismo.tiempo)
         for m in símismo.módulos:
-            m.incrementar(paso)
+            m.iniciar_vals()
+
+    def correr(símismo):
+
+        while símismo.tiempo.avanzar():
+            símismo.incrementar()
+            símismo.corrida.actualizar()
+
+    def incrementar(símismo):
+        for m in símismo.módulos:
+            m.incrementar()
 
     def cerrar(símismo):
         for m in símismo.módulos:
@@ -47,29 +60,33 @@ class Simulador(object):
 
         símismo.simular(paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám)
 
-        return Validación(símismo.módulos)
+        return Validación(símismo.corrida)
 
     def calibrar(símismo, exper=None, n_iter=300, método='epm', paso=1, n_rep_estoc=30):
 
-        tipo_clbrd = gen_calibrador(método)
+        def func():
+            símismo.iniciar_vals()
+            símismo.correr()
+            return símismo.corrida.procesar_calib()
 
-        símismo.iniciar(paso=paso, n_rep_estoc=n_rep_estoc, n_rep_parám=1)
+        clbrd = gen_calibrador(método)(método, func, símismo.módulos.paráms())
 
-        func = símismo._func_calib()
-        clbrd = tipo_clbrd(func)
+        símismo.iniciar_estruc(
+            días=None, f_inic=None, paso=paso, exper=exper, calibs=None, n_rep_estoc=n_rep_estoc, n_rep_parám=1
+        )
 
-        clbrd.calibrar(n_iter=n_iter, método=método)
-
-    def _func_calib(símismo, paso):
-
+        clbrd.calibrar(func, n_iter=n_iter)
 
 
 class MnjdrMódulos(object):
     def __init__(símismo, módulos):
-        símismo.módulos = {}
+        símismo.módulos = {str(mód): mód for mód in módulos}
 
     def obt_valor(símismo, mód, var):
-        return símismo[mód].
+        return símismo[str(mód)].obt_valor(var)
+
+    def paráms(símismo):
+        return [pr for mód in símismo for pr in mód.paráms()]
 
     def __iter__(símismo):
         for m in símismo.módulos.values():
@@ -77,3 +94,20 @@ class MnjdrMódulos(object):
 
     def __getitem__(símismo, itema):
         return símismo.módulos[itema]
+
+
+class Corrida(object):
+    def __init__(símismo, módulos, tiempo):
+        símismo.módulos = módulos
+        símismo.tiempo = tiempo
+
+        símismo.datos = NotImplemented
+
+    def reinic(símismo):
+        pass
+
+    def actualizar(símismo):
+        pass
+
+    def procesar_calib(símismo):
+        pass

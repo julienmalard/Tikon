@@ -12,10 +12,8 @@ class Insecto(Organismo):
             tipo_ecuaciones = {}
 
         # Añadir las etapas
-        pos = 0
         if huevo:
-            símismo.añadir_etapa('huevo', pos=pos)
-            pos += 1
+            símismo.añadir_etapa('huevo')
 
         if njuvenil < 0:
             raise ValueError('El número de juveniles no puede ser inferior a 0.')
@@ -29,15 +27,13 @@ class Insecto(Organismo):
                 nombre = f'{JUVENIL}_{i+1}'
 
             # Agregar la etapa
-            símismo.añadir_etapa(nombre, pos=pos)
-            pos += 1
+            símismo.añadir_etapa(nombre)
 
         if pupa:
-            símismo.añadir_etapa('pupa', pos=pos)
-            pos += 1
+            símismo.añadir_etapa('pupa')
 
         if adulto:
-            símismo.añadir_etapa('adulto', pos=pos)
+            símismo.añadir_etapa('adulto')
 
         símismo.activar_ecs(tipo_ecuaciones)
 
@@ -48,7 +44,7 @@ class Insecto(Organismo):
         if JUVENIL in etapas:
             etapas.remove(JUVENIL)
 
-        for etp in símismo.etapas:
+        for etp in símismo._etapas:
             if str(etp).startswith(JUVENIL):
                 etapas.append(etp)
 
