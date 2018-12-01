@@ -4,3 +4,11 @@ class Manejo(object):
 
 class Regla(object):
     pass
+
+
+class Condición(object):
+    pass
+
+
+class Acción(object):
+    pass

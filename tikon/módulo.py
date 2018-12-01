@@ -1,13 +1,25 @@
 class Módulo(object):
     def __init__(símismo):
         símismo.resultados = {}
+        símismo.tiempo = None
+        símismo.conex_móds = None
 
-    def iniciar(símismo, días, f_inic, paso, n_rep_estoc, n_rep_parám):
-
-        í_pasos = range(0, paso*n_pasos, paso)
+    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
+        símismo.tiempo = tiempo
+        símismo.conex_móds = conex_móds
+        
         símismo.resultados = símismo._gen_resultados(
-            í_pasos, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, n_parc=n_parc
+            n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, n_parc=n_parc
         )
+
+    def obt_valor(símismo, var):
+        return símismo.resultados[var]
+
+    def obt_val_extern(símismo, mód, var):
+        símismo.conex_móds.obt_valor(mód, var)
+
+    def iniciar_vals(símismo):
+        raise NotImplementedError
 
     def incrementar(símismo, paso):
         raise NotImplementedError
@@ -15,10 +27,10 @@ class Módulo(object):
     def cerrar(símismo):
         raise NotImplementedError
 
-    def obt_val_extern(símismo):
-        pass
+    def paráms(símismo):
+        raise NotImplementedError
 
-    def _gen_resultados(símismo, í_pasos, n_rep_estoc, n_rep_parám, n_parc):
+    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
         raise NotImplementedError
 
     def _gen_obs(símismo):

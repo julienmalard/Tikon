@@ -1,6 +1,7 @@
-from tikon.RAE import Organismo
 from tikon.módulo import Módulo
 from tikon.rsltd.res import Resultado, Dims
+from .mnjdr_ecs import EcsSimul
+from .. import Organismo
 
 
 class RedAE(Módulo):
@@ -9,6 +10,8 @@ class RedAE(Módulo):
         super().__init__()
 
         símismo._orgs = {}
+        símismo._etps = []
+        símismo._ecs_simul = None  # type: EcsSimul
 
     def añadir_org(símismo, org):
         símismo._orgs[str(org)] = org
@@ -21,9 +24,14 @@ class RedAE(Módulo):
         except KeyError:
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
-    def iniciar(símismo, días, f_inic, paso, n_rep_estoc, n_rep_parám):
+    def etapas(símismo, fantasmas=False):
+        return [etp for org in símismo._orgs for etp in org.etapas(fantasmas=fantasmas)]
 
-        super().iniciar()
+    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
+        símismo._etps = símismo.etapas(fantasmas=True)
+        símismo._ecs_simul = EcsSimul(símismo._etps, calibs, n_rep_parám)
+
+        super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám)
 
     def incrementar(símismo, paso):
 
@@ -39,17 +47,20 @@ class RedAE(Módulo):
     def cerrar(símismo):
         pass
 
-    def n_etapas(símismo, fantasmas=False):
-        pass
-
     def _calc_edad(símismo, paso):
-        pass
+        for ec_edad, etps in símismo._ecs_simul['Edad']['Ecuación']:
+            ec_edad.evaluar(etps, paso, símismo)
 
     def _calc_depred(símismo, paso):
-        pass
+        for ec_depred, etps in símismo._ecs_simul['Depredación']['Ecuación']:
+            ec_depred.evaluar(etps, paso, símismo)
 
     def _calc_crec(símismo, paso):
-        pass
+        for modif_crec, etps in símismo._ecs_simul['Crecimiento']['Modif']:
+            modif_crec.evaluar(etps, paso, símismo)
+
+        for ec_crec, etps in símismo._ecs_simul['Crecimiento']['Ecuación']:
+            ec_crec.evaluar(etps, paso, símismo)
 
     def _calc_reprod(símismo, paso):
         pass
@@ -66,7 +77,7 @@ class RedAE(Módulo):
     def _calc_estoc(símismo, paso):
         pass
 
-    def _gen_resultados(símismo, í_pasos, n_rep_estoc, n_rep_parám, n_parc):
+    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
 
         n_etps = símismo.n_etapas(fantasmas=True)
         dims_base = Dims(
@@ -79,18 +90,22 @@ class RedAE(Módulo):
             n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'dest': n_parc}
         )
 
-        obs = símismo._gen_obs()
+        n_pasos = símismo.tiempo.n_pasos()
 
         return {
-            'Pobs': Resultado(dims_base, í_pasos, obs=obs['Pobs']),
-            'Crec': Resultado(dims_base, í_pasos, obs=obs['Crec']),
-            'Depred': Resultado(dims_inter, í_pasos, obs=obs['Depred']),
-            'Reprod': Resultado(dims_base, í_pasos, obs=obs['Reprod']),
-            'Muertes': Resultado(dims_base, í_pasos, obs=obs['Muertes']),
-            'Trans': Resultado(dims_base, í_pasos, obs=obs['Trans']),
-            'Mov': Resultado(dims_mov, í_pasos, obs=obs['Mov']),
-            'Estoc': Resultado(dims_base, í_pasos, obs=obs['Estoc'])
+            'Pobs': Resultado(dims_base),
+            'Crec': Resultado(dims_base),
+            'Depred': Resultado(dims_inter),
+            'Reprod': Resultado(dims_base),
+            'Muertes': Resultado(dims_base),
+            'Trans': Resultado(dims_base),
+            'Mov': Resultado(dims_mov),
+            'Estoc': Resultado(dims_base),
         }
 
-    def _gen_obs(símismo):
-        pass
+    def __getitem__(símismo, itema):
+        return símismo._orgs[str(itema)]
+
+    def __iter__(símismo):
+        for org in símismo._orgs.values():
+            yield org

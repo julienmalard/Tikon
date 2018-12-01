@@ -177,28 +177,27 @@ class Parám(object):
         símismo._a_priori = MnjdrDists()
         símismo._calib_activa = None  # type: MnjdrDistsClbs
 
-    def agregar_calib(símismo, id_cal, val, índs=None):
+    def agregar_calib(símismo, id_cal, dist, índs=None):
+        if id_cal not in símismo._calibs:
+            símismo._calibs[id_cal] = MnjdrDists()
 
-        if isinstance(val, DistCalib):
-            if símismo._calib_activa is None:
-                símismo._calib_activa = MnjdrDistsClbs()
+        símismo._calibs[id_cal].actualizar(dist, índs)
 
-            símismo._calib_activa.actualizar(val, índs=índs)
-        else:
-            if id_cal not in símismo._calibs:
-                símismo._calibs[id_cal] = MnjdrDists()
+    def estab_calib_activa(símismo, índs):
+        if símismo._calib_activa is None:
+            símismo._calib_activa = MnjdrDistsClbs()
 
-            símismo._calibs[id_cal].actualizar(val, índs)
+        símismo._calib_activa.actualizar(índs)
 
     def espec_a_priori(símismo, rango, certidumbre, índs=None):
 
         dist = DistAnalítica.de_dens(dens=certidumbre, líms_dens=rango, líms=símismo.líms)
         if índs is None:
-            símismo._a_priori.actualizar(val=dist, índs=índs)
+            símismo._a_priori.actualizar(dist=dist, índs=índs)
 
-    def guardar_calib(símismo, id_cal):
+    def guardar_calib_activa(símismo, id_cal, í_trazas, pesos):
 
-        símismo._calibs[id_cal] = símismo._calib_activa.obt_trazas()
+        símismo._calibs[id_cal] = símismo._calib_activa.obt_trazas(í_trazas, pesos)
         símismo._calib_activa = None
 
     def calib_base(símismo):
@@ -228,18 +227,18 @@ class MnjdrDists(object):
         símismo.val = None
         símismo.índs = {}
 
-    def actualizar(símismo, val, índs=None):
+    def actualizar(símismo, dist, índs=None):
         if isinstance(índs, str):
             índs = [índs]
         else:
             índs = list(índs)  # generar copia
 
         if índs is None or not len(índs):
-            símismo.val = val
+            símismo.val = dist
         else:
             í = índs.pop(0)
             sub_dist = símismo.__class__()
-            sub_dist.actualizar(val, índs)
+            sub_dist.actualizar(dist, índs)
             símismo.índs[í] = sub_dist
 
     def obt_val(símismo, índs=None):
@@ -264,15 +263,15 @@ class MnjdrDists(object):
 
 class MnjdrDistsClbs(MnjdrDists):
 
-    def actualizar(símismo, val, índs=None):
-        if not isinstance(val, DistCalib):
+    def actualizar(símismo, dist, índs=None):
+        if not isinstance(dist, DistCalib):
             raise TypeError
-        super().actualizar(val=val, índs=índs)
+        super().actualizar(dist=dist, índs=índs)
 
     def obt_trazas(símismo, mnjdr=None):
         if mnjdr is None:
             mnjdr = MnjdrDists()
-        mnjdr.actualizar(val=símismo.val.gen_traza())
+        mnjdr.actualizar(dist=símismo.val.gen_traza())
 
         for í, mnjdr_í in símismo.índs:
             mnjdr.actualizar(mnjdr_í.obt_trazas(mnjdr=mnjdr), índs=í)

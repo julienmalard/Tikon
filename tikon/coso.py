@@ -15,6 +15,11 @@ class Coso(object):
             for sub, ec in d_cat.items():
                 símismo.activar_ec(categ, sub, ec)
 
+    def obt_ec_activa(símismo, categ, subcateg):
+        return símismo.ecs[categ][subcateg]
+
     def espec_apriori(símismo):
         símismo.ecs.espec_apriori()
 
+    def __str__(símismo):
+        return símismo.nombre
