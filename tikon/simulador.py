@@ -52,6 +52,8 @@ class Simulador(object):
         for m in símismo.módulos:
             m.incrementar()
 
+        símismo.módulos.actualizar_res()
+
     def cerrar(símismo):
         for m in símismo.módulos:
             m.cerrar()

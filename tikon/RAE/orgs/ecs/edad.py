@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.ecs import CategEc, SubCategEc, Ecuación, Parám
+from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, EcuaciónVacía, Parám
 
 inf = np.inf
 
@@ -10,7 +10,7 @@ ecs_edad = CategEc(
         SubCategEc(
             'Ecuación',
             ecs=[
-                Ecuación('Nada'),
+                EcuaciónVacía(),
                 Ecuación('Días'),  # No se necesitan coeficientes en este caso
                 Ecuación(
                     'Días grados',

@@ -146,7 +146,7 @@ class Ecuación(object):
     def agregar_parám(símismo, parám):
         símismo.paráms[str(parám)] = parám
 
-    def __call__(símismo, cf, paso, matr_egr=None, **argspc):
+    def __call__(símismo, cf, paso, ):
         if símismo.fun is not None:
             return símismo.fun(cf, paso, matr_egr, **argspc)
 
@@ -164,6 +164,11 @@ class Ecuación(object):
 
     def __str__(símismo):
         return símismo.nombre
+
+
+class EcuaciónVacía(Ecuación):
+    def __init__(símismo):
+        super().__init__('Nada')
 
 
 class Parám(object):
@@ -253,7 +258,7 @@ class MnjdrDists(object):
         else:
             í = índs.pop(0)
             if í in símismo.índs:
-                return símismo.índs[í].obt_val(índs)
+                return símismo.índs[í].obt_valor(índs)
             else:
                 return símismo.val
 

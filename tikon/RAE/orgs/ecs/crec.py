@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, Parám, FuncEc
+from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, EcuaciónVacía, Parám, FuncEc
 
 inf = np.inf
 
@@ -73,7 +73,6 @@ ec_log_norm_temp = Ecuación(
     ]
 )
 
-ec_nada = Ecuación('Nada')
 
 ec_expon = Ecuación('Exponencial', fun=_f_expon)  # El exponencial no tiene parámetros a parte de r
 
@@ -112,10 +111,10 @@ ec_constante = Ecuación(
 ecs_crec = CategEc(
     'Crecimiento',
     subs=[
-        SubCategEc('Modif', ecs=[ec_nada, ec_ninguna, ec_log_norm_temp]),
+        SubCategEc('Modif', ecs=[EcuaciónVacía(), ec_ninguna, ec_log_norm_temp]),
         SubCategEc(
             'Ecuación',
-            ecs=[ec_nada, ec_expon, ec_logíst, ec_logíst_presa, ec_logíst_depred, ec_constante]
+            ecs=[EcuaciónVacía(), ec_expon, ec_logíst, ec_logíst_presa, ec_logíst_depred, ec_constante]
         )
     ]
 )
