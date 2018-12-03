@@ -47,37 +47,39 @@ class RedAE(Módulo):
     def cerrar(símismo):
         pass
 
+    def poner_valor(símismo, var, valor, rel=False):
+
+
     def _calc_edad(símismo, paso):
-        for ec_edad, etps in símismo._ecs_simul['Edad']['Ecuación']:
-            ec_edad.evaluar(etps, paso, símismo)
+        símismo._ecs_simul['Edad'].evaluar(paso)
 
     def _calc_depred(símismo, paso):
-        for ec_depred, etps in símismo._ecs_simul['Depredación']['Ecuación']:
-            ec_depred.evaluar(etps, paso, símismo)
+        símismo._ecs_simul['Depredación'].evaluar(paso)
 
     def _calc_crec(símismo, paso):
-        for modif_crec, etps in símismo._ecs_simul['Crecimiento']['Modif']:
-            modif_crec.evaluar(etps, paso, símismo)
-
-        for ec_crec, etps in símismo._ecs_simul['Crecimiento']['Ecuación']:
-            ec_crec.evaluar(etps, paso, símismo)
+        crec = símismo._ecs_simul['Crecimiento']
+        crec.evaluar(paso)
+        símismo.agregar_pobs(símismo.resultados['Crecimiento'])
 
     def _calc_reprod(símismo, paso):
-        pass
+        símismo._ecs_simul['Reproducción'].evaluar(paso)
+        símismo.agregar_pobs(símismo.resultados['Reproducción'])
 
     def _calc_muertes(símismo, paso):
-        pass
+        símismo._ecs_simul['Muertes'].evaluar(paso)
+        símismo.quitar_pobs(símismo.resultados['Muertes'])
 
     def _calc_trans(símismo, paso):
-        pass
+        símismo._ecs_simul['Transiciones'].evaluar(paso)
 
     def _calc_mov(símismo, paso):
-        pass
+        símismo._ecs_simul['Movimiento'].evaluar(paso)
 
     def _calc_estoc(símismo, paso):
-        pass
+        símismo._ecs_simul['Estoc'].evaluar(paso)
+        símismo.
 
-    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
+    def _coords_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
 
         n_etps = símismo.n_etapas(fantasmas=True)
         dims_base = Dims(
@@ -90,10 +92,8 @@ class RedAE(Módulo):
             n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'dest': n_parc}
         )
 
-        n_pasos = símismo.tiempo.n_pasos()
-
         return {
-            'Pobs': Resultado(dims_base),
+            'Pobs': {'etapa': n_etps},
             'Crec': Resultado(dims_base),
             'Depred': Resultado(dims_inter),
             'Reprod': Resultado(dims_base),

@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.ecs import CategEc, SubCategEc, Ecuación, Parám
+from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, EcuaciónVacía, Parám
 
 inf = np.inf
 
@@ -10,7 +10,7 @@ ecs_trans = CategEc(
         SubCategEc(
             'Prob',
             ecs=[
-                Ecuación('Nada'),
+                EcuaciónVacía(),
                 Ecuación(
                     'Constante',
                     paráms=[
@@ -67,7 +67,7 @@ ecs_trans = CategEc(
         SubCategEc(
             'Mult',
             ecs=[
-                Ecuación('Nada'),
+                EcuaciónVacía(),
                 Ecuación(
                     'Linear',
                     paráms=[

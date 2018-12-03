@@ -801,7 +801,7 @@ class Red(Simulable):
         depred_infec[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
         depred_por_presa_sin_infec = np.subtract(depred_por_presa, np.sum(depred_infec, axis=3))
 
-        # Para las depredaciones normales, es fácul quitarlas de los cohortes
+        # Para las depredaciones normales, es fácil quitarlas de los cohortes
         símismo._quitar_de_cohortes(muertes=depred_por_presa_sin_infec[..., símismo.índices_cohortes])
 
         # Para cada parasitoide...
