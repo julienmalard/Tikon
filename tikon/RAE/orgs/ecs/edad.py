@@ -151,6 +151,7 @@ class EcuaciónEdad(SubcategEc):
         EcuaciónVacía,
         FuncDías, FuncDíasGrados, FuncBrièreTemperatura, FuncLoganTemperatura, FuncBrièreNoLinearTemperatura
     ]
+    auto = FuncDías
 
 
 class EcsEdad(CategEc):
