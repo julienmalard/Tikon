@@ -42,7 +42,7 @@ class CategEc(PlantillaRamaEc):
 
 class SubcategEc(PlantillaRamaEc):
     _cls_en_coso = SubcategEcCoso
-    auto = None  # para hacer: implementar
+    auto = None
 
 
 class Ecuación(PlantillaRamaEc):

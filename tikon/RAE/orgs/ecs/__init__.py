@@ -1,10 +1,10 @@
 from .edad import ecs_edad
-from .estoc import ecs_estoc
+from .estoc import EcsEstoc
 from .mov import ecs_mov
-from .muert import ecs_muert
+from tikon.RAE.orgs.ecs.muertes._categ import ecs_muert
 from .repr import ecs_repr
-from .trans import ecs_trans
-from .depred import ecs_depred
+from tikon.RAE.orgs.ecs.trans._categ import ecs_trans
+from .depred import EcsDepred
 from .crec import ecs_crec
 from tikon.ecs import ÁrbolEcs
 
