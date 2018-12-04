@@ -4,49 +4,53 @@ from tikon.tiempo import EjeTiempo
 
 
 class Resultado(object):
-    def __init__(símismo, dims):
-        símismo.dims = dims
-        símismo.matr = np.zeros(dims.frm())
+    def __init__(símismo, nombre, dims):
+        símismo.nombre = nombre
+        símismo._dims = dims
+        símismo._matr = np.zeros(dims.frm())
 
     def poner_valor(símismo, vals, rel=False, índs=None, eje=None):
         if índs is None:
             if rel:
-                símismo.matr[:] += vals
+                símismo._matr[:] += vals
             else:
-                símismo.matr[:] = vals
+                símismo._matr[:] = vals
         else:
             if rel:
-                símismo.matr[símismo.rebanar(índs, eje)] += vals
+                símismo._matr[símismo._rebanar(índs, eje)] += vals
             else:
-                símismo.matr[símismo.rebanar(índs, eje)] = vals
+                símismo._matr[símismo._rebanar(índs, eje)] = vals
 
     def obt_valor(símismo, índs=None, eje=None):
         if índs is None:
-            return símismo.matr
+            return símismo._matr
         else:
-            return símismo.matr[símismo.rebanar(índs, eje)]
+            return símismo._matr[símismo._rebanar(índs, eje)]
 
     def sumar(símismo, eje):
-        í_eje = símismo.dims.í_eje(eje)
-        return símismo.matr.sum(axis=í_eje)
+        í_eje = símismo._dims.í_eje(eje)
+        return símismo._matr.sum(axis=í_eje)
 
-    def rebanar(símismo, índs, eje):
-        í_eje = símismo.dims.í_eje(eje)
+    def reinic(símismo):
+        símismo._matr[:] = 0
 
-        return tuple([slice(None)]*í_eje + [índs])
+    def í_eje(símismo, eje):
+        return símismo._dims.í_eje(eje)
+
+    def _rebanar(símismo, índs, eje):
+        return tuple([slice(None)] * símismo.í_eje(eje) + [índs])
 
 
 class ResultadoTemporal(Resultado):
     def __init__(símismo, nombre, dims, tiempo, obs=None):
-        super().__init__(dims)
+        super().__init__(dims, nombre)
 
-        símismo.nombre = nombre
         símismo.tiempo = tiempo
         símismo.obs = obs
-        símismo.matr_t = np.zeros((tiempo.n_pasos(), *dims.frm()))
+        símismo._matr_t = np.zeros((tiempo.n_pasos(), *dims.frm()))
 
     def actualizar(símismo):
-        símismo.matr_t[símismo.tiempo.día()] = símismo.matr
+        símismo._matr_t[símismo.tiempo.día()] = símismo._matr
 
     def validar(símismo, método):
         if símismo.obs is None:
@@ -62,10 +66,14 @@ class ResultadoTemporal(Resultado):
 
         días_act = símismo.tiempo.eje.días
         índs = símismo.tiempo.índices(t)
-        return np.interp(índs, xp=días_act, fp=símismo.matr_t, left=np.nan, right=np.nan)
+        return np.interp(índs, xp=días_act, fp=símismo._matr_t, left=np.nan, right=np.nan)
+
+    def reinic(símismo):
+        símismo._matr_t[:] = 0
+        super().reinic()
 
     def graficar(símismo):
-        pass
+        raise NotImplementedError
 
 
 class Obs(object):
@@ -75,15 +83,31 @@ class Obs(object):
 
 
 class Dims(object):
-    def __init__(símismo, n_estoc, n_parám, n_parc, coords=None):
+    def __init__(símismo, n_estoc, n_parám, parc, coords=None):
         if coords is None:
             coords = {}
-        símismo._frm = (n_parc, n_estoc, n_parám, *coords.values())
-        símismo.coords = coords
+
+        símismo._coords = {
+            'parc': Coord(parc),
+            'estoc': Coord(n_estoc),
+            'parám': Coord(n_parám),
+            **{crd: Coord(índs) for crd, índs in coords}}
+
+        símismo._frm = tuple(crd.tmñ() for crd in símismo._coords.values())
 
     def frm(símismo):
         return símismo._frm
 
+    def í_eje(símismo, eje):
+        return next(i for i, crd in enumerate(símismo._coords) if crd == eje)
 
-class Coords(object):
-    def __init__(símismo, nombre):
+
+class Coord(object):
+    def __init__(símismo, índs):
+        símismo.índs = índs
+
+    def tmñ(símismo):
+        if isinstance(símismo.índs, int):
+            return símismo.índs
+        else:
+            return len(símismo.índs)

@@ -6,15 +6,15 @@ inf = np.inf
 
 
 class FuncNinguna(FuncEc):
-    def __call__(self, cf, paso, módulo, matr_egr=None):
+    def __call__(self, cf, paso, mnjdr_móds):
         # Sin modificación a r.
         return np.multiply(cf['r'], paso, out=matr_egr)
 
 
 class FuncLogNormTemp(FuncEc):
-    def __call__(self, cf, paso, módulo, matr_egr=None):
+    def __call__(self, cf, paso, mnjdr_móds):
         # r responde a la temperatura con una ecuación log normal.
-        temp_máx = módulo.obt_val_extern(['clima', 'temp_máx'])
+        temp_máx = mnjdr_móds.obt_val_extern(['clima', 'temp_máx'])
 
         return np.multiply(
             cf['r'] * paso,
@@ -24,7 +24,7 @@ class FuncLogNormTemp(FuncEc):
 
 
 class FuncExpon(object):
-    def __call__(self, cf, paso, módulo, matr_egr=None):
+    def __call__(self, cf, paso, módulo):
         pobs_etps =
         crec_etps =
         return np.multiply(pobs_etps, crec_etp, out=matr_egr)
