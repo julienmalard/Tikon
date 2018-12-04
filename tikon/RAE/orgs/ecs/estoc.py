@@ -1,32 +1,40 @@
 import numpy as np
 
-from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, Parám, FuncEc
+from tikon.ecs.paráms import Parám
+from tikon.ecs.árb_mód import CategEc, SubcategEc, Ecuación, EcuaciónVacía
 
 
-class Normal(FuncEc):
+class PrSigma(Parám):
+    nombre = 'sigma'
+    líms = (0, 1)
+
+
+class Normal(Ecuación):
     """
     Error distribuido de manera normal.
     """
-    def __call__(self, cf, paso, mnjdr_móds):
-        return cf['sigma'] * paso
+    nombre = 'Normal'
+
+    def __call__(símismo, paso):
+        return símismo.cf['sigma'] * paso
 
 
-inf = np.inf
+class DistEstoc(SubcategEc):
+    nombre = 'Dist'
+    _cls_ramas = [EcuaciónVacía, Normal]
 
-ecs_estoc = CategEc(
-    'Estoc',
-    subs=[
-        SubCategEc(
-            'Dist',
-            ecs=[
-                Ecuación(
-                    'Normal',
-                    paráms=[
-                        Parám('sigma', (0, 1))
-                    ],
-                    fun=Normal
-                )
-            ]
-        )
-    ]
-)
+
+class EcsEstoc(CategEc):
+    nombre = 'Estoc'
+    _cls_ramas = [DistEstoc]
+
+    def __call__(símismo, paso):
+        super()(paso)
+
+        estoc = símismo._res.obt_valor()
+        np.multiply(pobs, estoc, out=estoc)
+        np.maximum(1, estoc, out=estoc)
+        np.round(np.random.normal(0, estoc), out=estoc)
+
+        # Verificar que no quitamos más que existen
+        estoc[:] = np.where(-estoc > pobs, -pobs, estoc)

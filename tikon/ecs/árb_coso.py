@@ -59,8 +59,8 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
     def __init__(símismo, cls_pariente, ramas):
         super().__init__(cls_pariente, ramas)
 
-        activa = activa or ramas[0]
-        símismo._activada = activa
+        cls_auto =  cls_pariente.auto or ramas[0]
+        símismo._activada = next(ec for ec in símismo if isinstance(ec, cls_auto))
 
     def verificar_activa(símismo):
         return not isinstance(símismo.ec_activa(), EcuaciónVacía)
