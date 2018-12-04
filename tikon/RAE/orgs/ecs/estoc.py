@@ -22,6 +22,7 @@ class Normal(Ecuación):
 class DistEstoc(SubcategEc):
     nombre = 'Dist'
     _cls_ramas = [EcuaciónVacía, Normal]
+    auto = Normal
 
 
 class EcsEstoc(CategEc):

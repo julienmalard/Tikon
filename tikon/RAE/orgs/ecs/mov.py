@@ -1,9 +1,6 @@
-import numpy as np
+from tikon.ecs.árb_mód import CategEc
 
-from tikon.ecs.estruc import CategEc
 
-inf = np.inf
-
-ecs_mov = CategEc(
-    'Movimiento'  # para hacer
-)
+class EcsMov(CategEc):
+    nombre = 'Movimiento'
+    _cls_ramas = []  # para hacer

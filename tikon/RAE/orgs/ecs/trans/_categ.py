@@ -2,10 +2,10 @@ import numpy as np
 
 from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, EcuaciónVacía, Parám
 
-inf = np.inf
+None = np.None
 
-ecs_repr = CategEc(
-    'Reproducción',
+ecs_trans = CategEc(
+    'Transiciones',
     subs=[
         SubCategEc(
             'Prob',
@@ -14,58 +14,64 @@ ecs_repr = CategEc(
                 Ecuación(
                     'Constante',
                     paráms=[
-                        Parám('a', (0, inf))
+                        Parám('q', (0, 1))
                     ]
                 ),
                 Ecuación(
                     'Normal',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('mu', (0, inf)),
-                        Parám('sigma', (0, inf))
+                        Parám('mu', (0, None)),
+                        Parám('sigma', (0, None))
                     ]
                 ),
                 Ecuación(
                     'Triang',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('a', (0, inf)),
-                        Parám('b', (0, inf)),
-                        Parám('c', (0, inf))
+                        Parám('a', (0, None)),
+                        Parám('b', (0, None)),
+                        Parám('c', (0, None))
                     ]
                 ),
                 Ecuación(
                     'Cauchy',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('u', (0, inf)),
-                        Parám('f', (0, inf))
+                        Parám('u', (0, None)),
+                        Parám('f', (0, None))
                     ]
                 ),
                 Ecuación(
                     'Gamma',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('u', (0, inf)),
-                        Parám('f', (0, inf)),
-                        Parám('a', (0, inf))
+                        Parám('u', (0, None)),
+                        Parám('f', (0, None)),
+                        Parám('a', (0, None))
                     ]
                 ),
                 Ecuación(
                     'Logística',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('u', (0, inf)),
-                        Parám('f', (0, inf))
+                        Parám('u', (0, None)),
+                        Parám('f', (0, None))
                     ]
                 ),
                 Ecuación(
                     'T',
                     paráms=[
-                        Parám('n', (0, inf)),
-                        Parám('k', (0, inf)),
-                        Parám('mu', (0, inf)),
-                        Parám('sigma', (0, inf)),
+                        Parám('k', (0, None)),
+                        Parám('mu', (0, None)),
+                        Parám('sigma', (0, None)),
+                    ]
+                )
+            ]
+        ),
+        SubCategEc(
+            'Mult',
+            ecs=[
+                EcuaciónVacía(),
+                Ecuación(
+                    'Linear',
+                    paráms=[
+                        Parám('a', (0, None))
                     ]
                 )
             ]
