@@ -1,6 +1,6 @@
 from tikon.módulo import Módulo
 from tikon.rsltd.res import Resultado, Dims
-from .mnjdr_ecs import EcsSimul
+from .mnjdr_ecs import MnjdrEcsRed
 from .. import Organismo
 
 
@@ -11,7 +11,7 @@ class RedAE(Módulo):
 
         símismo._orgs = {}
         símismo._etps = []
-        símismo._ecs_simul = None  # type: EcsSimul
+        símismo._ecs_simul = None  # type: MnjdrEcsRed
 
     def añadir_org(símismo, org):
         símismo._orgs[str(org)] = org
@@ -27,9 +27,12 @@ class RedAE(Módulo):
     def etapas(símismo, fantasmas=False):
         return [etp for org in símismo._orgs for etp in org.etapas(fantasmas=fantasmas)]
 
+    def paráms(símismo):
+        return [pr for etp in símismo for pr in etp.paráms()]
+
     def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
         símismo._etps = símismo.etapas(fantasmas=True)
-        símismo._ecs_simul = EcsSimul(símismo._etps, calibs, n_rep_parám)
+        símismo._ecs_simul = MnjdrEcsRed(símismo._etps, calibs, n_rep_parám)
 
         super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám)
 
@@ -48,7 +51,19 @@ class RedAE(Módulo):
         pass
 
     def poner_valor(símismo, var, valor, rel=False):
+        if var =='Poblaciones':
+            símismo
+        else:
+            raise ValueError
 
+    def agregar_pobs(símismo):
+        pass
+
+    def quitar_pobs(símismo):
+        pass
+
+    def ajustar_pobs(símismo):
+        pass
 
     def _calc_edad(símismo, paso):
         símismo._ecs_simul['Edad'].evaluar(paso)
@@ -67,7 +82,7 @@ class RedAE(Módulo):
 
     def _calc_muertes(símismo, paso):
         símismo._ecs_simul['Muertes'].evaluar(paso)
-        símismo.quitar_pobs(símismo.resultados['Muertes'])
+        símismo.quitar_pobs(símismo.resultados['Muertes'])  #para hacer: índices
 
     def _calc_trans(símismo, paso):
         símismo._ecs_simul['Transiciones'].evaluar(paso)
@@ -77,30 +92,16 @@ class RedAE(Módulo):
 
     def _calc_estoc(símismo, paso):
         símismo._ecs_simul['Estoc'].evaluar(paso)
-        símismo.
 
-    def _coords_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
+    def _coords_resultados(símismo):
 
-        n_etps = símismo.n_etapas(fantasmas=True)
-        dims_base = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps}
-        )
-        dims_inter = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'víctima': n_etps}
-        )
-        dims_mov = Dims(
-            n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords={'etapa': n_etps, 'dest': n_parc}
-        )
-
+        l_res = ['Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
+        parc = símismo.obt_val_manejo('parcelas')
         return {
-            'Pobs': {'etapa': n_etps},
-            'Crec': Resultado(dims_base),
-            'Depred': Resultado(dims_inter),
-            'Reprod': Resultado(dims_base),
-            'Muertes': Resultado(dims_base),
-            'Trans': Resultado(dims_base),
-            'Mov': Resultado(dims_mov),
-            'Estoc': Resultado(dims_base),
+            'Pobs': {'etapa': símismo._etps},
+            'Depredación': {'etapa': símismo._ecs_simul.etapas_categ('Depredación'), 'víctima': símismo._etps},
+            'Movimiento': {'etapa': símismo._ecs_simul.etapas_categ('Movimiento'), 'dest': parc},
+            **{res: {'etapa': símismo._ecs_simul.etapas_categ(res)} for res in l_res}
         }
 
     def __getitem__(símismo, itema):

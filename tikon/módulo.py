@@ -1,4 +1,4 @@
-from tikon.rsltd.res import Dims
+from tikon.rsltd.res import Dims, Resultado, ResultadoTemporal
 
 
 class Módulo(object):
@@ -11,10 +11,17 @@ class Módulo(object):
         símismo.tiempo = tiempo
         símismo.conex_móds = conex_móds
 
-        símismo.resultados = Resultados(
+        temporales = []  # para hacer
+        obs = []
+
+        dims = {res: Dims(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
+                for res, coords in símismo._coords_resultados().items()
+                }
+
+        símismo.resultados = ResultadosMódulo(
             [
-                Resultado(Dims(n_estoc=n_rep_estoc, n_parám=n_rep_parám, n_parc=n_parc, coords=coords))
-                for coords in símismo._coords_resultados()
+                ResultadoTemporal(nmbre, dim, ) if nmbre in temporales else Resultado(nmbre, dim)
+                for nmbre, dim in
             ]
         )
 
@@ -45,9 +52,14 @@ class Módulo(object):
     def _coords_resultados(símismo):
         raise NotImplementedError
 
-    def _gen_obs(símismo):
-        raise NotImplementedError
-
     def calc_valid(símismo):
         for res in símismo.resultados.items():
             res.validar()
+
+
+class ResultadosMódulo(object):
+    def __init__(símismo, resultados):
+        símismo._resultados = {str(res): res for res in resultados}
+
+    def __getitem__(símismo, itema):
+        return símismo._resultados[str(itema)]

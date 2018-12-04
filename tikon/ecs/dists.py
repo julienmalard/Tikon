@@ -1,5 +1,6 @@
-import numpy as np
 from warnings import warn as avisar
+
+import numpy as np
 
 
 class Dist(object):
@@ -57,6 +58,61 @@ class DistCalib(Dist):
         return símismo.val
 
 
+class MnjdrDists(object):
+    def __init__(símismo):
+        símismo.val = None
+        símismo.índs = {}
+
+    def actualizar(símismo, dist, índs=None):
+        if isinstance(índs, str):
+            índs = [índs]
+        else:
+            índs = list(índs)  # generar copia
+
+        if índs is None or not len(índs):
+            símismo.val = dist
+        else:
+            í = índs.pop(0)
+            sub_dist = símismo.__class__()
+            sub_dist.actualizar(dist, índs)
+            símismo.índs[í] = sub_dist
+
+    def obt_val(símismo, índs=None):
+
+        if isinstance(índs, str):
+            índs = [índs]
+        else:
+            índs = list(índs)  # generar copia
+
+        if índs is None or not len(índs):
+            return símismo.val
+        else:
+            í = índs.pop(0)
+            if í in símismo.índs:
+                return símismo.índs[í].obt_valor(índs)
+            else:
+                return símismo.val
+
+    def __getitem__(símismo, itema):
+        return símismo.índs[itema]
+
+
+class MnjdrDistsClbs(MnjdrDists):
+
+    def actualizar(símismo, dist, índs=None):
+        if not isinstance(dist, DistCalib):
+            raise TypeError
+        super().actualizar(dist=dist, índs=índs)
+
+    def obt_trazas(símismo, mnjdr=None):
+        if mnjdr is None:
+            mnjdr = MnjdrDists()
+        mnjdr.actualizar(dist=símismo.val.gen_traza())
+
+        for í, mnjdr_í in símismo.índs:
+            mnjdr.actualizar(mnjdr_í.obt_trazas(mnjdr=mnjdr), índs=í)
+
+        return mnjdr
 
 
 class ValoresDist(object):
