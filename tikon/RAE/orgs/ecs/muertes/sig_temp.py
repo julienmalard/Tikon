@@ -1,0 +1,21 @@
+from tikon.ecs.paráms import Parám
+from tikon.ecs.árb_mód import Ecuación
+
+
+class A(Parám):
+    nombre = 'a'
+    líms = (None, None)
+
+
+class B(Parám):
+    nombre = 'b'
+    líms = (0, None)
+
+
+class SigmoidalTemperatura(Ecuación):
+    nombre = 'Sigmoidal Temperatura'
+    _cls_ramas = [A, B]
+
+    def __call__(símismo, paso):
+        sobrevivencia = 1 / (1 + np.exp((mnjdr_móds['clima.temp_máx'] - cf['a']) / cf['b']))
+        return np.multiply(pob_etp, (1 - sobrevivencia))
