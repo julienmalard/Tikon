@@ -15,7 +15,6 @@ class MnjdrEcsRed(object):
     def _gen_coefs(símismo, calibs, n_rep_paráms):
         pass
 
-
     def __getitem__(símismo, itema):
         return símismo._categs[itema]
 

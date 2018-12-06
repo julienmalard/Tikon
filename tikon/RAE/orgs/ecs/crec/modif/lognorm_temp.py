@@ -19,10 +19,10 @@ class LogNormTemp(Ecuación):
 
     def __call__(símismo, paso):
         # r responde a la temperatura con una ecuación log normal.
-        temp_máx = símismo.mnjdr_móds.obt_val_extern(['clima', 'temp_máx'])
+        temp_máx = símismo.mnjdr_móds.obt_val_extern('clima.temp_máx')
         cf = símismo.cf
 
         return np.multiply(
             cf['r'] * paso,
-            np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2),
+            np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2)
         )

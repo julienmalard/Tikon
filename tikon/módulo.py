@@ -61,5 +61,9 @@ class ResultadosMódulo(object):
     def __init__(símismo, resultados):
         símismo._resultados = {str(res): res for res in resultados}
 
+    def reinic(símismo):
+        for r in símismo:
+            r.reinic()
+
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]

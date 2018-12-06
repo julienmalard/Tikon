@@ -1,7 +1,7 @@
 import numpy as np
 
 from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from ._plntll_ec import EcuaciónCrec
 
 
 class K(Parám):
@@ -10,7 +10,7 @@ class K(Parám):
     inter = 'presa'
 
 
-class LogístPresa(Ecuación):
+class LogístPresa(EcuaciónCrec):
     """
     Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
     la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
@@ -20,8 +20,11 @@ class LogístPresa(Ecuación):
     _cls_ramas = [K]
 
     def __call__(símismo, paso):
-        k = np.nansum(np.multiply(pobs[..., np.newaxis, :], cf['K']), axis=-1)  # Calcular la capacidad de carga
-        np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
+        crec_etps = símismo.crec_etps()
+        pobs_etps = símismo.pobs_etps()
+        
+        k = np.nansum(np.multiply(pobs[..., np.newaxis, :], símismo.cf['K']), axis=-1)  # Calcular la capacidad de carga
+        np.multiply(crec_etps, pobs_etps * (1 - pobs_etps / k), out=crec_etps)  # Ecuación logística sencilla
 
         # Evitar pérdidas de poblaciones superiores a la población.
-        return np.maximum(crec_etp, -pobs_etps)
+        return np.maximum(crec_etps, -pobs_etps)

@@ -44,6 +44,10 @@ class SubcategEc(PlantillaRamaEc):
     _cls_en_coso = SubcategEcCoso
     auto = None
 
+    def __call__(símismo, paso):
+        for ec in símismo._ramas.values():
+            símismo._res.poner_val(ec(paso), índs=símismo._í_cosos)
+
 
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso

@@ -3,8 +3,6 @@ import numpy as np
 from tikon.ecs.paráms import Parám
 from tikon.ecs.árb_mód import Ecuación
 
-None = np.None
-
 
 class ATipoI(Parám):
     nombre = 'a'
@@ -19,8 +17,16 @@ class MTipoI(Parám):
 
 
 class TipoIHasselVarley(Ecuación):
+    """
+    Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
+    """
     nombre = 'Tipo I_Hassell-Varley'
     _cls_ramas = [ATipoI, MTipoI]
+
+    def __call__(símismo, paso):
+        dens_depred = símismo.dens_depred()
+        cf = símismo.cf
+        return np.multiply(dens / dens_depred ** cf['m'], cf['a'])
 
 
 class ATipoII(Parám):
@@ -42,8 +48,17 @@ class MTipoII(Parám):
 
 
 class TipoIIHasselVarley(Ecuación):
+    """
+    Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
+    """
+
     nombre = 'Tipo I_Hassell-Varley'
     _cls_ramas = [ATipoII, BTipoII, MTipoII]
+
+    def __call__(símismo, paso):
+        dens_depred = símismo.dens_depred()
+        cf = símismo.cf
+        return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))
 
 
 class ATipoIII(Parám):
@@ -65,5 +80,15 @@ class MTipoIII(Parám):
 
 
 class TipoIIIHasselVarley(Ecuación):
+    """
+    Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
+    """
+
     nombre = 'Tipo I_Hassell-Varley'
     _cls_ramas = [ATipoIII, BTipoIII, MTipoIII]
+
+    def __call__(símismo, paso):
+        dens_depred = símismo.dens_depred()
+        cf = símismo.cf
+        return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))
+

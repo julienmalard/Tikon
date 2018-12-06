@@ -3,8 +3,6 @@ import numpy as np
 from tikon.ecs.paráms import Parám
 from tikon.ecs.árb_mód import Ecuación
 
-None = np.None
-
 
 class A(Parám):
     nombre = 'a'
@@ -25,5 +23,16 @@ class C(Parám):
 
 
 class BedDeAng(Ecuación):
+    """
+    Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
+    """
     nombre = 'Beddington-DeAngelis'
     _cls_ramas = [A, B, C]
+
+    def __call__(símismo, paso):
+        cf = símismo.cf
+
+        dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
+        depred_etp = np.multiply(dens, cf['a'] / (cf['b'] + dens + cf['c'] * dens_depred))
+
+        return depred_etp
