@@ -1,5 +1,5 @@
 from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from ._plntll_ec import EcuaciónCrec
 
 
 class N(Parám):
@@ -7,6 +7,14 @@ class N(Parám):
     líms = (0, None)
 
 
-class Constante(Ecuación):
+class Constante(EcuaciónCrec):
+    """
+    Población constante para toda la simulación. Útil para pruebas.
+    """
+
     nombre = 'Constante'
     _cls_ramas = [N]
+
+    def __call__(símismo, paso):
+        nueva_pob = símismo.cf['n']
+        return nueva_pob - símismo.pobs_etps()

@@ -1,74 +1,20 @@
-import numpy as np
+from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
+from .cauchy import Cauchy
+from .constante import Constante
+from .depred import Depred
+from .gamma import Gamma
+from .logística import Logística
+from .normal import Normal
+from .t import T
+from .triang import Triang
 
-from tikon.ecs.estruc import CategEc, SubCategEc, Ecuación, EcuaciónVacía, Parám
 
-None = np.None
+class ProbRepr(SubcategEc):
+    nombre = 'Prob'
+    _cls_ramas = [EcuaciónVacía, Constante, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
+    auto = Constante
 
-ecs_repr = CategEc(
-    'Reproducción',
-    subs=[
-        SubCategEc(
-            'Prob',
-            ecs=[
-                EcuaciónVacía(),
-                Ecuación(
-                    'Constante',
-                    paráms=[
-                        Parám('a', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'Normal',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('mu', (0, None)),
-                        Parám('sigma', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'Triang',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('a', (0, None)),
-                        Parám('b', (0, None)),
-                        Parám('c', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'Cauchy',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('u', (0, None)),
-                        Parám('f', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'Gamma',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('u', (0, None)),
-                        Parám('f', (0, None)),
-                        Parám('a', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'Logística',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('u', (0, None)),
-                        Parám('f', (0, None))
-                    ]
-                ),
-                Ecuación(
-                    'T',
-                    paráms=[
-                        Parám('n', (0, None)),
-                        Parám('k', (0, None)),
-                        Parám('mu', (0, None)),
-                        Parám('sigma', (0, None)),
-                    ]
-                )
-            ]
-        )
-    ]
-)
+
+class EcsRepr(CategEc):
+    nombre = 'Reproducción'
+    _cls_ramas = [ProbRepr]

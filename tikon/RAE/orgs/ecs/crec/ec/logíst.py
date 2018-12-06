@@ -1,7 +1,5 @@
-import numpy as np
-
 from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from ._plntll_ec import EcuaciónCrec
 
 
 class K(Parám):
@@ -9,13 +7,14 @@ class K(Parám):
     líms = (0, None)
 
 
-class Logíst(Ecuación):
+class Logíst(EcuaciónCrec):
     """
-    Ecuación logística sencilla
+    Crecimiento logístico.
     """
 
     nombre = 'Logístico'
     _cls_ramas = [K]
 
     def __call__(símismo, paso):
-        return np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / símismo.cf['K']))
+        pobs_etps = símismo.pobs_etps()
+        return símismo.crec_etps() * pobs_etps * (1 - pobs_etps / símismo.cf['K'])

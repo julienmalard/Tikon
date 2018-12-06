@@ -10,7 +10,7 @@ class Simulador(object):
         símismo.módulos = MnjdrMódulos(módulos)
         símismo.exper = Exper()
         símismo.tiempo = None  # type: Tiempo
-        símismo.corrida = None  # type: Corrida
+        símismo.corrida = None  # type: ResultadosSimul
 
     def simular(símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30):
 
@@ -38,7 +38,7 @@ class Simulador(object):
 
     def iniciar_vals(símismo):
 
-        símismo.corrida = Corrida(símismo.módulos, símismo.tiempo)
+        símismo.corrida = ResultadosSimul(símismo.módulos, símismo.tiempo)
         for m in símismo.módulos:
             m.iniciar_vals()
 
@@ -52,7 +52,7 @@ class Simulador(object):
         for m in símismo.módulos:
             m.incrementar()
 
-        símismo.módulos.actualizar_res()
+        símismo.corrida.actualizar_res()
 
     def cerrar(símismo):
         for m in símismo.módulos:
@@ -98,9 +98,9 @@ class MnjdrMódulos(object):
         return símismo.módulos[itema]
 
 
-class Corrida(object):
-    def __init__(símismo, módulos, tiempo):
-        símismo.módulos = módulos
+class ResultadosSimul(object):
+    def __init__(símismo, resultados, tiempo):
+        símismo.resultados
         símismo.tiempo = tiempo
 
         símismo.datos = NotImplemented

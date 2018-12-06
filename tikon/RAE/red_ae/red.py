@@ -1,5 +1,5 @@
 from tikon.módulo import Módulo
-from tikon.rsltd.res import Resultado, Dims
+from .cohortes import Cohortes
 from .mnjdr_ecs import MnjdrEcsRed
 from .. import Organismo
 
@@ -10,8 +10,9 @@ class RedAE(Módulo):
         super().__init__()
 
         símismo._orgs = {}
-        símismo._etps = []
+        símismo._etps = None  # type: InfoEtapas
         símismo._ecs_simul = None  # type: MnjdrEcsRed
+        símismo._cohortes = None  # type: Cohortes
 
     def añadir_org(símismo, org):
         símismo._orgs[str(org)] = org
@@ -24,15 +25,13 @@ class RedAE(Módulo):
         except KeyError:
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
-    def etapas(símismo, fantasmas=False):
-        return [etp for org in símismo._orgs for etp in org.etapas(fantasmas=fantasmas)]
-
     def paráms(símismo):
-        return [pr for etp in símismo for pr in etp.paráms()]
+        return símismo._etps.paráms()
 
     def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
-        símismo._etps = símismo.etapas(fantasmas=True)
-        símismo._ecs_simul = MnjdrEcsRed(símismo._etps, calibs, n_rep_parám)
+        símismo._etps = InfoEtapas(símismo._orgs)
+        símismo._ecs_simul = MnjdrEcsRed(símismo._etps.etapas, calibs, n_rep_parám)  # para hacer
+        símismo._cohortes = Cohortes(símismo._etps.etapas)
 
         super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám)
 
@@ -51,10 +50,18 @@ class RedAE(Módulo):
         pass
 
     def poner_valor(símismo, var, valor, rel=False):
-        if var =='Poblaciones':
-            símismo
+        if var == 'Poblaciones':
+            super().poner_valor(var, valor, rel=False)
         else:
-            raise ValueError
+            raise ValueError(var)
+
+    def obt_valor(símismo, var):
+        if var == 'Dens':
+            pobs = super().obt_valor('Pobs')
+            superficies = símismo.obt_val_extern('')
+            return pobs / superficies
+        else:
+            return super().obt_valor(var)
 
     def agregar_pobs(símismo):
         pass
@@ -82,7 +89,7 @@ class RedAE(Módulo):
 
     def _calc_muertes(símismo, paso):
         símismo._ecs_simul['Muertes'].evaluar(paso)
-        símismo.quitar_pobs(símismo.resultados['Muertes'])  #para hacer: índices
+        símismo.quitar_pobs(símismo.resultados['Muertes'])  # para hacer: índices
 
     def _calc_trans(símismo, paso):
         símismo._ecs_simul['Transiciones'].evaluar(paso)
@@ -110,3 +117,15 @@ class RedAE(Módulo):
     def __iter__(símismo):
         for org in símismo._orgs.values():
             yield org
+
+
+class InfoEtapas(object):
+    def __init__(símismo, orgs):
+        símismo._orgs = orgs
+        símismo.etapas = [etp for org in orgs for etp in org.etapas(fantasmas=True)]
+
+    def paráms(símismo):
+        return [pr for etp in símismo.etapas for pr in etp.paráms()]
+
+    def __len__(símismo):
+        return len(símismo.etapas)

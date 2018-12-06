@@ -3,17 +3,23 @@ import numpy as np
 from tikon.ecs.paráms import Parám
 from tikon.ecs.árb_mód import Ecuación
 
-None = np.None
-
 
 class ATipoI(Parám):
     nombre = 'a'
     líms = (0, 1)
     inter = ['presa', 'huésped']
 
+
 class TipoIDP(Ecuación):
+    """
+    Depredación de respuesta funcional tipo I con dependencia en la población de la presa.
+    """
+
     nombre = 'Tipo I_Dependiente presa'
     _cls_ramas = [ATipoI]
+
+    def __call__(símismo, paso):
+        return np.multiply(pobs, símismo.cf['a'])
 
 
 class ATipoII(Parám):
@@ -29,8 +35,17 @@ class BTipoII(Parám):
 
 
 class TipoIIDP(Ecuación):
+    """
+    Depredación de respuesta funcional tipo II con dependencia en la población de la presa.
+    """
+
     nombre = 'Tipo I_Dependiente presa'
     _cls_ramas = [ATipoII]
+
+    def __call__(símismo, paso):
+        cf = símismo.cf
+        dens = símismo.obt_val_mód('Dens')
+        return  np.multiply(dens, cf['a'] / (dens + cf['b']))
 
 
 class ATipoIII(Parám):
@@ -46,6 +61,14 @@ class BTipoIII(Parám):
 
 
 class TipoIIIDP(Ecuación):
+    """
+    Depredación de respuesta funcional tipo III con dependencia en la población de la presa.
+    """
+
     nombre = 'Tipo III_Dependiente presa'
     _cls_ramas = [ATipoIII, BTipoIII]
 
+    def __call__(símismo, paso):
+        cf = símismo.cf
+        dens = símismo.obt_val_mód('Dens')
+        return np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']))

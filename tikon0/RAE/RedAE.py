@@ -642,14 +642,6 @@ class Red(Simulable):
 
                 P en las respuestas funcionales arriba cambia a P/(D^m)
 
-            Kovai (Asíntota doble):
-                y = a*(1 - e^(-u/(a*D))); u = P + e^(-P/b) - b
-
-                  a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
-                    depredadores no compiten entre sí mismos)
-
-                  b es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
-                    competition entre ellos, los depredadores consumirán a/e presas por depredador.
 
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
@@ -662,17 +654,6 @@ class Red(Simulable):
 
         """
 
-        # Calcular cuántas presas cada especie de depredador podría comerse
-
-        # A este punto, depred representa la depredación potencial per cápita de depredador
-        tipos_ec = símismo.ecs['Depredación']['Ecuación']  # type: dict
-
-        # Si no hay nada que hacer, devolver ahora
-        if not len(tipos_ec):
-            return
-
-        # La lista de los coeficientes de cada etapa para la depredación
-        coefs = símismo.coefs_act_númzds['Depredación']['Ecuación']
 
         # Densidades de poblaciones
         dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))[..., np.newaxis, :]
@@ -684,85 +665,6 @@ class Red(Simulable):
 
             # Una COPIA de la parte de la matriz que representa la depredación por estas etapas
             depred_etp = np.take(depred, í_etps, axis=3)
-
-            # Calcular la depredación según la ecuación de esta etapa.
-            if tp_ec == 'Tipo I_Dependiente presa':
-                # Depredación de respuesta funcional tipo I con dependencia en la población de la presa.
-                np.multiply(pobs, cf['a'], out=depred_etp)
-
-            elif tp_ec == 'Tipo II_Dependiente presa':
-                # Depredación de respuesta funcional tipo II con dependencia en la población de la presa.
-                np.multiply(dens, cf['a'] / (dens + cf['b']), out=depred_etp)
-
-            elif tp_ec == 'Tipo III_Dependiente presa':
-                # Depredación de respuesta funcional tipo III con dependencia en la población de la presa.
-                np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']), out=depred_etp)
-
-            elif tp_ec == 'Tipo I_Dependiente ratio':
-                # Depredación de respuesta funcional tipo I con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens / dens_depred, cf['a'], out=depred_etp)
-
-            elif tp_ec == 'Tipo II_Dependiente ratio':
-                # Depredación de respuesta funcional tipo II con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens / dens_depred, cf['a'] / (dens / dens_depred + cf['b']), out=depred_etp)
-
-            elif tp_ec == 'Tipo III_Dependiente ratio':
-                # Depredación de respuesta funcional tipo III con dependencia en el ratio de presa a depredador.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(np.square(dens / dens_depred), cf['a'] / (np.square(dens / dens_depred) + cf['b']),
-                            out=depred_etp)
-
-            elif tp_ec == 'Beddington-DeAngelis':
-                # Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens, cf['a'] / (cf['b'] + dens + cf['c'] * dens_depred), out=depred_etp)
-
-            elif tp_ec == 'Tipo I_Hassell-Varley':
-                # Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens / dens_depred ** cf['m'], cf['a'], out=depred_etp)
-
-            elif tp_ec == 'Tipo II_Hassell-Varley':
-                # Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']),
-                            out=depred_etp)
-
-            elif tp_ec == 'Tipo III_Hassell-Varley':
-                # Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
-                dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa
-                np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']),
-                            out=depred_etp)
-
-            elif tp_ec == 'Kovai':
-                # Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-                dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
-
-                presa_efec = np.add(dens,
-                                    np.multiply(cf['b'], np.subtract(np.exp(
-                                        np.divide(-dens, cf['b'])
-                                    ), 1)),
-                                    )
-                ratio = presa_efec / dens_depred
-
-                np.multiply(cf['a'],
-                            np.subtract(1,
-                                        np.exp(
-                                            np.divide(
-                                                -np.where(ratio == np.inf, [0], ratio),
-                                                cf['a'])
-                                        )
-                                        ),
-                            out=depred_etp)
-
-                # Ajustar por la presencia de múltiples presas (eje 4 = presas)
-                probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=4)
-
-            else:
-                # Si el tipo de ecuación no estaba definida arriba, hay un error.
-                raise ValueError('Tipo de ecuación "%s" no reconodico para cálculos de depradación.' % tp_ec)
 
             depred[:, :, :, í_etps, :] = depred_etp
 
@@ -793,126 +695,6 @@ class Red(Simulable):
             # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
             pobs[..., índ_recip] += depred_infec[..., n_parás, índ_entra]
 
-    def _calc_crec(símismo, pobs, crec, extrn, paso):
-        """
-        Calcula las reproducciones y las transiciones de etapas de crecimiento
-
-        :param pobs: Matriz numpy de poblaciones actuales. Eje 0 =
-        :type pobs: np.ndarray
-
-        :param extrn: Diccionario de factores externos a la red (plantas, clima, etc.)
-        :type extrn: dict
-
-        :param paso: El paso para la simulación.
-        :type paso: int
-
-        """
-
-        tipos_ec = símismo.ecs['Crecimiento']['Ecuación']  # type: dict
-        modifs = símismo.ecs['Crecimiento']['Modif']  # type: dict
-
-        # Si no hay nada que hacer, devolver ahora
-        if not len(tipos_ec):
-            return
-
-        coefs_ec = símismo.coefs_act_númzds['Crecimiento']['Ecuación']
-        coefs_mod = símismo.coefs_act_númzds['Crecimiento']['Modif']
-
-        for mod, í_etps in modifs.items():
-
-            # Una COPIA de la matriz de crecimiento para estas etapas
-            r = np.take(crec, í_etps, axis=3)
-
-            cf = coefs_mod[mod]  # type: dict
-
-            # Modificaciones ambientales a la taza de crecimiento intrínsica
-            if mod == 'Ninguna':
-                # Sin modificación a r.
-                np.multiply(cf['r'], paso, out=r)
-
-            elif mod == 'Log Normal Temperatura':
-                # r responde a la temperatura con una ecuación log normal.
-                np.multiply(cf['r'] * paso, mat.exp(-0.5 * (mat.log(extrn['temp_máx'] / cf['t']) / cf['p']) ** 2),
-                            out=r)
-
-            else:
-                raise ValueError
-
-            crec[:, :, :, í_etps] = r
-
-        # Calcular el crecimiento de la población
-        for tp_ec, í_etps in tipos_ec.items():
-
-            crec_etp = np.take(crec, í_etps, axis=3)  # COPIA de la parte de la matriz "crec" de esta etapa.
-
-            pobs_etps = pobs[:, :, :, í_etps]  # La población de esta etapa
-            cf = coefs_ec[tp_ec]  # type: dict
-
-            # Densidades de poblaciones
-            dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))
-
-            if tp_ec == 'Exponencial':
-                # Crecimiento exponencial
-
-                np.multiply(pobs_etps, crec_etp, out=crec_etp)
-
-            elif tp_ec == 'Logístico':
-                # Crecimiento logístico.
-
-                # Ecuación logística sencilla
-                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / cf['K']), out=crec_etp)
-
-            elif tp_ec == 'Logístico Presa':
-                # Crecimiento logístico. 'K' es un parámetro repetido para cada presa de la etapa y indica
-                # la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
-
-                k = np.nansum(np.multiply(pobs[..., np.newaxis, :], cf['K']), axis=-1)  # Calcular la capacidad de carga
-                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
-
-                # Evitar pérdidas de poblaciones superiores a la población.
-                np.maximum(crec_etp, -pobs_etps, out=crec_etp)
-
-            elif tp_ec == 'Logístico Depredación':
-                # Crecimiento proporcional a la cantidad de presas que se consumió el depredador.
-
-                depred = símismo.predics['Depred'][..., í_etps, :]  # La depredación por esta etapa
-                k = np.nansum(np.multiply(depred, cf['K']), axis=3)  # Calcular la capacidad de carga
-                np.multiply(crec_etp, pobs_etps * (1 - pobs_etps / k), out=crec_etp)  # Ecuación logística sencilla
-
-                # Evitar péridadas de poblaciones superiores a la población.
-                np.maximum(crec_etp, -pobs_etps, out=crec_etp)
-
-            elif tp_ec == 'Constante':
-                nueva_pob = cf['n']
-                np.subtract(nueva_pob, pobs_etps, out=crec_etp)
-
-            elif tp_ec == 'Externo Cultivo':
-                # Esta ecuación guarda la población del organismo a un nivel constante, no importe qué esté pasando
-                # en el resto de la red. Puede ser útil para representar plantas donde los herbívoros están bien
-                # abajo de sus capacidades de carga.
-
-                try:
-                    np.subtract(extrn['Plantas'], pobs_etps, out=crec_etp)
-                except (KeyError, TypeError):
-                    # Si la planta no ha sido conectada a través de una parcela, no hacemos nada. Esto dejará un valor
-                    # de 0 para la población de la planta.
-                    pass
-
-            else:
-                raise ValueError('Ecuación de crecimiento "%s" no reconocida.' % tp_ec)
-
-            crec[:, :, :, í_etps] = crec_etp
-
-        crec[np.isnan(crec)] = 0
-
-        np.floor(crec)
-
-        # Asegurarse que no perdimos más que existen
-        np.maximum(-pobs, crec, out=crec)
-
-        # Actualizar la matriz de poblaciones
-        np.add(pobs, crec, out=pobs)
-
     def _calc_reprod(símismo, pobs, paso, reprod, depred):
         """
         Esta función calcula las reproducciones de las etapas.
@@ -941,26 +723,7 @@ class Red(Simulable):
             n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
             repr_etp_recip = np.take(reprod, í_etps, axis=3)
 
-            if tp_prob == 'Constante':
-                # Reproducciones en proporción al tamaño de la población.
-
-                np.multiply(cf['a'], pob_etp * paso, out=repr_etp_recip)
-
-            elif tp_prob == 'Depredación':
-                # Reproducciones en función de la depredación (útil para avispas esfécidas)
-                np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1, out=repr_etp_recip)
-
-            else:
-                # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
-                edad_extra = símismo.predics['Edades']
-
-                símismo._trans_cohortes(cambio_edad=edad_extra[..., í_etps], etps=í_etps,
-                                        dists=símismo.dists['Repr'][tp_prob],
-                                        matr_egr=repr_etp_recip, quitar=False)
-
-                np.multiply(cf['n'], repr_etp_recip, out=repr_etp_recip)
-
-            reprod[..., n_recip] = repr_etp_recip
+            # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
 
         # Redondear las reproducciones calculadas
         np.round(reprod, out=reprod)
@@ -2189,9 +1952,7 @@ class Red(Simulable):
                     paráms_dist = símismo.coefs_act_númzds[categ]['Prob'][tp_dist]
 
                     # Convertir los parámetros a formato SciPy
-                    if tp_dist == 'Normal':
-                        paráms = dict(loc=paráms_dist['mu'], scale=paráms_dist['sigma'])
-                    elif tp_dist == 'Triang':
+                    if tp_dist == 'Triang':
                         paráms = dict(loc=paráms_dist['a'], scale=paráms_dist['b'], c=paráms_dist['c'])
                     elif tp_dist == 'Cauchy':
                         paráms = dict(loc=paráms_dist['u'], scale=paráms_dist['f'])
@@ -2228,34 +1989,7 @@ class Red(Simulable):
 
         """
 
-        # Los índices (en la matriz de cohortes) de las etapas que transicionan.
-        í_etps_coh = [símismo.índices_cohortes.index(x) for x in etps]
 
-        # Las edades y las poblaciones actuales de estas etapas.
-        edades = símismo.predics['Cohortes']['Edades'][..., í_etps_coh]
-        pobs = símismo.predics['Cohortes']['Pobs'][..., í_etps_coh]
-
-        # Calcualar la probabilidad de transición.
-        dens_cum_eds = dists.cdf(edades)
-        probs = np.divide(np.subtract(dists.cdf(edades + cambio_edad),
-                                      dens_cum_eds),
-                          np.subtract(1, dens_cum_eds)
-                          )
-
-        probs[np.isnan(probs)] = 1
-
-        # Calcular el número que transicionan.
-        n_cambian = np.floor(np.multiply(pobs, probs))
-
-        # Aplicar el cambio de edad.
-        símismo.predics['Cohortes']['Edades'][..., í_etps_coh] += cambio_edad
-
-        # Si hay que quitar las etapas que transicionario, hacerlo aquí.
-        if quitar:
-            símismo.predics['Cohortes']['Pobs'][..., í_etps_coh] -= n_cambian
-
-        # Agregar las transiciones a la matriz de egresos.
-        np.sum(n_cambian, axis=0, out=matr_egr)
 
     def _añadir_a_cohortes(símismo, nuevos, edad=0, dic_predic=None):
         """
@@ -2275,54 +2009,6 @@ class Red(Simulable):
         :type dic_predic: dict
         """
 
-        # Si no se especificaron cohortes en particular, usar los cohortes de la simulación actual.
-        if dic_predic is None:
-            dic_predic = símismo.predics
-
-        cohortes = dic_predic['Cohortes']
-
-        # Si no hay cohortes, no hay nada que hacer aquí.
-        if not len(símismo.índices_cohortes):
-            return
-
-        if not np.sum(nuevos):
-            return
-
-        # Para simplificar el código.
-        matr_pobs = cohortes['Pobs']
-        matr_eds = cohortes['Edades']
-
-        # Limpiar edades de cohortes
-        matr_eds[matr_pobs == 0] = 0
-
-        # Los índices de los días (eje 0) cuyos cohortes tienen la edad mínima. Si hay más que un día (cohorte) con la
-        # edad mínima, tomará el primero.
-        i_cohs = np.argmin(matr_eds, axis=0).ravel()
-
-        í_parc, í_estoc, í_parám, í_etps = dic_predic['Matrices']['í_ejes_cohs']
-        # Las edades de los cohortes con las edades mínimas.
-        tmñ = dic_predic['Matrices']['tmñ_para_cohs']  # El tamaño de los cohortes, sin el eje de día
-        eds_mín = matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
-
-        # Las poblaciones que corresponden a estas edades mínimas.
-        pobs_coresp_í = matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
-
-        # Dónde no hay población existente, reinicializamos la edad.
-        eds_mín = np.where(pobs_coresp_í == 0, [0], eds_mín)
-
-        # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
-        # cohorte si hay que combinarla con un cohorte existente).
-        peso_ed_ya = np.divide(pobs_coresp_í, np.add(nuevos, pobs_coresp_í))
-        peso_ed_ya[np.isnan(peso_ed_ya)] = 0
-
-        # Los edades promedios. Si no había necesidad de combinar cohortes, será la población del nuevo cohorte.
-        eds_prom = np.add(np.multiply(eds_mín, peso_ed_ya), np.multiply(edad, np.subtract(1, peso_ed_ya)))
-
-        # Guardar las edades actualizadas en los índices apropiados
-        matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps] = eds_prom.ravel()
-
-        # Guardar las poblaciones actualizadas en los índices apropiados
-        matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps] += nuevos.ravel()
 
     def _quitar_de_cohortes(símismo, muertes, í_don=None, í_recip=None):
         """
@@ -2340,48 +2026,6 @@ class Red(Simulable):
 
         """
 
-        if len(símismo.predics['Cohortes']):
-            # Para simplificar el código
-            pobs = símismo.predics['Cohortes']['Pobs']
-            edades = símismo.predics['Cohortes']['Edades']
-
-            muertes = muertes.copy()  # Para no afectar el parámetro que se pasó a la función
-
-            totales_pobs = np.sum(pobs, axis=0)
-            quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
-            quitar[np.isnan(quitar)] = 0
-
-            np.subtract(pobs, quitar, out=pobs)
-
-            np.subtract(muertes, quitar.sum(axis=0), out=muertes)
-
-            cum_presente = np.cumsum(np.greater(pobs, 0), axis=0)
-            quitar_2 = np.where(np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, muertes)), 1, 0)
-
-            np.subtract(pobs, quitar_2, out=pobs)
-
-            np.add(quitar_2, quitar, out=quitar)
-
-            # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
-            if í_recip is not None:
-
-                if í_don is None:
-                    raise ValueError
-
-                # Los índices (en la matriz de cohortes) de las etapas recipientes.
-                í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
-
-                í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
-
-                # Para cada cohorte...
-                for n_día in range(pobs.shape[0]):
-                    # Las edades de las etapas que se quitaron
-                    eds = edades[n_día, ...]
-
-                    # Cambiar el orden de las etapas para los cohortes recipientes
-                    nuevos = np.zeros_like(quitar[n_día])
-                    nuevos[..., í_recip_coh] = quitar[n_día][..., í_don_coh]
-                    símismo._añadir_a_cohortes(nuevos=nuevos, edad=eds)
 
     def _ajustar_cohortes(símismo, cambio):
         """
@@ -2393,15 +2037,6 @@ class Red(Simulable):
 
         """
 
-        # Detectar dónde el cambio es positivo y dónde es negativo
-        positivos = np.where(cambio > 0, cambio, [0])
-        negativos = np.where(cambio < 0, -cambio, [0])
-
-        # Agregar los positivos...
-        símismo._añadir_a_cohortes(nuevos=positivos)
-
-        # ...y quitar los negativos.
-        símismo._quitar_de_cohortes(muertes=negativos)
 
     @staticmethod
     def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, n_cohs, detalles, n_grupos_coh=10):
