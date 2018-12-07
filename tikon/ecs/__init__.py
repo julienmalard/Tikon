@@ -1,1 +1,1 @@
-from .estruc import ÁrbolEcs
+from .árb_mód import ÁrbolEcs

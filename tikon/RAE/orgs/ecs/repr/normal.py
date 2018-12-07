@@ -1,5 +1,5 @@
-from tikon.ecs.paráms import Parám
-from .._ecs_coh import EcuaciónDistConCohorte
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónRepr
 
 
 class N(Parám):
@@ -17,7 +17,7 @@ class Sigma(Parám):
     líms = (0, None)
 
 
-class Normal(EcuaciónDistConCohorte):
+class Normal(EcuaciónRepr):
     """
 
     """
@@ -26,11 +26,3 @@ class Normal(EcuaciónDistConCohorte):
 
     def _prms_scipy(símismo):
         return dict(loc=símismo._ramas['mu'], scale=símismo._ramas['sigma'])
-
-    def __call__(símismo, paso):
-        símismo.trans_cohortes(
-            cambio_edad=símismo.cambio_edad(), etps=símismo._í_cosos,
-            dists=símismo.dist,
-            matr_egr=repr_etp_recip, quitar=False
-        )
-        return np.multiply(cf['n'], repr_etp_recip)

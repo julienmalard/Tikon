@@ -1,7 +1,6 @@
 import numpy as np
 
-from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from tikon.ecs.árb_mód import Ecuación, Parám
 
 
 class T(Parám):
@@ -16,6 +15,7 @@ class P(Parám):
 
 class LogNormTemp(Ecuación):
     nombre = 'Log Normal Temperatura'
+    _cls_ramas = [T, P]
 
     def __call__(símismo, paso):
         # r responde a la temperatura con una ecuación log normal.

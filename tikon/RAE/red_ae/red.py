@@ -1,18 +1,25 @@
 from tikon.módulo import Módulo
 from .cohortes import Cohortes
-from .mnjdr_ecs import MnjdrEcsRed
 from .. import Organismo
+from ..orgs.ecs import EcsOrgs
 
 
 class RedAE(Módulo):
+    nombre = 'red'
 
-    def __init__(símismo):
+    def __init__(símismo, orgs=None):
         super().__init__()
 
         símismo._orgs = {}
         símismo._etps = None  # type: InfoEtapas
-        símismo._ecs_simul = None  # type: MnjdrEcsRed
-        símismo._cohortes = None  # type: Cohortes
+        símismo._ecs_simul = None  # type: EcsOrgs
+        símismo.cohortes = None  # type: Cohortes
+
+        if orgs is not None:
+            if isinstance(orgs, Organismo):
+                orgs = [orgs]
+            for org in orgs:
+                símismo.añadir_org(org)
 
     def añadir_org(símismo, org):
         símismo._orgs[str(org)] = org
@@ -28,12 +35,12 @@ class RedAE(Módulo):
     def paráms(símismo):
         return símismo._etps.paráms()
 
-    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
+    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo._etps = InfoEtapas(símismo._orgs)
-        símismo._ecs_simul = MnjdrEcsRed(símismo._etps.etapas, calibs, n_rep_parám)  # para hacer
-        símismo._cohortes = Cohortes(símismo._etps.etapas)
+        símismo._ecs_simul = EcsOrgs(símismo._etps, None, símismo.conex_móds)
+        símismo.cohortes = Cohortes(símismo._etps, n_rep_estoc, n_rep_parám, len(parc))
 
-        super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám)
+        super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 
     def incrementar(símismo, paso):
 
@@ -58,19 +65,22 @@ class RedAE(Módulo):
     def obt_valor(símismo, var):
         if var == 'Dens':
             pobs = super().obt_valor('Pobs')
-            superficies = símismo.obt_val_extern('')
+            superficies = símismo.obt_val_control('Superficies')
             return pobs / superficies
         else:
             return super().obt_valor(var)
 
-    def agregar_pobs(símismo):
-        pass
+    def agregar_pobs(símismo, pobs):
+        símismo.poner_valor('Pobs', pobs, rel=True)
+        símismo.cohortes.agregar(pobs)
 
-    def quitar_pobs(símismo):
-        pass
+    def quitar_pobs(símismo, pobs):
+        símismo.poner_valor('Pobs', -pobs, rel=True)
+        símismo.cohortes.quitar(pobs)
 
-    def ajustar_pobs(símismo):
-        pass
+    def ajustar_pobs(símismo, pobs):
+        símismo.poner_valor('Pobs', pobs, rel=True)
+        símismo.cohortes.ajustar(pobs)
 
     def _calc_edad(símismo, paso):
         símismo._ecs_simul['Edad'].evaluar(paso)
@@ -89,7 +99,7 @@ class RedAE(Módulo):
 
     def _calc_muertes(símismo, paso):
         símismo._ecs_simul['Muertes'].evaluar(paso)
-        símismo.quitar_pobs(símismo.resultados['Muertes'])  # para hacer: índices
+        símismo.quitar_pobs(símismo.resultados['Muertes'])  # para hacer: ¿índices?
 
     def _calc_trans(símismo, paso):
         símismo._ecs_simul['Transiciones'].evaluar(paso)
@@ -103,12 +113,19 @@ class RedAE(Módulo):
     def _coords_resultados(símismo):
 
         l_res = ['Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
-        parc = símismo.obt_val_manejo('parcelas')
+        parc = símismo.obt_val_control('parcelas')
+
         return {
             'Pobs': {'etapa': símismo._etps},
-            'Depredación': {'etapa': símismo._ecs_simul.etapas_categ('Depredación'), 'víctima': símismo._etps},
-            'Movimiento': {'etapa': símismo._ecs_simul.etapas_categ('Movimiento'), 'dest': parc},
-            **{res: {'etapa': símismo._ecs_simul.etapas_categ(res)} for res in l_res}
+            'Depredación': {
+                'etapa': símismo._ecs_simul.cosos_en_categ('Depredación'),
+                'víctima': símismo._etps
+            },
+            'Movimiento': {
+                'etapa': símismo._ecs_simul.cosos_en_categ('Movimiento'),
+                'dest': parc
+            },
+            **{res: {'etapa': símismo._ecs_simul.cosos_en_categ(res)} for res in l_res}
         }
 
     def __getitem__(símismo, itema):
@@ -121,11 +138,15 @@ class RedAE(Módulo):
 
 class InfoEtapas(object):
     def __init__(símismo, orgs):
-        símismo._orgs = orgs
-        símismo.etapas = [etp for org in orgs for etp in org.etapas(fantasmas=True)]
+        símismo._orgs = list(orgs.values()) if isinstance(orgs, dict) else orgs
+        símismo.etapas = [etp for org in símismo._orgs for etp in org.etapas(fantasmas=True)]
 
     def paráms(símismo):
         return [pr for etp in símismo.etapas for pr in etp.paráms()]
+
+    def __iter__(símismo):
+        for etp in símismo.etapas:
+            yield etp
 
     def __len__(símismo):
         return len(símismo.etapas)

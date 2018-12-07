@@ -91,7 +91,7 @@ class Dims(object):
             'parc': Coord(parc),
             'estoc': Coord(n_estoc),
             'parám': Coord(n_parám),
-            **{crd: Coord(índs) for crd, índs in coords}}
+            **{crd: Coord(índs) for crd, índs in coords.items()}}
 
         símismo._frm = tuple(crd.tmñ() for crd in símismo._coords.values())
 

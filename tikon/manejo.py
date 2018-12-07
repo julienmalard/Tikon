@@ -1,5 +1,11 @@
-class Manejo(object):
-    pass
+from tikon.módulo import Módulo
+
+
+class Manejo(Módulo):
+    nombre = 'manejo'
+
+    def __init__(símismo):
+        super().__init__()
 
 
 class Regla(object):

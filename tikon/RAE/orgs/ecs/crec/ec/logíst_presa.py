@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.ecs.paráms import Parám
+from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónCrec
 
 

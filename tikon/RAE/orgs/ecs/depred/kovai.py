@@ -1,8 +1,7 @@
 import numpy as np
 
 from tikon.RAE.red_ae.utils import probs_conj
-from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from tikon.ecs.árb_mód import Ecuación, Parám
 
 
 class PrAKovai(Parám):
