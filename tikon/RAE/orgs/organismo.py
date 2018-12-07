@@ -1,12 +1,12 @@
 from typing import List
 
 from tikon.coso import Coso
-from .ecs import ecs_etps_orgs
+from .ecs import EcsOrgs, EcsEdad
 
 
 class Organismo(Coso):
     def __init__(símismo, nombre):
-        super().__init__(nombre, ecs=None)
+        super().__init__(nombre, ecs=EcsOrgs)
 
         símismo._etapas = []  # type: List[Etapa]
         símismo._rels_presas = []  # type: List[RelaciónPresa]
@@ -86,7 +86,7 @@ class Organismo(Coso):
         if fantasmas:
             for r_p in símismo._rels_paras:
                 huésped = r_p.huésped
-                etps_en_hués = range(huésped.índice(r_p.etp_huésp), huésped.índice(r_p.etp_emerg)+1)
+                etps_en_hués = range(huésped.índice(r_p.etp_huésp), huésped.índice(r_p.etp_emerg) + 1)
 
                 for í_etp in etps_en_hués:
                     fant = EtapaFantasma(
@@ -116,8 +116,11 @@ class Organismo(Coso):
 
 class Etapa(Coso):
     def __init__(símismo, nombre, org):
-        super().__init__(nombre, ecs_etps_orgs)
+        super().__init__(nombre, EcsOrgs)
         símismo.org = org
+
+    def con_cohortes(símismo):
+        símismo.verificar_activa(EcsEdad)
 
 
 class EtapaFantasma(Etapa):

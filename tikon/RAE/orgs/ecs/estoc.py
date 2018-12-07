@@ -1,7 +1,6 @@
 import numpy as np
 
-from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import CategEc, SubcategEc, Ecuación, EcuaciónVacía
+from tikon.ecs.árb_mód import CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
 
 
 class PrSigma(Parám):

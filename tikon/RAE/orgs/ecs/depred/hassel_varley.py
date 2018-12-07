@@ -1,7 +1,6 @@
 import numpy as np
 
-from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from tikon.ecs.árb_mód import Ecuación, Parám
 
 
 class ATipoI(Parám):

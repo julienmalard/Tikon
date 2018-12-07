@@ -2,8 +2,10 @@ import numpy as np
 
 
 class Cohortes(object):
-    def __init__(símismo, etapas, tmñ):
+    def __init__(símismo, etapas, n_rep_estoc, n_rep_parám, n_parc):
         símismo._etps = [etp for etp in etapas if etp.con_cohortes()]
+
+        tmñ = (len(símismo._etps), n_rep_estoc, n_rep_parám, n_parc)
 
         símismo._pobs = np.zeros(tmñ)
         símismo._edades = np.zeros(tmñ)

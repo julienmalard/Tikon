@@ -1,6 +1,5 @@
 from tikon.RAE.red_ae.utils import días_grados
-from tikon.ecs.paráms import Parám
-from tikon.ecs.árb_mód import Ecuación
+from tikon.ecs.árb_mód import Ecuación, Parám
 
 
 class PrMínDG(Parám):

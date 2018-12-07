@@ -2,12 +2,14 @@ from tikon.rsltd.res import Dims, Resultado, ResultadoTemporal
 
 
 class Módulo(object):
+    nombre = NotImplemented
+
     def __init__(símismo):
         símismo.resultados = None
         símismo.tiempo = None
         símismo.conex_móds = None
 
-    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám):
+    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo.tiempo = tiempo
         símismo.conex_móds = conex_móds
 
@@ -21,7 +23,7 @@ class Módulo(object):
         símismo.resultados = ResultadosMódulo(
             [
                 ResultadoTemporal(nmbre, dim, ) if nmbre in temporales else Resultado(nmbre, dim)
-                for nmbre, dim in
+                for nmbre, dim in NotImplemented
             ]
         )
 
@@ -31,8 +33,11 @@ class Módulo(object):
     def poner_valor(símismo, var, valor, rel=False):
         símismo.resultados[var].poner_valor(valor, rel=rel)
 
-    def obt_val_extern(símismo, mód, var):
-        símismo.conex_móds.obt_valor(mód, var)
+    def obt_val_extern(símismo, var, mód):
+        símismo.conex_móds.obt_valor(var, mód)
+
+    def obt_val_control(símismo, var):
+        return símismo.conex_móds.obt_val_control(var)
 
     def iniciar_vals(símismo):
         raise NotImplementedError
@@ -55,6 +60,9 @@ class Módulo(object):
     def calc_valid(símismo):
         for res in símismo.resultados.items():
             res.validar()
+
+    def __str__(símismo):
+        return símismo.nombre
 
 
 class ResultadosMódulo(object):

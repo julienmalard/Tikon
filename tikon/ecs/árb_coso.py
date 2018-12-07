@@ -5,19 +5,21 @@ from .dists import DistAnalítica, MnjdrDists, MnjdrDistsClbs
 
 class PlantillaRamaEcCoso(object):
     def __init__(símismo, cls_pariente, ramas):
-        símismo._cls_pariente = cls_pariente
+        símismo.cls_pariente = cls_pariente
         símismo._ramas = {str(r): r for r in ramas}
 
     def paráms(símismo):
         return [pr for rm in símismo for pr in rm.paráms()]
 
-    def verificar_activa(símismo, cls_base_ec):
-        # para hacer
-        try:
-            rama = next(rm for rm in símismo._ramas.values() if isinstance(rm, cls_base_ec))
-            return rama.verificar_activa()
-        except StopIteration:
-            return any(cls_base_ec in rm for rm in símismo)
+    def verificar_activa(símismo, cls_base_ec=None):
+        if cls_base_ec is None:
+            return any(rm.verificar_activa() for rm in símismo)
+        else:
+            try:
+                rama = next(rm for rm in símismo._ramas.values() if rm == cls_base_ec)
+                return rama.verificar_activa()
+            except StopIteration:
+                return any(rm.verificar_activa(cls_base_ec) for rm in símismo)
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -30,14 +32,17 @@ class PlantillaRamaEcCoso(object):
         return str(itema) in símismo._ramas
 
     def __eq__(símismo, otro):
-        return símismo._cls_pariente == otro
+        return símismo.cls_pariente == otro
+
+    def __str__(símismo):
+        return str(símismo.cls_pariente.nombre)
 
 
 class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
-    def espec_apriori(símismo, categ, sub_categ, ec, parám, rango, certidumbre, índs=None):
+    def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, índs=None):
         obj_parám = símismo._ramas[categ][sub_categ][ec][parám]
-        obj_parám.espec_a_priori(rango, certidumbre, índs=índs)
+        obj_parám.espec_a_priori(apriori, índs=índs)
 
     def activar_ec(símismo, categ, subcateg, ec):
         símismo[categ][subcateg].activar_ec(ec)
@@ -59,11 +64,14 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
     def __init__(símismo, cls_pariente, ramas):
         super().__init__(cls_pariente, ramas)
 
-        cls_auto =  cls_pariente.auto or ramas[0]
-        símismo._activada = next(ec for ec in símismo if isinstance(ec, cls_auto))
+        if cls_pariente.auto is not None:
+            símismo._activada = next(ec for ec in símismo if ec.cls_pariente is cls_pariente.auto)
+        else:
+            símismo._activada = ramas[0]
 
-    def verificar_activa(símismo):
-        return not isinstance(símismo.ec_activa(), EcuaciónVacía)
+    def verificar_activa(símismo, cls_base_ec=None):
+        from .árb_mód import EcuaciónVacía
+        return not símismo.ec_activa() == EcuaciónVacía
 
     def activar_ec(símismo, ec):
         try:
@@ -88,7 +96,7 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo._a_priori = MnjdrDists()
         símismo._calib_activa = None  # type: MnjdrDistsClbs
 
-        símismo.líms = símismo._cls_pariente.líms
+        símismo.líms = símismo.cls_pariente.líms
 
     def paráms(símismo):
         return símismo
@@ -99,9 +107,10 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         símismo._calibs[id_cal].actualizar(dist, índs)
 
-    def espec_a_priori(símismo, rango, certidumbre, índs=None):
+    def espec_a_priori(símismo, apriori, índs=None):
 
-        dist = DistAnalítica.de_dens(dens=certidumbre, líms_dens=rango, líms=símismo.líms)
+        dist = apriori.dist(símismo.líms)
+        # para hacer
         if índs is None:
             símismo._a_priori.actualizar(dist=dist, índs=índs)
 
