@@ -18,4 +18,4 @@ class Sigma(Parám):
 
 class T(Ecuación):
     nombre = 'T'
-    _cls_ramas = [K, Mu, Sigma]
+    cls_ramas = [K, Mu, Sigma]

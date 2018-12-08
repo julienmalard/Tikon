@@ -18,4 +18,4 @@ class F(Parám):
 
 class Logística(Ecuación):
     nombre = 'Logística'
-    _cls_ramas = [N, U, F]
+    cls_ramas = [N, U, F]

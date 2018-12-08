@@ -31,6 +31,9 @@ class Resultado(object):
         í_eje = símismo._dims.í_eje(eje)
         return símismo._matr.sum(axis=í_eje)
 
+    def actualizar(símismo):
+        pass
+
     def reinic(símismo):
         símismo._matr[:] = 0
 
@@ -39,6 +42,9 @@ class Resultado(object):
 
     def _rebanar(símismo, índs, eje):
         return tuple([slice(None)] * símismo.í_eje(eje) + [índs])
+
+    def __str__(símismo):
+        return símismo.nombre
 
 
 class ResultadoTemporal(Resultado):
@@ -97,6 +103,9 @@ class Dims(object):
 
     def frm(símismo):
         return símismo._frm
+
+    def tmñ(símismo):
+        return np.prod(símismo._frm)
 
     def í_eje(símismo, eje):
         return next(i for i, crd in enumerate(símismo._coords) if crd == eje)

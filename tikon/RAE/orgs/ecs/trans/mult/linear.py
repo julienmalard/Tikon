@@ -8,4 +8,4 @@ class A(Parám):
 
 class Linear(Ecuación):
     nombre = 'Linear'
-    _cls_ramas = [A]
+    cls_ramas = [A]

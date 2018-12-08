@@ -23,4 +23,4 @@ class C(Parám):
 
 class Triang(Ecuación):
     nombre = 'Triang'
-    _cls_ramas = [N, A, B, C]
+    cls_ramas = [N, A, B, C]

@@ -11,7 +11,7 @@ from .kovai import Kovai
 
 class EcuaciónDepred(SubcategEc):
     nombre = 'Ecuación'
-    _cls_ramas = [
+    cls_ramas = [
         EcuaciónVacía,
         TipoIDP, TipoIIDP, TipoIIIDP,
         TipoIDR, TipoIIDR, TipoIIIDR,
@@ -23,11 +23,11 @@ class EcuaciónDepred(SubcategEc):
 
 class EcsDepred(CategEc):
     nombre = 'Depredación'
-    _cls_ramas = [EcuaciónDepred]
+    cls_ramas = [EcuaciónDepred]
 
-    def __call__(símismo, paso):
-        super()(paso)
-        depred = símismo._res.obt_valor()
+    def eval(símismo, paso):
+        super().eval(paso)
+        depred = símismo.o.obt_valor()
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0

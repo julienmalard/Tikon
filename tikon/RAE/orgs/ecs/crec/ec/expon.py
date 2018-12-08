@@ -9,5 +9,5 @@ class Expon(EcuaciónCrec):
     nombre = 'Exponencial'
     # El exponencial no tiene parámetros a parte de r
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         return símismo.crec_etps() * símismo.pobs_etps()

@@ -12,8 +12,8 @@ class Constante(Ecuación):
     """
 
     nombre = 'Constante'
-    _cls_ramas = [A]
+    cls_ramas = [A]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         cf = símismo.cf
         return cf['a'] * símismo.pobs() * paso

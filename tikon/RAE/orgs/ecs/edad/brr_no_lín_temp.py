@@ -27,9 +27,9 @@ class FuncBrièreNoLinearTemperatura(Ecuación):
       model. Biological Control 60(3): 233-260.
     """
     nombre = 'Brière No Linear Temperatura'
-    _cls_ramas = [PrTDevMínBNLT, PrTLetalBNLT, PrMBNLT]
+    cls_ramas = [PrTDevMínBNLT, PrTLetalBNLT, PrMBNLT]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

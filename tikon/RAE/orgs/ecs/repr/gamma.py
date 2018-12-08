@@ -23,4 +23,4 @@ class F(Parám):
 
 class Gamma(Ecuación):
     nombre = 'Gamma'
-    _cls_ramas = [N, U, F, A]
+    cls_ramas = [N, U, F, A]

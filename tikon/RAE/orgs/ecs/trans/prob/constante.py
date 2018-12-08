@@ -8,4 +8,4 @@ class Q(Parám):
 
 class Constante(Ecuación):
     nombre = 'Constante'
-    _cls_ramas = [Q]
+    cls_ramas = [Q]

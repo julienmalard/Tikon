@@ -20,9 +20,9 @@ class TipoIHasselVarley(Ecuación):
     Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
     """
     nombre = 'Tipo I_Hassell-Varley'
-    _cls_ramas = [ATipoI, MTipoI]
+    cls_ramas = [ATipoI, MTipoI]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'])
@@ -52,9 +52,9 @@ class TipoIIHasselVarley(Ecuación):
     """
 
     nombre = 'Tipo I_Hassell-Varley'
-    _cls_ramas = [ATipoII, BTipoII, MTipoII]
+    cls_ramas = [ATipoII, BTipoII, MTipoII]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))
@@ -84,9 +84,9 @@ class TipoIIIHasselVarley(Ecuación):
     """
 
     nombre = 'Tipo I_Hassell-Varley'
-    _cls_ramas = [ATipoIII, BTipoIII, MTipoIII]
+    cls_ramas = [ATipoIII, BTipoIII, MTipoIII]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))

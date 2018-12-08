@@ -7,42 +7,44 @@ class Módulo(object):
     def __init__(símismo):
         símismo.resultados = None
         símismo.tiempo = None
-        símismo.conex_móds = None
+        símismo.mnjdr_móds = None
 
-    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc):
+    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo.tiempo = tiempo
-        símismo.conex_móds = conex_móds
+        símismo.mnjdr_móds = mnjdr_móds
+
 
         temporales = []  # para hacer
         obs = []
 
-        dims = {res: Dims(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
-                for res, coords in símismo._coords_resultados().items()
-                }
+        dims = {
+            res: Dims(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
+            for res, coords in símismo._coords_resultados().items()
+        }
 
         símismo.resultados = ResultadosMódulo(
             [
-                ResultadoTemporal(nmbre, dim, ) if nmbre in temporales else Resultado(nmbre, dim)
-                for nmbre, dim in NotImplemented
+                ResultadoTemporal(nmbre, dim, tiempo) if nmbre in temporales else Resultado(nmbre, dim)
+                for nmbre, dim in dims.items() if dim.tmñ()
             ]
         )
 
     def obt_valor(símismo, var):
-        return símismo.resultados[var]
+        return símismo.resultados[var].obt_valor()
 
     def poner_valor(símismo, var, valor, rel=False):
         símismo.resultados[var].poner_valor(valor, rel=rel)
 
     def obt_val_extern(símismo, var, mód):
-        símismo.conex_móds.obt_valor(var, mód)
+        símismo.mnjdr_móds.obt_valor(var, mód)
 
     def obt_val_control(símismo, var):
-        return símismo.conex_móds.obt_val_control(var)
+        return símismo.mnjdr_móds.obt_val_control(var)
 
     def iniciar_vals(símismo):
         raise NotImplementedError
 
-    def incrementar(símismo, paso):
+    def incrementar(símismo):
         raise NotImplementedError
 
     def cerrar(símismo):

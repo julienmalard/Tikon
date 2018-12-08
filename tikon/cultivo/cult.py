@@ -6,7 +6,7 @@ class Cultivo(Módulo):
     def iniciar_vals(símismo):
         pass
 
-    def incrementar(símismo, paso):
+    def incrementar(símismo):
         pass
 
     def cerrar(símismo):

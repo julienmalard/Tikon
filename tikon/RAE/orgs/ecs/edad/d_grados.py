@@ -17,9 +17,9 @@ class FuncDíasGrados(Ecuación):
     Edad calculada por días grados.
     """
     nombre = 'Días grados'
-    _cls_ramas = [PrMínDG, PrMáxDG]
+    cls_ramas = [PrMínDG, PrMáxDG]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

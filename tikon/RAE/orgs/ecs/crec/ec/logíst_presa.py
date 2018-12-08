@@ -17,9 +17,9 @@ class LogístPresa(EcuaciónCrec):
     """
 
     nombre = 'Logístico Presa'
-    _cls_ramas = [K]
+    cls_ramas = [K]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         crec_etps = símismo.crec_etps()
         pobs_etps = símismo.pobs_etps()
         

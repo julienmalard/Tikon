@@ -18,4 +18,4 @@ class C(Parám):
 
 class Triang(Ecuación):
     nombre = 'Triang'
-    _cls_ramas = [NA, B, C]
+    cls_ramas = [NA, B, C]

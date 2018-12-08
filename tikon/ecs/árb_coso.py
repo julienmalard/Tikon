@@ -71,7 +71,12 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
     def verificar_activa(símismo, cls_base_ec=None):
         from .árb_mód import EcuaciónVacía
-        return not símismo.ec_activa() == EcuaciónVacía
+        if cls_base_ec == EcuaciónVacía:  # para hacer: formalizar
+            return False
+        elif cls_base_ec is None:
+            return not símismo.ec_activa() == EcuaciónVacía
+        else:
+            return símismo.ec_activa() == cls_base_ec
 
     def activar_ec(símismo, ec):
         try:

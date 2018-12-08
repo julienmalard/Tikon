@@ -21,5 +21,5 @@ class EcuaciónConCohorte(Ecuación):
     def _prms_scipy(símismo):
         raise NotImplementedError
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         raise NotImplementedError

@@ -13,8 +13,8 @@ class Depred(Ecuación):
     Reproducciones en función de la depredación (útil para avispas esfécidas)
     """
     nombre = 'Depred'
-    _cls_ramas = [N]
+    cls_ramas = [N]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         cf = símismo.cf
         return np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1)

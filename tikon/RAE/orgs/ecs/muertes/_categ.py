@@ -7,10 +7,10 @@ from .sig_temp import SigmoidalTemperatura
 
 class EcuaciónMuerte(SubcategEc):
     nombre = 'Ecuación'
-    _cls_ramas = [EcuaciónVacía, Constante, LogNormTemp, AsimptóticoHumedad, SigmoidalTemperatura]
+    cls_ramas = [EcuaciónVacía, Constante, LogNormTemp, AsimptóticoHumedad, SigmoidalTemperatura]
     auto = Constante
 
 
 class EcsMuerte(CategEc):
     nombre = 'Muertes'
-    _cls_ramas = [EcuaciónMuerte]
+    cls_ramas = [EcuaciónMuerte]

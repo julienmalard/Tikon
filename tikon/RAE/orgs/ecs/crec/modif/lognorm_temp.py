@@ -15,9 +15,9 @@ class P(Parám):
 
 class LogNormTemp(Ecuación):
     nombre = 'Log Normal Temperatura'
-    _cls_ramas = [T, P]
+    cls_ramas = [T, P]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         # r responde a la temperatura con una ecuación log normal.
         temp_máx = símismo.mnjdr_móds.obt_val_extern('clima.temp_máx')
         cf = símismo.cf

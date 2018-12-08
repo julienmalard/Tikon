@@ -52,7 +52,6 @@ class Simulador(object):
 
         while símismo.tiempo.avanzar():
             símismo.incrementar()
-            símismo.corrida.actualizar()
 
     def incrementar(símismo):
         for m in símismo.mnjdr_móds:
@@ -113,8 +112,8 @@ class MnjdrMódulos(object):
 
 
 class ResultadosSimul(object):
-    def __init__(símismo, resultados, tiempo):
-        símismo.resultados
+    def __init__(símismo, módulos, tiempo):
+        símismo.resultados = {mód: mód.resultados for mód in módulos}
         símismo.tiempo = tiempo
 
         símismo.datos = NotImplemented
@@ -122,8 +121,13 @@ class ResultadosSimul(object):
     def reinic(símismo):
         pass
 
-    def actualizar(símismo):
-        pass
+    def actualizar_res(símismo):
+        for r in símismo:
+            r.actualizar()
 
     def procesar_calib(símismo):
         pass
+
+    def __iter__(símismo):
+        for r in símismo.resultados.values():
+            yield r

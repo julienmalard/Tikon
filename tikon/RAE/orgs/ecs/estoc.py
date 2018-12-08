@@ -14,21 +14,21 @@ class Normal(Ecuación):
     """
     nombre = 'Normal'
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         return símismo.cf['sigma'] * paso
 
 
 class DistEstoc(SubcategEc):
     nombre = 'Dist'
-    _cls_ramas = [EcuaciónVacía, Normal]
+    cls_ramas = [EcuaciónVacía, Normal]
     auto = Normal
 
 
 class EcsEstoc(CategEc):
     nombre = 'Estoc'
-    _cls_ramas = [DistEstoc]
+    cls_ramas = [DistEstoc]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         super()(paso)
 
         estoc = símismo._res.obt_valor()

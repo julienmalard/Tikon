@@ -8,5 +8,5 @@ from .logíst_presa import LogístPresa
 
 class EcuaciónCrec(SubcategEc):
     nombre = 'Ecuación'
-    _cls_ramas = [EcuaciónVacía, Expon, Logíst, LogístPresa, LogístDepred, Constante]
+    cls_ramas = [EcuaciónVacía, Expon, Logíst, LogístPresa, LogístDepred, Constante]
     auto = EcuaciónVacía

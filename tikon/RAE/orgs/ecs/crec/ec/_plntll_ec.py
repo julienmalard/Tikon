@@ -7,7 +7,7 @@ class EcuaciónCrec(Ecuación):
         return símismo.obt_res()
 
     def pobs_etps(símismo):
-        return símismo.obt_val_mód('Pobs', índs=símismo._í_cosos)
+        return símismo.obt_val_mód('Pobs', índs=símismo.í_cosos)
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         raise NotImplementedError

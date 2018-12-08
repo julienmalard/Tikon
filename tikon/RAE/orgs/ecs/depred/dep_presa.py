@@ -15,9 +15,9 @@ class TipoIDP(Ecuación):
     """
 
     nombre = 'Tipo I_Dependiente presa'
-    _cls_ramas = [ATipoI]
+    cls_ramas = [ATipoI]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         return np.multiply(pobs, símismo.cf['a'])
 
 
@@ -39,12 +39,12 @@ class TipoIIDP(Ecuación):
     """
 
     nombre = 'Tipo I_Dependiente presa'
-    _cls_ramas = [ATipoII]
+    cls_ramas = [ATipoII]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         cf = símismo.cf
         dens = símismo.obt_val_mód('Dens')
-        return  np.multiply(dens, cf['a'] / (dens + cf['b']))
+        return np.multiply(dens, cf['a'] / (dens + cf['b']))
 
 
 class ATipoIII(Parám):
@@ -65,9 +65,9 @@ class TipoIIIDP(Ecuación):
     """
 
     nombre = 'Tipo III_Dependiente presa'
-    _cls_ramas = [ATipoIII, BTipoIII]
+    cls_ramas = [ATipoIII, BTipoIII]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         cf = símismo.cf
         dens = símismo.obt_val_mód('Dens')
         return np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']))
