@@ -5,4 +5,4 @@ from .prob import ProbTrans
 
 class EcsTrans(CategEc):
     nombre = 'Transiciones'
-    _cls_ramas = [ProbTrans, MultTrans]
+    cls_ramas = [ProbTrans, MultTrans]

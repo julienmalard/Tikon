@@ -11,5 +11,7 @@ from tikon.ecs import ÁrbolEcs
 
 class EcsOrgs(ÁrbolEcs):
     nombre = 'organismo'
-    _cls_ramas = [EcsCrec, EcsDepred, EcsMuerte, EcsEdad, EcsTrans, EcsRepr, EcsMov, EcsEstoc]
+
+    # ¡Éste órden queda muy importante!
+    cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
 

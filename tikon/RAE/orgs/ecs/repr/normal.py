@@ -22,7 +22,7 @@ class Normal(EcuaciónRepr):
 
     """
     nombre = 'Normal'
-    _cls_ramas = [N, Mu, Sigma]
+    cls_ramas = [N, Mu, Sigma]
 
     def _prms_scipy(símismo):
         return dict(loc=símismo._ramas['mu'], scale=símismo._ramas['sigma'])

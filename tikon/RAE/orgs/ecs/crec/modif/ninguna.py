@@ -8,8 +8,8 @@ class R(Parám):
 
 class Ninguna(Ecuación):
     nombre = 'Ninguna'
-    _cls_ramas = [R]
+    cls_ramas = [R]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         # Sin modificación a r.
         return símismo.cf['r'] * paso

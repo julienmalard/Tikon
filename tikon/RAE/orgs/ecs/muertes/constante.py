@@ -13,7 +13,7 @@ class Constante(Ecuación):
     Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición exponencial.
     """
     nombre = 'Constante'
-    _cls_ramas = [Q]
+    cls_ramas = [Q]
 
-    def __call__(self, paso):
+    def eval(self, paso):
         return np.multiply(pob_etp, cf['q'])

@@ -4,11 +4,11 @@ import numpy as np
 
 class EcuaciónRepr(EcuaciónConCohorte):
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         cf = símismo.cf
 
         símismo.trans_cohortes(
-            cambio_edad=símismo.cambio_edad(), etps=símismo._í_cosos,
+            cambio_edad=símismo.cambio_edad(), etps=símismo.í_cosos,
             dist=símismo.dist,
             matr_egr=repr_etp_recip, quitar=False
         )

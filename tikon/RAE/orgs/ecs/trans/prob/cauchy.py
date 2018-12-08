@@ -13,4 +13,4 @@ class F(Parám):
 
 class Cauchy(Ecuación):
     nombre = 'Cauchy'
-    _cls_ramas = [U, F]
+    cls_ramas = [U, F]

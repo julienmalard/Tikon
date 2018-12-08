@@ -4,5 +4,5 @@ from .linear import Linear
 
 class MultTrans(SubcategEc):
     nombre = 'Mult'
-    _cls_ramas = [EcuaciónVacía, Linear]
+    cls_ramas = [EcuaciónVacía, Linear]
     auto = EcuaciónVacía

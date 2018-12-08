@@ -7,5 +7,5 @@ class FuncDías(Ecuación):
     """
     nombre = 'Días'
 
-    def __call__(self, paso):
+    def eval(self, paso):
         return paso

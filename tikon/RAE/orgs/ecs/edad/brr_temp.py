@@ -25,9 +25,9 @@ class FuncBrièreTemperatura(Ecuación):
         Eur. J. Entomol. 107: 681–685.
     """
     nombre = 'Brière Temperatura'
-    _cls_ramas = [PrTDevMínBT, PrTLetalBT]
+    cls_ramas = [PrTDevMínBT, PrTLetalBT]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

@@ -5,4 +5,4 @@ from .lognorm_temp import LogNormTemp
 
 class ModifCrec(SubcategEc):
     nombre = 'Modif'
-    _cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
+    cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]

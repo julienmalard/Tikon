@@ -29,10 +29,10 @@ class Kovai(Ecuación):
 
     """
     nombre = 'Kovai'
-    _cls_ramas = [PrAKovai, PrBKovai]
+    cls_ramas = [PrAKovai, PrBKovai]
 
-    def __call__(símismo, paso):
-        dens = símismo.obt_val_mód('Dens', índs=símismo._í_cosos)
+    def eval(símismo, paso):
+        dens = símismo.obt_val_mód('Dens', índs=símismo.í_cosos)
         cf = símismo.cf
 
         #

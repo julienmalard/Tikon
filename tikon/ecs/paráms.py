@@ -4,4 +4,3 @@ class MnjdrParáms(object):
 
     def __getitem__(símismo, itema):
         return símismo._paráms[str(itema)]
-

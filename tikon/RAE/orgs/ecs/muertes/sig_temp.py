@@ -13,8 +13,8 @@ class B(Parám):
 
 class SigmoidalTemperatura(Ecuación):
     nombre = 'Sigmoidal Temperatura'
-    _cls_ramas = [A, B]
+    cls_ramas = [A, B]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         sobrevivencia = 1 / (1 + np.exp((mnjdr_móds['clima.temp_máx'] - cf['a']) / cf['b']))
         return np.multiply(pob_etp, (1 - sobrevivencia))

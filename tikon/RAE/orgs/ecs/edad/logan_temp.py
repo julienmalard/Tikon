@@ -26,9 +26,9 @@ class FuncLoganTemperatura(Ecuación):
       Otiorhynchus sulcatus (Coleoptera: Curculionidae). Agricultural and Forest Entomology 7(3): 201–209.
     """
     nombre = 'Logan Temperatura'
-    _cls_ramas = [PrDeltaLT, PrTLetalLT]
+    cls_ramas = [PrDeltaLT, PrTLetalLT]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

@@ -11,7 +11,7 @@ class RedAE(Módulo):
         super().__init__()
 
         símismo._orgs = {}
-        símismo._etps = None  # type: InfoEtapas
+        símismo._info_etps = None  # type: InfoEtapas
         símismo._ecs_simul = None  # type: EcsOrgs
         símismo.cohortes = None  # type: Cohortes
 
@@ -33,25 +33,20 @@ class RedAE(Módulo):
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
     def paráms(símismo):
-        return símismo._etps.paráms()
+        return símismo._info_etps.paráms()
 
-    def iniciar_estruc(símismo, tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc):
-        símismo._etps = InfoEtapas(símismo._orgs)
-        símismo._ecs_simul = EcsOrgs(símismo._etps, None, símismo.conex_móds)
-        símismo.cohortes = Cohortes(símismo._etps, n_rep_estoc, n_rep_parám, len(parc))
+    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
+        símismo._info_etps = InfoEtapas(símismo._orgs)
+        símismo._ecs_simul = EcsOrgs(símismo._info_etps, mód=símismo, í_cosos=None, mnjdr_móds=símismo.mnjdr_móds)
+        símismo.cohortes = Cohortes(símismo._info_etps, n_rep_estoc, n_rep_parám, len(parc))
 
-        super().iniciar_estruc(tiempo, conex_móds, calibs, n_rep_estoc, n_rep_parám, parc)
+        super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 
-    def incrementar(símismo, paso):
+    def iniciar_vals(símismo):
+        pass
 
-        símismo._calc_edad(paso)
-        símismo._calc_depred(paso)
-        símismo._calc_crec(paso)
-        símismo._calc_reprod(paso)
-        símismo._calc_muertes(paso)
-        símismo._calc_trans(paso)
-        símismo._calc_mov(paso)
-        símismo._calc_estoc(paso)
+    def incrementar(símismo):
+        símismo._ecs_simul.eval(símismo.tiempo.paso)
 
     def cerrar(símismo):
         pass
@@ -65,7 +60,7 @@ class RedAE(Módulo):
     def obt_valor(símismo, var):
         if var == 'Dens':
             pobs = super().obt_valor('Pobs')
-            superficies = símismo.obt_val_control('Superficies')
+            superficies = símismo.obt_val_control('superficies')
             return pobs / superficies
         else:
             return super().obt_valor(var)
@@ -116,10 +111,10 @@ class RedAE(Módulo):
         parc = símismo.obt_val_control('parcelas')
 
         return {
-            'Pobs': {'etapa': símismo._etps},
+            'Pobs': {'etapa': símismo._info_etps.etapas},
             'Depredación': {
                 'etapa': símismo._ecs_simul.cosos_en_categ('Depredación'),
-                'víctima': símismo._etps
+                'víctima': símismo._info_etps.etapas
             },
             'Movimiento': {
                 'etapa': símismo._ecs_simul.cosos_en_categ('Movimiento'),

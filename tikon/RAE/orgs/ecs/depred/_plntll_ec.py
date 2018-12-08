@@ -5,5 +5,5 @@ class EcuaciónDepred(Ecuación):
     def dens_depred(símismo):
         return dens[:, :, :, í_etps]
 
-    def __call__(símismo, paso):
+    def eval(símismo, paso):
         raise NotImplementedError

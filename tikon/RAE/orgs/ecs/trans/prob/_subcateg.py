@@ -8,5 +8,5 @@ from .normal import Normal
 
 class ProbTrans(SubcategEc):
     nombre = 'Prob'
-    _cls_ramas = [EcuaciónVacía, Cauchy, Constante, Gamma, Logística, Normal]
+    cls_ramas = [EcuaciónVacía, Cauchy, Constante, Gamma, Logística, Normal]
     auto = Normal

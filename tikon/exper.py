@@ -20,7 +20,8 @@ class Exper(object):
 
 
 _controles_auto = {
-    'parcelas': ['1']
+    'parcelas': ['1'],
+    'superficies': [1.]
 }
 
 

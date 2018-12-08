@@ -13,4 +13,4 @@ class Sigma(Parám):
 
 class Normal(Ecuación):
     nombre = 'Normal'
-    _cls_ramas = [Mu, Sigma]
+    cls_ramas = [Mu, Sigma]

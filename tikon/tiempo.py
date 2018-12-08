@@ -6,7 +6,7 @@ class Tiempo(object):
     def __init__(símismo, n_días, día=0, f_inic=None, paso=1):
         símismo._f_inic = _gen_fecha(f_inic)
         símismo._día = día
-        símismo._paso = paso
+        símismo.paso = paso
         símismo._n_días = n_días
         símismo.eje = EjeTiempo(días=range(día, día + mat.ceil(n_días / paso), paso), f_inic=f_inic)
 
@@ -14,7 +14,7 @@ class Tiempo(object):
         return len(símismo.eje)
 
     def avanzar(símismo):
-        símismo._día += símismo._paso
+        símismo._día += símismo.paso
         return símismo._día <= símismo._n_días
 
     def fecha(símismo):

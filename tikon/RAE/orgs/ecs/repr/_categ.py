@@ -11,10 +11,10 @@ from .triang import Triang
 
 class ProbRepr(SubcategEc):
     nombre = 'Prob'
-    _cls_ramas = [EcuaciónVacía, Constante, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
+    cls_ramas = [EcuaciónVacía, Constante, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
     auto = Constante
 
 
 class EcsRepr(CategEc):
     nombre = 'Reproducción'
-    _cls_ramas = [ProbRepr]
+    cls_ramas = [ProbRepr]
