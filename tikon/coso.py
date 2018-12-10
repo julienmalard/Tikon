@@ -15,8 +15,8 @@ class Coso(object):
     def paráms(símismo):
         return símismo.ecs.paráms()
 
-    def verificar_activa(símismo, cls_base_ec):
-        return símismo.ecs.verificar_activa(cls_base_ec)
+    def categ_activa(símismo, categ):
+        return símismo.ecs[categ].verificar_activa()
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, índs=índs)

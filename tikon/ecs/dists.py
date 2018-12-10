@@ -2,6 +2,9 @@ from warnings import warn as avisar
 
 import numpy as np
 
+from ._espec_dists import obt_scipy
+from ._utils import líms_compat, proc_líms
+
 
 class Dist(object):
     def obt_vals(símismo, n):
@@ -9,8 +12,11 @@ class Dist(object):
 
 
 class DistAnalítica(Dist):
-    def __init__(símismo, dist, paráms):
-        pass
+    def __init__(símismo, dist, paráms, transf):
+        símismo.dist = obt_scipy(dist, paráms)
+
+    def obt_vals(símismo, n):
+        return símismo.dist.rvs(n)
 
     @classmethod
     def de_líms(cls, líms):
@@ -18,6 +24,11 @@ class DistAnalítica(Dist):
 
     @classmethod
     def de_dens(cls, dens, líms_dens, líms):
+        líms_dens = proc_líms(líms_dens)
+        líms = proc_líms(líms)
+        if not líms_compat(líms_dens, líms):
+            raise ValueError('Límites incompatibles.')
+
         return DistAnalítica()
 
 

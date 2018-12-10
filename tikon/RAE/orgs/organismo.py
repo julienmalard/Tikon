@@ -1,7 +1,7 @@
 from typing import List
 
 from tikon.coso import Coso
-from .ecs import EcsOrgs, EcsEdad
+from .ecs import EcsOrgs
 
 
 class Organismo(Coso):
@@ -120,7 +120,7 @@ class Etapa(Coso):
         símismo.org = org
 
     def con_cohortes(símismo):
-        símismo.verificar_activa(EcsEdad)
+        símismo.categ_activa('Edad')
 
 
 class EtapaFantasma(Etapa):

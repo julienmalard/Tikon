@@ -8,4 +8,7 @@ def proc_líms(líms):
 
 
 def líms_compat(líms, ref):
+    líms = proc_líms(líms)
+    ref = proc_líms(ref)
+
     return líms[0] >= ref[0] and líms[1] <= ref[1]
