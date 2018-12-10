@@ -11,15 +11,8 @@ class PlantillaRamaEcCoso(object):
     def paráms(símismo):
         return [pr for rm in símismo for pr in rm.paráms()]
 
-    def verificar_activa(símismo, cls_base_ec=None):
-        if cls_base_ec is None:
-            return any(rm.verificar_activa() for rm in símismo)
-        else:
-            try:
-                rama = next(rm for rm in símismo._ramas.values() if rm == cls_base_ec)
-                return rama.verificar_activa()
-            except StopIteration:
-                return any(rm.verificar_activa(cls_base_ec) for rm in símismo)
+    def verificar_activa(símismo):
+        return any(rm.verificar_activa() for rm in símismo)
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -71,12 +64,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
     def verificar_activa(símismo, cls_base_ec=None):
         from .árb_mód import EcuaciónVacía
-        if cls_base_ec == EcuaciónVacía:  # para hacer: formalizar
-            return False
-        elif cls_base_ec is None:
-            return not símismo.ec_activa() == EcuaciónVacía
-        else:
-            return símismo.ec_activa() == cls_base_ec
+        return not símismo.ec_activa() == EcuaciónVacía
 
     def activar_ec(símismo, ec):
         try:

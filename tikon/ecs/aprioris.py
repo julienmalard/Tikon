@@ -1,6 +1,7 @@
 from ._utils import proc_líms, líms_compat
 from .dists import DistAnalítica
 
+
 class APriori(object):
     def dist(símismo, líms):
         raise NotImplementedError

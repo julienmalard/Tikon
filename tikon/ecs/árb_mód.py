@@ -21,15 +21,15 @@ class PlantillaRamaEc(object):
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
-            activos = símismo._ramas_activas(ecs, rm)
-            if len(activos):
+            activos = símismo._ramas_activas([ec[rm.nombre] for ec in ecs])
+            if activos:
                 í_cosos_rm, ecs_rm = activos
                 cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
                 símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, mód, mnjdr_móds, ecs=ecs_rm)
 
     @staticmethod
-    def _ramas_activas(ramas_ecs, cls_rama):
-        activos = [(i, rm[cls_rama.nombre]) for i, rm in enumerate(ramas_ecs) if rm.verificar_activa(cls_rama)]
+    def _ramas_activas(ramas_ecs):
+        activos = [(i, rm) for i, rm in enumerate(ramas_ecs) if rm.verificar_activa()]
         return list(zip(*activos))
 
     @classmethod
