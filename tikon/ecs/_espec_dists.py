@@ -333,7 +333,7 @@ _dists = {
                     },
     'Uniforme': {'scipy': estad.uniform,
                  'paráms': ['ubic', 'escl'],
-                 'límites': (0, 1),  # El límite es ('a', 'b')
+                 'límites': (0, 1),  # El límite es ('ubic', 'ubic+escl')
                  'tipo': 'cont'
                  },
 
@@ -360,8 +360,20 @@ _dists = {
 }
 
 
+def valid_nombre(nombre):
+    try:
+        return next(nmbr for nmbr in _dists if nmbr.lower() == nombre.lower())
+    except StopIteration:
+        raise ValueError(
+            'No hay distribución llamada "{nm}". Debe ser una de:\n'
+            '\t{ops}'.format(nm=nombre, ops=', '.join(_dists))
+        )
+
+
 def obt_scipy(nombre, paráms):
+    nombre = valid_nombre(nombre)
     d_dist = _dists[nombre]
+
     for arg, arg_sp in {'ubic': 'loc', 'escl': 'scale'}:
         try:
             paráms[arg_sp] = paráms.pop(arg)
@@ -372,6 +384,7 @@ def obt_scipy(nombre, paráms):
 
 
 def líms_dist(nombre):
+    nombre = valid_nombre(nombre)
     return _dists[nombre]
 
 

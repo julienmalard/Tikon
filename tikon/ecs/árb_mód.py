@@ -94,11 +94,6 @@ class Ecuación(PlantillaRamaEc):
     def obt_val_extern(símismo, var, mód=None):
         símismo.mód.obt_val_extern(var, mód)
 
-    @staticmethod
-    def _ramas_activas(ramas_ecs, cls_rama):
-        activos = [(i, rm[cls_rama.nombre]) for i, rm in enumerate(ramas_ecs)]
-        return list(zip(*activos))
-
     def eval(símismo, paso):
         raise NotImplementedError
 

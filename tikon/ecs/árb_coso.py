@@ -62,13 +62,21 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
         else:
             símismo._activada = ramas[0]
 
-    def verificar_activa(símismo, cls_base_ec=None):
+        símismo._activada.activada = True
+
+    def verificar_activa(símismo):
         from .árb_mód import EcuaciónVacía
-        return not símismo.ec_activa() == EcuaciónVacía
+        return símismo.ec_activa() != EcuaciónVacía
 
     def activar_ec(símismo, ec):
         try:
-            símismo._activada = símismo[ec]
+            obj_ec = símismo[ec]
+            símismo._activada = obj_ec
+            for rm in símismo._ramas.values():
+                rm.activada = False
+
+            obj_ec.activada = True
+
         except KeyError:
             raise ValueError(ec)
 
@@ -77,7 +85,12 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
 
 class EcuaciónCoso(PlantillaRamaEcCoso):
-    pass
+    def __init__(símismo, cls_pariente, ramas):
+        super().__init__(cls_pariente, ramas)
+        símismo.activada = False
+
+    def verificar_activa(símismo):
+        return símismo.activada
 
 
 class ParámCoso(PlantillaRamaEcCoso):
@@ -90,6 +103,9 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo._calib_activa = None  # type: MnjdrDistsClbs
 
         símismo.líms = símismo.cls_pariente.líms
+
+    def verificar_activa(símismo):
+        return True  # Parámetros de una ecuación activa siempre están activados.
 
     def paráms(símismo):
         return símismo

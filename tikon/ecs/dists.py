@@ -1,35 +1,107 @@
 from warnings import warn as avisar
 
 import numpy as np
+import scipy.stats as estad
+from scipy.special import logit, expit
 
 from ._espec_dists import obt_scipy
 from ._utils import líms_compat, proc_líms
 
+_escl_inf = 1e6
+_dist_mu = 1e6
+
 
 class Dist(object):
+
     def obt_vals(símismo, n):
         raise NotImplementedError
 
 
 class DistAnalítica(Dist):
-    def __init__(símismo, dist, paráms, transf):
+    def __init__(símismo, dist, paráms, transf=None):
+        símismo._escl = paráms.pop('escl') if 'escl' in paráms else 1
+        símismo._ubic = paráms.pop('ubic') if 'ubic' in paráms else 0
+
+        símismo._transf = transf
+
         símismo.dist = obt_scipy(dist, paráms)
 
     def obt_vals(símismo, n):
-        return símismo.dist.rvs(n)
+        return ValoresDist(símismo._transf_vals(símismo.dist.rvs(n)))
+
+    def _transf_vals(símismo, vals):
+
+        vals = vals * símismo._escl + símismo._ubic
+        if símismo._transf is not None:
+            vals = símismo._transf.transf(vals)
+
+        return vals
 
     @classmethod
     def de_líms(cls, líms):
-        return DistAnalítica()
+        líms = proc_líms(líms)
+
+        if líms[0] == -np.inf:
+            if líms[1] == np.inf:
+                return DistAnalítica(dist='Normal', paráms={'ubic': 0, 'escl': _escl_inf})
+
+            raise DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[1], 'escl': -_escl_inf})
+
+        elif líms[1] == np.inf:
+            return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[0], 'escl': _escl_inf})
+
+        return DistAnalítica(dist='Uniforme', paráms={'ubic': líms[0], 'escl': líms[1] - líms[0]})
 
     @classmethod
     def de_dens(cls, dens, líms_dens, líms):
         líms_dens = proc_líms(líms_dens)
         líms = proc_líms(líms)
-        if not líms_compat(líms_dens, líms):
-            raise ValueError('Límites incompatibles.')
+        líms_compat(líms_dens, líms)
 
-        return DistAnalítica()
+        if dens == 1:
+            if np.isinf(líms_dens[0]) or np.isinf(líms_dens[1]):
+                raise ValueError(
+                    'No se puede especificar densidad de 1 con rango illimitado como "{}".'.format(líms_dens)
+                )
+            return DistAnalítica(dist='Uniforme', paráms={'ubic': líms_dens[0], 'escl': líms_dens[1] - líms_dens[0]})
+        elif dens <= 0:
+            raise ValueError('La densidad debe ser en (0, 1].')
+
+        if líms[0] == -np.inf:
+            if líms[1] == np.inf:
+                transf = None
+            else:
+                transf = TransfDist('Log', ubic=líms[1], escl=-1)
+
+        elif líms[1] == np.inf:
+            transf = TransfDist('Log', ubic=líms[0])
+        else:
+            transf = TransfDist('Logit', ubic=líms[0], escl=líms[1] - líms[0])
+
+        if transf is None:
+            líms_dens_intern = líms_dens
+        else:
+            líms_dens_intern = transf.transf_inv(líms_dens)
+
+        if líms_dens_intern[0] == -np.inf:
+            if líms_dens_intern[1] == np.inf:
+                raise ValueError(
+                    'Rangos idénticos como {r1} y {r2} no pueden tener densidad inferior a '
+                    '1.'.format(r1=líms, r2=líms_dens)
+                )
+            else:
+                mu = líms_dens_intern[1] - _dist_mu
+                sg = -_dist_mu / estad.norm.ppf(1 - dens)
+
+        elif líms_dens_intern[1] == np.inf:
+            mu = líms_dens_intern[0] + _dist_mu
+            sg = -_dist_mu / estad.norm.ppf(1 - dens)
+
+        else:
+            mu = (líms_dens_intern[1] + líms_dens_intern[0]) / 2
+            sg = (líms_dens_intern[0] - líms_dens_intern[1]) / 2 / estad.norm.ppf((1 - dens) / 2)
+
+        return DistAnalítica('Normal', paráms={'ubic': mu, 'escl': sg}, transf=transf)
 
 
 class DistTraza(Dist):
@@ -67,6 +139,28 @@ class DistCalib(Dist):
 
     def __float__(símismo):
         return símismo.val
+
+
+class TransfDist(object):
+    def __init__(símismo, transf, ubic=0, escl=1):
+
+        if transf == 'Logit':
+            símismo._f = logit
+            símismo._f_inv = expit
+        elif transf == 'Log':
+            símismo._f = np.log
+            símismo._f_inv = np.exp
+        else:
+            raise ValueError(transf)
+
+        símismo._ubic = ubic
+        símismo._escl = escl
+
+    def transf(símismo, vals):
+        return símismo._f(vals) * símismo._escl + símismo._ubic
+
+    def transf_inv(símismo, vals):
+        return símismo._f_inv((vals - símismo._ubic) / símismo._escl)
 
 
 class MnjdrDists(object):

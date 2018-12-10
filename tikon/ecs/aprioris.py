@@ -1,3 +1,4 @@
+from ._espec_dists import líms_dist, obt_nombre
 from ._utils import proc_líms, líms_compat
 from .dists import DistAnalítica
 
@@ -19,11 +20,10 @@ class APrioriDens(APriori):
 class APrioriDist(APriori):
     def __init__(símismo, dist):
         símismo._dist = dist
-        símismo._líms_dist = NotImplemented
+        símismo._líms_dist = líms_dist(obt_nombre(dist))
 
     def dist(símismo, líms):
         líms = proc_líms(líms)
-        if líms_compat(líms, símismo._líms_dist):
-            return símismo._dist
-        else:
-            raise ValueError('Límites incompatibles.')
+        líms_compat(líms, símismo._líms_dist)
+
+        return símismo._dist
