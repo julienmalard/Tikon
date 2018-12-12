@@ -33,11 +33,13 @@ class RedAE(Módulo):
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
     def paráms(símismo):
-        return símismo._info_etps.paráms()
+        return símismo._ecs_simul.paráms()
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo._info_etps = InfoEtapas(símismo._orgs)
-        símismo._ecs_simul = EcsOrgs(símismo._info_etps, mód=símismo, í_cosos=None, mnjdr_móds=símismo.mnjdr_móds)
+        símismo._ecs_simul = EcsOrgs(
+            símismo._info_etps, mód=símismo, í_cosos=None, n_rep=n_rep_parám
+        )
         símismo.cohortes = Cohortes(símismo._info_etps, n_rep_estoc, n_rep_parám, len(parc))
 
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
@@ -135,9 +137,6 @@ class InfoEtapas(object):
     def __init__(símismo, orgs):
         símismo._orgs = list(orgs.values()) if isinstance(orgs, dict) else orgs
         símismo.etapas = [etp for org in símismo._orgs for etp in org.etapas(fantasmas=True)]
-
-    def paráms(símismo):
-        return [pr for etp in símismo.etapas for pr in etp.paráms()]
 
     def __iter__(símismo):
         for etp in símismo.etapas:
