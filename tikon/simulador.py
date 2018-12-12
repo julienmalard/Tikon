@@ -42,6 +42,8 @@ class Simulador(object):
         for m in símismo.mnjdr_móds:
             m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 
+        símismo.mnjdr_móds.llenar_coefs(calibs)
+
     def iniciar_vals(símismo):
 
         símismo.corrida = ResultadosSimul(símismo.mnjdr_móds, símismo.tiempo)
@@ -76,12 +78,11 @@ class Simulador(object):
             símismo.correr()
             return símismo.corrida.procesar_calib()
 
-        clbrd = gen_calibrador(método)(método, func, símismo.mnjdr_móds.paráms())
-
         símismo.iniciar_estruc(
             días=None, f_inic=None, paso=paso, exper=exper, calibs=None, n_rep_estoc=n_rep_estoc, n_rep_parám=1
         )
 
+        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms())
         clbrd.calibrar(func, n_iter=n_iter)
 
 
@@ -92,7 +93,7 @@ class MnjdrMódulos(object):
         módulos.extend([Manejo(), Clima()])
 
         símismo.módulos = {str(mód): mód for mód in módulos}
-        símismo.exper  = exper
+        símismo.exper = exper
 
     def obt_valor(símismo, var, mód):
         return símismo[str(mód)].obt_valor(var)
@@ -101,7 +102,10 @@ class MnjdrMódulos(object):
         return símismo.exper.obt_control(var)
 
     def paráms(símismo):
-        return [pr for mód in símismo for pr in mód.paráms()]
+        return MnjdrParámsSimul(símismo)
+
+    def llenar_coefs(símismo, calibs):
+        símismo.paráms().llenar_coefs(calibs)
 
     def __iter__(símismo):
         for m in símismo.módulos.values():
@@ -109,6 +113,29 @@ class MnjdrMódulos(object):
 
     def __getitem__(símismo, itema):
         return símismo.módulos[itema]
+
+
+class MnjdrParámsSimul(object):
+    def __init__(símismo, módulos):
+        símismo._módulos = módulos
+        símismo.paráms = [pr for mód in módulos for pr in mód.paráms()]
+
+    def llenar_coefs(símismo, calibs, n_rep_parám):
+
+        dists_disp = [pr.dists_disp(calibs) for pr in símismo.paráms]
+        if calibs == 'base':
+            pass
+        elif calibs == 'corresp':
+            dists = []
+        elif calibs is None:
+            pass
+
+        import numpy as np
+        for pr in None:
+            n_por_dist = np.full(len(dists_pr), n_rep_parám // len(dists_pr))
+            extras = n_rep_parám % len(dists_pr)
+            n_por_dist[:extras] += 1
+
 
 
 class ResultadosSimul(object):

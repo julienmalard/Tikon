@@ -1,15 +1,13 @@
 from typing import Dict
 
-from .dists import DistAnalítica, MnjdrDists, MnjdrDistsClbs
+from .dists import DistAnalítica, MnjdrDists
+from .paráms import MatrParámCoso, ValsParámCoso, ValsParámCosoInter
 
 
 class PlantillaRamaEcCoso(object):
     def __init__(símismo, cls_pariente, ramas):
         símismo.cls_pariente = cls_pariente
         símismo._ramas = {str(r): r for r in ramas}
-
-    def paráms(símismo):
-        return [pr for rm in símismo for pr in rm.paráms()]
 
     def verificar_activa(símismo):
         return any(rm.verificar_activa() for rm in símismo)
@@ -35,7 +33,7 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, índs=None):
         obj_parám = símismo._ramas[categ][sub_categ][ec][parám]
-        obj_parám.espec_a_priori(apriori, índs=índs)
+        obj_parám.espec_a_priori(apriori, inter=índs)
 
     def activar_ec(símismo, categ, subcateg, ec):
         símismo[categ][subcateg].activar_ec(ec)
@@ -100,43 +98,44 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
         símismo._a_priori = MnjdrDists()
-        símismo._calib_activa = None  # type: MnjdrDistsClbs
+        símismo._vals_activos = NotImplemented
 
         símismo.líms = símismo.cls_pariente.líms
+        símismo.inter = símismo.cls_pariente.inter
+        símismo.mód = símismo.cls_pariente.mód
 
     def verificar_activa(símismo):
         return True  # Parámetros de una ecuación activa siempre están activados.
 
-    def paráms(símismo):
-        return símismo
+    def obt_inter(símismo):
+        if símismo.inter is not None:
+            return símismo.mód.inter(símismo.inter)
 
-    def agregar_calib(símismo, id_cal, dist, índs=None):
+    def gen_matr_parám(símismo, n_rep):
+        inters = símismo.obt_inter()
+        if inters is None:
+            vals = ValsParámCoso(tmñ=n_rep, prm_base=símismo)
+        else:
+            vals = ValsParámCosoInter({
+                í: ValsParámCoso(tmñ=n_rep, prm_base=símismo, inter=inter)
+                for í, inter in inters
+            }, tmñ_inter=inters.tmñ)
+
+        return MatrParámCoso(vals)
+
+    def agregar_calib(símismo, id_cal, dist, inter=None):
         if id_cal not in símismo._calibs:
             símismo._calibs[id_cal] = MnjdrDists()
 
-        símismo._calibs[id_cal].actualizar(dist, índs)
+        símismo._calibs[id_cal].actualizar(dist, inter)
 
-    def espec_a_priori(símismo, apriori, índs=None):
+    def espec_a_priori(símismo, apriori, inter=None):
 
         dist = apriori.dist(símismo.líms)
-        # para hacer
-        if índs is None:
-            símismo._a_priori.actualizar(dist=dist, índs=índs)
+        símismo._a_priori.actualizar(dist=dist, índs=inter)
 
-    def estab_calib_activa(símismo, índs):
-        # para hacer
-        if símismo._calib_activa is None:
-            símismo._calib_activa = MnjdrDistsClbs()
-
-        símismo._calib_activa.actualizar(índs)
-
-    def guardar_calib_activa(símismo, id_cal, í_trazas, pesos):
-
-        símismo._calibs[id_cal] = símismo._calib_activa.obt_trazas(í_trazas, pesos)
-        símismo._calib_activa = None
-
-    def a_priori(símismo, índs=None):
-        return símismo._a_priori.obt_val(índs)
+    def a_priori(símismo, inter=None):
+        return símismo._a_priori.obt_val(inter)
 
     def calib_base(símismo):
         return DistAnalítica.de_líms(símismo.líms)

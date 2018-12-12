@@ -16,6 +16,12 @@ class Dist(object):
     def obt_vals(símismo, n):
         raise NotImplementedError
 
+    def obt_vals_índ(símismo, í):
+        raise NotImplementedError
+
+    def tmñ(símismo):
+        raise NotImplementedError
+
 
 class DistAnalítica(Dist):
     def __init__(símismo, dist, paráms, transf=None):
@@ -27,7 +33,13 @@ class DistAnalítica(Dist):
         símismo.dist = obt_scipy(dist, paráms)
 
     def obt_vals(símismo, n):
-        return ValoresDist(símismo._transf_vals(símismo.dist.rvs(n)))
+        return símismo._transf_vals(símismo.dist.rvs(n))
+
+    def obt_vals_índ(símismo, í):
+        return símismo.obt_vals(n=len(í))
+
+    def tmñ(símismo):
+        return np.inf
 
     def _transf_vals(símismo, vals):
 
@@ -105,7 +117,13 @@ class DistAnalítica(Dist):
 
 
 class DistTraza(Dist):
-    def __init__(símismo, trz, pesos):
+    def __init__(símismo, trz, pesos=None):
+        if pesos is None:
+            pesos = np.ones_like(trz)
+
+        if trz.size != pesos.size:
+            raise ValueError
+
         símismo.trz = trz
         símismo.pesos = pesos
 
@@ -113,32 +131,13 @@ class DistTraza(Dist):
         reemplazar = n > len(símismo.trz)
         if reemplazar:
             avisar()
-        return ValoresDist(np.random.choice(símismo.trz, n, replace=reemplazar, p=símismo.pesos))
+        return np.random.choice(símismo.trz, n, replace=reemplazar, p=símismo.pesos)
 
+    def obt_vals_índ(símismo, í):
+        return símismo.trz[í]
 
-class DistCalib(Dist):
-    def __init__(símismo, tmñ_trz):
-        símismo._traza = np.full(tmñ_trz, 0)
-        símismo.val = 0
-
-    def agregar_pnt(símismo, val, i):
-        trnsf = símismo._transf(val)
-        símismo.val = trnsf
-        símismo._traza[i] = trnsf
-
-    def gen_traza(símismo, buenas, pesos):
-        return DistTraza(símismo._traza[buenas], pesos=pesos)
-
-    def _transf(símismo, vals):
-        pass
-
-    def obt_vals(símismo, n):
-        if n != 1:
-            raise ValueError
-        return ValoresDistCalib(símismo)
-
-    def __float__(símismo):
-        return símismo.val
+    def tmñ(símismo):
+        return símismo.trz.size
 
 
 class TransfDist(object):
@@ -200,24 +199,6 @@ class MnjdrDists(object):
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
-
-
-class MnjdrDistsClbs(MnjdrDists):
-
-    def actualizar(símismo, dist, índs=None):
-        if not isinstance(dist, DistCalib):
-            raise TypeError
-        super().actualizar(dist=dist, índs=índs)
-
-    def obt_trazas(símismo, mnjdr=None):
-        if mnjdr is None:
-            mnjdr = MnjdrDists()
-        mnjdr.actualizar(dist=símismo.val.gen_traza())
-
-        for í, mnjdr_í in símismo.índs:
-            mnjdr.actualizar(mnjdr_í.obt_trazas(mnjdr=mnjdr), índs=í)
-
-        return mnjdr
 
 
 class ValoresDist(object):
