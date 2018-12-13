@@ -100,6 +100,18 @@ class Organismo(Coso):
         etp = símismo[etp]
         return símismo._etapas.index(etp)
 
+    def presas(símismo, etp=None):
+        if etp is None:
+            return [rel.etp_presa for rel in símismo._rels_presas]
+        else:
+            return [rel.etp_presa for rel in símismo._rels_presas if rel.etp_depred == etp]
+
+    def huéspedes(símismo, etp=None):
+        if etp is None:
+            return [rel.etp_huésp for rel in símismo._rels_paras]
+        else:
+            return [rel.etp_huésp for rel in símismo._rels_paras if rel.etp_depred == etp]
+
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]
@@ -119,8 +131,14 @@ class Etapa(Coso):
         super().__init__(nombre, EcsOrgs)
         símismo.org = org
 
+    def presas(símismo):
+        return símismo.org.presas(símismo)
+
+    def huéspedes(símismo):
+        return símismo.org.huéspedes(símismo)
+
     def con_cohortes(símismo):
-        símismo.categ_activa('Edad')
+        símismo.categ_activa('Edad', mód=símismo)
 
 
 class EtapaFantasma(Etapa):

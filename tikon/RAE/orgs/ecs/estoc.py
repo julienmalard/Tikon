@@ -3,7 +3,7 @@ import numpy as np
 from tikon.ecs.árb_mód import CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
 
 
-class PrSigma(Parám):
+class Sigma(Parám):
     nombre = 'sigma'
     líms = (0, 1)
 
@@ -13,6 +13,7 @@ class Normal(Ecuación):
     Error distribuido de manera normal.
     """
     nombre = 'Normal'
+    cls_ramas = [Sigma]
 
     def eval(símismo, paso):
         return símismo.cf['sigma'] * paso
