@@ -13,7 +13,7 @@ class Cultivo(Módulo):
         pass
 
     def paráms(símismo):
-        pass
+        return []
 
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, n_parc):
         pass

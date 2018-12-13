@@ -12,7 +12,7 @@ class Manejo(Módulo):
         pass
 
     def paráms(símismo):
-        pass
+        return []
 
     def reqs_externos(símismo):
         pass

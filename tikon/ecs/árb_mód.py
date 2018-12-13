@@ -98,6 +98,9 @@ class Ecuación(PlantillaRamaEc):
     def obt_val_extern(símismo, var, mód=None):
         símismo.mód.obt_val_extern(var, mód)
 
+    def vals_paráms(símismo):
+        return símismo.cf.vals_paráms()
+
     @classmethod
     def inter(símismo):
         return {tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
@@ -147,6 +150,3 @@ class Parám(PlantillaRamaEc):
     @classmethod
     def para_coso(cls, coso):
         return cls._cls_en_coso(cls, coso)
-
-    def vals_paráms(símismo):
-        return [val for cs in símismo.cosos for val in cs.vals_paráms]
