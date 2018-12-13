@@ -1,16 +1,16 @@
 from typing import Dict
 
 from .dists import DistAnalítica, MnjdrDists
-from .paráms import MatrParámCoso, ValsParámCoso, ValsParámCosoInter
 
 
 class PlantillaRamaEcCoso(object):
-    def __init__(símismo, cls_pariente, ramas):
+    def __init__(símismo, cls_pariente, ramas, coso):
+        símismo.coso = coso
         símismo.cls_pariente = cls_pariente
         símismo._ramas = {str(r): r for r in ramas}
 
-    def verificar_activa(símismo):
-        return any(rm.verificar_activa() for rm in símismo)
+    def verificar_activa(símismo, mód):
+        return any(rm.verificar_activa(mód) for rm in símismo)
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -52,8 +52,8 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
 
 class SubcategEcCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente, ramas):
-        super().__init__(cls_pariente, ramas)
+    def __init__(símismo, cls_pariente, ramas, coso):
+        super().__init__(cls_pariente, ramas, coso)
 
         if cls_pariente.auto is not None:
             símismo._activada = next(ec for ec in símismo if ec.cls_pariente is cls_pariente.auto)
@@ -62,9 +62,8 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
         símismo._activada.activada = True
 
-    def verificar_activa(símismo):
-        from .árb_mód import EcuaciónVacía
-        return símismo.ec_activa() != EcuaciónVacía
+    def verificar_activa(símismo, mód):
+        return símismo.ec_activa().verificar_activa(mód)
 
     def activar_ec(símismo, ec):
         try:
@@ -83,18 +82,23 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
 
 class EcuaciónCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente, ramas):
-        super().__init__(cls_pariente, ramas)
+    def __init__(símismo, cls_pariente, ramas, coso):
+        super().__init__(cls_pariente, ramas, coso)
         símismo.activada = False
 
-    def verificar_activa(símismo):
-        return símismo.activada
+    def verificar_activa(símismo, mód):
+        from .árb_mód import EcuaciónVacía
+        if símismo.activada and símismo != EcuaciónVacía:
+            inters = símismo.cls_pariente.inter()
+            if inters:
+                return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
+            return True
+        return False
 
 
 class ParámCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente):
-
-        super().__init__(cls_pariente, ramas=[])
+    def __init__(símismo, cls_pariente, coso):
+        super().__init__(cls_pariente, ramas=[], coso=coso)
 
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
         símismo._a_priori = MnjdrDists()
@@ -102,26 +106,9 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
-        símismo.mód = símismo.cls_pariente.mód
 
-    def verificar_activa(símismo):
+    def verificar_activa(símismo, mód):
         return True  # Parámetros de una ecuación activa siempre están activados.
-
-    def obt_inter(símismo):
-        if símismo.inter is not None:
-            return símismo.mód.inter(símismo.inter)
-
-    def gen_matr_parám(símismo, n_rep):
-        inters = símismo.obt_inter()
-        if inters is None:
-            vals = ValsParámCoso(tmñ=n_rep, prm_base=símismo)
-        else:
-            vals = ValsParámCosoInter({
-                í: ValsParámCoso(tmñ=n_rep, prm_base=símismo, inter=inter)
-                for í, inter in inters
-            }, tmñ_inter=inters.tmñ)
-
-        return MatrParámCoso(vals)
 
     def agregar_calib(símismo, id_cal, dist, inter=None):
         if id_cal not in símismo._calibs:
@@ -130,7 +117,6 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo._calibs[id_cal].actualizar(dist, inter)
 
     def espec_a_priori(símismo, apriori, inter=None):
-
         dist = apriori.dist(símismo.líms)
         símismo._a_priori.actualizar(dist=dist, índs=inter)
 

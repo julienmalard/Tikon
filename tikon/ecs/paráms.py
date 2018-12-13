@@ -6,7 +6,7 @@ class MnjdrValsCoefs(object):
         símismo._paráms = {str(pr): pr.gen_matr_parám(n_reps) for pr in l_paráms}
 
     def vals_paráms(símismo):
-        pass
+        raise NotImplementedError
 
     def __getitem__(símismo, itema):
         return símismo._paráms[str(itema)].val()
@@ -44,7 +44,7 @@ class MatrParám(PlantillaMatrsParáms):
 
 class MatrParámCoso(PlantillaMatrsParáms):
     def __init__(símismo, vals):
-        super().__init__(vals)
+        super().__init__([vals])
 
 
 class ValsParámCosoInter(PlantillaMatrsParáms):
@@ -62,7 +62,7 @@ class ValsParámCosoInter(PlantillaMatrsParáms):
 class ValsParámCoso(object):
 
     def __init__(símismo, tmñ, prm_base, inter=None):
-        símismo._tmñ = tmñ
+        símismo._tmñ = (tmñ,)
         símismo._prm = prm_base
         símismo._inter = inter
         símismo._val = np.zeros(tmñ)

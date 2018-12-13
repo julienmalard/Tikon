@@ -56,6 +56,9 @@ class Módulo(object):
     def reqs_externos(símismo):
         raise NotImplementedError
 
+    def inter(símismo, coso, tipo):
+        raise NotImplementedError
+
     def _coords_resultados(símismo):
         raise NotImplementedError
 

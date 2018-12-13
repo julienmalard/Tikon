@@ -22,7 +22,7 @@ class LogístPresa(EcuaciónCrec):
     def eval(símismo, paso):
         crec_etps = símismo.crec_etps()
         pobs_etps = símismo.pobs_etps()
-        
+
         k = np.nansum(np.multiply(pobs[..., np.newaxis, :], símismo.cf['K']), axis=-1)  # Calcular la capacidad de carga
         np.multiply(crec_etps, pobs_etps * (1 - pobs_etps / k), out=crec_etps)  # Ecuación logística sencilla
 

@@ -1,6 +1,8 @@
+import numpy as np
+
 from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónCrec
-import numpy as np
+
 
 class K(Parám):
     nombre = 'K'

@@ -1,3 +1,4 @@
+from tikon.ecs.paráms import Inter
 from tikon.módulo import Módulo
 from .cohortes import Cohortes
 from .. import Organismo
@@ -79,33 +80,30 @@ class RedAE(Módulo):
         símismo.poner_valor('Pobs', pobs, rel=True)
         símismo.cohortes.ajustar(pobs)
 
-    def _calc_edad(símismo, paso):
-        símismo._ecs_simul['Edad'].evaluar(paso)
+    def presas(símismo, etp):
+        return [pr for pr in etp.presas() if pr in símismo._info_etps]
 
-    def _calc_depred(símismo, paso):
-        símismo._ecs_simul['Depredación'].evaluar(paso)
+    def huéspedes(símismo, etp):
+        return [pr for pr in etp.huéspedes() if pr in símismo._info_etps]
 
-    def _calc_crec(símismo, paso):
-        crec = símismo._ecs_simul['Crecimiento']
-        crec.evaluar(paso)
-        símismo.agregar_pobs(símismo.resultados['Crecimiento'])
+    def inter(símismo, coso, tipo):
+        if isinstance(tipo, str):
+            tipo = [tipo]
 
-    def _calc_reprod(símismo, paso):
-        símismo._ecs_simul['Reproducción'].evaluar(paso)
-        símismo.agregar_pobs(símismo.resultados['Reproducción'])
+        etps = símismo._info_etps
+        tmñ_total = len(etps)
 
-    def _calc_muertes(símismo, paso):
-        símismo._ecs_simul['Muertes'].evaluar(paso)
-        símismo.quitar_pobs(símismo.resultados['Muertes'])  # para hacer: ¿índices?
-
-    def _calc_trans(símismo, paso):
-        símismo._ecs_simul['Transiciones'].evaluar(paso)
-
-    def _calc_mov(símismo, paso):
-        símismo._ecs_simul['Movimiento'].evaluar(paso)
-
-    def _calc_estoc(símismo, paso):
-        símismo._ecs_simul['Estoc'].evaluar(paso)
+        etps_inter = set()
+        for tp in tipo:
+            if tp == 'presa':
+                etps_inter.update(símismo.presas(coso))
+            elif tp == 'huésped':
+                etps_inter.update(símismo.huéspedes(coso))
+            else:
+                raise ValueError(tipo)
+        índs = {etps.índice(etp): [etp.org, etp] for etp in etps_inter}
+        if len(índs):
+            return Inter(tmñ=tmñ_total, índices=índs)
 
     def _coords_resultados(símismo):
 
@@ -137,6 +135,9 @@ class InfoEtapas(object):
     def __init__(símismo, orgs):
         símismo._orgs = list(orgs.values()) if isinstance(orgs, dict) else orgs
         símismo.etapas = [etp for org in símismo._orgs for etp in org.etapas(fantasmas=True)]
+
+    def índice(símismo, etp):
+        return símismo.etapas.index(etp)
 
     def __iter__(símismo):
         for etp in símismo.etapas:
