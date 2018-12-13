@@ -17,6 +17,8 @@ class Simulador(object):
 
     def simular(símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30):
 
+        calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
+
         símismo.iniciar(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám)
         símismo.correr()
         símismo.cerrar()
@@ -42,7 +44,7 @@ class Simulador(object):
         for m in símismo.mnjdr_móds:
             m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 
-        símismo.mnjdr_móds.llenar_coefs(calibs)
+        símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def iniciar_vals(símismo):
 
@@ -78,8 +80,10 @@ class Simulador(object):
             símismo.correr()
             return símismo.corrida.procesar_calib()
 
+        calibs = _gen_espec_calibs(None, aprioris=True, heredar=True, corresp=False)  # para hacer: quitar `None` incial
+
         símismo.iniciar_estruc(
-            días=None, f_inic=None, paso=paso, exper=exper, calibs=None, n_rep_estoc=n_rep_estoc, n_rep_parám=1
+            días=None, f_inic=None, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1
         )
 
         clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms())
@@ -104,8 +108,9 @@ class MnjdrMódulos(object):
     def paráms(símismo):
         return MnjdrParámsSimul(símismo)
 
-    def llenar_coefs(símismo, calibs):
-        símismo.paráms().llenar_coefs(calibs)
+    def llenar_coefs(símismo, calibs, n_rep_parám):
+        # para hacer: ¿separar símismo.paráms()?
+        símismo.paráms().llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def __iter__(símismo):
         for m in símismo.módulos.values():
@@ -118,23 +123,53 @@ class MnjdrMódulos(object):
 class MnjdrParámsSimul(object):
     def __init__(símismo, módulos):
         símismo._módulos = módulos
-        símismo.paráms = [pr for mód in módulos for pr in mód.paráms()]
+        símismo.vals_paráms = [pr for mód in módulos for pr in mód.paráms()]
 
     def llenar_coefs(símismo, calibs, n_rep_parám):
 
-        dists_disp = [pr.dists_disp(calibs) for pr in símismo.paráms]
-        if calibs == 'base':
-            pass
-        elif calibs == 'corresp':
-            dists = []
-        elif calibs is None:
-            pass
+        calibs.llenar_vals(símismo.vals_paráms, n_rep_parám)
 
+
+class EspecCalibsCorrida(object):
+    def __init__(símismo, calibs=None, aprioris=True, corresp=True, heredar_inter=True):
+        símismo.calibs = calibs
+        símismo.aprioris = aprioris
+        símismo.corresp = corresp
+        símismo.heredar_inter = heredar_inter
+
+    def llenar_vals(símismo, l_vals_prm, n_reps):
+
+        if símismo.aprioris:
+            for vl in list(l_vals_prm):
+                if vl.apriori():
+                    vl.llenar_de_apriori(n_reps)
+            l_vals_prm = [vl for vl in l_vals_prm if not vl.apriori()]
+
+        l_dists = símismo._filtrar_dists(l_vals_prm)
+
+        for vl, dists in zip(l_vals_prm, l_dists):
+            vl.llenar_de_dist(dists)
+
+    def gen_dists_calibs(símismo, l_vals_prm, permitidas):
+        if símismo.aprioris:
+            raise NotImplementedError
+
+        l_dists = símismo._filtrar_dists(l_vals_prm, permitidas)
+
+        raise NotImplementedError
+
+    def _filtrar_dists(símismo, l_vals_prm, permitidas=None):
+        dists_disp = [pr.dists_disp() for pr in l_vals_prm]
+
+        # para hacer: no sé si esto va aquí
+        n_dists = len(l_dists)
         import numpy as np
-        for pr in None:
-            n_por_dist = np.full(len(dists_pr), n_rep_parám // len(dists_pr))
-            extras = n_rep_parám % len(dists_pr)
-            n_por_dist[:extras] += 1
+
+        n_por_dist = np.full(n_dists, n_reps // n_dists)
+        extras = n_reps % n_dists
+        n_por_dist[:extras] += 1
+
+        raise NotImplementedError
 
 
 
@@ -158,3 +193,10 @@ class ResultadosSimul(object):
     def __iter__(símismo):
         for r in símismo.resultados.values():
             yield r
+
+
+def _gen_espec_calibs(calibs, aprioris, heredar, corresp):
+    if isinstance(calibs, EspecCalibsCorrida):
+        return calibs
+    else:
+        return EspecCalibsCorrida(calibs, aprioris=aprioris, corresp=corresp, heredar_inter=heredar)

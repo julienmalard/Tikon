@@ -6,7 +6,7 @@ class MnjdrValsCoefs(object):
         símismo._paráms = {str(pr): pr.gen_matr_parám(n_reps) for pr in l_paráms}
 
     def vals_paráms(símismo):
-        raise NotImplementedError
+        return [prm for matr in símismo._paráms.values() for prm in matr.vals_paráms()]
 
     def __getitem__(símismo, itema):
         return símismo._paráms[str(itema)].val()
@@ -66,6 +66,9 @@ class ValsParámCoso(object):
         símismo._prm = prm_base
         símismo._inter = inter
         símismo._val = np.zeros(tmñ)
+
+    def vals_paráms(símismo):
+        return [símismo]
 
     def tmñ(símismo):
         return símismo._tmñ

@@ -34,7 +34,7 @@ class RedAE(Módulo):
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 
     def paráms(símismo):
-        return símismo._ecs_simul.paráms()
+        return símismo._ecs_simul.vals_paráms()
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo._info_etps = InfoEtapas(símismo._orgs)
