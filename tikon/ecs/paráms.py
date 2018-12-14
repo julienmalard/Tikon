@@ -8,6 +8,10 @@ class MnjdrValsCoefs(object):
     def vals_paráms(símismo):
         return [prm for matr in símismo._paráms.values() for prm in matr.vals_paráms()]
 
+    def act_vals(símismo):
+        for matr in símismo._paráms.values():
+            matr.act_vals()
+
     def __getitem__(símismo, itema):
         return símismo._paráms[str(itema)].val()
 
@@ -20,14 +24,14 @@ class PlantillaMatrsParáms(object):
     def tmñ(símismo):
         return _tmñ(símismo._sub_matrs)
 
-    def llenar(símismo):
+    def act_vals(símismo):
         if isinstance(símismo._sub_matrs, dict):
             itr = símismo._sub_matrs.items()
         else:
             itr = enumerate(símismo._sub_matrs)
 
         for i, sub in itr:
-            sub.llenar()
+            sub.act_vals()
             símismo._matr[i] = sub.val()
 
     def val(símismo):
@@ -66,6 +70,16 @@ class ValsParámCoso(object):
         símismo._prm = prm_base
         símismo._inter = inter
         símismo._val = np.zeros(tmñ)
+
+    def dists_disp(símismo, heredar):
+        return símismo._prm.dists_disp(símismo._inter, heredar)
+
+    def llenar_de_base(símismo):
+        calib = símismo._prm.calib_base()
+        símismo.poner_val(calib.obt_vals(símismo._tmñ))
+
+    def act_vals(símismo):
+        pass  # para hacer: ¿no necesario?
 
     def vals_paráms(símismo):
         return [símismo]

@@ -34,8 +34,12 @@ class PlantillaRamaEc(object):
         return [pr for rm in símismo for pr in rm.vals_paráms()]
 
     def eval(símismo, paso):
-        for rm in símismo._ramas.values():
+        for rm in símismo:
             rm.eval(paso)
+
+    def act_vals(símismo):
+        for rm in símismo:
+            rm.act_vals()
 
     @classmethod
     def para_coso(cls, coso):
@@ -88,6 +92,9 @@ class Ecuación(PlantillaRamaEc):
     def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
         super().__init__(cosos, í_cosos, mód, n_rep, ecs=ecs)
         símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_rep)
+
+    def act_vals(símismo):
+        símismo.cf.act_vals()
 
     def obt_res(símismo):
         return símismo.mód.obt_val(símismo._nombre_res)

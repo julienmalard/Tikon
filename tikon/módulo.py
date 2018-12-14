@@ -1,3 +1,4 @@
+from tikon.ecs import ÁrbolEcs
 from tikon.rsltd.res import Dims, Resultado, ResultadoTemporal
 
 
@@ -8,11 +9,11 @@ class Módulo(object):
         símismo.resultados = None
         símismo.tiempo = None
         símismo.mnjdr_móds = None
+        símismo._ecs_simul = None  # type: ÁrbolEcs
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
         símismo.tiempo = tiempo
         símismo.mnjdr_móds = mnjdr_móds
-
 
         temporales = []  # para hacer
         obs = []
@@ -40,6 +41,10 @@ class Módulo(object):
 
     def obt_val_control(símismo, var):
         return símismo.mnjdr_móds.obt_val_control(var)
+
+    def act_coefs(símismo):
+        if símismo._ecs_simul is not None:
+            símismo._ecs_simul.act_vals()
 
     def iniciar_vals(símismo):
         raise NotImplementedError
