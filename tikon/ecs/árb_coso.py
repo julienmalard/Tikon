@@ -125,3 +125,6 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def calib_base(símismo):
         return DistAnalítica.de_líms(símismo.líms)
+
+    def dists_disp(símismo, inter, heredar):
+        return {clb: dists.obt_val(índs=inter, heredar=heredar) for clb, dists in símismo._calibs.items()}

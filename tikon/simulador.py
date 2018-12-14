@@ -111,6 +111,8 @@ class MnjdrMódulos(object):
     def llenar_coefs(símismo, calibs, n_rep_parám):
         # para hacer: ¿separar símismo.paráms()?
         símismo.paráms().llenar_coefs(calibs, n_rep_parám=n_rep_parám)
+        for mód in símismo:
+            mód.act_coefs()
 
     def __iter__(símismo):
         for m in símismo.módulos.values():
@@ -126,13 +128,12 @@ class MnjdrParámsSimul(object):
         símismo.vals_paráms = [pr for mód in módulos for pr in mód.paráms()]
 
     def llenar_coefs(símismo, calibs, n_rep_parám):
-
         calibs.llenar_vals(símismo.vals_paráms, n_rep_parám)
 
 
 class EspecCalibsCorrida(object):
     def __init__(símismo, calibs=None, aprioris=True, corresp=True, heredar_inter=True):
-        símismo.calibs = calibs
+        símismo.calibs = [calibs] if isinstance(calibs, str) else calibs
         símismo.aprioris = aprioris
         símismo.corresp = corresp
         símismo.heredar_inter = heredar_inter
@@ -145,32 +146,49 @@ class EspecCalibsCorrida(object):
                     vl.llenar_de_apriori(n_reps)
             l_vals_prm = [vl for vl in l_vals_prm if not vl.apriori()]
 
-        l_dists = símismo._filtrar_dists(l_vals_prm)
+        l_dists, corresp = símismo._filtrar_dists(l_vals_prm)
 
-        for vl, dists in zip(l_vals_prm, l_dists):
-            vl.llenar_de_dist(dists)
+        import numpy as np
+        if corresp:
+            raise NotImplementedError
+        else:
+            for vl, d_dists in zip(l_vals_prm, l_dists):
+                n_dists = len(d_dists)
+                if n_dists == 0:
+                    vl.llenar_de_base()
+                else:
+                    n_por_dist = np.full(n_dists, n_reps // n_dists)
+                    extras = n_reps % n_dists
+                    n_por_dist[:extras] += 1
+
+                    vl.llenar_de_dist({dist: n for dist, n in zip(d_dists, n_por_dist)})
 
     def gen_dists_calibs(símismo, l_vals_prm, permitidas):
         if símismo.aprioris:
             raise NotImplementedError
 
-        l_dists = símismo._filtrar_dists(l_vals_prm, permitidas)
+        l_dists = símismo._filtrar_dists(l_vals_prm)
 
         raise NotImplementedError
 
-    def _filtrar_dists(símismo, l_vals_prm, permitidas=None):
-        dists_disp = [pr.dists_disp() for pr in l_vals_prm]
+    def _filtrar_dists(símismo, l_vals_prm):
+        dists_disp = [pr.dists_disp(símismo.heredar_inter) for pr in l_vals_prm]
 
-        # para hacer: no sé si esto va aquí
-        n_dists = len(l_dists)
-        import numpy as np
+        if símismo.calibs is not None:
+            for i, prm in enumerate(dists_disp):
+                dists_disp[i] = {nmb: dist for nmb, dist in prm.items() if nmb in símismo.calibs}
 
-        n_por_dist = np.full(n_dists, n_reps // n_dists)
-        extras = n_reps % n_dists
-        n_por_dist[:extras] += 1
+        corresp = símismo.corresp
+        if símismo.corresp:
+            comunes = [
+                dist for dist in set(d for prm in dists_disp for d in prm) if all(dist in prm for prm in dists_disp)
+            ]
+            if comunes:
+                dists_disp = [{nmb: dist for nmb, dist in prm.items() if nmb in comunes} for prm in dists_disp]
+            else:
+                corresp = False
 
-        raise NotImplementedError
-
+        return dists_disp, corresp
 
 
 class ResultadosSimul(object):

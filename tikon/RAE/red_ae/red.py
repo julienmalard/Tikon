@@ -13,7 +13,6 @@ class RedAE(Módulo):
 
         símismo._orgs = {}
         símismo._info_etps = None  # type: InfoEtapas
-        símismo._ecs_simul = None  # type: EcsOrgs
         símismo.cohortes = None  # type: Cohortes
 
         if orgs is not None:

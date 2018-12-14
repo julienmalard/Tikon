@@ -374,7 +374,7 @@ def obt_scipy(nombre, paráms):
     nombre = valid_nombre(nombre)
     d_dist = _dists[nombre]
 
-    for arg, arg_sp in {'ubic': 'loc', 'escl': 'scale'}:
+    for arg, arg_sp in {'ubic': 'loc', 'escl': 'scale'}.items():
         try:
             paráms[arg_sp] = paráms.pop(arg)
         except KeyError:

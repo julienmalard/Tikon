@@ -181,11 +181,11 @@ class MnjdrDists(object):
             sub_dist.actualizar(dist, índs)
             símismo.índs[í] = sub_dist
 
-    def obt_val(símismo, índs=None):
+    def obt_val(símismo, índs=None, heredar=True):
 
         if isinstance(índs, str):
             índs = [índs]
-        else:
+        elif índs is not None:
             índs = list(índs)  # generar copia
 
         if índs is None or not len(índs):
@@ -193,9 +193,9 @@ class MnjdrDists(object):
         else:
             í = índs.pop(0)
             if í in símismo.índs:
-                return símismo.índs[í].obt_valor(índs)
+                return símismo.índs[í].obt_valor(índs, heredar)
             else:
-                return símismo.val
+                return símismo.val if heredar else []
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
