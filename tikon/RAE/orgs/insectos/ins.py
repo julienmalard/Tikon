@@ -41,11 +41,11 @@ class Insecto(Organismo):
         if isinstance(etapas, (str, Etapa)):
             etapas = [etapas]
 
-        if JUVENIL in etapas:
+        if etapas is not None and JUVENIL in etapas:
             etapas.remove(JUVENIL)
 
-        for etp in símismo._etapas:
-            if str(etp).startswith(JUVENIL):
-                etapas.append(etp)
+            for etp in símismo._etapas:
+                if str(etp).startswith(JUVENIL):
+                    etapas.append(etp)
 
         return super().resolver_etapas(etapas)
