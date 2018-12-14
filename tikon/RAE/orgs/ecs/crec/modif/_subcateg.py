@@ -6,3 +6,5 @@ from .lognorm_temp import LogNormTemp
 class ModifCrec(SubcategEc):
     nombre = 'Modif'
     cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
+    _nombre_res = 'Crecimiento'
+    _eje_cosos = 'etapa'

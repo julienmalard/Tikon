@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónDepred
 
 
 class ATipoI(Parám):
@@ -9,7 +10,7 @@ class ATipoI(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIDP(Ecuación):
+class TipoIDP(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo I con dependencia en la población de la presa.
     """
@@ -33,7 +34,7 @@ class BTipoII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIDP(Ecuación):
+class TipoIIDP(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo II con dependencia en la población de la presa.
     """
@@ -59,7 +60,7 @@ class BTipoIII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIIDP(Ecuación):
+class TipoIIIDP(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo III con dependencia en la población de la presa.
     """

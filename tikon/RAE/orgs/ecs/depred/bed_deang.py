@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónDepred
 
 
 class A(Parám):
@@ -21,7 +22,7 @@ class C(Parám):
     inter = ['presa', 'huésped']
 
 
-class BedDeAng(Ecuación):
+class BedDeAng(EcuaciónDepred):
     """
     Depredación de respuesta funcional Beddington-DeAngelis. Incluye dependencia en el depredador.
     """

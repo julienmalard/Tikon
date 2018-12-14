@@ -1,5 +1,6 @@
 from tikon.RAE.red_ae.utils import días_grados
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from .._plntll_ec import EcuaciónOrg
 
 
 class PrMínDG(Parám):
@@ -12,7 +13,7 @@ class PrMáxDG(Parám):
     líms = (None, None)
 
 
-class FuncDíasGrados(Ecuación):
+class FuncDíasGrados(EcuaciónOrg):
     """
     Edad calculada por días grados.
     """

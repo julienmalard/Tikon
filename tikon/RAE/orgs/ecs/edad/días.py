@@ -1,7 +1,7 @@
-from tikon.ecs.árb_mód import Ecuación
+from .._plntll_ec import EcuaciónOrg
 
 
-class FuncDías(Ecuación):
+class FuncDías(EcuaciónOrg):
     """
     Edad por día.
     """

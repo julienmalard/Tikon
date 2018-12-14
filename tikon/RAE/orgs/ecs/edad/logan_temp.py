@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from .._plntll_ec import EcuaciónOrg
 
 
 class PrRhoLT(Parám):
@@ -18,7 +19,7 @@ class PrTLetalLT(Parám):
     líms = (None, None)
 
 
-class FuncLoganTemperatura(Ecuación):
+class FuncLoganTemperatura(EcuaciónOrg):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
 
