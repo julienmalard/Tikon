@@ -53,9 +53,9 @@ class RedAE(Módulo):
     def cerrar(símismo):
         pass
 
-    def poner_valor(símismo, var, valor, rel=False):
+    def poner_valor(símismo, var, valor, rel=False, índs=None):
         if var == 'Poblaciones':
-            super().poner_valor(var, valor, rel=False)
+            super().poner_valor(var, valor, rel=False, índs=índs)
         else:
             raise ValueError(var)
 

@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from .._plntll_ec import EcuaciónOrg
 
 
 class PrTDevMínBT(Parám):
@@ -13,7 +14,7 @@ class PrTLetalBT(Parám):
     líms = (None, None)
 
 
-class FuncBrièreTemperatura(Ecuación):
+class FuncBrièreTemperatura(EcuaciónOrg):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura Brère [1]_. En esta ecuación,
     tal como en las otras con taza de desarrollo, quitamos el parámetro típicamente multiplicado por

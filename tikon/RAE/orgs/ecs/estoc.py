@@ -29,7 +29,7 @@ class EcsEstoc(CategEc):
     nombre = 'Estoc'
     cls_ramas = [DistEstoc]
 
-    def eval(símismo, paso):
+    def calc(símismo, paso):
         super()(paso)
 
         estoc = símismo._res.obt_valor()

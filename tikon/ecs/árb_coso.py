@@ -90,8 +90,8 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         from .árb_mód import EcuaciónVacía
         if símismo.activada and símismo != EcuaciónVacía:
             inters = símismo.cls_pariente.inter()
-            if inters:
-                return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
+            # if inters:
+            #     return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
 

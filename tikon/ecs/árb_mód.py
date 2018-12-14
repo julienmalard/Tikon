@@ -9,6 +9,7 @@ class PlantillaRamaEc(object):
     nombre = NotImplemented
     _cls_en_coso = NotImplemented
     _nombre_res = NotImplemented
+    _eje_cosos = NotImplemented
 
     def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
         if ecs is None:
@@ -37,9 +38,37 @@ class PlantillaRamaEc(object):
         for rm in símismo:
             rm.eval(paso)
 
+        símismo.postproc(paso)
+
+    def postproc(símismo, paso):
+        pass
+
     def act_vals(símismo):
         for rm in símismo:
             rm.act_vals()
+
+    def obt_res(símismo, filtrar=True):
+        return símismo.obt_val_mód(símismo._nombre_res, filtrar=filtrar)
+
+    def obt_val_mód(símismo, var, filtrar=True):
+        res = símismo.mód.obt_res(var)
+
+        índs = {símismo._eje_cosos: símismo.í_cosos} if filtrar else None
+
+        return res.obt_valor(índs)
+        
+    def poner_val_res(símismo, val, índs=None):
+        res = símismo.mód.obt_res(símismo._nombre_res)
+        res.poner_valor(val, índs=índs)
+
+    def í_eje_res(símismo, eje):
+        return símismo.mód.obt_res(símismo._nombre_res).í_eje(eje)
+
+    def obt_val_extern(símismo, var, mód=None):
+        return símismo.mód.obt_val_extern(var, mód)
+
+    def obt_val_control(símismo, var):
+        return símismo.mód.obt_val_control(var)
 
     @classmethod
     def para_coso(cls, coso):
@@ -83,7 +112,7 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso)
             if res is not None:
-                símismo.mód.poner_valor(res, símismo._nombre_res, índs={'etapas': ec.í_cosos})
+                símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.í_cosos})
 
 
 class Ecuación(PlantillaRamaEc):
@@ -95,15 +124,6 @@ class Ecuación(PlantillaRamaEc):
 
     def act_vals(símismo):
         símismo.cf.act_vals()
-
-    def obt_res(símismo):
-        return símismo.mód.obt_val(símismo._nombre_res)
-
-    def obt_val_mód(símismo, var):
-        return símismo.mód.obt_valor(var)
-
-    def obt_val_extern(símismo, var, mód=None):
-        símismo.mód.obt_val_extern(var, mód)
 
     def vals_paráms(símismo):
         return símismo.cf.vals_paráms()

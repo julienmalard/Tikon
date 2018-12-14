@@ -13,7 +13,7 @@ class MnjdrValsCoefs(object):
             matr.act_vals()
 
     def __getitem__(símismo, itema):
-        return símismo._paráms[str(itema)].val()
+        return símismo._paráms[str(itema)].val().swapaxes(0, -1)
 
 
 class PlantillaMatrsParáms(object):
@@ -25,20 +25,28 @@ class PlantillaMatrsParáms(object):
         return _tmñ(símismo._sub_matrs)
 
     def act_vals(símismo):
-        if isinstance(símismo._sub_matrs, dict):
-            itr = símismo._sub_matrs.items()
+        if isinstance(símismo._sub_matrs, ValsParámCoso):
+            símismo._sub_matrs.act_vals()
+            símismo._matr[:] = símismo._sub_matrs.val()
         else:
-            itr = enumerate(símismo._sub_matrs)
+            if isinstance(símismo._sub_matrs, dict):
+                itr = símismo._sub_matrs.items()
+            else:
+                itr = enumerate(símismo._sub_matrs)
 
-        for i, sub in itr:
-            sub.act_vals()
-            símismo._matr[i] = sub.val()
+            for i, sub in itr:
+                sub.act_vals()
+                símismo._matr[i] = sub.val()
 
     def val(símismo):
         return símismo._matr
 
     def vals_paráms(símismo):
-        return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]
+        if isinstance(símismo._sub_matrs, ValsParámCoso):
+            return [símismo._sub_matrs]
+        else:
+            itr = símismo._sub_matrs.values() if isinstance(símismo._sub_matrs, dict) else símismo._sub_matrs
+            return [vls for mtr in itr for vls in mtr.vals_paráms()]
 
 
 class MatrParám(PlantillaMatrsParáms):
@@ -48,7 +56,7 @@ class MatrParám(PlantillaMatrsParáms):
 
 class MatrParámCoso(PlantillaMatrsParáms):
     def __init__(símismo, vals):
-        super().__init__([vals])
+        super().__init__(vals)
 
 
 class ValsParámCosoInter(PlantillaMatrsParáms):
@@ -57,10 +65,10 @@ class ValsParámCosoInter(PlantillaMatrsParáms):
         super().__init__(matrs_vals_inter)
 
     def tmñ(símismo):
-        return
+        return (símismo._tmñ_inter, *_tmñ(list(símismo._sub_matrs.values()))[1:])  # para hacer: probablemente puede ser más elegante
 
-    def vals_paráms(símismo):
-        return list(símismo._sub_matrs.values())
+    def __len__(símismo):
+        return len(símismo._sub_matrs)
 
 
 class ValsParámCoso(object):
@@ -101,12 +109,15 @@ class Inter(object):
 
     def __iter__(símismo):
         for índs in símismo.índices.items():
-            return índs
+            yield índs
 
 
 def _tmñ(grupo):
-    n = len(grupo)
-    tmñ = grupo[0].tmñ()
-    if not all(obj.tmñ() == tmñ for obj in grupo):
-        raise ValueError
-    return (n, *tmñ)
+    if isinstance(grupo, (ValsParámCoso, ValsParámCosoInter)):
+        return grupo.tmñ()
+    else:
+        n = len(grupo)
+        tmñ = grupo[0].tmñ()
+        if not all(obj.tmñ() == tmñ for obj in grupo):
+            raise ValueError
+        return (n, *tmñ)

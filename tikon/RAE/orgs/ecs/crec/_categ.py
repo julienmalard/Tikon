@@ -8,10 +8,13 @@ from .modif import ModifCrec
 class EcsCrec(CategEc):
     nombre = 'Crecimiento'
     cls_ramas = [ModifCrec, EcuaciónCrec]
+    _eje_cosos = 'etapa'
+    _nombre_res = 'Crecimiento'
 
-    def eval(símismo, paso):
+    def postproc(símismo, paso):
+
         crec = símismo.obt_res()
-        pobs = símismo.obt_val_mód('Pobs', símismo.í_cosos)
+        pobs = símismo.obt_val_mód('Pobs')
 
         crec[np.isnan(crec)] = 0
         np.floor(crec)

@@ -9,7 +9,7 @@ from .hassel_varley import TipoIHasselVarley, TipoIIHasselVarley, TipoIIIHasselV
 from .kovai import Kovai
 
 
-class EcuaciónDepred(SubcategEc):
+class EcDepred(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [
         EcuaciónVacía,
@@ -23,9 +23,9 @@ class EcuaciónDepred(SubcategEc):
 
 class EcsDepred(CategEc):
     nombre = 'Depredación'
-    cls_ramas = [EcuaciónDepred]
+    cls_ramas = [EcDepred]
 
-    def eval(símismo, paso):
+    def calc(símismo, paso):
         super().eval(paso)
         depred = símismo.o.obt_valor()
 

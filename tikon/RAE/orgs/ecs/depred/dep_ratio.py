@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónDepred
 
 
 class ATipoI(Parám):
@@ -9,7 +10,7 @@ class ATipoI(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIDR(Ecuación):
+class TipoIDR(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo I con dependencia en el ratio de presa a depredador.
     """
@@ -34,7 +35,7 @@ class BTipoII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIDR(Ecuación):
+class TipoIIDR(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo II con dependencia en el ratio de presa a depredador.
     """
@@ -45,6 +46,7 @@ class TipoIIDR(Ecuación):
         cf = símismo.cf
         dens_depred = símismo.dens_depred()
         return np.multiply(dens / dens_depred, cf['a'] / (dens / dens_depred + cf['b']))
+
 
 class ATipoIII(Parám):
     nombre = 'a'
@@ -58,7 +60,7 @@ class BTipoIII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIIDR(Ecuación):
+class TipoIIIDR(EcuaciónDepred):
     """
     Depredación de respuesta funcional tipo III con dependencia en el ratio de presa a depredador.
     """

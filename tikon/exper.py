@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Exper(object):
     def __init__(símismo):
         símismo.obs = MnjdrObsExper()
@@ -21,7 +24,7 @@ class Exper(object):
 
 _controles_auto = {
     'parcelas': ['1'],
-    'superficies': [1.]
+    'superficies': np.array([1.])
 }
 
 

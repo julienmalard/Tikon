@@ -73,14 +73,14 @@ class Simulador(object):
 
         return Validación(símismo.corrida)
 
-    def calibrar(símismo, exper=None, n_iter=300, método='epm', paso=1, n_rep_estoc=30):
+    def calibrar(símismo, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30):
 
         def func():
             símismo.iniciar_vals()
             símismo.correr()
             return símismo.corrida.procesar_calib()
 
-        calibs = _gen_espec_calibs(None, aprioris=True, heredar=True, corresp=False)  # para hacer: quitar `None` incial
+        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
         símismo.iniciar_estruc(
             días=None, f_inic=None, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1

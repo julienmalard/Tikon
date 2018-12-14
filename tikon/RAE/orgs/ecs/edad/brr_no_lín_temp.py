@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from .._plntll_ec import EcuaciónOrg
 
 
 class PrTDevMínBNLT(Parám):
@@ -18,7 +19,7 @@ class PrMBNLT(Parám):
     líms = (0, None)
 
 
-class FuncBrièreNoLinearTemperatura(Ecuación):
+class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura no linear de Briere.
 

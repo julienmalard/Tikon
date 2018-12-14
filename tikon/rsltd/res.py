@@ -9,7 +9,7 @@ class Resultado(object):
         símismo._dims = dims
         símismo._matr = np.zeros(dims.frm())
 
-    def poner_valor(símismo, vals, rel=False, índs=None, eje=None):
+    def poner_valor(símismo, vals, rel=False, índs=None):
         if índs is None:
             if rel:
                 símismo._matr[:] += vals
@@ -17,15 +17,15 @@ class Resultado(object):
                 símismo._matr[:] = vals
         else:
             if rel:
-                símismo._matr[símismo._rebanar(índs, eje)] += vals
+                símismo._matr[símismo._rebanar(índs)] += vals
             else:
-                símismo._matr[símismo._rebanar(índs, eje)] = vals
+                símismo._matr[símismo._rebanar(índs)] = vals
 
-    def obt_valor(símismo, índs=None, eje=None):
+    def obt_valor(símismo, índs=None):
         if índs is None:
             return símismo._matr
         else:
-            return símismo._matr[símismo._rebanar(índs, eje)]
+            return símismo._matr[símismo._rebanar(índs)]
 
     def sumar(símismo, eje):
         í_eje = símismo._dims.í_eje(eje)
@@ -40,8 +40,12 @@ class Resultado(object):
     def í_eje(símismo, eje):
         return símismo._dims.í_eje(eje)
 
-    def _rebanar(símismo, índs, eje):
-        return tuple([slice(None)] * símismo.í_eje(eje) + [índs])
+    def n_ejes(símismo):
+        return símismo._dims.n_ejes()
+
+    def _rebanar(símismo, índs):
+        ejes_índs = {símismo.í_eje(eje): í for eje, í in índs.items()}
+        return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
 
     def __str__(símismo):
         return símismo.nombre
@@ -109,6 +113,9 @@ class Dims(object):
 
     def í_eje(símismo, eje):
         return next(i for i, crd in enumerate(símismo._coords) if crd == eje)
+
+    def n_ejes(símismo):
+        return len(símismo._coords)
 
 
 class Coord(object):

@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónDepred
 
 
 class ATipoI(Parám):
@@ -15,7 +16,7 @@ class MTipoI(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIHasselVarley(Ecuación):
+class TipoIHasselVarley(EcuaciónDepred):
     """
     Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
     """
@@ -46,7 +47,7 @@ class MTipoII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIHasselVarley(Ecuación):
+class TipoIIHasselVarley(EcuaciónDepred):
     """
     Depredación de respuesta funcional Tipo II con dependencia Hassell-Varley.
     """
@@ -78,7 +79,7 @@ class MTipoIII(Parám):
     inter = ['presa', 'huésped']
 
 
-class TipoIIIHasselVarley(Ecuación):
+class TipoIIIHasselVarley(EcuaciónDepred):
     """
     Depredación de respuesta funcional Tipo III con dependencia Hassell-Varley.
     """
@@ -90,4 +91,3 @@ class TipoIIIHasselVarley(Ecuación):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))
-

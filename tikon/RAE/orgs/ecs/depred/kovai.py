@@ -1,7 +1,8 @@
 import numpy as np
 
+from tikon.RAE.orgs.ecs.depred._plntll_ec import EcuaciónDepred
 from tikon.RAE.red_ae.utils import probs_conj
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
 
 
 class PrAKovai(Parám):
@@ -16,7 +17,7 @@ class PrBKovai(Parám):
     inter = ['presa', 'huésped']
 
 
-class Kovai(Ecuación):
+class Kovai(EcuaciónDepred):
     """
     Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
     y = a*(1 - e^(-u/(a*D))); u = P + e^(-P/b) - b
@@ -32,11 +33,11 @@ class Kovai(Ecuación):
     cls_ramas = [PrAKovai, PrBKovai]
 
     def eval(símismo, paso):
-        dens = símismo.obt_val_mód('Dens', índs=símismo.í_cosos)
+        dens = símismo.obt_dens_pobs(filtrar=False)
         cf = símismo.cf
 
         #
-        dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
+        # dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
 
         presa_efec = np.add(
             dens,
@@ -60,7 +61,7 @@ class Kovai(Ecuación):
         )
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
-        eje_presas = símismo.í_eje('presa')
+        eje_presas = símismo.í_eje_res('presa')
         probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=eje_presas)
 
         return depred_etp
