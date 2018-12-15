@@ -54,7 +54,7 @@ class RedAE(Módulo):
         pass
 
     def poner_valor(símismo, var, valor, rel=False, índs=None):
-        if var == 'Poblaciones':
+        if var == 'Pobs':
             super().poner_valor(var, valor, rel=False, índs=índs)
         else:
             raise ValueError(var)
@@ -106,7 +106,7 @@ class RedAE(Módulo):
 
     def _coords_resultados(símismo):
 
-        l_res = ['Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
+        l_res = ['Edad', 'Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
         parc = símismo.obt_val_control('parcelas')
 
         return {

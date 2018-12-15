@@ -10,7 +10,10 @@ class PlantillaRamaEcCoso(object):
         símismo._ramas = {str(r): r for r in ramas}
 
     def verificar_activa(símismo, mód):
-        return any(rm.verificar_activa(mód) for rm in símismo)
+        if símismo.cls_pariente.req_todas_ramas:
+            return all(rm.verificar_activa(mód) for rm in símismo)
+        else:
+            return any(rm.verificar_activa(mód) for rm in símismo)
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -90,8 +93,8 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         from .árb_mód import EcuaciónVacía
         if símismo.activada and símismo != EcuaciónVacía:
             inters = símismo.cls_pariente.inter()
-            # if inters:
-            #     return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
+            if inters:
+                return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
 

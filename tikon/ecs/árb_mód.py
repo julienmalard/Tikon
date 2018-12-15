@@ -10,6 +10,7 @@ class PlantillaRamaEc(object):
     _cls_en_coso = NotImplemented
     _nombre_res = NotImplemented
     _eje_cosos = NotImplemented
+    req_todas_ramas = False
 
     def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
         if ecs is None:
@@ -57,12 +58,19 @@ class PlantillaRamaEc(object):
 
         return res.obt_valor(índs)
         
-    def poner_val_res(símismo, val, índs=None):
+    def poner_val_res(símismo, val, rel=False, índs=None):
         res = símismo.mód.obt_res(símismo._nombre_res)
-        res.poner_valor(val, índs=índs)
+        res.poner_valor(val, rel=rel, índs=índs)
+
+    def poner_val_mód(símismo, var, val, rel=False, filtrar=True):
+        res = símismo.mód.obt_res(var)
+        res.poner_valor(val, rel=rel, índs={símismo._eje_cosos: símismo.í_cosos} if filtrar else None)
+
+    def í_eje(símismo, var, eje):
+        return símismo.mód.obt_res(var).í_eje(eje)
 
     def í_eje_res(símismo, eje):
-        return símismo.mód.obt_res(símismo._nombre_res).í_eje(eje)
+        return símismo.í_eje(símismo._nombre_res, eje=eje)
 
     def obt_val_extern(símismo, var, mód=None):
         return símismo.mód.obt_val_extern(var, mód)

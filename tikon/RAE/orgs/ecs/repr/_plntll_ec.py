@@ -1,5 +1,6 @@
-from .._ecs_coh import EcuaciónConCohorte
 import numpy as np
+
+from .._ecs_coh import EcuaciónConCohorte
 
 
 class EcuaciónRepr(EcuaciónConCohorte):

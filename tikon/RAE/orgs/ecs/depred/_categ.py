@@ -19,15 +19,18 @@ class EcDepred(SubcategEc):
         BedDeAng, Kovai
     ]
     auto = Kovai
+    _nombre_res = 'Depredación'
+    _eje_cosos = 'etapa'
 
 
 class EcsDepred(CategEc):
     nombre = 'Depredación'
     cls_ramas = [EcDepred]
+    _nombre_res = 'Depredación'
+    _eje_cosos = 'etapa'
 
-    def calc(símismo, paso):
-        super().eval(paso)
-        depred = símismo.o.obt_valor()
+    def postproc(símismo, paso):
+        depred = símismo.obt_res(filtrar=False)
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0
@@ -36,19 +39,26 @@ class EcsDepred(CategEc):
         depred[depred < 0] = 0
 
         # Ajustar por superficies
-        np.multiply(depred, extrn['superficies'].reshape(depred.shape[0], 1, 1, 1, 1), out=depred)
+        superficies = símismo.obt_val_control('superficies')
+        np.multiply(depred, superficies.reshape((*superficies.shape, *[1] * (len(depred.shape) - 1))), out=depred)
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora está en unidades
         # del número total de presas comidas por cada tipo de depredador por unidad de tiempo.
-        np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)
+        pobs = símismo.obt_val_mód('Pobs', filtrar=True)
+        np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)  # para hacer: rabanar mejor
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        eje_depredador = símismo._res.í_eje('etapa')
+        eje_depredador = símismo.í_eje_res('etapa')
         probs_conj(depred, pesos=1, máx=pobs, eje=eje_depredador)
 
         depred[np.isnan(depred)] = 0
 
-        # Redondear (para evitar de comer, por ejemplo, 2 * 10^-5 moscas). NO usamos la función "np.round()", porque
-        # esta podría darnos valores superiores a los límites establecidos por probs_conj() arriba.
-        np.floor(depred, out=depred)
+        # Guardar la depredación final
+        símismo.poner_val_res(depred)
+
+        # Depredación únicamente por presa (todos los depredadores juntos)
+        depred_por_presa = np.sum(depred, axis=eje_depredador)
+
+        # Actualizar la matriz de poblaciones
+        símismo.poner_val_mód('Pobs', -depred_por_presa, rel=True, filtrar=False)

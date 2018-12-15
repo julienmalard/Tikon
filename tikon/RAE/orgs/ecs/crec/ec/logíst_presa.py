@@ -21,10 +21,13 @@ class LogístPresa(EcuaciónCrec):
 
     def eval(símismo, paso):
         crec_etps = símismo.crec_etps()
-        pobs_etps = símismo.pobs_etps()
+        pobs_presas = símismo.pobs_etps(filtrar=False)
+        pobs = símismo.pobs_etps()
 
-        k = np.nansum(np.multiply(pobs[..., np.newaxis, :], símismo.cf['K']), axis=-1)  # Calcular la capacidad de carga
-        np.multiply(crec_etps, pobs_etps * (1 - pobs_etps / k), out=crec_etps)  # Ecuación logística sencilla
+        eje_etapa = símismo.í_eje('Pobs', 'etapa')
+        k = np.nansum(
+            np.multiply(pobs_presas[tuple([slice(None)] * eje_etapa + [np.newaxis])], símismo.cf['K'])
+            , axis=-1
+        )  # Calcular la capacidad de carga
 
-        # Evitar pérdidas de poblaciones superiores a la población.
-        return np.maximum(crec_etps, -pobs_etps)
+        return np.multiply(crec_etps, pobs * (1 - pobs / k))  # Ecuación logística sencilla
