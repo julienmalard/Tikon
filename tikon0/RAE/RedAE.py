@@ -1983,11 +1983,7 @@ class Red(Simulable):
             # ...y generar la matriz de edades
             cohortes['Edades'] = np.zeros(shape=(n_grupos_coh, n_parc, n_rep_estoc, n_rep_parám, n_cohs))
 
-            í_ejes_cohs = (np.repeat(range(n_parc), n_rep_estoc * n_rep_parám * n_cohs),
-                           np.tile(np.repeat(range(n_rep_estoc), n_rep_parám * n_cohs), [n_parc]),
-                           np.tile(np.repeat(range(n_rep_parám), n_cohs), [n_parc * n_rep_estoc]),
-                           np.tile(range(n_cohs), [n_parc * n_rep_estoc * n_rep_parám])
-                           )
+
 
             dic['Matrices']['í_ejes_cohs'] = í_ejes_cohs
 
