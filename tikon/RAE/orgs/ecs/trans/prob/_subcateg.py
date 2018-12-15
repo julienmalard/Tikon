@@ -10,3 +10,5 @@ class ProbTrans(SubcategEc):
     nombre = 'Prob'
     cls_ramas = [EcuaciónVacía, Cauchy, Constante, Gamma, Logística, Normal]
     auto = Normal
+    _nombre_res = 'Transiciones'
+    _eje_cosos = 'etapa'

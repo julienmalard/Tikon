@@ -40,7 +40,7 @@ class RedAE(Módulo):
         símismo._ecs_simul = EcsOrgs(
             símismo._info_etps, mód=símismo, í_cosos=None, n_rep=n_rep_parám
         )
-        símismo.cohortes = Cohortes(símismo._info_etps, n_rep_estoc, n_rep_parám, len(parc))
+        símismo.cohortes = Cohortes(símismo._info_etps, n_rep_estoc, n_rep_parám, parc=parc)
 
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 

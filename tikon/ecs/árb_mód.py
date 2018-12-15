@@ -61,6 +61,7 @@ class PlantillaRamaEc(object):
     def poner_val_res(símismo, val, rel=False, índs=None):
         res = símismo.mód.obt_res(símismo._nombre_res)
         res.poner_valor(val, rel=rel, índs=índs)
+        # para hacer: ¡filtrar!
 
     def poner_val_mód(símismo, var, val, rel=False, filtrar=True):
         res = símismo.mód.obt_res(var)
@@ -121,6 +122,8 @@ class SubcategEc(PlantillaRamaEc):
             res = ec.eval(paso)
             if res is not None:
                 símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.í_cosos})
+
+        símismo.postproc(paso)
 
 
 class Ecuación(PlantillaRamaEc):

@@ -44,8 +44,7 @@ class Resultado(object):
         return símismo._dims.n_ejes()
 
     def _rebanar(símismo, índs):
-        ejes_índs = {símismo.í_eje(eje): í for eje, í in índs.items()}
-        return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
+        return símismo._dims.rebanar(índs)
 
     def __str__(símismo):
         return símismo.nombre
@@ -93,15 +92,8 @@ class Obs(object):
 
 
 class Dims(object):
-    def __init__(símismo, n_estoc, n_parám, parc, coords=None):
-        if coords is None:
-            coords = {}
-
-        símismo._coords = {
-            'parc': Coord(parc),
-            'estoc': Coord(n_estoc),
-            'parám': Coord(n_parám),
-            **{crd: Coord(índs) for crd, índs in coords.items()}}
+    def __init__(símismo, coords):
+        símismo._coords = coords
 
         símismo._frm = tuple(crd.tmñ() for crd in símismo._coords.values())
 
@@ -116,6 +108,37 @@ class Dims(object):
 
     def n_ejes(símismo):
         return len(símismo._coords)
+
+    def rebanar(símismo, índs):
+        ejes_índs = {símismo.í_eje(eje): í for eje, í in índs.items()}
+        return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
+
+
+class DimsRes(Dims):
+    def __init__(símismo, n_estoc, n_parám, parc, coords=None):
+        if coords is None:
+            coords = {}
+
+        coords = {
+            'parc': Coord(parc),
+            'estoc': Coord(n_estoc),
+            'parám': Coord(n_parám),
+            **{crd: Coord(índs) for crd, índs in coords.items()}
+        }
+        super().__init__(coords=coords)
+
+
+class DimsCoh(Dims):
+    def __init__(símismo, n_coh, n_estoc, n_parám, parc, etapas):
+        coords = {
+            'coh': Coord(n_coh),
+            'parc': Coord(parc),
+            'estoc': Coord(n_estoc),
+            'parám': Coord(n_parám),
+            'etapa': Coord(etapas)
+        }
+
+        super().__init__(coords=coords)
 
 
 class Coord(object):

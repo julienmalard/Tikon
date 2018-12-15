@@ -138,7 +138,7 @@ class Etapa(Coso):
         return símismo.org.huéspedes(símismo)
 
     def con_cohortes(símismo):
-        símismo.categ_activa('Edad', mód=símismo)
+        return símismo.categ_activa('Edad', mód=símismo)
 
 
 class EtapaFantasma(Etapa):

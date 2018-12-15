@@ -685,14 +685,6 @@ class Red(Simulable):
             n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
             repr_etp_recip = np.take(reprod, í_etps, axis=3)
 
-            # Aquí tenemos todas las probabilidades de reproducción dependientes en distribuciones de cohortes:
-
-        # Redondear las reproducciones calculadas
-        np.round(reprod, out=reprod)
-
-        # Agregar las reproducciones a las poblaciones
-        np.add(pobs, reprod, out=pobs)
-
         # Actualizar cohortes ahora, si necesario
         if len(símismo.índices_cohortes):
             símismo._añadir_a_cohortes(nuevos=reprod[..., símismo.índices_cohortes])
@@ -1115,21 +1107,6 @@ class Red(Simulable):
                             l_ubics_preds_proc += ubic_sigma
 
         return l_preds_proc, l_ubics_preds_proc
-
-    def _sacar_líms_coefs_interno(símismo):
-        """
-        No hay nada nada que hacer aquí, visto que una red no tiene coeficientes propios. Devolvemos
-        una lista vacía.
-        """
-
-        return []
-
-    def _sacar_coefs_interno(símismo):
-        """
-        No hay nada nada que hacer, visto que una Red no tiene coeficientes propios.
-        """
-
-        return [], []
 
     def añadir_exp(símismo, experimento, corresp=None, corresp_pobs=None, corresp_crec=None, corresp_repr=None,
                    corresp_trans=None, corresp_muertes=None):
@@ -1864,12 +1841,6 @@ class Red(Simulable):
                                         # ejemplo, interacciones entre competidores), se tendrían que añadir aquí.
                                         raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
 
-    def especificar_apriori(símismo, **kwargs):
-        """
-        Una Red no tiene parámetros para especificar.
-        """
-        raise NotImplementedError('No hay parámetros para especificar en una Red.')
-
     def _justo_antes_de_simular(símismo):
         """
         Esta función hace cosas que hay que hacer justo antes de cada simulación (en particular, cosas que tienen
@@ -1883,14 +1854,6 @@ class Red(Simulable):
 
         # Ahora, iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
-
-    def _sacar_coefs_no_espec(símismo):
-        """
-        Una Red no tiene coeficientes.
-
-        """
-
-        return {}
 
     def _prep_dists(símismo):
         """
@@ -1928,31 +1891,6 @@ class Red(Simulable):
                     # Guardar la distribución multidimensional en el diccionario de distribuciones.
                     símismo.dists[corto][tp_dist] = Ds.dists[tp_dist]['scipy'](**paráms)
 
-    def _trans_cohortes(símismo, cambio_edad, etps, dists, matr_egr, quitar=True):
-        """
-        Esta funcion maneja transiciones (basadas en edades) desde cohortes.
-
-        :param cambio_edad: Una matriz multidimensional con los cambios en las edades de cada cohorte de la etapa.
-        Notar que la edad puede ser 'edad' en el sentido tradicional del término, tanto como la 'edad' del organismo
-        medida por otro método (por ejemplo, exposición cumulativo a días grados). Los ejes son iguales que en 'pobs'.
-        :type cambio_edad: np.ndarray
-
-        :param etps: Los índices de las etapas (en la lista de etapas de la Red) que estamos transicionando ahora.
-        :type etps: list
-
-        :param dists: Una distribución con parámetros en forma de matrices.
-        :type dists: estad._distn_infrastructure.rv_frozen.
-
-        :param matr_egr: Una matriz en la cual guardar los resultados.
-        :type matr_egr: np.ndarray
-
-        :param quitar: Si hay que quitar las etapas que transicionaron (útil para cálculos de reproducción).
-        :type quitar: bool
-
-        """
-
-
-
     def _añadir_a_cohortes(símismo, nuevos, edad=0, dic_predic=None):
         """
         Esta función agrega nuevos miembros a un cohorte existente.
@@ -1971,7 +1909,6 @@ class Red(Simulable):
         :type dic_predic: dict
         """
 
-
     def _quitar_de_cohortes(símismo, muertes, í_don=None, í_recip=None):
         """
         Esta funciôn quita individuos de los cohortes de la Red.
@@ -1987,18 +1924,6 @@ class Red(Simulable):
         :type í_recip: np.ndarray
 
         """
-
-
-    def _ajustar_cohortes(símismo, cambio):
-        """
-        Esta función ajusta las poblaciones de cohortes. Es muy útil cuando no sabemos si el cambio es positivo o
-        negativo.
-
-        :param cambio: El cambio en poblaciones, en el mismo formato que la matriz de población.
-        :type cambio: np.ndarray
-
-        """
-
 
     @staticmethod
     def _gen_dic_matr_predic(n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos, n_cohs, detalles, n_grupos_coh=10):
@@ -2032,28 +1957,8 @@ class Red(Simulable):
         :rtype: dict
         """
 
-        # Tamaño estándardes para matrices de resultados (algunos resultados tienen unas dimensiones adicionales).
-        if detalles:
-            tamaño_normal = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos)
-            tamaño_pobs = tamaño_normal
-            tamaño_depr = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_etps, n_pasos)
-        else:
-            tamaño_normal = (n_parc, n_rep_estoc, n_rep_parám, n_etps)
-            tamaño_pobs = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_pasos)
-            tamaño_depr = (n_parc, n_rep_estoc, n_rep_parám, n_etps, n_etps)
-
-        tamaño_edades = (n_parc, n_rep_estoc, n_rep_parám, n_etps)
-
         # El diccionario en formato símismo.predics
-        dic = {'Pobs': np.zeros(shape=tamaño_pobs),
-               'Depredación': np.zeros(shape=tamaño_depr),
-               'Crecimiento': np.zeros(shape=tamaño_normal),
-               'Edades': np.zeros(shape=tamaño_edades),
-               'Reproducción': np.zeros(shape=tamaño_normal),
-               'Muertes': np.zeros(shape=tamaño_normal),
-               'Transiciones': np.zeros(shape=tamaño_normal),
-               'Movimiento': np.zeros(shape=tamaño_normal),
-               'Cohortes': {},
+        dic = {
                'Matrices': {
                    'í_ejes_cohs': (),  # Para la función de agregar a cohortes.
                    'tmñ_para_cohs': (n_parc, n_rep_estoc, n_rep_parám, n_cohs)  # Para la función de agregar a cohortes.
@@ -2085,100 +1990,6 @@ class Red(Simulable):
                            )
 
             dic['Matrices']['í_ejes_cohs'] = í_ejes_cohs
-
-        # Ahora agregamos matrices para cálculos
-
-        return dic
-
-    def ubicar(símismo, lugar):
-        """
-        Conecta la Red a un Lugar. Útil para conectar la red con datos de clima, etc.
-        :param lugar:
-        :type lugar: Lugar
-        :return:
-        """
-        símismo.lugar = lugar
-
-    def info_clima(símismo):
-        """
-        Esta función extrae el típo de datos que se necesitan para calcular las dinámicas de poblaciones de un lugar
-        específico.
-
-        :return: conjunto con información climática que se va a extraer de Taqdir
-        :rtype: set
-        """
-        info_clima_dict = set()
-        if 'Días grados' in símismo.ecs['Edad']['Ecuación']:
-            info_clima_dict.update({'Temperatura máxima','Temperatura mínima'})
-
-        return info_clima_dict
-
-
-# Funciones auxiliares
-def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):
-    """
-    Esta función calcula los días grados basados en vectores de temperaturas mínimas y máximas diarias.
-    Información sobre los métodos utilizados aquí se puede encontrar en:
-    http://www.ipm.ucdavis.edu/WEATHER/ddconcepts.html
-
-    :param mín:
-    :type mín: float
-    :param máx:
-    :type máx: float
-    :param umbrales:
-    :type umbrales: tuple
-    :param método:
-    :type método: str
-    :param corte:
-    :type corte: str
-    :return: número de días grados (número entero)
-    :rtype: int
-    """
-
-    if método == 'Triangular':
-        # Método triangular único
-        sup_arriba = max(12 * (máx - umbrales[1]) ** 2 / (máx - mín), 0) / 24
-        sup_centro = max(12 * (umbrales[1] - umbrales[0]) ** 2 / (umbrales[1] - mín), 0) / 24
-        sup_lados = max(24 * (máx - umbrales[1]) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
-
-    elif método == 'Sinusoidal':
-        # Método sinusoidal único
-        # NOTA: Probablemente lleno de bogues
-        amp = (máx - mín) / 2
-        prom = (máx + mín) / 2
-        if umbrales[1] >= máx:
-            intersect_máx = 0
-            sup_arriba = 0
-        else:
-            intersect_máx = 24 * mat.acos((umbrales[1] - prom) / amp)
-            sup_arriba = 2 * (intersect_máx * (prom - máx) + 2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_máx))
-
-        if umbrales[0] <= mín:
-            intersect_mín = intersect_máx
-        else:
-            intersect_mín = 24 * mat.acos((umbrales[0] - prom) / amp)
-
-        sup_centro = 2 * intersect_máx * (máx - mín)
-        sup_lados = 2 * (2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_mín) -
-                         2 * mat.pi / 24 * mat.sin(2 * mat.pi / 24 * intersect_máx) +
-                         (intersect_mín - intersect_máx) * (umbrales[0] - prom)
-                         )
-
-    else:
-        raise ValueError
-
-    if corte == 'Horizontal':
-        días_grd = sup_centro + sup_lados
-    elif corte == 'Intermediario':
-        días_grd = sup_centro + sup_lados - sup_arriba
-    elif corte == 'Vertical':
-        días_grd = sup_lados
-    elif corte == 'Ninguno':
-        días_grd = sup_lados + sup_centro + sup_arriba
-    else:
-        raise ValueError
-
-    return días_grd
 
 
 def copiar_dic_coefs(d, c=None):

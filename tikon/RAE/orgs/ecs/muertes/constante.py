@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónMuertes
 
 
 class Q(Parám):
@@ -8,12 +9,13 @@ class Q(Parám):
     líms = (0, 1)
 
 
-class Constante(Ecuación):
+class Constante(EcuaciónMuertes):
     """
     Muertes en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición exponencial.
     """
     nombre = 'Constante'
     cls_ramas = [Q]
 
-    def eval(self, paso):
-        return np.multiply(pob_etp, cf['q'])
+    def eval(símismo, paso):
+        pobs = símismo.obt_res()
+        return np.multiply(pobs, símismo.cf['q'])

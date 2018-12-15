@@ -1,5 +1,5 @@
 from tikon.ecs import ÁrbolEcs
-from tikon.rsltd.res import Dims, Resultado, ResultadoTemporal
+from tikon.rsltd.res import DimsRes, Resultado, ResultadoTemporal
 
 
 class Módulo(object):
@@ -19,7 +19,7 @@ class Módulo(object):
         obs = []
 
         dims = {
-            res: Dims(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
+            res: DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
             for res, coords in símismo._coords_resultados().items()
         }
 
