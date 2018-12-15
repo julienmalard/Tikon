@@ -12,7 +12,7 @@ class RedAE(Módulo):
         super().__init__()
 
         símismo._orgs = {}
-        símismo._info_etps = None  # type: InfoEtapas
+        símismo.info_etps = None  # type: InfoEtapas
         símismo.cohortes = None  # type: Cohortes
 
         if orgs is not None:
@@ -36,11 +36,11 @@ class RedAE(Módulo):
         return símismo._ecs_simul.vals_paráms()
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
-        símismo._info_etps = InfoEtapas(símismo._orgs)
+        símismo.info_etps = InfoEtapas(símismo._orgs)
         símismo._ecs_simul = EcsOrgs(
-            símismo._info_etps, mód=símismo, í_cosos=None, n_rep=n_rep_parám
+            símismo.info_etps, mód=símismo, í_cosos=None, n_rep=n_rep_parám
         )
-        símismo.cohortes = Cohortes(símismo._info_etps, n_rep_estoc, n_rep_parám, parc=parc)
+        símismo.cohortes = Cohortes(símismo.info_etps, n_rep_estoc, n_rep_parám, parc=parc)
 
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
 
@@ -79,30 +79,31 @@ class RedAE(Módulo):
         símismo.poner_valor('Pobs', pobs, rel=True)
         símismo.cohortes.ajustar(pobs)
 
-    def presas(símismo, etp):
-        return [pr for pr in etp.presas() if pr in símismo._info_etps]
-
-    def huéspedes(símismo, etp):
-        return [pr for pr in etp.huéspedes() if pr in símismo._info_etps]
-
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):
             tipo = [tipo]
 
-        etps = símismo._info_etps
+        etps = símismo.info_etps
         tmñ_total = len(etps)
 
         etps_inter = set()
         for tp in tipo:
             if tp == 'presa':
-                etps_inter.update(símismo.presas(coso))
+                etps_inter.update(símismo.info_etps.presas(coso))
             elif tp == 'huésped':
-                etps_inter.update(símismo.huéspedes(coso))
+                etps_inter.update(símismo.info_etps.huéspedes(coso))
             else:
                 raise ValueError(tipo)
         índs = {etps.índice(etp): [etp.org, etp] for etp in etps_inter}
         if len(índs):
             return Inter(tmñ=tmñ_total, índices=índs)
+
+    # para hacer: limpiar y reorganizar estos
+    def í_repr(símismo):
+        return [
+            símismo.info_etps.índice(etp.org[0]) for etp in símismo.info_etps
+            if etp.categ_activa('Reproducción', símismo)
+        ]
 
     def _coords_resultados(símismo):
 
@@ -110,10 +111,10 @@ class RedAE(Módulo):
         parc = símismo.obt_val_control('parcelas')
 
         return {
-            'Pobs': {'etapa': símismo._info_etps.etapas},
+            'Pobs': {'etapa': símismo.info_etps.etapas},
             'Depredación': {
                 'etapa': símismo._ecs_simul.cosos_en_categ('Depredación'),
-                'víctima': símismo._info_etps.etapas
+                'víctima': símismo.info_etps.etapas
             },
             'Movimiento': {
                 'etapa': símismo._ecs_simul.cosos_en_categ('Movimiento'),
@@ -135,12 +136,21 @@ class InfoEtapas(object):
         símismo._orgs = list(orgs.values()) if isinstance(orgs, dict) else orgs
         símismo.etapas = [etp for org in símismo._orgs for etp in org.etapas(fantasmas=True)]
 
+    def presas(símismo, etp):
+        return [pr for pr in etp.presas() if pr in símismo]
+
+    def huéspedes(símismo, etp):
+        return [pr for pr in etp.huéspedes() if pr in símismo]
+
     def índice(símismo, etp):
         return símismo.etapas.index(etp)
 
     def __iter__(símismo):
         for etp in símismo.etapas:
             yield etp
+
+    def __contains__(símismo, itema):
+        return itema in símismo.etapas
 
     def __len__(símismo):
         return len(símismo.etapas)

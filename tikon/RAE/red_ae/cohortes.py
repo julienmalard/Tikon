@@ -53,47 +53,50 @@ class Cohortes(object):
 
     def quitar(símismo, muertes):
 
-        if len(símismo.predics['Cohortes']):
+        muertes = símismo._proc_matr_datos(muertes)
 
-            totales_pobs = np.sum(símismo._pobs, axis=0)
-            quitar = np.floor(np.divide(muertes, totales_pobs) * símismo._pobs)
-            quitar[np.isnan(quitar)] = 0
+        pobs = símismo._pobs
+        eje_coh = símismo.eje_coh()
 
-            np.subtract(símismo._pobs, quitar, out=símismo._pobs)
+        totales_pobs = np.sum(pobs, axis=0)
+        quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
+        quitar[np.isnan(quitar)] = 0
 
-            muertes = np.subtract(muertes, quitar.sum(axis=0))
+        np.subtract(pobs, quitar, out=pobs)
 
-            cum_presente = np.cumsum(np.greater(símismo._pobs, 0), axis=0)
-            quitar_2 = np.where(
-                np.logical_and(np.greater(símismo._pobs, 0), np.less_equal(cum_presente, muertes)),
-                1,
-                0
-            )
+        muertes = np.subtract(muertes, quitar.sum(axis=eje_coh))
 
-            np.subtract(símismo._pobs, quitar_2, out=símismo._pobs)
+        cum_presente = np.cumsum(np.greater(pobs, 0), axis=eje_coh)
+        quitar_2 = np.where(
+            np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, muertes)),
+            1,
+            0
+        )
 
-            np.add(quitar_2, quitar, out=quitar)
+        np.subtract(pobs, quitar_2, out=pobs)
 
-            # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
-            if í_recip is not None:
+        np.add(quitar_2, quitar, out=quitar)
 
-                if í_don is None:
-                    raise ValueError
+        # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
+        if í_recip is not None:
 
-                # Los índices (en la matriz de cohortes) de las etapas recipientes.
-                í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
+            if í_don is None:
+                raise ValueError
 
-                í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
+            # Los índices (en la matriz de cohortes) de las etapas recipientes.
+            í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
 
-                # Para cada cohorte...
-                for n_día in range(símismo._pobs.shape[0]):
-                    # Las edades de las etapas que se quitaron
-                    eds = símismo._edades[n_día, ...]
+            í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
 
-                    # Cambiar el orden de las etapas para los cohortes recipientes
-                    nuevos = np.zeros_like(quitar[n_día])
-                    nuevos[..., í_recip_coh] = quitar[n_día][..., í_don_coh]
-                    símismo.agregar(nuevos, edad=eds)
+            # Para cada cohorte...
+            for n_día in range(pobs.shape[eje_coh]):
+                # Las edades de las etapas que se quitaron
+                eds = símismo._edades[n_día, ...]
+
+                # Cambiar el orden de las etapas para los cohortes recipientes
+                nuevos = np.zeros_like(quitar[n_día])
+                nuevos[..., í_recip_coh] = quitar[n_día][..., í_don_coh]
+                símismo.agregar(nuevos, edad=eds)
 
     def ajustar(símismo, cambio):
         # Detectar dónde el cambio es positivo y dónde es negativo
