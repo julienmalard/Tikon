@@ -5,58 +5,55 @@ from tikon.rsltd.res import DimsCoh
 
 class Cohortes(object):
     def __init__(símismo, etapas, n_rep_estoc, n_rep_parám, parc):
-        símismo._etps = [etp for etp in etapas if etp.con_cohortes()]
+        símismo._etps, símismo.í_etps = zip(*[(etp, í) for í, etp in enumerate(etapas) if etp.con_cohortes()])
 
-        símismo._dims = DimsCoh(n_coh=10, n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, etapas=etapas)
+        símismo._dims = DimsCoh(n_coh=10, n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, etapas=símismo._etps)
 
         símismo._pobs = np.zeros(símismo._dims.frm())
         símismo._edades = np.zeros(símismo._dims.frm())
 
-    def agregar(símismo, nuevos, etapas):
+    def agregar(símismo, nuevos, edad=0):
 
-        if not np.sum(nuevos):
-            return
+        nuevos = símismo._proc_matr_datos(nuevos)
 
         # Limpiar edades de cohortes
         símismo._edades[símismo._pobs == 0] = 0
 
-        # Las edades y las poblaciones actuales de las etapas que transicionan.
-        edades = símismo._edades[símismo.rebanar(etapas)]
-        pobs = símismo._pobs[símismo.rebanar(etapas)]
+        # Las edades y las poblaciones actuales de las etapas
+        edades = símismo._edades
+        pobs = símismo._pobs
+        eje_coh = símismo.eje_coh()
 
         # Los índices de los días cuyos cohortes tienen la edad mínima. Si hay más que un día (cohorte) con la
         # edad mínima, tomará el primero.
-        i_cohs = np.argmin(edades, axis=símismo._dims.í_eje('coh')).ravel()
+        í_cohs = np.expand_dims(np.argmin(edades, axis=eje_coh), axis=eje_coh)
 
-        í_parc, í_estoc, í_parám, í_etps = dic_predic['Matrices']['í_ejes_cohs']
         # Las edades de los cohortes con las edades mínimas.
-        tmñ = dic_predic['Matrices']['tmñ_para_cohs']  # El tamaño de los cohortes, sin el eje de día
-        eds_mín = matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
+        eds_mín = np.take_along_axis(edades, í_cohs, axis=eje_coh)
 
         # Las poblaciones que corresponden a estas edades mínimas.
-        pobs_coresp_í = matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps].reshape(tmñ)
+        pobs_coresp = np.take_along_axis(pobs, í_cohs, axis=eje_coh)
 
         # Dónde no hay población existente, reinicializamos la edad.
-        eds_mín = np.where(pobs_coresp_í == 0, [0], eds_mín)
+        eds_mín = np.where(pobs_coresp == 0, [0], eds_mín)
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
-        # cohorte si hay que combinarla con un cohorte existente).
-        peso_ed_ya = np.divide(pobs_coresp_í, np.add(nuevos, pobs_coresp_í))
+        # cohorte si hay que combinarlo con un cohorte existente).
+        peso_ed_ya = np.divide(pobs_coresp, np.add(nuevos, pobs_coresp))
         peso_ed_ya[np.isnan(peso_ed_ya)] = 0
 
         # Los edades promedios. Si no había necesidad de combinar cohortes, será la población del nuevo cohorte.
         eds_prom = np.add(np.multiply(eds_mín, peso_ed_ya), np.multiply(edad, np.subtract(1, peso_ed_ya)))
 
         # Guardar las edades actualizadas en los índices apropiados
-        matr_eds[i_cohs, í_parc, í_estoc, í_parám, í_etps] = eds_prom.ravel()
+        np.put_along_axis(edades, í_cohs, eds_prom, axis=eje_coh)
 
         # Guardar las poblaciones actualizadas en los índices apropiados
-        matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps] += nuevos.ravel()
+        np.put_along_axis(pobs, í_cohs, nuevos + pobs_coresp, axis=eje_coh)
 
     def quitar(símismo, muertes):
 
         if len(símismo.predics['Cohortes']):
-
 
             totales_pobs = np.sum(símismo._pobs, axis=0)
             quitar = np.floor(np.divide(muertes, totales_pobs) * símismo._pobs)
@@ -135,10 +132,21 @@ class Cohortes(object):
             símismo._pobs[símismo.rebanar(etapas)] -= n_cambian
 
         # Agregar las transiciones a la matriz de egresos.
-        return np.sum(n_cambian, axis=símismo._dims.í_eje('coh'))
+        return np.sum(n_cambian, axis=símismo.eje_coh())
 
     def rebanar(símismo, etapas):
         return símismo._dims.rebanar({'etapa': símismo.í_etapas(etapas)})
 
     def í_etapas(símismo, etapas):
         return [símismo._etps.index(etp) for etp in etapas]
+
+    def eje_coh(símismo):
+        return símismo._dims.í_eje('coh')
+
+    def _proc_matr_datos(símismo, datos):
+
+        n_etps = datos.shape[-1]
+        if n_etps != len(símismo._etps):
+            datos = datos[..., símismo.í_etps]
+
+        return datos

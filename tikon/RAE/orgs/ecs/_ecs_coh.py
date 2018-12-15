@@ -12,6 +12,7 @@ class EcuaciónConCohorte(EcuaciónOrg):
         símismo.dist = None  # type: estad.rv_continuous
 
     def act_vals(símismo):
+        super().act_vals()
         símismo.dist = símismo._cls_dist(**símismo._prms_scipy())  # para hacer
 
     def cambio_edad(símismo):
