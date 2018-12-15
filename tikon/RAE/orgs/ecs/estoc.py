@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
+from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía, Parám
+from ._plntll_ec import EcuaciónOrg
 
 
 class Sigma(Parám):
@@ -8,7 +9,7 @@ class Sigma(Parám):
     líms = (0, 1)
 
 
-class Normal(Ecuación):
+class Normal(EcuaciónOrg):
     """
     Error distribuido de manera normal.
     """
@@ -23,19 +24,26 @@ class DistEstoc(SubcategEc):
     nombre = 'Dist'
     cls_ramas = [EcuaciónVacía, Normal]
     auto = Normal
+    _eje_cosos = 'etapa'
+    _nombre_res = 'Estoc'
 
 
 class EcsEstoc(CategEc):
     nombre = 'Estoc'
     cls_ramas = [DistEstoc]
+    _nombre_res = 'Estoc'
+    _eje_cosos = 'etapa'
 
-    def calc(símismo, paso):
-        super()(paso)
+    def postproc(símismo, paso):
 
-        estoc = símismo._res.obt_valor()
+        estoc = símismo.obt_res(filtrar=False)
+        pobs = símismo.obt_val_mód('Pobs', filtrar=True)
+
         np.multiply(pobs, estoc, out=estoc)
-        np.maximum(1, estoc, out=estoc)
-        np.round(np.random.normal(0, estoc), out=estoc)
+        np.maximum(1, estoc, out=estoc)  # para hacer: bajar el ``1``
+        estoc = np.random.normal(0, estoc)
 
         # Verificar que no quitamos más que existen
-        estoc[:] = np.where(-estoc > pobs, -pobs, estoc)
+        estoc = np.where(-estoc > pobs, -pobs, estoc)
+
+        símismo.mód.ajustar_pobs(estoc)

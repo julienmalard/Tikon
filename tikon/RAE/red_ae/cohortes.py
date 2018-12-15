@@ -1,16 +1,18 @@
 import numpy as np
 
+from tikon.rsltd.res import DimsCoh
+
 
 class Cohortes(object):
-    def __init__(símismo, etapas, n_rep_estoc, n_rep_parám, n_parc):
+    def __init__(símismo, etapas, n_rep_estoc, n_rep_parám, parc):
         símismo._etps = [etp for etp in etapas if etp.con_cohortes()]
 
-        tmñ = (len(símismo._etps), n_rep_estoc, n_rep_parám, n_parc)
+        símismo._dims = DimsCoh(n_coh=10, n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, etapas=etapas)
 
-        símismo._pobs = np.zeros(tmñ)
-        símismo._edades = np.zeros(tmñ)
+        símismo._pobs = np.zeros(símismo._dims.frm())
+        símismo._edades = np.zeros(símismo._dims.frm())
 
-    def agregar(símismo, nuevos):
+    def agregar(símismo, nuevos, etapas):
 
         if not np.sum(nuevos):
             return
@@ -18,9 +20,13 @@ class Cohortes(object):
         # Limpiar edades de cohortes
         símismo._edades[símismo._pobs == 0] = 0
 
-        # Los índices de los días (eje 0) cuyos cohortes tienen la edad mínima. Si hay más que un día (cohorte) con la
+        # Las edades y las poblaciones actuales de las etapas que transicionan.
+        edades = símismo._edades[símismo.rebanar(etapas)]
+        pobs = símismo._pobs[símismo.rebanar(etapas)]
+
+        # Los índices de los días cuyos cohortes tienen la edad mínima. Si hay más que un día (cohorte) con la
         # edad mínima, tomará el primero.
-        i_cohs = np.argmin(matr_eds, axis=0).ravel()
+        i_cohs = np.argmin(edades, axis=símismo._dims.í_eje('coh')).ravel()
 
         í_parc, í_estoc, í_parám, í_etps = dic_predic['Matrices']['í_ejes_cohs']
         # Las edades de los cohortes con las edades mínimas.
@@ -47,11 +53,10 @@ class Cohortes(object):
         # Guardar las poblaciones actualizadas en los índices apropiados
         matr_pobs[i_cohs, í_parc, í_estoc, í_parám, í_etps] += nuevos.ravel()
 
-    def quitar(símismo, pobs_q):
+    def quitar(símismo, muertes):
 
         if len(símismo.predics['Cohortes']):
 
-            muertes = pobs_q.copy()  # Para no afectar el parámetro que se pasó a la función
 
             totales_pobs = np.sum(símismo._pobs, axis=0)
             quitar = np.floor(np.divide(muertes, totales_pobs) * símismo._pobs)
@@ -59,7 +64,7 @@ class Cohortes(object):
 
             np.subtract(símismo._pobs, quitar, out=símismo._pobs)
 
-            np.subtract(muertes, quitar.sum(axis=0), out=muertes)
+            muertes = np.subtract(muertes, quitar.sum(axis=0))
 
             cum_presente = np.cumsum(np.greater(símismo._pobs, 0), axis=0)
             quitar_2 = np.where(
@@ -104,32 +109,36 @@ class Cohortes(object):
         # ...y quitar los negativos.
         símismo.quitar(negativos)
 
-    def trans(símismo, cambio_edad):
-        # Los índices (en la matriz de cohortes) de las etapas que transicionan.
-        í_etps_coh = [símismo.índices_cohortes.index(x) for x in etps]
+    def trans(símismo, cambio_edad, dist, etapas, quitar=True):
 
-        # Las edades y las poblaciones actuales de estas etapas.
-        edades = símismo.predics['Cohortes']['Edades'][..., í_etps_coh]
-        pobs = símismo.predics['Cohortes']['Pobs'][..., í_etps_coh]
+        # Las edades y las poblaciones actuales de las etapas que transicionan.
+        edades = símismo._edades[símismo.rebanar(etapas)]
+        pobs = símismo._pobs[símismo.rebanar(etapas)]
 
         # Calcualar la probabilidad de transición.
-        dens_cum_eds = dists.cdf(edades)
-        probs = np.divide(np.subtract(dists.cdf(edades + cambio_edad),
-                                      dens_cum_eds),
-                          np.subtract(1, dens_cum_eds)
-                          )
+        dens_cum_eds = dist.cdf(edades)
+        probs = np.divide(
+            np.subtract(dist.cdf(edades + cambio_edad), dens_cum_eds),
+            np.subtract(1, dens_cum_eds)
+        )
 
         probs[np.isnan(probs)] = 1
 
         # Calcular el número que transicionan.
-        n_cambian = np.floor(np.multiply(pobs, probs))
+        n_cambian = np.multiply(pobs, probs)
 
         # Aplicar el cambio de edad.
-        símismo.predics['Cohortes']['Edades'][..., í_etps_coh] += cambio_edad
+        símismo._edades[símismo.rebanar(etapas)] += cambio_edad
 
         # Si hay que quitar las etapas que transicionario, hacerlo aquí.
         if quitar:
-            símismo.predics['Cohortes']['Pobs'][..., í_etps_coh] -= n_cambian
+            símismo._pobs[símismo.rebanar(etapas)] -= n_cambian
 
         # Agregar las transiciones a la matriz de egresos.
-        np.sum(n_cambian, axis=0, out=matr_egr)
+        return np.sum(n_cambian, axis=símismo._dims.í_eje('coh'))
+
+    def rebanar(símismo, etapas):
+        return símismo._dims.rebanar({'etapa': símismo.í_etapas(etapas)})
+
+    def í_etapas(símismo, etapas):
+        return [símismo._etps.index(etp) for etp in etapas]

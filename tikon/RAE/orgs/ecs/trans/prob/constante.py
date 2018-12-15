@@ -1,4 +1,5 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónTrans
 
 
 class Q(Parám):
@@ -6,6 +7,6 @@ class Q(Parám):
     líms = (0, 1)
 
 
-class Constante(Ecuación):
+class Constante(EcuaciónTrans):
     nombre = 'Constante'
     cls_ramas = [Q]

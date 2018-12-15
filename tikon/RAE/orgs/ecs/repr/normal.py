@@ -2,6 +2,7 @@ from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónRepr
 import scipy.stats as estad
 
+
 class N(Parám):
     nombre = 'n'
     líms = (0, None)
@@ -26,4 +27,4 @@ class Normal(EcuaciónRepr):
     _cls_dist = estad.norm
 
     def _prms_scipy(símismo):
-        return dict(loc=símismo._ramas['mu'], scale=símismo._ramas['sigma'])
+        return dict(loc=símismo.cf['mu'], scale=símismo.cf['sigma'])
