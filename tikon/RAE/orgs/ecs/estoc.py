@@ -40,7 +40,7 @@ class EcsEstoc(CategEc):
         pobs = símismo.obt_val_mód('Pobs', filtrar=True)
 
         np.multiply(pobs, estoc, out=estoc)
-        np.maximum(1, estoc, out=estoc)  # para hacer: bajar el ``1``
+        np.maximum(1, estoc, out=estoc)  # para hacer: bajar el ``1``...¿o no?
         estoc = np.random.normal(0, estoc)
 
         # Verificar que no quitamos más que existen

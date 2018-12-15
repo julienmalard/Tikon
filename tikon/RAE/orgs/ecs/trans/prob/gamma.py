@@ -1,4 +1,5 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónTransCoh
 
 
 class U(Parám):
@@ -16,6 +17,10 @@ class F(Parám):
     líms = (0, None)
 
 
-class Gamma(Ecuación):
+class Gamma(EcuaciónTransCoh):
     nombre = 'Gamma'
     cls_ramas = [U, F, A]
+
+    def _prms_scipy(símismo):
+        cf = símismo.cf
+        return dict(loc=cf['u'], scale=cf['f'], a=cf['a'])

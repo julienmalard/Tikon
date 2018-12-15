@@ -3,6 +3,29 @@ import numpy as np
 from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónDepred
 
+"""
+El libro "A primer of Ecology" es una buena referencia a las ecuaciones incluidas aquí, tanto como
+        Abrams PA, Ginzburg LR. 2000. The nature of predation: prey dependent, ratio dependent or neither?
+            Trends Ecol Evol 15(8):337-341.
+
+        Respuestas funcionales (y = consumo de presa por cápita de depredador, D = población del depredador,
+        P = población de la presa; a, b y c son constantes):
+
+            Tipo I:
+                y = a*P
+                Generalmente no recomendable. Incluido aquí por puro interés científico.
+
+            Tipo II:
+                y = a*P / (P + b)
+
+            Tipo III:
+                y = a*P^2 / (P^2 + b)
+
+            Dependencia en la presa quiere decir que el modelo está dependiente de la población de la presa únicamente
+            (como los ejemplos arriba). Ecuaciones dependientes en el ratio se calculan de manera similar, pero
+            reemplazando P con (P/D) en las ecuaciones arriba.
+"""
+
 
 class ATipoI(Parám):
     nombre = 'a'
@@ -19,7 +42,9 @@ class TipoIDP(EcuaciónDepred):
     cls_ramas = [ATipoI]
 
     def eval(símismo, paso):
-        return np.multiply(pobs, símismo.cf['a'])
+        cf = símismo.cf
+        dens = símismo.obt_val_mód('Dens')
+        return np.multiply(dens, cf['a'])
 
 
 class ATipoII(Parám):

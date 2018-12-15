@@ -1,4 +1,5 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ._plntll_ec import EcuaciónTransCoh
 
 
 class A(Parám):
@@ -16,6 +17,10 @@ class C(Parám):
     líms = (0, None)
 
 
-class Triang(Ecuación):
+class Triang(EcuaciónTransCoh):
     nombre = 'Triang'
-    cls_ramas = [NA, B, C]
+    cls_ramas = [A, B, C]
+
+    def _prms_scipy(símismo):
+        cf = símismo.cf
+        return dict(loc=cf['a'], scale=cf['b'], c=cf['c'])
