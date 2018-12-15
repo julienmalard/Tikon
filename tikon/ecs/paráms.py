@@ -13,7 +13,7 @@ class MnjdrValsCoefs(object):
             matr.act_vals()
 
     def __getitem__(símismo, itema):
-        return símismo._paráms[str(itema)].val().swapaxes(0, -1)
+        return np.rollaxis(símismo._paráms[str(itema)].val(), -1)
 
 
 class PlantillaMatrsParáms(object):
@@ -66,6 +66,10 @@ class ValsParámCosoInter(PlantillaMatrsParáms):
 
     def tmñ(símismo):
         return (símismo._tmñ_inter, *_tmñ(list(símismo._sub_matrs.values()))[1:])  # para hacer: probablemente puede ser más elegante
+
+    def __iter__(símismo):
+        for vl in símismo._sub_matrs.values():
+            yield vl
 
     def __len__(símismo):
         return len(símismo._sub_matrs)

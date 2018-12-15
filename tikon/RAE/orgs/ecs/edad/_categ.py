@@ -13,6 +13,8 @@ class EcuaciónEdad(SubcategEc):
         FuncDías, FuncDíasGrados, FuncBrièreTemperatura, FuncLoganTemperatura, FuncBrièreNoLinearTemperatura
     ]
     auto = FuncDías
+    _nombre_res = 'Edad'
+    _eje_cosos = 'etapa'
 
 
 class EcsEdad(CategEc):

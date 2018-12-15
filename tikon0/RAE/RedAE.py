@@ -627,22 +627,6 @@ class Red(Simulable):
             (como los ejemplos arriba). Ecuaciones dependientes en el ratio se calculan de manera similar, pero
             reemplazando P con (P/D) en las ecuaciones arriba.
 
-            Beddington-DeAngelis:
-                J.R. Beddington. Mutual interference between parasites and its effect on searching efficiency. J.
-                    Anim. Ecol., 44 (1975), pp. 331–340
-                D.L. DeAngelis, et al. A model for trophic interaction Ecology, 56 (1975), pp. 881–892
-
-                Usamos una forma matemáticamente equivalente a la en el artículo, y que facilita el establecimiento de
-                  distribuciones a prioris para los parámetros:
-                y = a*P / (b + P + c*D)
-
-            Hassell-Varley:
-                M.P. Hassell, G.C. Varley. New inductive population model for insect parasites and its bearing on
-                    biological control. Nature, 223 (1969), pp. 1133–1136
-
-                P en las respuestas funcionales arriba cambia a P/(D^m)
-
-
         :param pobs: matriz numpy de poblaciones actuales.
         :type pobs: np.ndarray
 
@@ -653,28 +637,6 @@ class Red(Simulable):
         :type paso: int
 
         """
-
-
-        # Densidades de poblaciones
-        dens = np.divide(pobs, extrn['superficies'].reshape(pobs.shape[0], 1, 1, 1))[..., np.newaxis, :]
-
-        for tp_ec, í_etps in tipos_ec.items():  # Para cada tipo de ecuación...
-
-            # Los coeficientes para las etapas con este tipo de ecuación
-            cf = coefs[tp_ec]  # type: dict
-
-            # Una COPIA de la parte de la matriz que representa la depredación por estas etapas
-            depred_etp = np.take(depred, í_etps, axis=3)
-
-            depred[:, :, :, í_etps, :] = depred_etp
-
-
-
-        # Depredación únicamente por presa (todos los depredadores juntos)
-        depred_por_presa = np.sum(depred, axis=3)
-
-        # Actualizar la matriz de poblaciones
-        np.subtract(pobs, depred_por_presa, out=pobs)
 
         # Dividir las depredaciones entre las de depredación normal y las de infecciones
         depred_infec = np.zeros_like(depred)

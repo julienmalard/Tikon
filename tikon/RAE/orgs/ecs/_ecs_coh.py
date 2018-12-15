@@ -4,8 +4,8 @@ from tikon.ecs.árb_mód import Ecuación
 class EcuaciónConCohorte(Ecuación):
     _cls_dist = NotImplemented
 
-    def __init__(símismo, cosos, í_cosos, mnjdr_móds):
-        super().__init__(cosos, í_cosos, mnjdr_móds)
+    def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
+        super().__init__(cosos, í_cosos, mód, n_rep, ecs)
 
         símismo.dist = símismo._cls_dist(símismo._prms_scipy())
 

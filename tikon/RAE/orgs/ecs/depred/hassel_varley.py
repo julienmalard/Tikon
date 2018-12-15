@@ -19,6 +19,12 @@ class MTipoI(Parám):
 class TipoIHasselVarley(EcuaciónDepred):
     """
     Depredación de respuesta funcional Tipo I con dependencia Hassell-Varley.
+
+    M.P. Hassell, G.C. Varley. New inductive population model for insect parasites and its bearing on
+        biological control. Nature, 223 (1969), pp. 1133–1136
+
+    P en las respuestas funcionales de  cambia a P/(D^m)
+
     """
     nombre = 'Tipo I_Hassell-Varley'
     cls_ramas = [ATipoI, MTipoI]

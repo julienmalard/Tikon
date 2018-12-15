@@ -10,6 +10,6 @@ red = RedAE([oruga, araña])
 
 simul = Simulador(red)
 
-res = simul.simular(10)
+res = simul.simular(10, n_rep_parám=17, n_rep_estoc=30)
 
 print(res)

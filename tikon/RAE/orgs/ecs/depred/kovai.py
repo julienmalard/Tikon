@@ -33,11 +33,11 @@ class Kovai(EcuaciónDepred):
     cls_ramas = [PrAKovai, PrBKovai]
 
     def eval(símismo, paso):
-        dens = símismo.obt_dens_pobs(filtrar=False)
+        dens = símismo.obt_dens_pobs()
         cf = símismo.cf
 
         #
-        # dens_depred = dens[:, :, :, 0, í_etps, np.newaxis]  # La población de esta etapa (depredador)
+        dens_depred = símismo.obt_dens_pobs(eje_extra='víctima')  # La población de esta etapa (depredador)
 
         presa_efec = np.add(
             dens,
@@ -61,7 +61,7 @@ class Kovai(EcuaciónDepred):
         )
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
-        eje_presas = símismo.í_eje_res('presa')
+        eje_presas = símismo.í_eje_res('víctima')
         probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=eje_presas)
 
         return depred_etp

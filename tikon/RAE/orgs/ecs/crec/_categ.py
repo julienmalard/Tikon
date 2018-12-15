@@ -10,16 +10,15 @@ class EcsCrec(CategEc):
     cls_ramas = [ModifCrec, EcuaciónCrec]
     _eje_cosos = 'etapa'
     _nombre_res = 'Crecimiento'
+    req_todas_ramas = True
 
     def postproc(símismo, paso):
 
-        crec = símismo.obt_res()
+        crec = símismo.obt_res(filtrar=False)  # para hacer: filtara=False debería ser automático para CategEc
         pobs = símismo.obt_val_mód('Pobs')
 
-        crec[np.isnan(crec)] = 0
-        np.floor(crec)
+        # Evitar pérdidas de poblaciones superiores a la población.
+        crec[np.isnan(crec)] = -pobs[np.isnan(crec)]
 
-        # Asegurarse que no perdimos más que existen
-        np.maximum(-pobs, crec, out=crec)
-        símismo.poner_val(crec)
-        símismo.mód.poner_val('Pobs', crec, rel=True, índs=símismo.í_cosos)
+        símismo.poner_val_res(crec)
+        símismo.poner_val_mód('Pobs', crec, rel=True)
