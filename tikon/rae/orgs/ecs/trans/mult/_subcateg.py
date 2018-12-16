@@ -3,6 +3,10 @@ from .linear import Linear
 
 
 class MultTrans(SubcategEc):
+    """
+    Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides).
+    """
+
     nombre = 'Mult'
     cls_ramas = [EcuaciónVacía, Linear]
     auto = EcuaciónVacía

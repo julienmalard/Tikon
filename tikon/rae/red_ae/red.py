@@ -1,5 +1,6 @@
 from tikon.ecs.paráms import Inter
 from tikon.módulo import Módulo
+from ..orgs.organismo import EtapaFantasma
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
@@ -104,6 +105,12 @@ class RedAE(Módulo):
             símismo.info_etps.índice(etp.org[0]) for etp in símismo.info_etps
             if etp.categ_activa('Reproducción', símismo)
         ]
+
+    def í_trans(símismo):
+        etps_trans = [etp for etp in símismo.info_etps if etp.categ_activa('Transiciones', símismo)]
+        índs = símismo.info_etps.índice
+        siguientes = [etp.siguiente() for etp in etps_trans]
+        return [(índs(etp), índs(sig)) for etp, sig in zip(etps_trans, siguientes) if sig]
 
     def _coords_resultados(símismo):
 

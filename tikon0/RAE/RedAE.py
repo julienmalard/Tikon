@@ -287,18 +287,6 @@ class Red(Simulable):
                 if tipo_ed != 'Nada':
                     símismo.ecs['Edad']['Ecuación'][tipo_ed].remove(n_etp)
 
-        # Desactivar las ecuaciones de depredación para etapas que tienen ni presas, ni huéspedes
-        for n_etp, d_etp in enumerate(símismo.etapas):
-
-            # Si la etapa tiene ni presa, ni huésped...
-            if not len(d_etp['conf']['presa']) and not len(d_etp['conf']['huésped']):
-
-                # ...Desactivar sus ecuaciones de depredación.
-                tipo_depred = símismo.etapas[n_etp]['dic']['ecs']['Depredación']['Ecuación']
-
-                if tipo_depred != 'Nada':
-                    símismo.ecs['Depredación']['Ecuación'][tipo_depred].remove(n_etp)
-
         # Guardar el orden de transiciones y de reproducciones
         símismo.orden['trans'] = np.full(len(símismo.etapas), -1, dtype=np.int)
         símismo.orden['repr'] = np.full(len(símismo.etapas), -1, dtype=np.int)
@@ -321,19 +309,6 @@ class Red(Simulable):
                     símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín if d_etp['trans'] != -1 else -1
                 if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
                     símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín if d_etp['repr'] != -1 else -1
-
-        # Actualizar la información de los cohortes.
-        í_cohs = símismo.índices_cohortes
-        í_cohs.clear()
-
-        for n_etp, etp in enumerate(símismo.etapas):
-            # Para cara etapa de cada organismo...
-
-            # Verificar si necesita cohortes
-            req_cohs = any([n_etp in l_etps for l_etps in símismo.ecs['Edad']['Ecuación'].values()])
-
-            if req_cohs:
-                í_cohs.append(n_etp)
 
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
@@ -490,51 +465,6 @@ class Red(Simulable):
         # Actualizar cohortes ahora, si necesario
         if len(símismo.índices_cohortes):
             símismo._añadir_a_cohortes(nuevos=reprod[..., símismo.índices_cohortes])
-
-    def _calc_trans(símismo, pobs, paso, trans):
-        """
-        Esta función calcula las transiciones de organismos de una etapa a otra. Esto puede incluir muerte por
-        viejez.
-
-        :param pobs:
-        :type pobs: np.ndarray
-
-        :param paso:
-        :type paso: int
-
-        :param trans:
-        :type trans:
-
-        """
-
-        # Redondear las transiciones calculadas
-        np.floor(trans, out=trans)
-
-        # Quitar los organismos que transicionaron
-        np.subtract(pobs, trans, out=pobs)
-
-        # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
-        orden_recip = símismo.orden['trans']
-        nuevos = np.zeros_like(trans)
-
-        # Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides)
-        for tp_mult, í_etps in tipos_mult.items():
-            if tp_mult == 'Linear':
-                trans[..., í_etps] *= coefs_mt[tp_mult]['a']
-                np.round(trans, out=trans)
-            else:
-                raise ValueError('Tipo de multiplicación "{}" no reconocida.'.format(tp_mult))
-
-        for i in range(len(símismo.etapas)):
-            i_recip = orden_recip[i]
-            if i_recip != -1:
-                nuevos[..., i_recip] += trans[..., i]
-
-        np.add(pobs, nuevos, out=pobs)
-
-        if len(símismo.índices_cohortes):
-            símismo._añadir_a_cohortes(nuevos=nuevos[..., símismo.índices_cohortes])
-
 
     def _inic_pobs_const(símismo):
         # El diccionario de crecimiento
