@@ -45,9 +45,9 @@ class Parasitoide(Insecto):
             nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecuaciones=tipo_ec
         )
 
-    def parasita(símismo, huésped, etps_huésp, etp_emerg, etps_símismo='adulto'):
+    def parasita(símismo, huésped, etps_huésp, etp_emerg, etps_símismo='adulto', etp_recip='adulto'):
         super().parasita(
-            huésped=huésped, etps_símismo=etps_símismo, etps_huésp=etps_huésp, etp_emerg=etp_emerg
+            huésped=huésped, etps_símismo=etps_símismo, etps_huésp=etps_huésp, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
 
 

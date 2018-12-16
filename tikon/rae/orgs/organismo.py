@@ -48,7 +48,7 @@ class Organismo(Coso):
             if rel.presa is presa and rel.etp_presa in etps_presa and rel.etp_depred in etps_símismo:
                 símismo._rels_presas.remove(rel)
 
-    def parasita(símismo, huésped, etps_huésp, etp_emerg, etps_símismo=None):
+    def parasita(símismo, huésped, etps_huésp, etp_emerg, etp_recip, etps_símismo=None):
         etps_huésp = huésped.resolver_etapas(etps_huésp)
 
         if etps_símismo is None:
@@ -59,7 +59,9 @@ class Organismo(Coso):
 
         for e_h in etps_huésp:
             for e_s in etps_símismo:
-                obj_rel = RelaciónParas(huésped=huésped, etp_huésp=e_h, etp_depred=e_s, etp_emerg=etp_emerg)
+                obj_rel = RelaciónParas(
+                    huésped=huésped, etp_huésp=e_h, etp_depred=e_s, etp_emerg=etp_emerg, etp_recip=etp_recip
+                )
                 símismo._rels_paras.append(obj_rel)
 
     def noparasita(símismo, huésped, etps_huésp=None, etps_símismo=None):
@@ -88,16 +90,19 @@ class Organismo(Coso):
                 huésped = r_p.huésped
                 etps_en_hués = range(huésped.índice(r_p.etp_huésp), huésped.índice(r_p.etp_emerg) + 1)
 
-                for í_etp in etps_en_hués:
+                fant = None
+                for í_etp in reversed(etps_en_hués):
                     fant = EtapaFantasma(
-                        símismo, etp=símismo._etapas[0], org_hués=r_p.huésped, etp_hués=huésped[í_etp]
+                        símismo, etp=símismo._etapas[0], org_hués=r_p.huésped, etp_hués=huésped[í_etp],
+                        sig=fant or r_p.etp_recip
                     )
                     etapas.append(fant)
 
         return etapas
 
     def índice(símismo, etp):
-        etp = símismo[etp]
+        if isinstance(etp, str):
+            etp = símismo[etp]
         return símismo._etapas.index(etp)
 
     def presas(símismo, etp=None):
@@ -125,6 +130,9 @@ class Organismo(Coso):
         for etp in símismo._etapas:
             yield etp
 
+    def __len__(símismo):
+        return len(símismo._etapas)
+
 
 class Etapa(Coso):
     def __init__(símismo, nombre, org):
@@ -140,14 +148,23 @@ class Etapa(Coso):
     def con_cohortes(símismo):
         return símismo.categ_activa('Edad', mód=símismo)
 
+    def siguiente(símismo):
+        índice = símismo.org.índice(símismo)
+        if índice < (len(símismo.org) - 1):
+            return símismo.org[índice+1]
+
 
 class EtapaFantasma(Etapa):
-    def __init__(símismo, org, etp, org_hués, etp_hués):
+    def __init__(símismo, org, etp, org_hués, etp_hués, sig):
         nombre = f'{etp} en {org_hués}, {etp_hués}'
         super().__init__(nombre, org)
 
         símismo.org_hués = org_hués
         símismo.etp_hués = etp_hués
+        símismo.sig = sig
+
+    def siguiente(símismo):
+        return símismo.sig
 
 
 class RelaciónPresa(object):
@@ -158,8 +175,9 @@ class RelaciónPresa(object):
 
 
 class RelaciónParas(object):
-    def __init__(símismo, huésped, etp_huésp, etp_depred, etp_emerg):
+    def __init__(símismo, huésped, etp_huésp, etp_depred, etp_emerg, etp_recip):
         símismo.huésped = huésped
         símismo.etp_huésp = etp_huésp
         símismo.etp_depred = etp_depred
         símismo.etp_emerg = etp_emerg
+        símismo.etp_recip = etp_recip

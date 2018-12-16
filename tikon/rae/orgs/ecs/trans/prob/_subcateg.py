@@ -1,3 +1,5 @@
+import numpy as np
+
 from tikon.ecs.árb_mód import SubcategEc, EcuaciónVacía
 from .cauchy import Cauchy
 from .constante import Constante
@@ -12,3 +14,13 @@ class ProbTrans(SubcategEc):
     auto = Normal
     _nombre_res = 'Transiciones'
     _eje_cosos = 'etapa'
+
+    def postproc(símismo, paso):
+        trans = símismo.obt_res(filtrar=False)
+
+        # Redondear las transiciones calculadas
+        np.floor(trans, out=trans)
+
+        # Quitar los organismos que transicionaron
+        símismo.poner_val_mód('Pobs', trans, rel=True, filtrar=True)
+        símismo.poner_val_res(trans)
