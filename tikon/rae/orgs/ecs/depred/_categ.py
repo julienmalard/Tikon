@@ -46,7 +46,7 @@ class EcsDepred(CategEc):
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora está en unidades
         # del número total de presas comidas por cada tipo de depredador por unidad de tiempo.
         pobs = símismo.obt_val_mód('Pobs', filtrar=True)
-        np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)  # para hacer: rabanar mejor
+        np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)  # para hacer: rebanar mejor
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
         eje_depredador = símismo.í_eje_res('etapa')
@@ -66,6 +66,7 @@ class EcsDepred(CategEc):
         # para hacer
         # Dividir las depredaciones entre las de depredación normal y las de parasitismo
         depred_parás = np.zeros_like(depred)
+        return
         índs_parás, índs_víc = símismo.parasitoides['índices']
         depred_parás[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
         depred_por_presa_sin_infec = np.subtract(depred_por_presa, np.sum(depred_parás, axis=3))

@@ -26,7 +26,7 @@ class Cohortes(object):
         pobs = símismo._pobs[rbn]
         edades = símismo._edades[rbn]
 
-        nuevos = nuevos[rbn]
+        nuevos = nuevos[rbn[1:]]  # para hacer: rebanar mejor para matrices sin eje coh
 
         eje_coh = símismo.eje_coh()
 
@@ -69,7 +69,7 @@ class Cohortes(object):
 
         pobs = símismo._pobs[rbn]
         edades = símismo._edades[rbn]
-        para_quitar = para_quitar[rbn]
+        para_quitar = para_quitar[rbn[1:]]
 
         eje_coh = símismo.eje_coh()
 

@@ -109,8 +109,11 @@ class Dims(object):
     def n_ejes(símismo):
         return len(símismo._coords)
 
+    def _proc_índs(símismo, eje, índs):
+        return [í if isinstance(í, int) else símismo._coords[eje].índice(í) for í in índs]
+
     def rebanar(símismo, índs):
-        ejes_índs = {símismo.í_eje(eje): í for eje, í in índs.items()}
+        ejes_índs = {símismo.í_eje(eje): símismo._proc_índs(eje, í) for eje, í in índs.items()}
         return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
 
 
@@ -150,3 +153,6 @@ class Coord(object):
             return símismo.índs
         else:
             return len(símismo.índs)
+
+    def índice(símismo, itema):
+        return símismo.índs.index(itema)
