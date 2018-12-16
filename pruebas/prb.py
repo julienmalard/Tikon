@@ -1,6 +1,6 @@
 from tikon.simulador import Simulador
-from tikon.RAE.red_ae.red import RedAE
-from tikon.RAE.orgs.insectos.gnrc import Sencillo, MetamCompleta
+from tikon.rae.red_ae.red import RedAE
+from tikon.rae.orgs.insectos.gnrc import Sencillo, MetamCompleta
 
 oruga = MetamCompleta('oruga')
 araña = Sencillo('araña')

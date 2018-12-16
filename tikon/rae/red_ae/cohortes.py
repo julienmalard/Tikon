@@ -51,24 +51,24 @@ class Cohortes(object):
         # Guardar las poblaciones actualizadas en los índices apropiados
         np.put_along_axis(pobs, í_cohs, nuevos + pobs_coresp, axis=eje_coh)
 
-    def quitar(símismo, muertes):
+    def quitar(símismo, para_quitar, recips=None):
 
-        muertes = símismo._proc_matr_datos(muertes)
+        para_quitar = símismo._proc_matr_datos(para_quitar)
 
         pobs = símismo._pobs
         eje_coh = símismo.eje_coh()
 
         totales_pobs = np.sum(pobs, axis=0)
-        quitar = np.floor(np.divide(muertes, totales_pobs) * pobs)
+        quitar = np.floor(np.divide(para_quitar, totales_pobs) * pobs)
         quitar[np.isnan(quitar)] = 0
 
         np.subtract(pobs, quitar, out=pobs)
 
-        muertes = np.subtract(muertes, quitar.sum(axis=eje_coh))
+        para_quitar = np.subtract(para_quitar, quitar.sum(axis=eje_coh))
 
         cum_presente = np.cumsum(np.greater(pobs, 0), axis=eje_coh)
         quitar_2 = np.where(
-            np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, muertes)),
+            np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, para_quitar)),
             1,
             0
         )
@@ -78,15 +78,12 @@ class Cohortes(object):
         np.add(quitar_2, quitar, out=quitar)
 
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
-        if í_recip is not None:
-
-            if í_don is None:
-                raise ValueError
+        if recips is not None:
 
             # Los índices (en la matriz de cohortes) de las etapas recipientes.
-            í_recip_coh = [símismo.índices_cohortes.index(x) for x in í_recip]
+            í_recip_coh = [símismo._etps.index(x) for x in recips[0]]
 
-            í_don_coh = [símismo.índices_cohortes.index(x) for x in í_don]
+            í_don_coh = [símismo._etps.index(x) for x in recips[1]]
 
             # Para cada cohorte...
             for n_día in range(pobs.shape[eje_coh]):

@@ -45,27 +45,6 @@ class Red(Simulable):
 
         super().__init__(nombre=nombre, proyecto=proyecto)
 
-        # La información necesaria para recrear la Red
-        símismo.receta['estr']['Organismos'] = {}
-
-        # Unas referencias internas para facilitar el manejo de la red.
-        símismo.organismos = {}  # Para guardar una referencia a los objetos de los organismos en la red
-        símismo.etapas = []  # Una lista de las recetas (y más) de las etapas de los organismos en la red
-        símismo.núms_etapas = {}
-        símismo.lugar = None
-
-        # Un diccionario para las distribuciones de transiciones y de reproducción
-        símismo.dists = {'Trans': {}, 'Repr': {}}
-
-        # Para guardar los tipos de ecuaciones de los organismos en la red
-        símismo.ecs = {}
-
-        # Para guardar el orden relativo de transiciones y de reproducciones entre etapas
-        símismo.orden = {}
-
-        # Para guardar los índices de las etapas con cohortes
-        símismo.índices_cohortes = []
-
         # Para guardar etapas que siempre se deben combinar antes de reportar resultados (por ejemplo, etapas fantasmas)
         # Tendrá la forma siguiente:
         # {núm_etp_víctima : {'Parasitoide 1': núm_etp_fantasma,
@@ -77,18 +56,6 @@ class Red(Simulable):
         # Información de parasitoides:
         símismo.parasitoides = {'índices': (), 'adultos': {}, 'juvs': {}}
 
-        # La matriz de datos de las simulaciones (incluso los datos de poblaciones)
-        símismo.predics = {'Pobs': np.array([]),
-                           'Depredación': np.array([]),
-                           'Crecimiento': np.array([]),
-                           'Reproducción': np.array([]),
-                           'Muertes': np.array([]),
-                           'Transiciones': np.array([]),
-                           'Movimiento': np.array([]),
-                           'Cohortes': {},
-                           'Matrices': {}
-                           }
-
         # Un diccionario para guardar información específica a cada experimento asociado para poder procesar
         # las predicciones de la red en función a cada experimento.
         símismo.info_exps = {'etps_interés': {}, 'combin_etps': {}, 'combin_etps_obs': {}, 'parcelas': {},
@@ -96,87 +63,6 @@ class Red(Simulable):
 
         # La lista de egresos potencialmente incluidos como observaciones
         símismo.l_egresos = ['Pobs', 'Crecimiento', 'Reproducción', 'Transiciones', 'Muertes']
-
-        # Si ya se especificaron organismos en la inicialización, añadirlos a la red.
-        if type(organismos) is not list:
-            organismos = [organismos]
-
-        if organismos is not None:
-            for org in organismos:  # type: Organismo
-                símismo.añadir_org(org)
-
-    def añadir_org(símismo, organismo):
-        """
-        Esta función añade un organismo a la red.
-
-        :param organismo: El organismo que hay que añadir a la red
-        :type organismo: Organismo | str
-        """
-
-        # Sacar el nombre del organismo, tanto como el objeto correspondiente.
-        if isinstance(organismo, Organismo):
-            # Si 'organismo' es un objeto de tipo Organismo, guardar su nombre y el objeto sí mismo
-            nombre = organismo.nombre
-            obj_org = organismo
-        else:
-            # Si organismo no es objeto de Organismo, hay un error.
-            raise TypeError('"{}" debe ser de tipo Organismo o de texto.'.format(organismo))
-
-        # Añadir el organismo a la receta
-        dic_org = símismo.receta['estr']['Organismos'][nombre] = {}
-        dic_org['config'] = organismo.config
-        dic_org['proyecto'] = organismo.proyecto
-        dic_org['ext'] = organismo.ext
-
-        # Poner el organismo en la lista activa
-        símismo.organismos[nombre] = obj_org
-
-        # Guardar el Organismo en la lista de objetos de la red.
-        símismo.objetos.append(obj_org)
-
-        # Notar que ahora hay que actualizar la Red
-        símismo.listo = False
-
-    def quitar_org(símismo, organismo):
-        """
-        Esta función quita un organismo de la Red.
-
-        :param organismo: El organismo para quitar
-        :type organismo: Organismo or str
-        """
-
-        if isinstance(organismo, Organismo):
-            # Si 'organismo' es un objeto de tipo Organismo...
-            obj_org = organismo
-            nombre = organismo.nombre
-
-        elif isinstance(organismo, str):
-            # Si 'organismo' es una cadena de carácteres
-            nombre = organismo
-
-            try:
-                obj_org = símismo.organismos[organismo]
-            except KeyError:
-                raise KeyError('El organismo especificado no existía en esta red.')
-
-        else:
-            # Si "organismo" no es de tipo Organismo o texto, hay un error.
-            raise TypeError
-
-        # Quitar el Organismo de la Red, pero con cuidado con los errores
-        try:
-            símismo.receta['estr']['Organismos'].pop(nombre)  # Quitar el nombre de la receta
-            símismo.organismos.pop(nombre)  # Quitar el organismo del diccionario de organismos
-
-        except KeyError:
-            # Si Organismo no existía en la Red, no se puede quitar.
-            raise KeyError('El organismo especificado no existía en esta red.')
-
-        # Quitar Organismo de la lista de objetos de la red.
-        símismo.objetos.remove(obj_org)
-
-        # Notar que ahora hay que actualizar la Red
-        símismo.listo = False
 
     def actualizar(símismo):
         """
@@ -600,16 +486,6 @@ class Red(Simulable):
         :type paso: int
 
         """
-
-        # Iterar a través de los tipos de distribuciones de probabilidad activos
-        for tp_prob, í_etps in tipos_probs.items():
-            # Y ya pasamos a calcular el número de individuos de esta etapa que se reproducen en este paso de tiempo
-            cf = coefs_pr[tp_prob]
-            pob_etp = np.take(pobs, í_etps, axis=3)
-
-            # Una referencia a la parte apriopiada de la matriz de reproducciones
-            n_recip = [símismo.orden['repr'][n] for n in í_etps]  # para hacer: simplificar
-            repr_etp_recip = np.take(reprod, í_etps, axis=3)
 
         # Actualizar cohortes ahora, si necesario
         if len(símismo.índices_cohortes):
@@ -1420,7 +1296,7 @@ class Red(Simulable):
 
                     # Llenar la matriz de observaciones
                     parc = [nombres_parc.index(x) for x in datos['parc']]  # Los índices de las parcelas
-                    etps = list(símismo.info_exps['etps_interés'][exp][egr].keys())  # Los índices de las etapas en RAE
+                    etps = list(símismo.info_exps['etps_interés'][exp][egr].keys())  # Los índices de las etapas en rae
                     etps_bd = list(símismo.info_exps['etps_interés'][exp][egr].values())  # Los índices de etps en Exper
                     vals = datos['datos'][:, etps_bd, :]  # Los valores. Eje 0 = parc, 1 = etp, 2 = día
                     matr_obs[parc, etps, :] = vals  # Llenar los valores. eje 2 = día. Excluimos días sin datos obs.

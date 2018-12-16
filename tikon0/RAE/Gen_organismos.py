@@ -7,7 +7,7 @@ def generar_org(archivo):
     """
     Esta función devuelve una instancia de Organismo, con la subclase apropiada para la extensión del archivo
     especificado.
-    Notar que NO podrá encontrar subclases de Organismo que no se importan en el código __init__ de RAE.
+    Notar que NO podrá encontrar subclases de Organismo que no se importan en el código __init__ de rae.
 
     :param archivo: El archivo fuente.
     :type archivo: str

@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.RAE.red_ae.utils import probs_conj
+from tikon.rae.red_ae.utils import probs_conj
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
 from .bed_deang import BedDeAng
 from .dep_presa import TipoIDP, TipoIIDP, TipoIIIDP
