@@ -68,17 +68,17 @@ class RedAE(Módulo):
         else:
             return super().obt_valor(var)
 
-    def agregar_pobs(símismo, pobs):
-        símismo.poner_valor('Pobs', pobs, rel=True)
-        símismo.cohortes.agregar(pobs)
+    def agregar_pobs(símismo, pobs, índs=None):
+        símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
+        símismo.cohortes.agregar(pobs, índs=índs)
 
-    def quitar_pobs(símismo, pobs):
-        símismo.poner_valor('Pobs', -pobs, rel=True)
-        símismo.cohortes.quitar(pobs)
+    def quitar_pobs(símismo, pobs, índs=None):
+        símismo.poner_valor('Pobs', -pobs, rel=True, índs=índs)
+        símismo.cohortes.quitar(pobs, índs=índs)
 
-    def ajustar_pobs(símismo, pobs):
-        símismo.poner_valor('Pobs', pobs, rel=True)
-        símismo.cohortes.ajustar(pobs)
+    def ajustar_pobs(símismo, pobs, índs=None):
+        símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
+        símismo.cohortes.ajustar(pobs, índs=índs)
 
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):

@@ -20,10 +20,7 @@ class ProbRepr(SubcategEc):
         # Agregar las reproducciones a las poblaciones
         reprod = símismo.obt_res(filtrar=False)
 
-        res_pobs = símismo.mód.obt_res('Pobs')
-        res_pobs.poner_valor(
-            reprod, rel=True, índs={símismo._eje_cosos: símismo.mód.í_repr()}
-        )  # para hacer: emplear mód.agregar_pobs(), con servicio de cohortes incluído.
+        símismo.mód.agregar_pobs(reprod, índs={símismo._eje_cosos: símismo.mód.í_repr()})
 
 
 class EcsRepr(CategEc):

@@ -71,37 +71,9 @@ class Red(Simulable):
         """
 
         # Limpiar todo
-        símismo.etapas.clear()  # Borrar la lista de etapas existentes
         símismo.fantasmas.clear()
-        símismo.núms_etapas.clear()
         símismo.parasitoides['adultos'].clear()
         símismo.parasitoides['juvs'].clear()
-
-        # Guardar las etapas de todos los organismos de la red y sus coeficientes en un orden reproducible
-        n = 0
-
-        for nombre_org, org in sorted(símismo.organismos.items()):
-            # Para cada organismo en la red...
-            símismo.núms_etapas[nombre_org] = {}
-            for etp in org.etapas:
-                # Para cada etapa de cada organismo...
-
-                # Una referencia al nombre de la etapa
-                nombre_etp = etp['nombre']
-                # Crear un diccionario con la información de la etapa
-                dic_etp = dict(org=nombre_org,
-                               nombre=nombre_etp,
-                               dic=etp,
-                               conf=org.config[nombre_etp],
-                               coefs=org.receta['coefs'][nombre_etp])
-
-                # Y guardar este diccionario en la Red
-                símismo.etapas.append(dic_etp)
-
-                # Y guardamos una referencia al número de la etapa
-                símismo.núms_etapas[nombre_org][nombre_etp] = n
-
-                n += 1
 
         # Crear etapas fantasmas para huéspedes infectados
         for n_etp, etp in enumerate(símismo.etapas):  # type: int, dict
@@ -239,36 +211,6 @@ class Red(Simulable):
         índs_víc = [v for d in símismo.parasitoides['adultos'].values() for v in d['n_entra']]
         símismo.parasitoides['índices'] = (índs_parás, índs_víc)
 
-        # Crear el diccionario de los tipos de las ecuaciones activas para cada etapa.
-        símismo.ecs.clear()  # Borrar todo en el diccionario existente para evitar posibilidades de cosas raras
-
-        for categ in Ec.ecs_orgs:
-            # Para cada tipo de ecuación posible...
-
-            # Crear la llave correspondiente en el diccionario de tipos de ecuaciones de la red.
-            símismo.ecs[categ] = {}
-
-            # Para cada subcategoría de ecuación posible...
-            for sub_categ in Ec.ecs_orgs[categ]:
-
-                # Crear una lista
-                símismo.ecs[categ][sub_categ] = {}
-
-                # Para cada tipo de ecuación posible para la subcategoría...
-                for tipo_ec in Ec.ecs_orgs[categ][sub_categ]:
-
-                    # Si el tipo no es "Nada"...
-                    if tipo_ec != 'Nada':
-
-                        # Sacar los índices de las etapas de la Red con este tipo de ecuación.
-                        índs_etps = [n for n, d in enumerate(símismo.etapas) if
-                                     d['dic']['ecs'][categ][sub_categ] == tipo_ec]
-
-                        # Si hay etapas con este tipo de ecuación...
-                        if len(índs_etps):
-                            # Guardar los índices bajo el nombre del tipo de ecuación.
-                            símismo.ecs[categ][sub_categ][tipo_ec] = índs_etps
-
         # Desactivar las ecuaciones de transiciones de juveniles de parasitoides (porque estas se implementan
         # por la última fase fantasma de la víctima correspondiente
         for org in símismo.organismos.values():
@@ -286,29 +228,6 @@ class Red(Simulable):
                     símismo.ecs['Transiciones']['Prob'][tipo_prob].remove(n_etp)
                 if tipo_ed != 'Nada':
                     símismo.ecs['Edad']['Ecuación'][tipo_ed].remove(n_etp)
-
-        # Guardar el orden de transiciones y de reproducciones
-        símismo.orden['trans'] = np.full(len(símismo.etapas), -1, dtype=np.int)
-        símismo.orden['repr'] = np.full(len(símismo.etapas), -1, dtype=np.int)
-
-        for nombre_org, org in símismo.núms_etapas.items():
-            # Para cada organismo...
-
-            # Encontrar el índice de la primera etapa del organismo
-            n_etp_mín = min(org.values())
-
-            for etp, n_etp in org.items():  # type: int
-                # Para cada etapa del organismo...
-
-                # Buscar el diccionario de la etapa
-                d_etp = símismo.etapas[n_etp]['dic']
-
-                # Si la etapa tiene transiciones y/o reproducciones, ajustar el número de la etapas a la cual esta
-                # etapa transiciona o se reproduce
-                if d_etp['ecs']['Transiciones']['Prob'] != 'Nada':
-                    símismo.orden['trans'][n_etp] = d_etp['trans'] + n_etp_mín if d_etp['trans'] != -1 else -1
-                if d_etp['ecs']['Reproducción']['Prob'] != 'Nada':
-                    símismo.orden['repr'][n_etp] = d_etp['repr'] + n_etp_mín if d_etp['repr'] != -1 else -1
 
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
@@ -428,43 +347,6 @@ class Red(Simulable):
                             # Generar el gráfico
                             Arte.graficar_pred(matr_predic=matr_pred, título=título, etiq_y='Depredación',
                                                incert=incert, n_líneas=n_líneas, directorio=dir_img)
-
-    def _calc_depred(símismo, pobs, depred, extrn, paso):
-
-        # Dividir las depredaciones entre las de depredación normal y las de infecciones
-        depred_infec = np.zeros_like(depred)
-        índs_parás, índs_víc = símismo.parasitoides['índices']
-        depred_infec[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
-        depred_por_presa_sin_infec = np.subtract(depred_por_presa, np.sum(depred_infec, axis=3))
-
-        # Para las depredaciones normales, es fácil quitarlas de los cohortes
-        símismo._quitar_de_cohortes(muertes=depred_por_presa_sin_infec[..., símismo.índices_cohortes])
-
-        # Para cada parasitoide...
-        for n_parás, d_parás in símismo.parasitoides['adultos'].items():
-            índ_entra = d_parás['n_entra']
-            índ_recip = d_parás['n_fants'][:len(índ_entra)]
-            símismo._quitar_de_cohortes(muertes=depred_infec[..., n_parás, símismo.índices_cohortes],
-                                        í_don=índ_entra, í_recip=índ_recip)
-
-            # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
-            pobs[..., índ_recip] += depred_infec[..., n_parás, índ_entra]
-
-    def _calc_reprod(símismo, pobs, paso, reprod, depred):
-        """
-        Esta función calcula las reproducciones de las etapas.
-
-        :param pobs: La matriz de poblaciones actuales de la red. Ejes tales como indicado arriba.
-        :type pobs: np.ndarray
-
-        :param paso: El paso para la simulación.
-        :type paso: int
-
-        """
-
-        # Actualizar cohortes ahora, si necesario
-        if len(símismo.índices_cohortes):
-            símismo._añadir_a_cohortes(nuevos=reprod[..., símismo.índices_cohortes])
 
     def _inic_pobs_const(símismo):
         # El diccionario de crecimiento
@@ -714,143 +596,6 @@ class Red(Simulable):
         d_res_valid = {ll: np.mean(v) for ll, v in d_res_valid.items()}
 
         return {'Valid': d_res_valid, 'Valid detallades': valids_detalles}
-
-
-    def _procesar_matrs_sens(símismo):
-        """
-        Ver la documentación de `Coso`.
-        :return:
-        :rtype: (list[np.ndarray], list[list[str]])
-        """
-
-        l_matrs_pred = símismo.dic_simul['l_m_preds_todas']
-        l_ubics_m_preds = símismo.dic_simul['l_ubics_m_preds']
-
-        l_preds_proc = []
-        l_ubics_preds_proc = []
-
-        for m, u in zip(l_matrs_pred, l_ubics_m_preds):
-
-            n_parc = m.shape[0]
-
-            for i_prc in range(n_parc):
-                exp = u[0]
-                prc = símismo.info_exps['parcelas'][exp][i_prc]
-                for i_etp, d_etp in enumerate(símismo.etapas):
-
-                    etp = d_etp['nombre']
-                    org = d_etp['org']
-
-                    if len(m.shape) == 5:
-                        # Si no es una matriz de depredación...
-
-                        # La matriz de predicciones
-                        # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: etp víctima, 4: día
-                        matr_pred = m[i_prc, :, :, i_etp, :]  # Eje 0: estoc, 1: parám, 2: día
-                        mu = np.mean(matr_pred, axis=0)  # Eje 0: parc, 1: estoc, 2: parám, 3: etp, 4: día
-                        sigma = np.std(matr_pred, axis=0)
-
-                        ubic_mu = u + [prc, org, etp, 'mu']
-                        ubic_sigma = u + [prc, org, etp, 'sigma']
-
-                        l_preds_proc.append(mu)
-                        l_ubics_preds_proc.append(ubic_mu)
-
-                        l_preds_proc.append(sigma)
-                        l_ubics_preds_proc.append(ubic_sigma)
-
-                    else:
-                        # Si es una matriz de depredación...
-
-                        presas = [símismo.núms_etapas[o][e]
-                                  for o, d_e in símismo.etapas[i_etp]['conf']['presa'].items()
-                                  for e in d_e]
-                        huéspedes = [símismo.núms_etapas[o][e]
-                                     for o, d_e in símismo.etapas[i_etp]['conf']['huésped'].items()
-                                     for e in d_e['entra']]
-                        víctimas = presas + huéspedes
-
-                        for i_etp_víc in víctimas:  # type: int
-
-                            etp_víc = símismo.etapas[i_etp_víc]['nombre']
-                            org_víc = símismo.etapas[i_etp_víc]['org']
-
-                            # La matriz de predicciones
-                            # Eje 0: parcela, 1: rep estoc, 2: rep parám, 3: etp depred, 4: etp víctima, 5: día
-                            matr_pred = m[prc, ..., i_etp, i_etp_víc, :]  # Eje 0: estoc, 1: parám, 2: día
-
-                            mu = np.mean(matr_pred, axis=0)
-                            sigma = np.std(matr_pred, axis=0)
-
-                            ubic_mu = u + [prc, org, etp, org_víc, etp_víc, mu]
-                            ubic_sigma = u + [prc, org, etp, org_víc, etp_víc, sigma]
-
-                            l_preds_proc += mu
-                            l_ubics_preds_proc += ubic_mu
-
-                            l_preds_proc += sigma
-                            l_ubics_preds_proc += ubic_sigma
-
-        return l_preds_proc, l_ubics_preds_proc
-
-
-    def añadir_exp(símismo, experimento, corresp=None, corresp_pobs=None, corresp_crec=None, corresp_repr=None,
-                   corresp_trans=None, corresp_muertes=None):
-        """
-        Esta función permite conectar un Experimento con una Red, especificando diccionarios de correspondencia para
-        cada tipo de egreso posible. No es necesario especificar todas las correspondencias, sino únicamente las
-        que aplican a este Experimento. Si todos los tipos de egresos tienen los mismos nombres de columnas en el
-        Experimento, se puede usar el parámetro general `corresp` para aplicar las mismas correspondencias a todos.
-
-        :param experimento:
-        :type experimento: Experimento
-
-        :param corresp: El valor automático para correspondencias.
-        :type corresp: dict
-
-        :param corresp_pobs: Correspondencias para observaciones de población.
-        :type corresp_pobs: dict
-
-        :param corresp_crec: Correspondencias para observaciones de crecimiento.
-        :type corresp_crec: dict
-
-        :param corresp_repr: Correspondencias para observaciones de reproducción.
-        :type corresp_repr: dict
-
-        :param corresp_trans: Correspondencias para observaciones de transiciones.
-        :type corresp_trans: dict
-
-        :param corresp_muertes: Correspondencias para observaciones de muertes.
-        :type corresp_muertes: dict
-        """
-
-        # El diccionario de valores modificadas
-        corresp_mod = {}
-
-        # Conversión de parámetros a llaves de diccionarios entendidas por Tiko'n
-        conv_corresps = {'Pobs': corresp_pobs, 'Crecimiento': corresp_crec, 'Reproducción': corresp_repr,
-                         'Transiciones': corresp_trans, 'Muertes': corresp_muertes}
-
-        # Llenar diccionarios de correspondencia que faltan
-        for ll, cor in conv_corresps.items():
-            # Para cada posibilidad de diccionario de correspondencia...
-
-            if cor is not None:
-                # Si se especificó ya, guardarlo así.
-                corresp_mod[ll] = cor
-
-            else:
-                # Si no se especificó, verificar si podemos usar el valor automático.
-                if corresp is not None:
-                    corresp_mod[ll] = corresp
-
-        # Asegurarse que haya al menos un diccionario de correspondencia.
-        if all(x is None for x in corresp_mod.values()):
-            raise ValueError('Hay que especificar al menos un diccionario de correspondencia para conectar'
-                             'un Experimento a la Red.')
-
-        # Llamar la misma función de la clase pariente superior, pero ya con el diccionario modificado.
-        super().añadir_exp(experimento=experimento, corresp=corresp_mod)
 
 
     def _actualizar_vínculos_exps(símismo):
@@ -1545,22 +1290,6 @@ class Red(Simulable):
         # Ahora, iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
 
-
-    def _quitar_de_cohortes(símismo, muertes, í_don=None, í_recip=None):
-        """
-        Esta funciôn quita individuos de los cohortes de la Red.
-
-        :param muertes: La matriz de muertes aleatorias a quitar del cohorte. Eje 0: Parcela,
-        Eje 1: Repetición estocástica, Eje 2: Repetición paramétrica, Eje 3: Etapa.
-        :type muertes: np.ndarray
-
-        :param í_don:
-        :type í_don: np.ndarray
-
-        :param í_recip:
-        :type í_recip: np.ndarray
-
-        """
 
 
 def copiar_dic_coefs(d, c=None):
