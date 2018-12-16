@@ -86,5 +86,13 @@ class ResultadosMódulo(object):
         for r in símismo:
             r.reinic()
 
+    def actualizar(símismo):
+        for r in símismo:
+            r.actualizar()
+
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]
+
+    def __iter__(símismo):
+        for r in símismo._resultados.values():
+            yield r

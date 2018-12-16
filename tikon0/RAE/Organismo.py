@@ -191,7 +191,7 @@ class Organismo(Coso):
         Esta función establece relaciones de  entre organismos.
 
         :param víctima: La presa (usar un objeto Organismo, no el nombre de la presa).
-        :type víctima: tikon.RAE.Organismo.Organismo
+        :type víctima: tikon.rae.Organismo.Organismo
 
         :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que se comen a la presa. Si se deja como "None", tomará todas las fases.
@@ -293,7 +293,7 @@ class Organismo(Coso):
         Esta función borra relaciones de depredador y presa entre organismos.
 
         :param víctima: La presa que ya no se come (usar un objeto Organismo, no el nombre de la presa).
-        :type víctima: tikon.RAE.Organismo.Organismo
+        :type víctima: tikon.rae.Organismo.Organismo
 
         :param etps_símismo: Lista de los nombres (cadena de carácteres) de las fases del depredador (este organismo)
           que ya no se comen a la presa. Si se deja como "None", tomará todas las fases.

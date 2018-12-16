@@ -34,7 +34,7 @@ class Experimento(object):
         # El diccionario de los datos. Tiene una sub-categoría para cada clase de datos.
         dic_datos_rae = dict(días=None, cols=None, datos=None, parc=None)
         símismo.datos = {
-            'RAE': {'Pobs': dic_datos_rae.copy(),
+            'rae': {'Pobs': dic_datos_rae.copy(),
                     'Muertes': dic_datos_rae.copy(),
                     'Transiciones': dic_datos_rae.copy(),
                     'Crecimiento': dic_datos_rae.copy(),
@@ -66,7 +66,7 @@ class Experimento(object):
         """
 
         # El diccionario de interés
-        dt_rae = símismo.datos['RAE']
+        dt_rae = símismo.datos['rae']
 
         # El diccionario que vamos a devolver
         dic_egr = {
@@ -117,7 +117,7 @@ class Experimento(object):
 
         c_parcelas = set()
         if tipo == '.red':
-            for dic in símismo.datos['RAE'].values():
+            for dic in símismo.datos['rae'].values():
                 if dic['parc'] is not None:
                     c_parcelas.update(dic['parc'].tolist())
         else:
@@ -214,7 +214,7 @@ class Experimento(object):
 
         if tipo == '.red':
             t_final = 0
-            for dic in símismo.datos['RAE'].values():  # type: dict[np.ndarray]
+            for dic in símismo.datos['rae'].values():  # type: dict[np.ndarray]
                 if dic['días'] is not None:
                     t_final = np.max(dic['días'], t_final)
         else:
@@ -427,7 +427,7 @@ class Experimento(object):
 
     def _agregar_datos_rae(símismo, archivo, tipo_egr, col_tiempo, col_parc, cols_etps, factor, cód_na):
         """
-        Esta función genérica agrega datos de RAE.
+        Esta función genérica agrega datos de rae.
 
         :param archivo: El archivo con la base de datos
         :type archivo: str
@@ -524,7 +524,7 @@ class Experimento(object):
             matr_obs[v_í_parc, [í_c] * n_obs, v_í_días] = m_obs_bd[í_c, :]
 
         # Llenar el diccionario de datos con todo lo que acabamos de calcular.
-        dic_datos = símismo.datos['RAE'][tipo_egr]
+        dic_datos = símismo.datos['rae'][tipo_egr]
         dic_datos['cols'] = cols_etps
         dic_datos['días'] = días_únicos
         dic_datos['datos'] = matr_obs

@@ -74,7 +74,7 @@ class Insecto(Organismo):
         Estabelce relaciones de depredador y presa.
 
         :param presa:
-        :type presa: tikon.RAE.Organismo.Organismo
+        :type presa: tikon.rae.Organismo.Organismo
 
         :param etps_presa:
         :type etps_presa: str 1 list
@@ -91,7 +91,7 @@ class Insecto(Organismo):
         Para quitar una relación de depredador y presa.
 
         :param presa:
-        :type presa: tikon.RAE.Organismo.Organismo
+        :type presa: tikon.rae.Organismo.Organismo
 
         :param etps_presa:
         :type etps_presa:
@@ -326,7 +326,7 @@ class Parasitoide(Insecto):
         """
 
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
-        :type víctima: tikon.RAE.Insecto.Insecto
+        :type víctima: tikon.rae.Insecto.Insecto
 
         :param etps_infec:  Las etapas del otro insecto que este parasitoide puede infectar.
         :type etps_infec: list | str
@@ -344,7 +344,7 @@ class Parasitoide(Insecto):
         Esta función borra la relación de parasitoide-huésped entre dos insectos.
 
         :param víctima: El objeto representando el otro insecto que ahora ya no hay que parasitar.
-        :type víctima: tikon.RAE.Insecto.Insecto
+        :type víctima: tikon.rae.Insecto.Insecto
 
         :param etps_infec: La lista de etapas de la víctima que no se pueden infectar por este parasitoide. Un valor
           de 'None' borrará la relación de parasitismo con todas las etapas víctimas del huésped.
@@ -403,7 +403,7 @@ class Esfécido(Insecto):
         """
 
         :param víctima: El objeto del otro insecto que este parasitoide puede parasitar.
-        :type víctima: tikon.RAE.Insecto.Insecto
+        :type víctima: tikon.rae.Insecto.Insecto
 
         :param etps_víc: Las etapas de la víctima en las cuales el esfécido oviposita.
         :type etps_víc: list | str
@@ -416,7 +416,7 @@ class Esfécido(Insecto):
         """
 
         :param víctima: El objeto del otro insecto que este parasitoide ya no puede parasitar.
-        :type víctima: tikon.RAE.Insecto.Insecto
+        :type víctima: tikon.rae.Insecto.Insecto
 
         :param etps_víc: Las etapas de la víctima en las cuales el esfécido ya no oviposita.
         :type etps_víc: list | str
