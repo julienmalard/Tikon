@@ -19,14 +19,13 @@ class Cohortes(object):
 
         if etapas is None:
             rbn = slice(None)
+            nuevos = símismo._proc_matr_datos(nuevos)
         else:
             rbn = símismo.rebanar(etapas)
 
         # Las edades y las poblaciones actuales de las etapas
         pobs = símismo._pobs[rbn]
         edades = símismo._edades[rbn]
-
-        nuevos = nuevos[rbn[1:]]  # para hacer: rebanar mejor para matrices sin eje coh
 
         eje_coh = símismo.eje_coh()
 
@@ -64,12 +63,12 @@ class Cohortes(object):
 
         if etapas is None:
             rbn = slice(None)
+            para_quitar = símismo._proc_matr_datos(para_quitar)
         else:
             rbn = símismo.rebanar(etapas)
 
         pobs = símismo._pobs[rbn]
         edades = símismo._edades[rbn]
-        para_quitar = para_quitar[rbn[1:]]
 
         eje_coh = símismo.eje_coh()
 
@@ -163,6 +162,6 @@ class Cohortes(object):
 
         n_etps = datos.shape[-1]
         if n_etps != len(símismo._etps):
-            datos = datos[..., símismo.í_etps]
+            datos = datos[..., símismo.í_etps]  # para hacer: rebanar mejor
 
         return datos
