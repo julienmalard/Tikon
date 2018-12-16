@@ -68,17 +68,20 @@ class RedAE(Módulo):
         else:
             return super().obt_valor(var)
 
-    def agregar_pobs(símismo, pobs, índs=None):
+    def agregar_pobs(símismo, pobs, etapas=None):
+        índs = {'etapa': etapas} if etapas else etapas
         símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
-        símismo.cohortes.agregar(pobs, índs=índs)
+        símismo.cohortes.agregar(pobs, etapas=etapas)
 
-    def quitar_pobs(símismo, pobs, índs=None):
+    def quitar_pobs(símismo, pobs, etapas=None):
+        índs = {'etapa': etapas} if etapas else etapas
         símismo.poner_valor('Pobs', -pobs, rel=True, índs=índs)
-        símismo.cohortes.quitar(pobs, índs=índs)
+        símismo.cohortes.quitar(pobs, etapas=etapas)
 
-    def ajustar_pobs(símismo, pobs, índs=None):
+    def ajustar_pobs(símismo, pobs, etapas=None):
+        índs = {'etapa': etapas} if etapas else etapas
         símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
-        símismo.cohortes.ajustar(pobs, índs=índs)
+        símismo.cohortes.ajustar(pobs, etapas=etapas)
 
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):
@@ -100,17 +103,15 @@ class RedAE(Módulo):
             return Inter(tmñ=tmñ_total, índices=índs)
 
     # para hacer: limpiar y reorganizar estos
-    def í_repr(símismo):
+    def etps_repr(símismo):
         return [
-            símismo.info_etps.índice(etp.org[0]) for etp in símismo.info_etps
-            if etp.categ_activa('Reproducción', símismo)
+            etp.org[0] for etp in símismo.info_etps if etp.categ_activa('Reproducción', símismo)
         ]
 
-    def í_trans(símismo):
+    def etps_trans(símismo):
         etps_trans = [etp for etp in símismo.info_etps if etp.categ_activa('Transiciones', símismo)]
-        índs = símismo.info_etps.índice
         siguientes = [etp.siguiente() for etp in etps_trans]
-        return [(índs(etp), índs(sig)) for etp, sig in zip(etps_trans, siguientes) if sig]
+        return [(etp, sig) for etp, sig in zip(etps_trans, siguientes) if sig]
 
     def _coords_resultados(símismo):
 
