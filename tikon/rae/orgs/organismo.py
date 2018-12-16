@@ -163,6 +163,8 @@ class EtapaFantasma(Etapa):
         símismo.etp_hués = etp_hués
         símismo.sig = sig
 
+        # para hacer: vincular ecs con etp_hués o con etp juvenil parás
+
     def siguiente(símismo):
         return símismo.sig
 

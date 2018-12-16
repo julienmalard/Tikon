@@ -62,3 +62,23 @@ class EcsDepred(CategEc):
 
         # Actualizar la matriz de poblaciones
         símismo.poner_val_mód('Pobs', -depred_por_presa, rel=True, filtrar=False)
+
+        # para hacer
+        # Dividir las depredaciones entre las de depredación normal y las de parasitismo
+        depred_parás = np.zeros_like(depred)
+        índs_parás, índs_víc = símismo.parasitoides['índices']
+        depred_parás[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
+        depred_por_presa_sin_infec = np.subtract(depred_por_presa, np.sum(depred_parás, axis=3))
+
+        # Para las depredaciones normales, es fácil quitarlas de los cohortes
+        símismo._quitar_de_cohortes(muertes=depred_por_presa_sin_infec[..., símismo.índices_cohortes])
+
+        # Para cada parasitoide...
+        for n_parás, d_parás in símismo.parasitoides['adultos'].items():
+            índ_entra = d_parás['n_entra']
+            índ_recip = d_parás['n_fants'][:len(índ_entra)]
+            símismo._quitar_de_cohortes(muertes=depred_parás[..., n_parás, símismo.índices_cohortes],
+                                        í_don=índ_entra, í_recip=índ_recip)
+
+            # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
+            pobs[..., índ_recip] += depred_parás[..., n_parás, índ_entra]
