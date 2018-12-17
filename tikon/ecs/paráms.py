@@ -29,10 +29,10 @@ class PlantillaMatrsParáms(object):
             símismo._sub_matrs.act_vals()
             símismo._matr[:] = símismo._sub_matrs.val()
         else:
-            if isinstance(símismo._sub_matrs, dict):
-                itr = símismo._sub_matrs.items()
-            else:
+            if isinstance(símismo._sub_matrs, list):
                 itr = enumerate(símismo._sub_matrs)
+            else:
+                itr = símismo._sub_matrs
 
             for i, sub in itr:
                 sub.act_vals()
@@ -45,7 +45,8 @@ class PlantillaMatrsParáms(object):
         if isinstance(símismo._sub_matrs, ValsParámCoso):
             return [símismo._sub_matrs]
         else:
-            itr = símismo._sub_matrs.values() if isinstance(símismo._sub_matrs, dict) else símismo._sub_matrs
+            itr = [mtr[1] for mtr in símismo._sub_matrs] if isinstance(símismo._sub_matrs, ValsParámCosoInter) \
+                else símismo._sub_matrs
             return [vls for mtr in itr for vls in mtr.vals_paráms()]
 
 
@@ -65,10 +66,11 @@ class ValsParámCosoInter(PlantillaMatrsParáms):
         super().__init__(matrs_vals_inter)
 
     def tmñ(símismo):
-        return (símismo._tmñ_inter, *_tmñ(list(símismo._sub_matrs.values()))[1:])  # para hacer: probablemente puede ser más elegante
+        return (símismo._tmñ_inter,
+                *_tmñ(list(símismo._sub_matrs.values()))[1:])  # para hacer: probablemente puede ser más elegante
 
     def __iter__(símismo):
-        for vl in símismo._sub_matrs.values():
+        for vl in símismo._sub_matrs.items():
             yield vl
 
     def __len__(símismo):
@@ -101,7 +103,7 @@ class ValsParámCoso(object):
         símismo.poner_val(calib.obt_vals(símismo._tmñ))
 
     def act_vals(símismo):
-        pass  # para hacer: ¿no necesario?
+        pass
 
     def vals_paráms(símismo):
         return [símismo]
