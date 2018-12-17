@@ -50,7 +50,7 @@ class EcsDepred(CategEc):
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
         eje_depredador = símismo.í_eje_res('etapa')
-        probs_conj(depred, pesos=1, máx=pobs, eje=eje_depredador)
+        probs_conj(depred, pesos=1, máx=símismo.obt_val_mód('Pobs', filtrar=False), eje=eje_depredador)
 
         depred[np.isnan(depred)] = 0
 
