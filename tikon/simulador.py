@@ -132,7 +132,7 @@ class MnjdrParámsSimul(object):
 
 
 class EspecCalibsCorrida(object):
-    def __init__(símismo, calibs=None, aprioris=True, corresp=True, heredar_inter=True):
+    def __init__(símismo, calibs=None, aprioris=False, corresp=True, heredar_inter=True):
         símismo.calibs = [calibs] if isinstance(calibs, str) else calibs
         símismo.aprioris = aprioris
         símismo.corresp = corresp
@@ -143,7 +143,7 @@ class EspecCalibsCorrida(object):
         if símismo.aprioris:
             for vl in list(l_vals_prm):
                 if vl.apriori():
-                    vl.llenar_de_apriori(n_reps)
+                    vl.llenar_de_apriori()
             l_vals_prm = [vl for vl in l_vals_prm if not vl.apriori()]
 
         l_dists, corresp = símismo._filtrar_dists(l_vals_prm)

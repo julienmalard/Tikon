@@ -1,15 +1,25 @@
-from tikon.simulador import Simulador
+from pprint import pprint
+
+from pruebas.a_prioris import a_prioris
+from tikon.rae.orgs.insectos.gnrc import MetamCompleta
+from tikon.rae.orgs.insectos.paras import Parasitoide
 from tikon.rae.red_ae.red import RedAE
-from tikon.rae.orgs.insectos.gnrc import Sencillo, MetamCompleta
+from tikon.simulador import Simulador, EspecCalibsCorrida
 
-oruga = MetamCompleta('oruga')
-araña = Sencillo('araña')
-araña.secome(oruga)
+Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
+Paras_larvas = Parasitoide('Parasitoide larvas')
+Paras_pupa = Parasitoide('Parasitoide pupa')
 
-red = RedAE([oruga, araña])
+Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='pupa')
+Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
+red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])
+
+# A prioris para la nueva red
+red.espec_aprioris(a_prioris)
 
 simul = Simulador(red)
 
-res = simul.simular(10, n_rep_parám=17, n_rep_estoc=30)
+calibs=EspecCalibsCorrida(aprioris=True)
+res = simul.simular(10, n_rep_parám=17, n_rep_estoc=30, calibs=calibs)
 
 print(res)

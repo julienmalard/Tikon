@@ -86,8 +86,18 @@ class ValsParámCoso(object):
     def dists_disp(símismo, heredar):
         return símismo._prm.dists_disp(símismo._inter, heredar)
 
+    def dist_base(símismo):
+        return símismo._prm.calib_base()
+
     def llenar_de_base(símismo):
-        calib = símismo._prm.calib_base()
+        calib = símismo.dist_base()
+        símismo.poner_val(calib.obt_vals(símismo._tmñ))
+
+    def apriori(símismo):
+        return símismo._prm.a_priori()
+
+    def llenar_de_apriori(símismo):
+        calib = símismo.apriori()
         símismo.poner_val(calib.obt_vals(símismo._tmñ))
 
     def act_vals(símismo):

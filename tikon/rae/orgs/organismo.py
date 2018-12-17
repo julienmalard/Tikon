@@ -28,7 +28,9 @@ class Organismo(Coso):
 
     def activar_ecs(símismo, dic_ecs):
         for etp, d_etp in dic_ecs.items():
-            símismo[etp].activar_ecs(d_etp)
+            etps = símismo.resolver_etapas(etp)
+            for e in etps:
+                e.activar_ecs(d_etp)
 
     def secome(símismo, presa, etps_presa=None, etps_símismo=None):
         etps_presa = presa.resolver_etapas(etps_presa)
@@ -55,7 +57,7 @@ class Organismo(Coso):
             etps_símismo = símismo._etapas[-1]
         etps_símismo = símismo.resolver_etapas(etps_símismo)
 
-        etp_emerg = huésped.resolver_etapas(etp_emerg)
+        etp_emerg = huésped.resolver_etapas(etp_emerg)[0]
 
         for e_h in etps_huésp:
             for e_s in etps_símismo:
@@ -116,6 +118,9 @@ class Organismo(Coso):
             return [rel.etp_huésp for rel in símismo._rels_paras]
         else:
             return [rel.etp_huésp for rel in símismo._rels_paras if rel.etp_depred == etp]
+
+    def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
+        símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
 
     def __getitem__(símismo, itema):
         if isinstance(itema, int):

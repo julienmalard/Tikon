@@ -8,7 +8,7 @@ from ._espec_dists import obt_scipy
 from ._utils import líms_compat, proc_líms
 
 _escl_inf = 1e6
-_dist_mu = 1e6
+_dist_mu = 1  # para hacer: da resultados muy raros así
 
 
 class Dist(object):
@@ -66,8 +66,8 @@ class DistAnalítica(Dist):
 
     @classmethod
     def de_dens(cls, dens, líms_dens, líms):
-        líms_dens = proc_líms(líms_dens)
-        líms = proc_líms(líms)
+        líms_dens = np.array(proc_líms(líms_dens))
+        líms = np.array(proc_líms(líms))
         líms_compat(líms_dens, líms)
 
         if dens == 1:
@@ -83,12 +83,12 @@ class DistAnalítica(Dist):
             if líms[1] == np.inf:
                 transf = None
             else:
-                transf = TransfDist('Log', ubic=líms[1], escl=-1)
+                transf = TransfDist('Exp', ubic=líms[1], escl=-1)
 
         elif líms[1] == np.inf:
-            transf = TransfDist('Log', ubic=líms[0])
+            transf = TransfDist('Exp', ubic=líms[0])
         else:
-            transf = TransfDist('Logit', ubic=líms[0], escl=líms[1] - líms[0])
+            transf = TransfDist('Expit', ubic=líms[0], escl=líms[1] - líms[0])
 
         if transf is None:
             líms_dens_intern = líms_dens
@@ -143,12 +143,12 @@ class DistTraza(Dist):
 class TransfDist(object):
     def __init__(símismo, transf, ubic=0, escl=1):
 
-        if transf == 'Logit':
-            símismo._f = logit
-            símismo._f_inv = expit
-        elif transf == 'Log':
-            símismo._f = np.log
-            símismo._f_inv = np.exp
+        if transf == 'Expit':
+            símismo._f = expit
+            símismo._f_inv = logit
+        elif transf == 'Exp':
+            símismo._f = np.exp
+            símismo._f_inv = np.log
         else:
             raise ValueError(transf)
 
@@ -170,7 +170,7 @@ class MnjdrDists(object):
     def actualizar(símismo, dist, índs=None):
         if isinstance(índs, str):
             índs = [índs]
-        else:
+        elif índs is not None:
             índs = list(índs)  # generar copia
 
         if índs is None or not len(índs):

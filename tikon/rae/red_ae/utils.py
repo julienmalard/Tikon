@@ -1,31 +1,31 @@
 import numpy as np
 
 
-def probs_conj(npr, eje, pesos=1, máx=1):
+def probs_conj(matr, eje, pesos=1, máx=1):
     """
     Esta función utiliza las reglas de probabilidades conjuntas para ajustar depredación con presas o depredadores
     múltiples cuya suma podría sumar más que el total de presas o la capacidad del depredador.
 
     Parameters
     ----------
-    npr: np.ndarray
-        Una npriz con los valores para ajustar.
+    matr: np.ndarray
+        Una matriz con los valores para ajustar.
     eje: int
         El eje según cual hay que hacer los ajustes
     pesos: float | int | np.ndarray
-        Un peso inverso opcional para aplicar a la npriz ántes de hacer los cálculos.
+        Un peso inverso opcional para aplicar a la matriz ántes de hacer los cálculos.
     máx: float | int | np.ndarray
-        Una npriz o número con los valores máximos para la npriz para ajustar. Si es npriz, debe ser de
-        tamaño compatible con npr.
+        Una matriz o número con los valores máximos para la matriz para ajustar. Si es matriz, debe ser de
+        tamaño compatible con matr.
 
     """
 
     if not isinstance(máx, np.ndarray):
-        tamaño = list(npr.shape)
+        tamaño = list(matr.shape)
         tamaño.pop(eje)
         máx = np.full(tuple(tamaño), máx)
 
-    ajustados = np.divide(npr, pesos)
+    ajustados = np.divide(matr, pesos)
 
     ratio = np.divide(ajustados, np.expand_dims(máx, eje))
 
@@ -53,7 +53,7 @@ def probs_conj(npr, eje, pesos=1, máx=1):
 
     np.multiply(ajustados, np.expand_dims(np.subtract(1, np.divide(extra, suma)), axis=eje), out=ajustados)
 
-    np.multiply(ajustados, pesos, out=npr)
+    np.multiply(ajustados, pesos, out=matr)
 
 
 def días_grados(mín, máx, umbrales, método='Triangular', corte='Horizontal'):

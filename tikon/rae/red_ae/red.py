@@ -1,6 +1,5 @@
 from tikon.ecs.paráms import Inter
 from tikon.módulo import Módulo
-from ..orgs.organismo import EtapaFantasma
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
@@ -32,6 +31,16 @@ class RedAE(Módulo):
             símismo._orgs.pop(org)
         except KeyError:
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
+
+    def espec_aprioris(símismo, a_prioris):
+        for org, l_org in a_prioris.items():
+            try:
+                obj_org = símismo[org] if isinstance(org, str) else org
+            except KeyError:
+                continue
+
+            for d_apr in l_org:
+                obj_org.espec_apriori_etp(**d_apr)
 
     def paráms(símismo):
         return símismo._ecs_simul.vals_paráms()
@@ -112,6 +121,9 @@ class RedAE(Módulo):
         etps_trans = [etp for etp in símismo.info_etps if etp.categ_activa('Transiciones', símismo)]
         siguientes = [etp.siguiente() for etp in etps_trans]
         return [(etp, sig) for etp, sig in zip(etps_trans, siguientes) if sig]
+
+    def í_parás(símismo):
+        raise NotImplementedError
 
     def _coords_resultados(símismo):
 

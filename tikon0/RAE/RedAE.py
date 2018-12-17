@@ -196,15 +196,6 @@ class Red(Simulable):
 
                         símismo.núms_etapas[etp['org']][dic_estr['nombre']] = n_etp_fant
 
-                        # Guardar el vínculo entre la etapa víctima y la(s) etapa(s) fanstasma(s) correspondiente(s)
-                        n_etp_hués_abs = símismo.núms_etapas[org_hués][nombre_etp_hués]
-                        if n_etp_hués_abs not in símismo.fantasmas.keys():
-                            símismo.fantasmas[n_etp_hués_abs] = {}
-                        símismo.fantasmas[n_etp_hués_abs][etp['org']] = n_etp_fant
-
-                        # Para hacer: agregar aquí un vínculo en símismo.etapas para enfermedades de etapas
-                        # víctimas de parasitoides.
-
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
         # depredación
         índs_parás = [p for n_p, d_p in símismo.parasitoides['adultos'].items() for p in [n_p] * len(d_p['n_entra'])]
