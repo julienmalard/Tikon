@@ -57,7 +57,7 @@ class DistAnalítica(Dist):
             if líms[1] == np.inf:
                 return DistAnalítica(dist='Normal', paráms={'ubic': 0, 'escl': _escl_inf})
 
-            raise DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[1], 'escl': -_escl_inf})
+            return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[1], 'escl': -_escl_inf})
 
         elif líms[1] == np.inf:
             return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[0], 'escl': _escl_inf})
@@ -194,8 +194,7 @@ class MnjdrDists(object):
             í = índs.pop(0)
             if í in símismo.índs:
                 return símismo.índs[í].obt_valor(índs, heredar)
-            else:
-                return símismo.val if heredar else []
+            return símismo.val if heredar else []
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]

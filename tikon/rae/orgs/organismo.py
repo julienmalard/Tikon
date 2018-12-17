@@ -112,14 +112,12 @@ class Organismo(Coso):
     def presas(símismo, etp=None):
         if etp is None:
             return [rel.etp_presa for rel in símismo._rels_presas]
-        else:
-            return [rel.etp_presa for rel in símismo._rels_presas if rel.etp_depred == etp]
+        return [rel.etp_presa for rel in símismo._rels_presas if rel.etp_depred == etp]
 
     def huéspedes(símismo, etp=None):
         if etp is None:
             return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra]
-        else:
-            return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if rel.etp_depred == etp]
+        return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if rel.etp_depred == etp]
 
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
@@ -127,11 +125,10 @@ class Organismo(Coso):
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]
-        else:
-            try:
-                return next(e for e in símismo._etapas if str(e) == itema)
-            except StopIteration:
-                raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=str(símismo)))
+        try:
+            return next(e for e in símismo._etapas if str(e) == itema)
+        except StopIteration:
+            raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=str(símismo)))
 
     def __iter__(símismo):
         for etp in símismo._etapas:
