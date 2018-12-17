@@ -12,6 +12,9 @@ class Coso(object):
             for sub, ec in d_cat.items():
                 símismo.activar_ec(categ, sub, ec)
 
+    def desactivar_ec(símismo, categ, subcateg=None):
+        símismo.ecs.desactivar_ec(categ=categ, subcateg=subcateg)
+
     def categ_activa(símismo, categ, mód):
         return símismo.ecs[categ].verificar_activa(mód)
 

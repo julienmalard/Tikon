@@ -1,7 +1,7 @@
 from pprint import pprint
 
 from pruebas.a_prioris import a_prioris
-from tikon.rae.orgs.insectos.gnrc import MetamCompleta
+from tikon.rae.orgs.insectos.gnrc import MetamCompleta, Sencillo
 from tikon.rae.orgs.insectos.paras import Parasitoide
 from tikon.rae.red_ae.red import RedAE
 from tikon.simulador import Simulador, EspecCalibsCorrida
@@ -12,6 +12,10 @@ Paras_pupa = Parasitoide('Parasitoide pupa')
 
 Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='pupa')
 Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
+
+# Araña = Sencillo('Araña')
+# Araña.secome(Oarenosella)
+
 red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])
 
 # A prioris para la nueva red

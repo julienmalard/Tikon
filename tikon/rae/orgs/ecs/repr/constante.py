@@ -1,4 +1,5 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from .._plntll_ec import EcuaciónOrg
 
 
 class A(Parám):
@@ -6,7 +7,7 @@ class A(Parám):
     líms = (0, None)
 
 
-class Constante(Ecuación):
+class Constante(EcuaciónOrg):
     """
     Reproducciones en proporción al tamaño de la población.
     """
@@ -16,4 +17,4 @@ class Constante(Ecuación):
 
     def eval(símismo, paso):
         cf = símismo.cf
-        return cf['a'] * símismo.pobs() * paso
+        return cf['a'] * símismo.obt_val_mód('Pobs') * paso

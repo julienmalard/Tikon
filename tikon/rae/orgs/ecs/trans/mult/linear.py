@@ -1,6 +1,7 @@
 import numpy as np
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from ..._plntll_ec import EcuaciónOrg
 
 
 class A(Parám):
@@ -8,13 +9,12 @@ class A(Parám):
     líms = (0, None)
 
 
-class Linear(Ecuación):
+class Linear(EcuaciónOrg):
     nombre = 'Linear'
     cls_ramas = [A]
+    _nombre_res = 'Transiciones'
 
     def eval(símismo, paso):
         trans = símismo.obt_res(filtrar=True)
         trans *= símismo.cf['a']
-        np.round(trans, out=trans)
-
-        símismo.poner_val_res(trans)
+        return np.round(trans)

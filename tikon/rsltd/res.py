@@ -4,9 +4,15 @@ from tikon.tiempo import EjeTiempo
 
 
 class Resultado(object):
-    def __init__(símismo, nombre, dims):
+    def __init__(símismo, nombre, dims, tiempo=None, obs=None):
         símismo.nombre = nombre
         símismo._dims = dims
+        símismo.tiempo = tiempo
+        símismo.obs = obs
+        if tiempo:
+            símismo._matr_t = np.zeros((tiempo.n_pasos(), *dims.frm()))
+        else:
+            símismo._matr_t = None
         símismo._matr = np.zeros(dims.frm())
 
     def poner_valor(símismo, vals, rel=False, índs=None):
@@ -32,10 +38,36 @@ class Resultado(object):
         return símismo._matr.sum(axis=í_eje)
 
     def actualizar(símismo):
-        pass
+        if símismo.tiempo:
+            símismo._matr_t[símismo.tiempo.día()] = símismo._matr
+
+    def validar(símismo, método):
+        if símismo.tiempo and símismo.obs:
+            vals_res = símismo.obt_valor_t(símismo.obs.tiempo)
+            vals_obs = símismo.obs.datos
+
+            return método(vals_res, vals_obs)
+
+    def obt_valor_t(símismo, t):
+        if not símismo.tiempo:
+            raise ValueError
+
+        if not isinstance(t, EjeTiempo):
+            t = EjeTiempo(días=t)
+
+        días_act = símismo.tiempo.eje.días
+        índs = símismo.tiempo.índices(t)
+        return np.interp(índs, xp=días_act, fp=símismo._matr_t, left=np.nan, right=np.nan)
+
+    def graficar(símismo):
+        if not símismo.tiempo:
+            raise ValueError
+        raise NotImplementedError
 
     def reinic(símismo):
         símismo._matr[:] = 0
+        if símismo.tiempo:
+            símismo._matr_t[:] = 0
 
     def í_eje(símismo, eje):
         return símismo._dims.í_eje(eje)
@@ -48,41 +80,6 @@ class Resultado(object):
 
     def __str__(símismo):
         return símismo.nombre
-
-
-class ResultadoTemporal(Resultado):
-    def __init__(símismo, nombre, dims, tiempo, obs=None):
-        super().__init__(dims, nombre)
-
-        símismo.tiempo = tiempo
-        símismo.obs = obs
-        símismo._matr_t = np.zeros((tiempo.n_pasos(), *dims.frm()))
-
-    def actualizar(símismo):
-        símismo._matr_t[símismo.tiempo.día()] = símismo._matr
-
-    def validar(símismo, método):
-        if símismo.obs is None:
-            raise ValueError('Se necesitan observaciones para validar resultados.')
-        vals_res = símismo.obt_valor_t(símismo.obs.tiempo)
-        vals_obs = símismo.obs.datos
-
-        return método(vals_res, vals_obs)
-
-    def obt_valor_t(símismo, t):
-        if not isinstance(t, EjeTiempo):
-            t = EjeTiempo(días=t)
-
-        días_act = símismo.tiempo.eje.días
-        índs = símismo.tiempo.índices(t)
-        return np.interp(índs, xp=días_act, fp=símismo._matr_t, left=np.nan, right=np.nan)
-
-    def reinic(símismo):
-        símismo._matr_t[:] = 0
-        super().reinic()
-
-    def graficar(símismo):
-        raise NotImplementedError
 
 
 class Obs(object):

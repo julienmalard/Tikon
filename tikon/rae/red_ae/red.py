@@ -1,5 +1,6 @@
 from tikon.ecs.paráms import Inter
 from tikon.módulo import Módulo
+from ..orgs.organismo import EtapaFantasma
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
@@ -157,7 +158,9 @@ class InfoEtapas(object):
         símismo.etapas = [etp for org in símismo._orgs for etp in org.etapas(fantasmas=True)]
 
     def presas(símismo, etp):
-        return [pr for pr in etp.presas() if pr in símismo]
+        presas = [pr for pr in etp.presas() if pr in símismo]
+        fantasmas = [etp for etp in símismo if isinstance(etp, EtapaFantasma) and etp.etp_hués in presas]
+        return presas + fantasmas
 
     def huéspedes(símismo, etp):
         return [pr for pr in etp.huéspedes() if pr in símismo]
