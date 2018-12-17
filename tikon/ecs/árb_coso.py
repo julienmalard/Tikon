@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Dict
 
 from .dists import DistAnalítica, MnjdrDists
@@ -18,12 +19,19 @@ class PlantillaRamaEcCoso(object):
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
 
+    def __setitem__(símismo, llave, valor):
+        símismo._ramas[llave] = valor
+
     def __iter__(símismo):
         for rm in símismo._ramas.values():
             yield rm
 
     def __contains__(símismo, itema):
         return str(itema) in símismo._ramas
+
+    def __copy__(símismo):
+        ramas = [copy(rm) for rm in símismo._ramas.values()]
+        return símismo.__class__(símismo.cls_pariente, ramas=ramas, coso=símismo.coso)
 
     def __eq__(símismo, otro):
         return símismo.cls_pariente == otro
@@ -41,6 +49,9 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
     def activar_ec(símismo, categ, subcateg, ec):
         símismo[categ][subcateg].activar_ec(ec)
 
+    def desactivar_ec(símismo, categ, subcateg=None):
+        símismo[categ].desactivar_ec(subcateg=subcateg)
+
     def leer(símismo, arch):
         pass
 
@@ -52,6 +63,14 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
     def activar_ec(símismo, subcateg, ec):
         símismo[subcateg].activar_ec(ec)
+
+    def desactivar_ec(símismo, subcateg=None):
+        if subcateg is None:
+            subcateg = símismo._ramas.values()
+        else:
+            subcateg = [subcateg]
+        for sub in subcateg:
+            sub.desactivar_ec()
 
 
 class SubcategEcCoso(PlantillaRamaEcCoso):
@@ -79,6 +98,9 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
         except KeyError:
             raise ValueError(ec)
+
+    def desactivar_ec(símismo):
+        símismo.activar_ec('Nada')
 
     def ec_activa(símismo):
         return símismo._activada
@@ -131,3 +153,6 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def dists_disp(símismo, inter, heredar):
         return {clb: dists.obt_val(índs=inter, heredar=heredar) for clb, dists in símismo._calibs.items()}
+
+    def __copy__(símismo):
+        return ParámCoso(símismo.cls_pariente, coso=símismo.coso)

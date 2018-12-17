@@ -7,7 +7,6 @@ from warnings import warn as avisar
 import numpy as np
 
 from . import Insecto as Ins
-from .Gen_organismos import generar_org
 from .Organismo import Organismo
 from ..Coso import Simulable, dic_a_lista
 from ..Matemáticas import Ecuaciones as Ec, Arte
@@ -65,13 +64,6 @@ class Red(Simulable):
         símismo.l_egresos = ['Pobs', 'Crecimiento', 'Reproducción', 'Transiciones', 'Muertes']
 
     def actualizar(símismo):
-        """
-        Actualiza la lista de etapas y las matrices de coeficientes de la red y de sus objetos.
-
-        """
-
-        # Limpiar todo
-        símismo.fantasmas.clear()
         símismo.parasitoides['adultos'].clear()
         símismo.parasitoides['juvs'].clear()
 
@@ -85,116 +77,12 @@ class Red(Simulable):
             if len(dic_hués):
                 # Si esta etapa tiene huéspedes
 
-                # El objeto del organismo al cual esta etapa pertenece
-                obj_org_inf = símismo.organismos[etp['org']]
-
                 # Agregar el organismo a la lista de parasitoides
                 d_info_parás = símismo.parasitoides['adultos'][n_etp] = {'n_fants': [], 'n_vícs': [],
                                                                          'n_entra': []}
 
                 n_juv = símismo.núms_etapas[obj_org_inf.nombre]['juvenil']
                 símismo.parasitoides['juvs'][n_juv] = n_etp
-
-                # Para cada organismo que se ve infectado por esta etapa
-                for org_hués, d_org_hués in dic_hués.items():
-
-                    # Una referencia al objeto del organismo hospedero
-                    obj_org_hués = símismo.organismos[org_hués]
-
-                    # El índice de la primera y la última etapa del huésped que pueden tener la infección
-                    n_prim = min([símismo.núms_etapas[org_hués][x] for x in d_org_hués['entra']])  # type: int
-                    n_sale = símismo.núms_etapas[org_hués][d_org_hués['sale']]  # type: int
-
-                    # Guardar los índices de las etapas de la víctima en las cuales el parasitoide puede entrar
-                    d_info_parás['n_entra'] = [símismo.núms_etapas[org_hués][x] for x in d_org_hués['entra']]
-
-                    # Los índices relativos (internos al organismo)
-                    n_rel_prim = símismo.etapas[n_prim]['dic']['posición']
-                    n_rel_sale = símismo.etapas[n_sale]['dic']['posición']
-
-                    # Una lista con todas las etapas del huésped que pueden tener la infección.
-                    l_d_etps_hués = [x for x in símismo.organismos[org_hués].etapas[n_rel_prim: n_rel_sale + 1]]
-
-                    # El nombre de la fase larval del organismo que infecta
-                    nombre_etp_larva_inf = obj_org_inf.etapas[0]['nombre']
-                    n_larva = símismo.núms_etapas[obj_org_inf.nombre][nombre_etp_larva_inf]  # type: int
-
-                    # Crear las etapas fantasmas para las etapas infectadas del huésped
-                    for d_etp_hués in l_d_etps_hués:
-
-                        # El indice, en el organismo, de la etapa hospedera
-                        n_etp_hués = d_etp_hués['posición']
-
-                        # El índice de la etapa fantasma
-                        n_etp_fant = len(símismo.etapas)
-
-                        # Agregar los números de etapas al diccionario de información de parasitismo.
-                        d_info_parás['n_fants'].append(n_etp_fant)
-                        d_info_parás['n_vícs'].append(n_etp_hués)
-
-                        # El nombre de la etapa hospedera original
-                        nombre_etp_hués = d_etp_hués['nombre']
-
-                        # Crear un diccionario para la etapa fantasma. Queremos la misma estructura de diccionario que
-                        # la etapa original del huésped; tiene que ser un diccionario distinto pero con referencias
-                        # a los mismos objetos de matrices o variables PyMC (para coefs).
-                        dic_estr = {
-                            'nombre': 'Infectando a %s_%s' % (org_hués, nombre_etp_hués),
-                            'posición': 0,
-                            'ecs': copiar_profundo(obj_org_hués.receta['estr'][nombre_etp_hués]['ecs'])
-                        }  # type: dict
-
-                        # La configuración de la etapa fantasma es la misma que la de su etapa pariente
-                        conf = obj_org_hués.config[nombre_etp_hués]
-
-                        # Copiamos el diccionario de coeficientes, pero con referencias a los objetos de distrubuciones
-                        # (Comparten los mismos variables).
-                        coefs = copiar_dic_coefs(obj_org_hués.receta['coefs'][nombre_etp_hués])
-
-                        # Verificar si la etapa hospedera es la última de este organismo que puede estar infectada
-                        if n_etp_hués <= len(l_d_etps_hués) - 1:
-                            # Si no es la última, esta etapa transicionará a la próxima etapa fantasma de este
-                            # organismo.
-
-                            # Buscar la primera etapa existente del organismo que infecta
-                            nombre_etp_inf_0 = obj_org_inf.etapas[0]['nombre']
-                            n_etp_inf_0 = símismo.núms_etapas[obj_org_inf.nombre][nombre_etp_inf_0]
-
-                            # Se guarda la posición relativa al organismo infectuoso
-                            n_trans = n_etp_fant + 1 - n_etp_inf_0
-
-                        else:
-                            # Si lo es, transicionará a la etapa recipiente (siempre la segunda) del organismo
-                            # infectuoso.
-                            n_trans = 1
-
-                            # Usar las ecuaciones de transiciones de la larva del agente infectuoso para las
-                            # transiciones de la última etapa infectada de la víctima.
-                            prob_trans = símismo.etapas[n_larva]['dic']['ecs']['Transiciones']['Prob']
-                            ec_edad = símismo.etapas[n_larva]['dic']['ecs']['Edad']['Ecuación']
-                            mult_trans = símismo.etapas[n_larva]['dic']['ecs']['Transiciones']['Mult']
-                            coefs_prob_trans = símismo.etapas[n_larva]['coefs']['Transiciones']['Prob'][prob_trans]
-                            coefs_edad = símismo.etapas[n_larva]['coefs']['Edad']['Ecuación'][ec_edad]
-                            coefs_mult_trans = símismo.etapas[n_larva]['coefs']['Transiciones']['Mult'][mult_trans]
-
-                            dic_estr['ecs']['Transiciones']['Prob'] = prob_trans
-                            dic_estr['ecs']['Edad']['Ecuación'] = ec_edad
-                            dic_estr['ecs']['Transiciones']['Mult'] = mult_trans
-                            coefs['Transiciones']['Prob'][prob_trans] = coefs_prob_trans
-                            coefs['Edad']['Ecuación'][ec_edad] = coefs_edad
-                            coefs['Transiciones']['Mult'][mult_trans] = coefs_mult_trans
-
-                        dic_estr['trans'] = n_trans
-
-                        dic_etp = dict(org=etp['org'],
-                                       nombre=dic_estr['nombre'],
-                                       dic=dic_estr,
-                                       conf=conf,
-                                       coefs=coefs)
-
-                        símismo.etapas.append(dic_etp)
-
-                        símismo.núms_etapas[etp['org']][dic_estr['nombre']] = n_etp_fant
 
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
         # depredación
@@ -358,7 +246,6 @@ class Red(Simulable):
                 # Guardamos las poblaciones iniciales en la matriz de predicciones de poblaciones.
                 símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
 
-
     def _incrementar_depurar(símismo, paso, i, detalles, d_tiempo, mov=False, extrn=None):
         """
 
@@ -480,7 +367,6 @@ class Red(Simulable):
 
         return d_tiempo
 
-
     def _procesar_simul(símismo):
         """
         Ver la documentación de `Simulable`.
@@ -520,7 +406,6 @@ class Red(Simulable):
                         predic[egr][..., i, :] += np.sum(predic[egr][..., combin_etps[i], :], axis=-2)
                 except KeyError:
                     pass
-
 
     def _analizar_valid(símismo):
         """
@@ -587,7 +472,6 @@ class Red(Simulable):
         d_res_valid = {ll: np.mean(v) for ll, v in d_res_valid.items()}
 
         return {'Valid': d_res_valid, 'Valid detallades': valids_detalles}
-
 
     def _actualizar_vínculos_exps(símismo):
         """
@@ -720,7 +604,6 @@ class Red(Simulable):
                             l_cols_cum.append(l_cols)
                             l_etps_cum.append(n_etp)
                             etps_interés_egr[n_etp] = nombres_cols.index(l_cols[0])  # El número de la columna en Exper
-
 
     def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
         """
@@ -918,7 +801,6 @@ class Red(Simulable):
             for exp, d_exp in símismo.dic_simul['d_predics_exps'].items()
         }
 
-
     def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
         # Simplificar el código
         d_obs = símismo.dic_simul['d_obs_valid']  # El diccionario de matrices de observaciones para la validación
@@ -1023,7 +905,6 @@ class Red(Simulable):
         símismo.dic_simul['l_m_obs_todas'].extend(l_m_obs_todas)
         símismo.dic_simul['l_días_obs_todas'].extend(l_días_obs_todas)
 
-
     def _gen_dics_calib(símismo, exper, n_rep_estoc):
         # El diccionario de observaciones para la validación...
         l_obs_v = dic_a_lista(símismo.dic_simul['d_obs_valid'])
@@ -1070,7 +951,6 @@ class Red(Simulable):
 
             # Guardar los valores
             d_obs_c['Normal'][r[0]:r[1]] = m[parc, etps, días]
-
 
     def _llenar_coefs(símismo, nombre_simul, n_rep_parám, ubics_paráms=None, calibs=None, dib_dists=False):
         """
@@ -1266,7 +1146,6 @@ class Red(Simulable):
                                         # ejemplo, interacciones entre competidores), se tendrían que añadir aquí.
                                         raise ValueError('Interacción "%s" no reconocida.' % tipo_inter)
 
-
     def _justo_antes_de_simular(símismo):
         """
         Esta función hace cosas que hay que hacer justo antes de cada simulación (en particular, cosas que tienen
@@ -1280,44 +1159,3 @@ class Red(Simulable):
 
         # Ahora, iniciar las poblaciones de organismos con poblaciones fijas
         símismo._inic_pobs_const()
-
-
-
-def copiar_dic_coefs(d, c=None):
-    """
-    Esta función copia un diccionario pero deja las referencias a matrices y variables PyMC intactos (no hace copia
-    del último diccionario anidado, sino una referencia a este). Esto permite dejar que etapas fantasmas de una víctima
-    de parasitoide tengan los mismos variables que la etapa original y evita desdoblar variables en la calibración.
-
-    :param d: El diccionario de coeficientes para copiar_profundo.
-    :type d: dict
-
-    :param c: Para recursiones. No especificar al llamar la función.
-    :type c: dict
-
-    :return: Una copia del diccionario con referencias a los últimos diccionarios anidados.
-    :rtype: dict
-    """
-
-    # Inicializar la copia del diccionario
-    if c is None:
-        c = {}
-
-    for ll, v in d.items():
-        # Para cada llave y valor del diccionario...
-
-        if type(v) is dict:
-            # Si es otro diccionario...
-
-            if any(type(x) is dict for x in v.values()):
-                # Si el diccionario contiene otros diccionarios, hacer una copia.
-                c[ll] = {}
-                copiar_dic_coefs(v, c=c[ll])
-            else:
-                # Si el diccionario no contiene otros diccionarios, poner una referencia.
-                c[ll] = v
-        else:
-            # Si no es un diccionario, seguro que hay que ponerle una referencia (y no una copia).
-            c[ll] = v
-
-    return c

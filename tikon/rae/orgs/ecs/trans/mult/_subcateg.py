@@ -10,5 +10,5 @@ class MultTrans(SubcategEc):
     nombre = 'Mult'
     cls_ramas = [EcuaciónVacía, Linear]
     auto = EcuaciónVacía
-    _nombre_res = 'Reproducción'
+    _nombre_res = 'Transiciones'
     _eje_cosos = 'etapa'

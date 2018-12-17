@@ -10,8 +10,9 @@ class Parasitoide(Insecto):
     ext = '.prs'
 
     def __init__(símismo, nombre, pupa=False):
-        tipo_ec = {}
+        símismo.pupa = pupa
 
+        tipo_ec = {}
         if pupa:
             tipo_ec['pupa'] = dict(
                 Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
@@ -45,9 +46,11 @@ class Parasitoide(Insecto):
             nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecuaciones=tipo_ec
         )
 
-    def parasita(símismo, huésped, etps_huésp, etp_emerg, etps_símismo='adulto', etp_recip='adulto'):
+    def parasita(símismo, huésped, etps_entra, etp_emerg, etp_símismo='adulto', etp_recip=None):
+        if etp_recip is None:
+            etp_recip = 'pupa' if símismo.pupa else 'adulto'
         super().parasita(
-            huésped=huésped, etps_símismo=etps_símismo, etps_huésp=etps_huésp, etp_emerg=etp_emerg, etp_recip=etp_recip
+            huésped=huésped, etp_símismo=etp_símismo, etps_entra=etps_entra, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
 
 

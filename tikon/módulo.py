@@ -1,5 +1,5 @@
 from tikon.ecs import ÁrbolEcs
-from tikon.rsltd.res import DimsRes, Resultado, ResultadoTemporal
+from tikon.rsltd.res import DimsRes, Resultado
 
 
 class Módulo(object):
@@ -25,7 +25,7 @@ class Módulo(object):
 
         símismo.resultados = ResultadosMódulo(
             [
-                ResultadoTemporal(nmbre, dim, tiempo) if nmbre in temporales else Resultado(nmbre, dim)
+                Resultado(nmbre, dim, tiempo if nmbre in temporales else None)
                 for nmbre, dim in dims.items() if dim.tmñ()
             ]
         )
