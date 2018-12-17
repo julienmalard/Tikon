@@ -1,7 +1,7 @@
 import numpy as np
 
-from tikon.rae.red_ae.utils import probs_conj
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
+from tikon.rae.red_ae.utils import probs_conj
 from .bed_deang import BedDeAng
 from .dep_presa import TipoIDP, TipoIIDP, TipoIIIDP
 from .dep_ratio import TipoIDR, TipoIIDR, TipoIIIDR
@@ -69,17 +69,19 @@ class EcsDepred(CategEc):
         return
         índs_parás, índs_víc = símismo.parasitoides['índices']
         depred_parás[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
-        depred_por_presa_sin_infec = np.subtract(depred_por_presa, np.sum(depred_parás, axis=3))
+        depred_por_presa_sin_parás = np.subtract(depred_por_presa, np.sum(depred_parás, axis=eje_depredador))
 
         # Para las depredaciones normales, es fácil quitarlas de los cohortes
-        símismo._quitar_de_cohortes(muertes=depred_por_presa_sin_infec[..., símismo.índices_cohortes])
+        símismo.mód.cohortes.quitar(depred_por_presa_sin_parás, etapas=símismo.cosos)
 
         # Para cada parasitoide...
         for n_parás, d_parás in símismo.parasitoides['adultos'].items():
             índ_entra = d_parás['n_entra']
             índ_recip = d_parás['n_fants'][:len(índ_entra)]
-            símismo._quitar_de_cohortes(muertes=depred_parás[..., n_parás, símismo.índices_cohortes],
-                                        í_don=índ_entra, í_recip=índ_recip)
+            símismo.mód.cohortes.quitar(etapas=índ_entra, recips=índ_recip)
+            símismo._quitar_de_cohortes(
+                muertes=depred_parás[..., n_parás, símismo.índices_cohortes], í_don=índ_entra, í_recip=índ_recip)
 
             # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
+            símismo.mód.agregar_pobs()
             pobs[..., índ_recip] += depred_parás[..., n_parás, índ_entra]
