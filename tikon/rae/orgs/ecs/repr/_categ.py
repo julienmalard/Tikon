@@ -1,3 +1,5 @@
+import numpy as np
+
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
 from .cauchy import Cauchy
 from .constante import Constante
@@ -19,6 +21,8 @@ class ProbRepr(SubcategEc):
     def postproc(símismo, paso):
         # Agregar las reproducciones a las poblaciones
         reprod = símismo.obt_res(filtrar=False)
+        np.round(reprod, out=reprod)
+        símismo.poner_val_res(reprod)
 
         símismo.mód.agregar_pobs(reprod, etapas=símismo.mód.etps_repr())
 

@@ -31,6 +31,7 @@ class EcsDepred(CategEc):
 
     def postproc(símismo, paso):
         depred = símismo.obt_res(filtrar=False)
+        depred = np.floor(depred)
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0

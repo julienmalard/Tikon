@@ -57,7 +57,7 @@ class PlantillaRamaEc(object):
         índs = {símismo._eje_cosos: símismo.í_cosos} if filtrar else None
 
         return res.obt_valor(índs)
-        
+
     def poner_val_res(símismo, val, rel=False, índs=None):
         res = símismo.mód.obt_res(símismo._nombre_res)
         res.poner_valor(val, rel=rel, índs=índs)

@@ -66,7 +66,7 @@ class RedAE(Módulo):
 
     def poner_valor(símismo, var, valor, rel=False, índs=None):
         if var == 'Pobs':
-            super().poner_valor(var, valor, rel=False, índs=índs)
+            super().poner_valor(var, valor, rel=rel, índs=índs)
         else:
             raise ValueError(var)
 

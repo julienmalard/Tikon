@@ -1,7 +1,5 @@
-from pprint import pprint
-
 from pruebas.a_prioris import a_prioris
-from tikon.rae.orgs.insectos.gnrc import MetamCompleta, Sencillo
+from tikon.rae.orgs.insectos.gnrc import MetamCompleta
 from tikon.rae.orgs.insectos.paras import Parasitoide
 from tikon.rae.red_ae.red import RedAE
 from tikon.simulador import Simulador, EspecCalibsCorrida
@@ -23,7 +21,7 @@ red.espec_aprioris(a_prioris)
 
 simul = Simulador(red)
 
-calibs=EspecCalibsCorrida(aprioris=True)
+calibs = EspecCalibsCorrida(aprioris=True)
 res = simul.simular(10, n_rep_parám=17, n_rep_estoc=30, calibs=calibs)
 
 print(res)
