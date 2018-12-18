@@ -76,6 +76,7 @@ class Cohortes(object):
         quitar = np.floor(np.divide(para_quitar, totales_pobs) * pobs)
         quitar[np.isnan(quitar)] = 0
 
+        # para hacer: combinar quitar y quitar2
         np.subtract(pobs, quitar, out=pobs)
 
         para_quitar = np.subtract(para_quitar, quitar.sum(axis=eje_coh))
@@ -89,25 +90,17 @@ class Cohortes(object):
 
         símismo._pobs[rbn] = np.subtract(pobs, quitar_2)
 
-        np.add(quitar_2, quitar, out=quitar)
-
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
-            etapas = etapas or símismo._etps
-
-            # Los índices (en la matriz de cohortes) de las etapas recipientes.
-            í_recip_coh = [etapas.index(x) for x in recips[0]]
-            í_don_coh = [etapas.index(x) for x in recips[1]]
+            np.add(quitar_2, quitar, out=quitar)
 
             # Para cada cohorte...
-            for n_día in range(pobs.shape[eje_coh]):
+            for í_coh in range(pobs.shape[eje_coh]):
                 # Las edades de las etapas que se quitaron
-                eds = edades[n_día, ...]  # para hacer: rebanar mejor
+                eds = edades[í_coh, ...]  # para hacer: rebanar mejor
 
                 # Cambiar el orden de las etapas para los cohortes recipientes
-                nuevos = np.zeros_like(quitar[n_día])
-                nuevos[..., í_recip_coh] = quitar[n_día][..., í_don_coh]
-                símismo.agregar(nuevos, edad=eds, etapas=etapas)
+                símismo.agregar(quitar[í_coh], edad=eds, etapas=recips[0])
 
     def ajustar(símismo, cambio, etapas=None):
         # Detectar dónde el cambio es positivo y dónde es negativo
@@ -137,7 +130,7 @@ class Cohortes(object):
         probs[np.isnan(probs)] = 1
 
         # Calcular el número que transicionan.
-        n_cambian = np.multiply(pobs, probs)
+        n_cambian = np.round(np.multiply(pobs, probs))
 
         # Aplicar el cambio de edad.
         símismo._edades[rbn] += cambio_edad

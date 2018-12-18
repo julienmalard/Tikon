@@ -65,7 +65,7 @@ class PlantillaRamaEc(object):
 
     def poner_val_mód(símismo, var, val, rel=False, filtrar=True):
         res = símismo.mód.obt_res(var)
-        res.poner_valor(val, rel=rel, índs={símismo._eje_cosos: símismo.í_cosos} if filtrar else None)
+        res.poner_valor(val, rel=rel, índs={símismo._eje_cosos: símismo.cosos} if filtrar else None)
 
     def í_eje(símismo, var, eje):
         return símismo.mód.obt_res(var).í_eje(eje)

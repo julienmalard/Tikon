@@ -84,30 +84,6 @@ class Red(Simulable):
                 n_juv = símismo.núms_etapas[obj_org_inf.nombre]['juvenil']
                 símismo.parasitoides['juvs'][n_juv] = n_etp
 
-        # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
-        # depredación
-        índs_parás = [p for n_p, d_p in símismo.parasitoides['adultos'].items() for p in [n_p] * len(d_p['n_entra'])]
-        índs_víc = [v for d in símismo.parasitoides['adultos'].values() for v in d['n_entra']]
-        símismo.parasitoides['índices'] = (índs_parás, índs_víc)
-
-        # Desactivar las ecuaciones de transiciones de juveniles de parasitoides (porque estas se implementan
-        # por la última fase fantasma de la víctima correspondiente
-        for org in símismo.organismos.values():
-            if isinstance(org, Ins.Parasitoide):
-                n_etp = símismo.núms_etapas[org.nombre]['juvenil']  # type: int
-
-                dic_estr = símismo.etapas[n_etp]['dic']['ecs']['Transiciones']
-                dic_edad = símismo.etapas[n_etp]['dic']['ecs']['Edad']
-                tipo_ed = dic_edad['Ecuación']
-                tipo_mult = dic_estr['Mult']
-                tipo_prob = dic_estr['Prob']
-
-                if tipo_prob != 'Nada':
-                    símismo.ecs['Transiciones']['Mult'][tipo_mult].remove(n_etp)
-                    símismo.ecs['Transiciones']['Prob'][tipo_prob].remove(n_etp)
-                if tipo_ed != 'Nada':
-                    símismo.ecs['Edad']['Ecuación'][tipo_ed].remove(n_etp)
-
         # Actualizar los vínculos con los experimentos
         símismo._actualizar_vínculos_exps()
 
@@ -247,27 +223,6 @@ class Red(Simulable):
                 símismo.predics['Pobs'][..., n_etp, 0] = pobs_inic
 
     def _incrementar_depurar(símismo, paso, i, detalles, d_tiempo, mov=False, extrn=None):
-        """
-
-        :param paso:
-        :type paso: int
-        :param i:
-        :type i: int
-        :param detalles:
-        :type detalles: bool
-        :param d_tiempo:
-        :type d_tiempo: dict
-        :param mov:
-        :type mov: bool
-        :param extrn:
-        :type extrn: dict
-        :return:
-        :rtype: dict
-        """
-
-        # Empezar con las poblaciones del paso anterior
-        símismo.predics['Pobs'][..., i] = símismo.predics['Pobs'][..., i - 1]
-        pobs = símismo.predics['Pobs'][..., i]
 
         def verificar_estado(punto):
             """
@@ -301,71 +256,6 @@ class Red(Simulable):
                 if np.any(np.not_equal(pobs_coh.sum(axis=0), pobs[..., símismo.índices_cohortes])):
                     raise ValueError('Población de cohorte no suma a población total justo después de calcular {}.'
                                      .format(punto))
-
-        if not len(d_tiempo):
-            d_tiempo = {'Depredación': 0, 'Crecimiento': 0, 'Muertes': 0, 'Edad': 0, 'Transiciones': 0,
-                        'Reproducción': 0, 'Movimiento': 0, 'Ruido': 0}
-
-        # Calcular la depredación, crecimiento, reproducción, muertes, transiciones, y movimiento entre parcelas
-
-        # Ruido aleatorio
-        antes = ft.now()
-        símismo._calc_ruido(pobs=pobs, paso=paso)
-        ahora = ft.now()
-        d_tiempo['Ruido'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Ruido')
-
-        # Una especie que mata a otra.
-        verificar_estado('Inicio')
-        antes = ft.now()
-        símismo._calc_depred(pobs=pobs, paso=paso, depred=depred, extrn=extrn)
-        ahora = ft.now()
-        d_tiempo['Depredación'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Depredación')
-
-        # Una población que crece (misma etapa)
-        antes = ft.now()
-        símismo._calc_crec(pobs=pobs, extrn=extrn, crec=crec, paso=paso)
-        ahora = ft.now()
-        d_tiempo['Crecimiento'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Crecimiento')
-
-        # Muertes por el ambiente
-        antes = ft.now()
-        símismo._calc_muertes(pobs=pobs, muertes=muertes, extrn=extrn, paso=paso)
-        ahora = ft.now()
-        d_tiempo['Muertes'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Muertes')
-
-        # Calcular cambios de edades
-        antes = ft.now()
-        símismo._calc_edad(extrn=extrn, paso=paso, edades=edades)
-        ahora = ft.now()
-        d_tiempo['Edad'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Edad')
-
-        # Una etapa que cambia a otra, o que se muere por su edad.
-        antes = ft.now()
-        símismo._calc_trans(pobs=pobs, paso=paso, trans=trans)
-        ahora = ft.now()
-        d_tiempo['Transiciones'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Transiciones')
-
-        # Una etapa que se reproduce para producir más de otra etapa
-        antes = ft.now()
-        símismo._calc_reprod(pobs=pobs, paso=paso, reprod=reprod, depred=depred)
-        ahora = ft.now()
-        d_tiempo['Reproducción'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-        verificar_estado('Reproducción')
-
-        if mov:
-            # Movimientos de organismos de una parcela a otra.
-            símismo._calc_mov(pobs=pobs, extrn=extrn, paso=paso)
-            ahora = ft.now()
-            d_tiempo['Movimiento'] += (ahora - antes).seconds + (ahora - antes).microseconds / 1000000
-            verificar_estado('Movimiento')
-
-        return d_tiempo
 
     def _procesar_simul(símismo):
         """

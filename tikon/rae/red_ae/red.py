@@ -1,9 +1,9 @@
 from tikon.ecs.paráms import Inter
 from tikon.módulo import Módulo
-from ..orgs.organismo import EtapaFantasma
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
+from ..orgs.organismo import EtapaFantasma
 
 
 class RedAE(Módulo):
@@ -167,6 +167,12 @@ class InfoEtapas(object):
 
     def índice(símismo, etp):
         return símismo.etapas.index(etp)
+
+    def etp_fant(símismo, huésped, parasitoide):
+        return next(
+            etp for etp in símismo.etapas if
+            isinstance(etp, EtapaFantasma) and etp.etp_hués == huésped and etp.org == parasitoide
+        )
 
     def __iter__(símismo):
         for etp in símismo.etapas:

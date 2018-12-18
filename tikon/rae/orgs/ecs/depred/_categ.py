@@ -31,7 +31,6 @@ class EcsDepred(CategEc):
 
     def postproc(símismo, paso):
         depred = símismo.obt_res(filtrar=False)
-        depred = np.floor(depred)
 
         # Reemplazar valores NaN con 0.
         depred[np.isnan(depred)] = 0
@@ -54,6 +53,7 @@ class EcsDepred(CategEc):
         probs_conj(depred, pesos=1, máx=símismo.obt_val_mód('Pobs', filtrar=False), eje=eje_depredador)
 
         depred[np.isnan(depred)] = 0
+        depred = np.floor(depred)
 
         # Guardar la depredación final
         símismo.poner_val_res(depred)
@@ -64,25 +64,41 @@ class EcsDepred(CategEc):
         # Actualizar la matriz de poblaciones
         símismo.poner_val_mód('Pobs', -depred_por_presa, rel=True, filtrar=False)
 
-        # para hacer
         # Dividir las depredaciones entre las de depredación normal y las de parasitismo
-        depred_parás = np.zeros_like(depred)
-        return
-        índs_parás, índs_víc = símismo.parasitoides['índices']
-        depred_parás[..., índs_parás, índs_víc] = depred[..., índs_parás, índs_víc]
-        depred_por_presa_sin_parás = np.subtract(depred_por_presa, np.sum(depred_parás, axis=eje_depredador))
+        depr_parás = np.where(símismo._máscara_parás(), depred, 0)
+        depr_sin_parás = np.where(~símismo._máscara_parás(), depred, 0)
 
         # Para las depredaciones normales, es fácil quitarlas de los cohortes
-        símismo.mód.cohortes.quitar(depred_por_presa_sin_parás, etapas=símismo.cosos)
+        símismo.mód.cohortes.quitar(np.sum(depr_sin_parás, axis=eje_depredador))
 
+        pobs = símismo.mód.obt_res('Pobs')
         # Para cada parasitoide...
-        for n_parás, d_parás in símismo.parasitoides['adultos'].items():
-            índ_entra = d_parás['n_entra']
-            índ_recip = d_parás['n_fants'][:len(índ_entra)]
-            símismo.mód.cohortes.quitar(etapas=índ_entra, recips=índ_recip)
-            símismo._quitar_de_cohortes(
-                muertes=depred_parás[..., n_parás, símismo.índices_cohortes], í_don=índ_entra, í_recip=índ_recip)
+        for prs, l_hués in símismo._prs_hués():
+            í_prs = símismo.cosos.index(prs)
+            for hués in l_hués:
+                í_hués = símismo.mód.info_etps.índice(hués)
+                etp_fant = símismo.mód.info_etps.etp_fant(hués, prs.org)
+                pob_parasitada = depr_parás[..., í_prs, [í_hués]]  # para hacer: rebanar mejor
 
-            # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
-            símismo.mód.agregar_pobs()
-            pobs[..., índ_recip] += depred_parás[..., n_parás, índ_entra]
+                símismo.mód.cohortes.quitar(pob_parasitada, etapas=[hués], recips=([etp_fant], [hués]))
+
+                # Agregar las adiciones a las etapas fantasmas a la matriz de poblaciones general
+                pobs.poner_valor(pob_parasitada, rel=True, índs={símismo._eje_cosos: [etp_fant]})
+
+    def _máscara_parás(símismo):
+        # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
+        # depredación
+
+        máscara = np.zeros((len(símismo.cosos), len(símismo.mód.info_etps)))  # para hacer: más elegante
+        prs_hués = símismo._prs_hués()
+        l_índs = [
+            (símismo.cosos.index(prs), símismo.mód.info_etps.índice(hués))
+            for prs, l_hués in prs_hués for hués in l_hués
+        ]
+        máscara[list(zip(*l_índs))] = 1
+        return máscara.astype(bool)
+
+    def _prs_hués(símismo):
+        return [
+            (etp, símismo.mód.info_etps.huéspedes(etp)) for etp in símismo.cosos if símismo.mód.info_etps.huéspedes(etp)
+        ]  # para hacer: más elegante

@@ -22,6 +22,6 @@ red.espec_aprioris(a_prioris)
 simul = Simulador(red)
 
 calibs = EspecCalibsCorrida(aprioris=True)
-res = simul.simular(10, n_rep_parám=17, n_rep_estoc=30, calibs=calibs)
+res = simul.simular(50, n_rep_parám=17, n_rep_estoc=30, calibs=calibs)
 
 print(res)
