@@ -13,7 +13,6 @@ class Validación(object):
 
 
 def validar_matr_pred(matr_predic, vector_obs, eje_parám, eje_estoc, eje_t):
-
     # Quitar observaciones que faltan
     matr_predic = matr_predic[:, :, ~np.isnan(vector_obs)]
     vector_obs = vector_obs[~np.isnan(vector_obs)]
@@ -69,3 +68,58 @@ def calc_r2(y_obs, y_pred):
     r2 = 1 - np.divide(sc_rs, sc_t)
 
     return r2
+
+
+def reps_necesarias(matr, eje_parám, eje_estoc, frac_incert, confianza):
+    n_parám = matr.shape[eje_parám]
+    n_estoc = matr.shape[eje_estoc]
+
+    otras_dims = [e for i, e in enumerate(matr.shape) if i != eje_estoc]
+
+    n_iter = 15  # podría ser mejor a ~200
+    matr_perc_estoc = np.zeros((*otras_dims, n_estoc - 1))
+    for i in range(2, n_estoc + 1):
+        rango = np.zeros((n_iter, *otras_dims))
+        for j in range(n_iter):
+            reps_e = np.random.choice(n_estoc, i, replace=False)
+            matr_sel = np.take(matr, reps_e, axis=eje_estoc)
+            prcntl = np.quantile(matr_sel, q=[(1 - frac_incert) / 2, 0.5 + frac_incert / 2], axis=eje_estoc)
+            rango[j] = np.ptp(prcntl, axis=0)
+        matr_perc_estoc[..., i - 2] = np.mean(rango, axis=0)
+
+    x = 1 / np.arange(2, n_estoc + 1)
+    a_0, b = _reg_lin(x, matr_perc_estoc, eje=-1)
+    a = -1 / a_0
+    req_n_estoc = np.ceil(np.nanmax(1 / (a * b * (1 - confianza))))
+
+    if np.isnan(req_n_estoc):
+        req_n_estoc = 1
+
+    otras_dims = [e for i, e in enumerate(matr.shape) if i != eje_parám and i != eje_estoc]
+    matr_perc_prm = np.zeros((*otras_dims, n_parám - 1))
+    rango = np.zeros((n_iter, *otras_dims))
+    for i in range(2, n_parám + 1):
+        for j in range(n_iter):
+            reps_e = np.random.choice(n_parám, i, replace=False)
+            matr_sel = np.take(matr, reps_e, axis=eje_parám)
+            prcntl = np.quantile(matr_sel, q=[(1 - frac_incert) / 2, 0.5 + frac_incert / 2],
+                                 axis=(eje_parám, eje_estoc))
+            rango[j] = np.ptp(prcntl, axis=0)
+        matr_perc_prm[..., i - 2] = np.mean(rango, axis=0)
+
+    x = 1 / np.arange(2, n_parám + 1)
+    a_0, b = _reg_lin(x, matr_perc_prm, eje=-1)
+    req_n_prm = np.ceil(np.nanmax(-a_0 / (b * (1 - confianza))))
+
+    if np.isnan(req_n_prm):
+        req_n_prm = 1
+    return {'estoc': req_n_estoc, 'parám': req_n_prm}
+
+
+def _reg_lin(x, y, eje):
+    prom_x, prom_y = np.mean(x), np.mean(y, axis=eje)
+    SS_xy = np.sum((x - prom_x) * (y - prom_y[..., np.newaxis]), axis=eje)
+    SS_xx = np.sum((x - prom_x) ** 2, axis=eje)
+    a = SS_xy / SS_xx
+    b = prom_y - a * prom_x
+    return a, b
