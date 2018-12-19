@@ -208,6 +208,12 @@ class ResultadosSimul(object):
     def procesar_calib(símismo):
         pass
 
+    def reps_necesarias(símismo):
+        return {str(nmbr): mód.reps_necesarias() for nmbr, mód in símismo.resultados.items()}
+
+    def __getitem__(símismo, itema):
+        return símismo.resultados[next(mód for mód in símismo.resultados if str(mód) == str(itema))]
+
     def __iter__(símismo):
         for r in símismo.resultados.values():
             yield r

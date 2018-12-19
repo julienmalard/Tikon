@@ -90,6 +90,9 @@ class ResultadosMódulo(object):
         for r in símismo:
             r.actualizar()
 
+    def reps_necesarias(símismo):
+        return {nmbr: res.reps_necesarias() for nmbr, res in símismo._resultados.items()}
+
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]
 

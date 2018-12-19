@@ -1,5 +1,6 @@
 import numpy as np
 
+from .valid import reps_necesarias
 from tikon.tiempo import EjeTiempo
 
 
@@ -50,7 +51,7 @@ class Resultado(object):
 
     def obt_valor_t(símismo, t):
         if not símismo.tiempo:
-            raise ValueError
+            raise ValueError('Resultados no temporales no pueden dar datos temporales.')
 
         if not isinstance(t, EjeTiempo):
             t = EjeTiempo(días=t)
@@ -61,7 +62,7 @@ class Resultado(object):
 
     def graficar(símismo):
         if not símismo.tiempo:
-            raise ValueError
+            raise ValueError('Resultados no temporales no se pueden dibujar.')
         raise NotImplementedError
 
     def reinic(símismo):
@@ -77,6 +78,13 @@ class Resultado(object):
 
     def _rebanar(símismo, índs):
         return símismo._dims.rebanar(índs)
+
+    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
+        matr = símismo._matr_t or símismo._matr
+        return reps_necesarias(
+            matr, eje_parám=símismo.í_eje('parám'), eje_estoc=símismo.í_eje('estoc'),
+            frac_incert=frac_incert, confianza=confianza
+        )
 
     def __str__(símismo):
         return símismo.nombre
