@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.rsltd.res import DimsCoh
+from tikon.result.dims import Coord, Dims
 
 
 class Cohortes(object):
@@ -158,3 +158,16 @@ class Cohortes(object):
             datos = datos[..., símismo.í_etps]  # para hacer: rebanar mejor
 
         return datos
+
+
+class DimsCoh(Dims):
+    def __init__(símismo, n_coh, n_estoc, n_parám, parc, etapas):
+        coords = {
+            'coh': Coord(n_coh),
+            'parc': Coord(parc),
+            'estoc': Coord(n_estoc),
+            'parám': Coord(n_parám),
+            'etapa': Coord(etapas)
+        }
+
+        super().__init__(coords=coords)

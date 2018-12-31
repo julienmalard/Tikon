@@ -1,5 +1,6 @@
 from tikon.ecs import ÁrbolEcs
-from tikon.rsltd.res import DimsRes, Resultado
+from tikon.result.res import Resultado
+from tikon.result.dims import Coord, Dims
 
 
 class Módulo(object):
@@ -16,7 +17,7 @@ class Módulo(object):
         símismo.mnjdr_móds = mnjdr_móds
 
         temporales = []  # para hacer
-        obs = []
+        obs = símismo.mnjdr_móds.exper.obtener_obs(símismo)
 
         dims = {
             res: DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
@@ -90,8 +91,8 @@ class ResultadosMódulo(object):
         for r in símismo:
             r.actualizar()
 
-    def reps_necesarias(símismo):
-        return {nmbr: res.reps_necesarias() for nmbr, res in símismo._resultados.items()}
+    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
+        return {nmbr: res.reps_necesarias(frac_incert, confianza) for nmbr, res in símismo._resultados.items()}
 
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]
@@ -99,3 +100,17 @@ class ResultadosMódulo(object):
     def __iter__(símismo):
         for r in símismo._resultados.values():
             yield r
+
+
+class DimsRes(Dims):
+    def __init__(símismo, n_estoc, n_parám, parc, coords=None):
+        if coords is None:
+            coords = {}
+
+        coords = {
+            'parc': Coord(parc),
+            'estoc': Coord(n_estoc),
+            'parám': Coord(n_parám),
+            **{crd: Coord(índs) for crd, índs in coords.items()}
+        }
+        super().__init__(coords=coords)

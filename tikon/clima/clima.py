@@ -1,4 +1,4 @@
-from tikon.módulo import Módulo
+from tikon.estruc.módulo import Módulo
 
 
 class Clima(Módulo):

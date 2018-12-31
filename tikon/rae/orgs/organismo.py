@@ -1,7 +1,7 @@
 from copy import copy
 from typing import List
 
-from tikon.coso import Coso
+from tikon.estruc.coso import Coso
 from .ecs import EcsOrgs
 
 

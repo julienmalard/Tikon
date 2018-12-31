@@ -1,9 +1,9 @@
 from tikon.calib import gen_calibrador
-from tikon.clima import Clima
-from tikon.exper import Exper
-from tikon.manejo import Manejo
-from tikon.rsltd.valid import Validación
-from tikon.tiempo import Tiempo
+from tikon.clima.clima import Clima
+from tikon.exper.exper import Exper
+from tikon.exper.manejo import Manejo
+from tikon.valid.valid import Validación
+from tikon.estruc.tiempo import Tiempo
 
 
 class Simulador(object):
@@ -208,8 +208,8 @@ class ResultadosSimul(object):
     def procesar_calib(símismo):
         pass
 
-    def reps_necesarias(símismo):
-        return {str(nmbr): mód.reps_necesarias() for nmbr, mód in símismo.resultados.items()}
+    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
+        return {str(nmbr): mód.reps_necesarias(frac_incert, confianza) for nmbr, mód in símismo.resultados.items()}
 
     def __getitem__(símismo, itema):
         return símismo.resultados[next(mód for mód in símismo.resultados if str(mód) == str(itema))]
