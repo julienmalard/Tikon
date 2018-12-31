@@ -1,7 +1,7 @@
 import numpy as np
 
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
-from tikon.rae.red_ae.utils import probs_conj
+from tikon.rae.orgs.ecs.utils import probs_conj
 from .bed_deang import BedDeAng
 from .dep_presa import TipoIDP, TipoIIDP, TipoIIIDP
 from .dep_ratio import TipoIDR, TipoIIDR, TipoIIIDR

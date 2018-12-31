@@ -35,10 +35,10 @@ class EjeTiempo(object):
 
     def índices(símismo, t):
         if símismo.f_inic is t.f_inic is None:
-            return t.días
-        elif isinstance(símismo.f_inic, date) and isinstance(t.f_inic, date):
+            dif = 0
+        else:
             dif = (t.f_inic - símismo.f_inic).days
-            return t.días - dif
+        return t.días - dif
 
     def __len__(símismo):
         return len(símismo.días)

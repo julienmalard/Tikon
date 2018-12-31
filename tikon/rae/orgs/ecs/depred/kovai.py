@@ -1,7 +1,7 @@
 import numpy as np
 
 from tikon.rae.orgs.ecs.depred._plntll_ec import EcuaciónDepred
-from tikon.rae.red_ae.utils import probs_conj
+from tikon.rae.orgs.ecs.utils import probs_conj
 from tikon.ecs.árb_mód import Parám
 
 

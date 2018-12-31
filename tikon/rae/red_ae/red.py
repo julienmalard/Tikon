@@ -1,5 +1,5 @@
 from tikon.ecs.paráms import Inter
-from tikon.módulo import Módulo
+from tikon.estruc.módulo import Módulo
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs

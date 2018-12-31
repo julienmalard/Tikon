@@ -1,5 +1,4 @@
-from tikon.coso import Coso
-from tikon.módulo import Módulo
+from tikon.estruc.módulo import Módulo
 
 
 class Cultivo(Módulo):

@@ -50,16 +50,20 @@ def validar_matr_pred(matr_predic, vector_obs, eje_parám, eje_estoc, eje_t):
 def calc_r2(y_obs, y_pred):
     """
     Calcula el coeficiente de determinación (R2) entre las predicciones de un modelo y los valores observados.
-    Notar que calcula R2 *entre valores predichos y observados*, y *no* entre un variable predictor y dependiente.
-    Para este últimeo, emplear `scipy.stats.linregress`.
 
-    :param y_obs: Valores observados.
-    :type y_obs: np.ndarray
-    :param y_pred: Valores predichos. (y_sombrero)
-    :type y_pred: np.ndarray
-    :return: El coeficiente de determinación, R2.
-    :rtype: float
+    Parameters
+    ----------
+    y_obs: np.ndarray
+        Valores observados.
+    y_pred: np.ndarray
+        Valores predichos. (y_sombrero)
+
+    Returns
+    -------
+    float:
+        El coeficiente de determinación, R2.
     """
+
     prom_y = np.mean(y_obs)
     sc_rs = np.sum(np.subtract(y_obs, y_pred) ** 2)
     sc_reg = np.sum(np.subtract(y_pred, prom_y) ** 2)
@@ -76,7 +80,7 @@ def reps_necesarias(matr, eje_parám, eje_estoc, frac_incert, confianza):
 
     otras_dims = [e for i, e in enumerate(matr.shape) if i != eje_estoc]
 
-    n_iter = 15  # podría ser mejor a ~200
+    n_iter = 100  # podría ser mejor a ~200
     matr_perc_estoc = np.zeros((*otras_dims, n_estoc - 1))
     for i in range(2, n_estoc + 1):
         rango = np.zeros((n_iter, *otras_dims))

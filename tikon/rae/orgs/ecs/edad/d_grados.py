@@ -1,4 +1,4 @@
-from tikon.rae.red_ae.utils import días_grados
+from tikon.rae.orgs.ecs.utils import días_grados
 from tikon.ecs.árb_mód import Parám
 from .._plntll_ec import EcuaciónOrg
 
