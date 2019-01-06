@@ -26,5 +26,7 @@ class ProbTrans(SubcategEc):
         símismo.poner_val_res(trans)
 
     def _imprimir(símismo):
-        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps], np.sum(símismo.mód.cohortes._pobs, axis=0))
-        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps] - np.sum(símismo.mód.cohortes._pobs, axis=0))
+        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps],
+              np.sum(símismo.mód.cohortes._pobs, axis=0))
+        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps] - np.sum(
+            símismo.mód.cohortes._pobs, axis=0))

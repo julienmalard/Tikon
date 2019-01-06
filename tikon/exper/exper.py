@@ -72,12 +72,14 @@ class MnjdrObsMód(object):
         símismo._obs[var] = obs
 
     def f_inic(símismo):
-        return min([f for f in [obs.f_inic() for obs in símismo] if f])
-    
+        try:
+            min([f for f in [obs.f_inic() for obs in símismo] if f])
+        except ValueError:
+            return None
+
     def __iter__(símismo):
         for obs in símismo._obs.values():
             yield obs
-    
+
     def __getitem__(símismo, itema):
         return símismo._obs[str(itema)]
-

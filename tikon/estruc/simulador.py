@@ -1,9 +1,9 @@
 from tikon.calib import gen_calibrador
 from tikon.clima.clima import Clima
+from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
 from tikon.exper.manejo import Manejo
 from tikon.valid.valid import Validación
-from tikon.estruc.tiempo import Tiempo
 
 
 class Simulador(object):

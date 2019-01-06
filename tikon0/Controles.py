@@ -5,7 +5,6 @@ from warnings import warn as avisar
 import pathvalidate
 from pkg_resources import resource_filename
 
-
 # Este documento contiene información general para el programa Tiko'n
 
 # El directorio de pase del programa Tikon. Utilizado como referencia para encontrar y escribir documentos.

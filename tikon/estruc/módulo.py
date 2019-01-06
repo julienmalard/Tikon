@@ -1,6 +1,6 @@
 from tikon.ecs import ÁrbolEcs
-from tikon.result.res import Resultado
 from tikon.result.dims import Coord, Dims
+from tikon.result.res import Resultado
 
 
 class Módulo(object):

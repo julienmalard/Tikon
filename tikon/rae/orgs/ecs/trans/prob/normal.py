@@ -1,6 +1,8 @@
+import scipy.stats as estad
+
 from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónTransCoh
-import scipy.stats as estad
+
 
 class Mu(Parám):
     nombre = 'mu'
