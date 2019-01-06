@@ -26,6 +26,20 @@ class Dims(object):
         ejes_índs = {símismo.í_eje(eje): símismo._proc_índs(eje, í) for eje, í in índs.items()}
         return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
 
+    def __add__(símismo, otro):
+        if isinstance(otro, Dims):
+            coords_otro = otro._coords
+        else:
+            coords_otro = otro
+        coords = símismo._coords.copy()
+        coords.update(coords_otro)
+        return Dims(coords)
+
+    def __radd__(símismo, otro):
+        if isinstance(otro, dict):
+            otro = Dims(otro)
+        return otro + símismo
+
 
 class Coord(object):
     def __init__(símismo, índs):

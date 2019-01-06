@@ -17,12 +17,12 @@ References:
 Copyright (c) 2015 Benjamin S. Murphy
 """
 
+import Clima.PyKrige.core as core
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.linalg
 from scipy.spatial.distance import cdist
 
-import Clima.PyKrige.core as core
 import tikon0.Clima.PyKrige.variogram_models as variogram_models
 
 

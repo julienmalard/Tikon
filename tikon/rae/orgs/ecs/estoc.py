@@ -35,7 +35,6 @@ class EcsEstoc(CategEc):
     _eje_cosos = 'etapa'
 
     def postproc(símismo, paso):
-
         estoc = símismo.obt_res(filtrar=False)
         pobs = símismo.obt_val_mód('Pobs', filtrar=True)
 

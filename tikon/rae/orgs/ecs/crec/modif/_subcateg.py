@@ -1,6 +1,6 @@
 from tikon.ecs.árb_mód import SubcategEc, EcuaciónVacía
-from .ninguna import Ninguna
 from .lognorm_temp import LogNormTemp
+from .ninguna import Ninguna
 
 
 class ModifCrec(SubcategEc):

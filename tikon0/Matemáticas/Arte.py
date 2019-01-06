@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 
-from tikon0.Matemáticas.Variables import VarSciPy, VarSpotPy
 from tikon0.Controles import valid_archivo
+from tikon0.Matemáticas.Variables import VarSciPy, VarSpotPy
 
 
 def graficar_línea(datos, título, etiq_y=None, etiq_x='Día', color=None, directorio=None):

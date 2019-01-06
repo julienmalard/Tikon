@@ -7,6 +7,7 @@ class Expon(EcuaciónCrec):
     """
 
     nombre = 'Exponencial'
+
     # El exponencial no tiene parámetros a parte de r
 
     def eval(símismo, paso):

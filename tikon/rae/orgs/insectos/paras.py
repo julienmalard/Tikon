@@ -89,9 +89,7 @@ class Esfécido(Insecto):
         )
 
     def captura(símismo, presa, etps_presa=None):
-
         símismo.secome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')
 
     def nocaptura(símismo, presa, etps_presa=None):
-
         símismo.nosecome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')

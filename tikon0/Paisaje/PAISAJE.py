@@ -2,11 +2,11 @@ import os
 
 from COSO import Coso
 from Cultivo.SUELO import Suelo
+from Cultivo.VARIEDAD import Variedad
 from Parcela import Parcela
 from RAE.REDES import Red
 from geopy.distance import vincenty as dist
 
-from Cultivo.VARIEDAD import Variedad
 from tikon0.Clima import Diario
 
 

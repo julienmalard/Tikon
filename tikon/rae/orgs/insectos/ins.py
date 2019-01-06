@@ -24,7 +24,7 @@ class Insecto(Organismo):
             if njuvenil == 1:
                 nombre = JUVENIL
             else:
-                nombre = f'{JUVENIL}_{i+1}'
+                nombre = f'{JUVENIL}_{i + 1}'
 
             # Agregar la etapa
             símismo.añadir_etapa(nombre)

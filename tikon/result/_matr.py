@@ -1,18 +1,13 @@
 import numpy as np
 
+from tikon.result.dims import Coord, Dims
+
 
 class Matriz(object):
-    def __init__(símismo, mód, var, dims, tiempo=None):
+    def __init__(símismo, dims):
 
-        símismo.mód = mód
-        símismo.var = var
         símismo._dims = dims
-        símismo.tiempo = tiempo
         símismo._matr = np.zeros(dims.frm())
-        if tiempo:
-            símismo._matr_t = np.zeros((tiempo.n_pasos(), *dims.frm()))
-        else:
-            símismo._matr_t = None
 
     def poner_valor(símismo, vals, rel=False, índs=None):
         if índs is None:
@@ -26,13 +21,21 @@ class Matriz(object):
             else:
                 símismo._matr[símismo._rebanar(índs)] = vals
 
+    def obt_valor(símismo, índs=None):
+        if índs is None:
+            return símismo._matr
+        else:
+            return símismo._matr[símismo._rebanar(índs)]
+
+    def sumar(símismo, eje):
+        í_eje = símismo._dims.í_eje(eje)
+        return símismo._matr.sum(axis=í_eje)
+
     def _rebanar(símismo, índs):
         return símismo._dims.rebanar(índs)
 
     def reinic(símismo):
         símismo._matr[:] = 0
-        if símismo.tiempo:
-            símismo._matr_t[:] = 0
 
     def í_eje(símismo, eje):
         return símismo._dims.í_eje(eje)
@@ -40,5 +43,15 @@ class Matriz(object):
     def n_ejes(símismo):
         return símismo._dims.n_ejes()
 
-    def __str__(símismo):
-        return '{}: {}'.format(símismo.mód, símismo.var)
+
+class MatrizTiempo(Matriz):
+    def __init__(símismo, dims, eje_tiempo):
+        """
+
+        Parameters
+        ----------
+        dims: Dims
+        eje_tiempo
+        """
+        símismo.eje_tiempo = eje_tiempo
+        super().__init__(dims={'días': Coord(eje_tiempo.días)} + dims)

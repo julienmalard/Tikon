@@ -13,7 +13,6 @@ class EcsCrec(CategEc):
     req_todas_ramas = True
 
     def postproc(símismo, paso):
-
         crec = símismo.obt_res(filtrar=False)  # para hacer: filtara=False debería ser automático para CategEc
         pobs = símismo.obt_val_mód('Pobs')
 

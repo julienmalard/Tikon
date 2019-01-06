@@ -3,8 +3,8 @@ import tempfile
 from warnings import warn as avisar
 
 import numpy as np
-import spotpy
 import scipy.stats as estad
+import spotpy
 
 from tikon0.Matemáticas.Experimentos import BDtexto
 from tikon0.Matemáticas.Incert import trazas_a_dists
@@ -459,7 +459,7 @@ class ParaSpotPy(object):
 def _dens_con_pred(obs, sim):
     res = []
     for s, o in zip(sim, obs):
-        d = o*(1+np.exp(-o*2)) / (1-np.exp(-o*2))
+        d = o * (1 + np.exp(-o * 2)) / (1 - np.exp(-o * 2))
         if np.isnan(d):
             d = 1
 

@@ -1,4 +1,4 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónTransCoh
 
 

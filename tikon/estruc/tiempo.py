@@ -27,6 +27,9 @@ class Tiempo(object):
     def índices(símismo, t):
         return símismo.eje.índices(t)
 
+    def __len__(símismo):
+        return len(símismo.eje)
+
 
 class EjeTiempo(object):
     def __init__(símismo, días, f_inic=None):
