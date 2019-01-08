@@ -1,9 +1,10 @@
+import os
+
 from tikon.calib import gen_calibrador
 from tikon.clima.clima import Clima
 from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
 from tikon.exper.manejo import Manejo
-from tikon.valid.valid import Validación
 
 
 class Simulador(object):
@@ -15,34 +16,36 @@ class Simulador(object):
         símismo.tiempo = None  # type: Tiempo
         símismo.corrida = None  # type: ResultadosSimul
 
-    def simular(símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30):
+    def simular(
+            símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30,
+            vars_interés=None
+    ):
 
-        calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
-
-        símismo.iniciar(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám)
+        símismo.iniciar(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés)
         símismo.correr()
         símismo.cerrar()
 
         return símismo.corrida
 
-    def iniciar(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám):
+    def iniciar(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
 
-        símismo.iniciar_estruc(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám)
+        símismo.iniciar_estruc(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés)
         símismo.iniciar_vals()
 
-    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám):
+    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
 
         símismo.exper = exper or Exper()
         símismo.mnjdr_móds = MnjdrMódulos(símismo._módulos, símismo.exper)
 
-        n_días = días or símismo.exper.días()
         f_inic = f_inic or símismo.exper.f_inic()
+        n_días = días or símismo.exper.n_días()
 
         símismo.tiempo = Tiempo(día=0, f_inic=f_inic, paso=paso, n_días=n_días)
         parc = símismo.mnjdr_móds.obt_val_control('parcelas')
 
+        calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
         for m in símismo.mnjdr_móds:
-            m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
+            m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
 
         símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
@@ -53,7 +56,6 @@ class Simulador(object):
             m.iniciar_vals()
 
     def correr(símismo):
-
         while símismo.tiempo.avanzar():
             símismo.incrementar()
 
@@ -64,14 +66,9 @@ class Simulador(object):
         símismo.corrida.actualizar_res()
 
     def cerrar(símismo):
+        símismo.corrida.finalizar()
         for m in símismo.mnjdr_móds:
             m.cerrar()
-
-    def validar(símismo, exper=None, paso=1, calibs=None, n_rep_estoc=30, n_rep_parám=30):
-
-        símismo.simular(paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám)
-
-        return Validación(símismo.corrida)
 
     def calibrar(símismo, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30):
 
@@ -83,7 +80,8 @@ class Simulador(object):
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
         símismo.iniciar_estruc(
-            días=None, f_inic=None, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1
+            días=None, f_inic=None, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
+            vars_interés=None
         )
 
         clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms())
@@ -193,23 +191,34 @@ class EspecCalibsCorrida(object):
 
 class ResultadosSimul(object):
     def __init__(símismo, módulos, tiempo):
-        símismo.resultados = {mód: mód.resultados for mód in módulos}
+        símismo.resultados = {mód: mód.resultados for mód in módulos if mód.resultados}
         símismo.tiempo = tiempo
 
-        símismo.datos = NotImplemented
-
     def reinic(símismo):
-        pass
+        for r in símismo:
+            r.reinic()
 
     def actualizar_res(símismo):
         for r in símismo:
             r.actualizar()
 
+    def finalizar(símismo):
+        for r in símismo:
+            r.finalizar()
+
     def procesar_calib(símismo):
-        pass
+        raise NotImplementedError
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
         return {str(nmbr): mód.reps_necesarias(frac_incert, confianza) for nmbr, mód in símismo.resultados.items()}
+
+    def validar(símismo):
+        valid = {str(mód): res.validar() for mód, res in símismo.resultados.items()}
+        return {ll: v for ll, v in valid.items() if v}
+
+    def graficar(símismo, directorio=''):
+        for mód, res in símismo.resultados.items():
+            res.graficar(directorio=os.path.join(directorio, str(mód)))
 
     def __getitem__(símismo, itema):
         return símismo.resultados[next(mód for mód in símismo.resultados if str(mód) == str(itema))]

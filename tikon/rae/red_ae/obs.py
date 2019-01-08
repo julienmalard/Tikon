@@ -20,12 +20,13 @@ class ObsPobs(ObsRAE):
     def de_csv(cls, archivo, col_tiempo, corresp, parc=None):
         csv_pd = pd.read_csv(archivo)
 
-        coords = {
-            'etapa': Coord(list(corresp.values()))
-        }
+        if parc is None:
+            parc = '1'  # para hacer: sincronizar con opciones automáticas
 
-        if parc:
-            raise NotImplementedError
+        coords = {
+            'etapa': Coord(list(corresp.values())),
+            'parc': Coord([parc])
+        }
 
         datos_t = csv_pd[col_tiempo]
         try:
@@ -39,7 +40,10 @@ class ObsPobs(ObsRAE):
         dims = Dims(coords)
         datos = np.zeros((len(tiempo), *dims.frm()))
 
-        datos[(slice(None), *dims.rebanar({'etapa': corresp.values()}))] = csv_pd[list(corresp.keys())]
+        # para hacer: más elegante
+        datos[
+            (slice(None), *dims.rebanar({'etapa': list(corresp.values()), 'parc': parc}))
+        ] = csv_pd[list(corresp.keys())]
 
         return ObsPobs(datos=datos, dims=dims, eje_tiempo=tiempo)
 

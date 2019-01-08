@@ -1,30 +1,30 @@
 import numpy as np
+import scipy.stats as estad
 
 
 class Validación(object):
-    def __init__(símismo, mods):
-        símismo._mods = mods
+    def __init__(símismo, res):
+        símismo._res = res
 
     def _validar(símismo):
         vld = {}
-        for nmb, m in símismo._mods.items():
+        for nmb, m in símismo._res.items():
             vld[nmb] = m.valid()
         return vld
 
 
-def validar_matr_pred(matr_predic, vector_obs, eje_parám, eje_estoc, eje_t):
+def validar_matr_pred(matr_predic, vector_obs):
+    # Eje 0 = t, eje 1 = estoc, eje 2 = parám
+
     # Quitar observaciones que faltan
-    matr_predic = matr_predic[:, :, ~np.isnan(vector_obs)]
+    matr_predic = matr_predic[~np.isnan(vector_obs)]
     vector_obs = vector_obs[~np.isnan(vector_obs)]
 
     # El número de días de predicciones y observaciones
-    n_rep_estoc, n_rep_parám, n_días = matr_predic.shape
-
-    # Combinar los dos ejes de incertidumbre (repeticiones estocásticas y paramétricas)
-    matr_predic = matr_predic.reshape((n_rep_estoc * n_rep_parám, n_días))
+    n_días, n_rep_estoc, n_rep_parám = matr_predic.shape
 
     # Calcular el promedio de todas las repeticiones de predicciones
-    vector_predic = matr_predic.mean(axis=0)
+    vector_predic = matr_predic.mean(axis=(1, 2))
 
     # Calcular R cuadrado
     r2 = calc_r2(vector_predic, vector_obs)
@@ -35,7 +35,7 @@ def validar_matr_pred(matr_predic, vector_obs, eje_parám, eje_estoc, eje_t):
     # Validar el intervalo de incertidumbre
     confianza = np.empty_like(vector_obs, dtype=float)
     for n in range(n_días):
-        perc = estad.percentileofscore(matr_predic[..., n], vector_obs[n]) / 100
+        perc = estad.percentileofscore(matr_predic[n], vector_obs[n]) / 100
         confianza[n] = abs(0.5 - perc) * 2
 
     confianza.sort()
@@ -74,6 +74,7 @@ def calc_r2(y_obs, y_pred):
     return r2
 
 
+# para hacer: limpiar
 def reps_necesarias(matr, eje_parám, eje_estoc, frac_incert, confianza):
     n_parám = matr.shape[eje_parám]
     n_estoc = matr.shape[eje_estoc]

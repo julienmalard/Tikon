@@ -6,8 +6,8 @@ class Exper(object):
         símismo.obs = MnjdrObsExper()
         símismo.controles = MnjdrControlesExper()
 
-    def días(símismo):
-        return símismo.obs.días()
+    def n_días(símismo):
+        return símismo.obs.n_días(símismo.f_inic())
 
     def f_inic(símismo):
         return símismo.obs.f_inic()
@@ -53,8 +53,10 @@ class MnjdrObsExper(object):
         if fechas:
             return min(fechas)
 
-    def días(símismo):
-        return
+    def n_días(símismo, f_inic):
+        días = [f for f in [obs.n_días(f_inic) for obs in símismo] if f]
+        if días:
+            return max(días)
 
     def __iter__(símismo):
         for obs in símismo._obs.values():
@@ -76,6 +78,12 @@ class MnjdrObsMód(object):
             min([f for f in [obs.f_inic() for obs in símismo] if f])
         except ValueError:
             return None
+
+    def n_días(símismo, f_inic):
+        return max([obs.n_días(f_inic) for obs in símismo])
+
+    def __contains__(símismo, itema):
+        return itema in símismo._obs
 
     def __iter__(símismo):
         for obs in símismo._obs.values():

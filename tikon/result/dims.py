@@ -1,3 +1,6 @@
+import collections
+import itertools
+
 import numpy as np
 
 
@@ -19,8 +22,14 @@ class Dims(object):
     def n_ejes(símismo):
         return len(símismo._coords)
 
+    def ejes(símismo):
+        return símismo._coords
+
     def _proc_índs(símismo, eje, índs):
-        return [í if isinstance(í, int) else símismo._coords[eje].índice(í) for í in índs]
+        if isinstance(índs, (list, tuple)):
+            return [símismo._coords[eje].índice(í) for í in índs]
+        else:
+            return símismo._coords[eje].índice(índs)
 
     def rebanar(símismo, índs):
         ejes_índs = {símismo.í_eje(eje): símismo._proc_índs(eje, í) for eje, í in índs.items()}
@@ -40,6 +49,12 @@ class Dims(object):
             otro = Dims(otro)
         return otro + símismo
 
+    def iter_índs(símismo, excluir=None):
+        excluir = excluir or []
+        crds = [crd for crd in símismo._coords if crd not in excluir]
+        tpls = itertools.product(*[símismo._coords[crd].índs for crd in crds])
+        return ({crd: vl for crd, vl in zip(crds, tpl)} for tpl in tpls)
+
 
 class Coord(object):
     def __init__(símismo, índs):
@@ -53,3 +68,7 @@ class Coord(object):
 
     def índice(símismo, itema):
         return símismo.índs.index(itema)
+
+    def __iter__(símismo):
+        for í in símismo.índs:
+            yield í

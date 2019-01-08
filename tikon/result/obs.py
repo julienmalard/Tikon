@@ -11,3 +11,10 @@ class Obs(MatrizTiempo):
 
     def f_inic(símismo):
         return símismo.eje_tiempo.f_inic
+
+    def n_días(símismo, f_inic=None):
+        if f_inic is None or símismo.f_inic() is None:
+            dif = 0
+        else:
+            dif = (f_inic - símismo.f_inic()).days
+        return símismo.eje_tiempo.días.max() + dif

@@ -1,5 +1,7 @@
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import Módulo
+from tikon.estruc.módulo import Módulo, ResultadosMódulo, DimsRes
+from tikon.rae.red_ae.res import ResultadoRed
+from tikon.result.dims import Coord
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
@@ -46,14 +48,14 @@ class RedAE(Módulo):
     def paráms(símismo):
         return símismo._ecs_simul.vals_paráms()
 
-    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
+    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
         símismo.info_etps = InfoEtapas(símismo._orgs)
         símismo._ecs_simul = EcsOrgs(
             símismo.info_etps, mód=símismo, í_cosos=None, n_rep=n_rep_parám
         )
         símismo.cohortes = Cohortes(símismo.info_etps, n_rep_estoc, n_rep_parám, parc=parc)
 
-        super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc)
+        super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
 
     def iniciar_vals(símismo):
         pass
@@ -114,9 +116,7 @@ class RedAE(Módulo):
 
     # para hacer: limpiar y reorganizar estos
     def etps_repr(símismo):
-        return [
-            etp.org[0] for etp in símismo.info_etps if etp.categ_activa('Reproducción', símismo)
-        ]
+        return [etp.org[0] for etp in símismo.info_etps if etp.categ_activa('Reproducción', símismo)]
 
     def etps_trans(símismo):
         etps_trans = [etp for etp in símismo.info_etps if etp.categ_activa('Transiciones', símismo)]
@@ -126,23 +126,39 @@ class RedAE(Módulo):
     def í_parás(símismo):
         raise NotImplementedError
 
-    def _coords_resultados(símismo):
+    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
 
         l_res = ['Edad', 'Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
         parc = símismo.obt_val_control('parcelas')
 
-        return {
-            'Pobs': {'etapa': símismo.info_etps.etapas},
+        obs = símismo.mnjdr_móds.exper.obtener_obs(símismo)
+
+        coords = {
+            'Pobs': {'etapa': Coord(símismo.info_etps.etapas)},
             'Depredación': {
-                'etapa': símismo._ecs_simul.cosos_en_categ('Depredación'),
-                'víctima': símismo.info_etps.etapas
+                'etapa': Coord(símismo._ecs_simul.cosos_en_categ('Depredación')),
+                'víctima': Coord(símismo.info_etps.etapas)
             },
             'Movimiento': {
-                'etapa': símismo._ecs_simul.cosos_en_categ('Movimiento'),
-                'dest': parc
+                'etapa': Coord(símismo._ecs_simul.cosos_en_categ('Movimiento')),
+                'dest': Coord(parc)
             },
-            **{res: {'etapa': símismo._ecs_simul.cosos_en_categ(res)} for res in l_res}
+            **{res: {'etapa': Coord(símismo._ecs_simul.cosos_en_categ(res))} for res in l_res}
         }
+        dims_base = DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc)
+
+        if vars_interés is None:
+            temporales = [vr for vr in coords if vr in obs]
+        else:
+            temporales = vars_interés
+
+        return ResultadosMódulo([
+            ResultadoRed(
+                nmb, dims_base + crd,
+                tiempo=símismo.tiempo if nmb in temporales else None,
+                obs=obs[nmb] if nmb in obs else None
+            ) for nmb, crd in coords.items()
+        ])
 
     def __getitem__(símismo, itema):
         return símismo._orgs[str(itema)]

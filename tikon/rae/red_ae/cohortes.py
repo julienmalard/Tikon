@@ -143,10 +143,7 @@ class Cohortes(object):
         return np.sum(n_cambian, axis=símismo.eje_coh())
 
     def rebanar(símismo, etapas):
-        return símismo._dims.rebanar({'etapa': símismo.í_etapas(etapas)})
-
-    def í_etapas(símismo, etapas):
-        return [símismo._etps.index(etp) for etp in etapas]
+        return símismo._dims.rebanar({'etapa': etapas})
 
     def eje_coh(símismo):
         return símismo._dims.í_eje('coh')

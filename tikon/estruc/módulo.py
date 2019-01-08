@@ -1,6 +1,7 @@
+import os
+
 from tikon.ecs import ÁrbolEcs
 from tikon.result.dims import Coord, Dims
-from tikon.result.res import Resultado
 
 
 class Módulo(object):
@@ -12,23 +13,12 @@ class Módulo(object):
         símismo.mnjdr_móds = None
         símismo._ecs_simul = None  # type: ÁrbolEcs
 
-    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc):
+    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
         símismo.tiempo = tiempo
         símismo.mnjdr_móds = mnjdr_móds
 
-        temporales = []  # para hacer
-        obs = símismo.mnjdr_móds.exper.obtener_obs(símismo)
-
-        dims = {
-            res: DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc, coords=coords)
-            for res, coords in símismo._coords_resultados().items()
-        }
-
-        símismo.resultados = ResultadosMódulo(
-            [
-                Resultado(nmbre, dim, tiempo if nmbre in temporales else None)
-                for nmbre, dim in dims.items() if dim.tmñ()
-            ]
+        símismo.resultados = símismo._gen_resultados(
+            n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, vars_interés=vars_interés
         )
 
     def obt_res(símismo, var):
@@ -68,7 +58,7 @@ class Módulo(object):
     def inter(símismo, coso, tipo):
         raise NotImplementedError
 
-    def _coords_resultados(símismo):
+    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
         raise NotImplementedError
 
     def calc_valid(símismo):
@@ -91,8 +81,20 @@ class ResultadosMódulo(object):
         for r in símismo:
             r.actualizar()
 
+    def finalizar(símismo):
+        for r in símismo:
+            r.finalizar()
+
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
         return {nmbr: res.reps_necesarias(frac_incert, confianza) for nmbr, res in símismo._resultados.items()}
+
+    def validar(símismo):
+        valid = {nmb: res.validar() for nmb, res in símismo._resultados.items()}
+        return {ll: v for ll, v in valid.items() if v}
+
+    def graficar(símismo, directorio):
+        for nmb, res in símismo._resultados.items():
+            res.graficar(directorio=os.path.join(directorio, nmb))
 
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]
