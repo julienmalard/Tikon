@@ -33,7 +33,7 @@ class Resultado(Matriz):
             d_valid = {}
             for índs in símismo.obs.iter_índs(excluir='días'):
                 matr_t = símismo.matr_t
-                ejes_orig = (matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám'))
+                ejes_orig = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
 
                 vals_res = símismo.obt_valor_t(símismo.obs.eje_tiempo, índs=índs)
                 vals_res = np.moveaxis(vals_res, ejes_orig, [0, 1, 2])
@@ -45,6 +45,7 @@ class Resultado(Matriz):
                 for ll in l_llaves[:-1]:
                     if ll not in dic:
                         dic[ll] = {}
+                        dic = dic[ll]
                 dic[l_llaves[-1]] = validar_matr_pred(vals_res, vals_obs)
             return d_valid
 

@@ -186,7 +186,6 @@ class EtapaFantasma(Etapa):
 
         for ctg in categs_de_prs:
             símismo.ecs[ctg] = copy(símismo.etp_espejo.ecs[ctg])
-            símismo.etp_espejo.desactivar_ec(ctg)  # para hacer: no desactivar de manera permanente
 
     def siguiente(símismo):
         return símismo.sig

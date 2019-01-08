@@ -9,45 +9,6 @@ def graficar_pred(
         título, directorio, matr_predic, vector_obs=None, t_pred=None, t_obs=None,
         etiq_y='', etiq_x='Día', color='#99CC00', promedio=True, incert='componentes'
 ):
-    """"""
-    """
-    Esta función genera un gráfico, dato una matriz de predicciones y un vector de observaciones temporales.
-
-    :param matr_predic: La matriz de predicciones. Eje 0 = incertidumbre estocástico, eje 1 = incertidumbre
-    paramétrico, eje 2 = día.
-    :type matr_predic: np.ndarray
-
-    :param vector_obs: El vector de las observaciones. Eje 0 = tiempo.
-    :type vector_obs: np.ndarray | None
-
-    :param tiempos_obs: El vector de los tiempos de las observaciones.
-    :type tiempos_obs: np.ndarray
-
-    :param título: El título del gráfico
-    :type título: str
-
-    :param etiq_y: La etiqueta para el eje y del gráfico.
-    :type etiq_y: str
-
-    :param etiq_x: La etiqueta para el eje x del gráfico
-    :type etiq_x: str
-
-    :param color: El color para el gráfico
-    :type color: str
-
-    :param promedio: Si hay que mostrar el promedio de las repeticiones o no.
-    :type promedio: bool
-
-    :param incert: El tipo de incertidumbre para mostrar (o no). Puede ser None, 'confianza', o 'descomponer'.
-    :type incert: str | None
-
-    :param n_líneas: El número de líneas de repeticiones para mostrar.
-    :type n_líneas: int
-
-    :param directorio: El archivo donde guardar el gráfico
-    :type directorio: str
-
-    """
 
     e_t, e_estoc, e_parám = (0, 1, 2)
     if not os.path.isdir(directorio):
