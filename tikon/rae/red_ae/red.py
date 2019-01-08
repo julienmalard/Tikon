@@ -1,6 +1,6 @@
 from tikon.ecs.paráms import Inter
 from tikon.estruc.módulo import Módulo, ResultadosMódulo, DimsRes
-from tikon.rae.red_ae.res import ResultadoRed
+from tikon.rae.red_ae.res import ResultadoRed, ResultadoEdad, ResultadoDepred
 from tikon.result.dims import Coord
 from .cohortes import Cohortes
 from .. import Organismo
@@ -145,15 +145,21 @@ class RedAE(Módulo):
             },
             **{res: {'etapa': Coord(símismo._ecs_simul.cosos_en_categ(res))} for res in l_res}
         }
+        cls_res = {
+            'Depredación': ResultadoDepred,
+            'Edad': ResultadoEdad
+        }
         dims_base = DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc)
 
         if vars_interés is None:
             temporales = [vr for vr in coords if vr in obs]
+        elif vars_interés is True:
+            temporales = list(coords)
         else:
             temporales = vars_interés
 
         return ResultadosMódulo([
-            ResultadoRed(
+            (cls_res[nmb] if nmb in cls_res else ResultadoRed)(
                 nmb, dims_base + crd,
                 tiempo=símismo.tiempo if nmb in temporales else None,
                 obs=obs[nmb] if nmb in obs else None
