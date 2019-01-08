@@ -54,7 +54,7 @@ class PlantillaRamaEc(object):
     def obt_val_mód(símismo, var, filtrar=True):
         res = símismo.mód.obt_res(var)
 
-        índs = {símismo._eje_cosos: símismo.í_cosos} if filtrar else None
+        índs = {símismo._eje_cosos: símismo.cosos} if filtrar else None
 
         return res.obt_valor(índs)
 
@@ -121,7 +121,7 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso)
             if res is not None:
-                símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.í_cosos})
+                símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.cosos})
 
         símismo.postproc(paso)
 

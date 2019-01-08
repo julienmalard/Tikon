@@ -65,13 +65,13 @@ class Organismo(Coso):
         )
         símismo._rels_paras.append(obj_rel)
 
-    def noparasita(símismo, huésped, etps_huésp=None, etps_símismo=None):
+    def noparasita(símismo, huésped, etps_entra=None, etps_símismo=None):
 
-        etps_huésp = símismo.resolver_etapas(etps_huésp)
+        etps_entra = símismo.resolver_etapas(etps_entra)
         etps_símismo = símismo.resolver_etapas(etps_símismo)
 
         for rel in list(símismo._rels_paras):
-            if rel.huésped is huésped and rel.etp_huésp in etps_huésp and rel.etp_depred in etps_símismo:
+            if rel.huésped is huésped and rel.etps_entra in etps_entra and rel.etp_depred in etps_símismo:
                 símismo._rels_paras.remove(rel)
 
     def resolver_etapas(símismo, etapas):
@@ -126,7 +126,7 @@ class Organismo(Coso):
         if isinstance(itema, int):
             return símismo._etapas[itema]
         try:
-            return next(e for e in símismo._etapas if str(e) == itema)
+            return next(e for e in símismo._etapas if e.nombre == itema)
         except StopIteration:
             raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=str(símismo)))
 
@@ -157,10 +157,13 @@ class Etapa(Coso):
         if índice < (len(símismo.org) - 1):
             return símismo.org[índice + 1]
 
+    def __str__(símismo):
+        return str(símismo.org) + ' ' + símismo.nombre
+
 
 class EtapaFantasma(Etapa):
     def __init__(símismo, org, etp, org_hués, etp_hués, sig):
-        nombre = f'{etp} en {org_hués}, {etp_hués}'
+        nombre = f'{etp.nombre} en {etp_hués}'
         super().__init__(nombre, org)
 
         símismo.etp_espejo = etp

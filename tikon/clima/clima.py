@@ -17,7 +17,7 @@ class Clima(Módulo):
     def reqs_externos(símismo):
         pass
 
-    def _coords_resultados(símismo):
-        return {}  # para hacer
+    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
+        return
 
     nombre = 'clima'

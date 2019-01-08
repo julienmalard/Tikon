@@ -3,10 +3,9 @@ from pprint import pprint
 from pruebas.a_prioris import a_prioris
 from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
 from tikon.exper.exper import Exper
-from tikon.rae.orgs.insectos.gnrc import MetamCompleta, Sencillo
-from tikon.rae.orgs.insectos.paras import Parasitoide
+from tikon.rae.orgs.insectos import MetamCompleta, Sencillo, Parasitoide
+from tikon.rae.red_ae import RedAE
 from tikon.rae.red_ae.obs import ObsPobs
-from tikon.rae.red_ae.red import RedAE
 
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
 Paras_larvas = Parasitoide('Parasitoide larvas')
@@ -44,7 +43,9 @@ exper_A.agregar_obs(pobs)
 simul = Simulador(red)
 
 calibs = EspecCalibsCorrida(aprioris=True)
-res = simul.simular(50, exper=exper_A, n_rep_parám=31, n_rep_estoc=30, calibs=calibs)
+res = simul.simular(exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs)
+pprint(res.validar())
+pprint(res.graficar())
 
-pprint(res.reps_necesarias(0.9, 0.9))
 print(res)
+# pprint(res.reps_necesarias(0.9, 0.9))

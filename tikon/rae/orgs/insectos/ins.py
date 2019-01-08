@@ -45,7 +45,7 @@ class Insecto(Organismo):
             etapas.remove(JUVENIL)
 
             for etp in símismo._etapas:
-                if str(etp).startswith(JUVENIL):
+                if etp.nombre.startswith(JUVENIL):
                     etapas.append(etp)
 
         return super().resolver_etapas(etapas)

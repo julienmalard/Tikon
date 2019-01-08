@@ -1,6 +1,9 @@
 import math as mat
 from datetime import date, datetime, timedelta
 
+import numpy as np
+import pandas as pd
+
 
 class Tiempo(object):
     def __init__(símismo, n_días, día=0, f_inic=None, paso=1):
@@ -8,7 +11,7 @@ class Tiempo(object):
         símismo._día = día
         símismo.paso = paso
         símismo._n_días = n_días
-        símismo.eje = EjeTiempo(días=range(día, día + mat.ceil(n_días / paso), paso), f_inic=f_inic)
+        símismo.eje = EjeTiempo(días=range(día, día + mat.ceil(n_días / paso) + 1, paso), f_inic=f_inic)
 
     def n_pasos(símismo):
         return len(símismo.eje)
@@ -42,6 +45,12 @@ class EjeTiempo(object):
         else:
             dif = (t.f_inic - símismo.f_inic).days
         return t.días - dif
+
+    def eje(símismo):
+        if símismo.f_inic:
+            return pd.to_timedelta(símismo.días, unit='D') + pd.to_datetime(símismo.f_inic)
+        else:
+            return np.array(símismo.días)
 
     def __len__(símismo):
         return len(símismo.días)
