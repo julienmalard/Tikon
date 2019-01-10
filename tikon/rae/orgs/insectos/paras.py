@@ -43,7 +43,7 @@ class Parasitoide(Insecto):
         )
 
         super().__init__(
-            nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecuaciones=tipo_ec
+            nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecs=tipo_ec
         )
 
     def parasita(símismo, huésped, etps_entra, etp_emerg, etp_símismo='adulto', etp_recip=None):
@@ -85,7 +85,7 @@ class Esfécido(Insecto):
         }
 
         super().__init__(
-            nombre=nombre, huevo=False, njuvenil=1, pupa=False, adulto=True, tipo_ecuaciones=tipo_ec
+            nombre=nombre, huevo=False, njuvenil=1, pupa=False, adulto=True, tipo_ecs=tipo_ec
         )
 
     def captura(símismo, presa, etps_presa=None):

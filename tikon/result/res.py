@@ -31,14 +31,15 @@ class Resultado(Matriz):
     def validar(símismo):
         if símismo.matr_t is not None and símismo.obs is not None:
             d_valid = {}
+            eje_tiempo = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje)
             for índs in símismo.obs.iter_índs(excluir='días'):
                 matr_t = símismo.matr_t
                 ejes_orig = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
 
-                vals_res = símismo.obt_valor_t(símismo.obs.eje_tiempo, índs=índs)
+                vals_res = símismo.obt_valor_t(eje_tiempo, índs=índs)
                 vals_res = np.moveaxis(vals_res, ejes_orig, [0, 1, 2])
                 vals_res = vals_res.reshape(vals_res.shape[:3])
-                vals_obs = símismo.obs.obt_valor(índs).squeeze()
+                vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_tiempo.días})
 
                 dic = d_valid
                 l_llaves = list(str(ll) for ll in índs.values())
@@ -60,11 +61,11 @@ class Resultado(Matriz):
             for índs in matr_t.iter_índs(excluir=['días', 'estoc', 'parám']):
                 ord_ejes = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
 
-                vals_res = símismo.obt_valor_t(símismo.tiempo.eje.eje(), índs=índs)
+                vals_res = símismo.obt_valor_t(símismo.tiempo.eje.vec(), índs=índs)
                 vals_res = np.moveaxis(vals_res, ord_ejes, [0, 1, 2])
                 try:
-                    vals_obs = símismo.obs.obt_valor(índs)
-                    eje_obs = símismo.obs.eje_tiempo.eje()
+                    eje_obs = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje).vec()
+                    vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_obs})
                 except (ValueError, AttributeError):  # para hacer: más elegante
                     vals_obs = eje_obs = None
 
@@ -72,7 +73,7 @@ class Resultado(Matriz):
 
                 graficar_pred(
                     título, directorio,
-                    vals_res, t_pred=símismo.tiempo.eje.eje(), t_obs=eje_obs, vector_obs=vals_obs,
+                    vals_res, t_pred=símismo.tiempo.eje.vec(), t_obs=eje_obs, vector_obs=vals_obs,
                 )
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):

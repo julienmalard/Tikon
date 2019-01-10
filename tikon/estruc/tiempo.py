@@ -36,6 +36,8 @@ class Tiempo(object):
 
 class EjeTiempo(object):
     def __init__(símismo, días, f_inic=None):
+        if not isinstance(días, np.ndarray):
+            días = np.array(días)
         símismo.días = días
         símismo.f_inic = f_inic
 
@@ -46,11 +48,19 @@ class EjeTiempo(object):
             dif = (t.f_inic - símismo.f_inic).days
         return t.días - dif
 
-    def eje(símismo):
+    def vec(símismo):
         if símismo.f_inic:
             return pd.to_timedelta(símismo.días, unit='D') + pd.to_datetime(símismo.f_inic)
         else:
             return np.array(símismo.días)
+
+    def cortar(símismo, eje):
+        índs_eje = símismo.índices(eje)
+        máx = índs_eje.max()
+        mín = índs_eje.min()
+
+        días = símismo.días
+        return EjeTiempo(días=días[np.logical_and(días >= mín, días <= máx)], f_inic=símismo.f_inic)
 
     def __len__(símismo):
         return len(símismo.días)

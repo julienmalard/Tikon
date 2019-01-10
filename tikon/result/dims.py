@@ -26,7 +26,7 @@ class Dims(object):
         return símismo._coords
 
     def _proc_índs(símismo, eje, índs):
-        if isinstance(índs, (list, tuple)):
+        if isinstance(índs, (list, tuple, np.ndarray)):
             return [símismo._coords[eje].índice(í) for í in índs]
         else:
             return símismo._coords[eje].índice(índs)
@@ -67,6 +67,8 @@ class Coord(object):
             return len(símismo.índs)
 
     def índice(símismo, itema):
+        if isinstance(símismo.índs, np.ndarray):
+            return np.where(símismo.índs == itema)[0][0]
         return símismo.índs.index(itema)
 
     def __iter__(símismo):
