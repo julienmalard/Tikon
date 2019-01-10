@@ -19,7 +19,7 @@ class Sencillo(Insecto):
 
         super().__init__(
             nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
-            tipo_ecuaciones={'adulto': tipo_ec}
+            tipo_ecs={'adulto': tipo_ec}
         )
 
 
@@ -74,7 +74,7 @@ class MetamCompleta(Insecto):
 
         super().__init__(
             nombre=nombre, huevo=huevo, njuvenil=njuvenil, pupa=True, adulto=adulto,
-            tipo_ecuaciones=tipo_ec
+            tipo_ecs=tipo_ec
         )
 
 
@@ -119,5 +119,5 @@ class MetamIncompleta(Insecto):
 
         super().__init__(
             nombre=nombre, huevo=huevo, njuvenil=njuvenil, pupa=False, adulto=adulto,
-            tipo_ecuaciones=tipo_ec
+            tipo_ecs=tipo_ec
         )

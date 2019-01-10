@@ -125,6 +125,10 @@ class Organismo(Coso):
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]
+        if isinstance(itema, Etapa):
+            itema = itema.nombre
+        else:
+            itema = str(itema)
         try:
             return next(e for e in símismo._etapas if e.nombre == itema)
         except StopIteration:

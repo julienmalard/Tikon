@@ -4,12 +4,12 @@ JUVENIL = 'juvenil'
 
 
 class Insecto(Organismo):
-    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecuaciones=None):
+    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None):
 
         super().__init__(nombre=nombre)
 
-        if tipo_ecuaciones is None:
-            tipo_ecuaciones = {}
+        if tipo_ecs is None:
+            tipo_ecs = {}
 
         # Añadir las etapas
         if huevo:
@@ -35,7 +35,7 @@ class Insecto(Organismo):
         if adulto:
             símismo.añadir_etapa('adulto')
 
-        símismo.activar_ecs(tipo_ecuaciones)
+        símismo.activar_ecs(tipo_ecs)
 
     def resolver_etapas(símismo, etapas):
         if isinstance(etapas, (str, Etapa)):
