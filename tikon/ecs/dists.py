@@ -59,7 +59,7 @@ class DistAnalítica(Dist):
 
             return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[1], 'escl': -_escl_inf})
 
-        elif líms[1] == np.inf:
+        if líms[1] == np.inf:
             return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[0], 'escl': _escl_inf})
 
         return DistAnalítica(dist='Uniforme', paráms={'ubic': líms[0], 'escl': líms[1] - líms[0]})

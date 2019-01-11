@@ -15,6 +15,13 @@ class Exper(object):
     def obt_control(símismo, var):
         return símismo.controles[var]
 
+    def obt_inic(símismo, mód, var):
+        try:
+            mód = símismo.obs[mód]
+        except KeyError:
+            return
+        return mód.obt_inic(var)
+
     def agregar_obs(símismo, obs):
         símismo.obs.agregar_obs(obs)
 
@@ -81,6 +88,12 @@ class MnjdrObsMód(object):
 
     def n_días(símismo, f_inic):
         return max([obs.n_días(f_inic) for obs in símismo])
+
+    def obt_inic(símismo, var):
+        try:
+            return símismo[var]
+        except KeyError:
+            return
 
     def __contains__(símismo, itema):
         return itema in símismo._obs

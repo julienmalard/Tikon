@@ -9,4 +9,4 @@ def gen_calibrador(método, func, paráms):
     except StopIteration:
         raise ValueError('Método de calibración "{m}" no reconocido'.format(m=método))
 
-    return cls(func=func, l_paráms=paráms)
+    return cls(método=método, func=func, l_paráms=paráms)

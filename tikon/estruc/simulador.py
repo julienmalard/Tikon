@@ -85,7 +85,7 @@ class Simulador(object):
         )
 
         clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms())
-        clbrd.calibrar(func, n_iter=n_iter)
+        clbrd.calibrar(n_iter=n_iter)
 
 
 class MnjdrMódulos(object):
@@ -124,6 +124,10 @@ class MnjdrParámsSimul(object):
     def __init__(símismo, módulos):
         símismo._módulos = módulos
         símismo.vals_paráms = [pr for mód in módulos for pr in mód.paráms()]
+
+    def __iter__(símismo):
+        for prm in símismo.vals_paráms:
+            yield prm
 
     def llenar_coefs(símismo, calibs, n_rep_parám):
         calibs.llenar_vals(símismo.vals_paráms, n_rep_parám)
