@@ -58,7 +58,10 @@ class RedAE(Módulo):
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
 
     def iniciar_vals(símismo):
-        pass
+        res_pobs = símismo.obt_res('Pobs')
+        pobs_inic = símismo.mnjdr_móds.exper.obt_inic('red', 'Pobs')
+        res_pobs.poner_valor(pobs_inic)
+        símismo.cohortes.agregar(pobs_inic)
 
     def incrementar(símismo):
         símismo._ecs_simul.eval(símismo.tiempo.paso)

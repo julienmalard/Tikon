@@ -3,6 +3,7 @@ import tempfile
 import numpy as np
 import scipy.stats as estad
 import spotpy
+import pandas as pd
 
 from tikon.calib.calibrador import Calibrador
 
@@ -13,9 +14,9 @@ class CalibSpotPy(Calibrador):
     def métodos(cls):
         return ['epm']
 
-    def _calibrar(símismo, n_iter, método):
+    def _calibrar(símismo, n_iter):
 
-        temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix='CalibTinamït_')
+        temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
         mod_spotpy = ModSpotPy(func=símismo.func, paráms=símismo.paráms)
         muestreador = _algs_spotpy[símismo.método](mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
@@ -24,7 +25,7 @@ class CalibSpotPy(Calibrador):
             muestreador.sample(repetitions=2000 + n_iter, runs_after_convergence=n_iter)
         else:
             muestreador.sample(n_iter)
-        egr_spotpy = BDtexto(temp.name + '.csv')
+        egr_spotpy = pd.read_csv(temp.name + '.csv')
 
         probs = egr_spotpy.obt_datos('like1')
 

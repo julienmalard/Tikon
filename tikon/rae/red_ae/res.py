@@ -12,10 +12,16 @@ class ResultadoRed(Resultado):
                 etps = eje.índs
                 fantasmas = [e for e in etps if isinstance(e, EtapaFantasma)]
                 for etp in fantasmas:
+                    val = símismo.matr_t.obt_valor(índs={nmb: etp})
+
+                    # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
                     if etp.etp_espejo in eje:  # para hacer: arreglar para ecuaciones no activadas en etapas espejos
                         rel = etp is not fantasmas[0]
-                        val = símismo.matr_t.obt_valor(índs={nmb: etp})
                         símismo.matr_t.poner_valor(val, rel=rel, índs={nmb: etp.etp_espejo})
+
+                    # Agregamos etapas fantasmas a las etapas originales de los huéspedes
+                    if etp.etp_hués in eje:
+                        símismo.matr_t.poner_valor(val, rel=True, índs={nmb: etp.etp_hués})
 
 
 class ResultadoDepred(ResultadoRed):

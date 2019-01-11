@@ -52,9 +52,12 @@ exper_A.agregar_obs(pobs)
 simul = Simulador(red)
 
 calibs = EspecCalibsCorrida(aprioris=True)
-res = simul.simular( exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
+res = simul.simular(días=10, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
 pprint(res.validar())
-pprint(res.graficar())
+res.graficar()
+simul.calibrar(exper_A)
 
-print(res)
+res2 = simul.simular(días=10, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
+pprint(res2.validar())
+
 # pprint(res.reps_necesarias(0.9, 0.9))
