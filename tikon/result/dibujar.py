@@ -95,6 +95,7 @@ def graficar_pred(
         # Inferir el incertidumbre paramétrico
         des_est_parám = np.subtract(des_est_total, des_est_estóc)
         frac_des_est_parám = np.divide(des_est_parám, des_est_total)
+        frac_des_est_parám[np.isnan(frac_des_est_parám)] = 0
         incert_parám = np.multiply(rango_total, frac_des_est_parám)
 
         # Límites de la región de incertidumbre paramétrica en el gráfico
