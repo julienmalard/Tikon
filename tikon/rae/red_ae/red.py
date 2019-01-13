@@ -58,10 +58,10 @@ class RedAE(Módulo):
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
 
     def iniciar_vals(símismo):
-        res_pobs = símismo.obt_res('Pobs')
-        pobs_inic = símismo.mnjdr_móds.exper.obt_inic('red', 'Pobs')
-        res_pobs.poner_valor(pobs_inic)
-        símismo.cohortes.agregar(pobs_inic)
+        super().iniciar_vals()
+
+        símismo.cohortes.reinic()
+        símismo.cohortes.agregar(símismo.obt_valor('Pobs'))
 
     def incrementar(símismo):
         símismo._ecs_simul.eval(símismo.tiempo.paso)
@@ -126,9 +126,6 @@ class RedAE(Módulo):
         siguientes = [etp.siguiente() for etp in etps_trans]
         return [(etp, sig) for etp, sig in zip(etps_trans, siguientes) if sig]
 
-    def í_parás(símismo):
-        raise NotImplementedError
-
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
 
         l_res = ['Edad', 'Crecimiento', 'Reproducción', 'Muertes', 'Transiciones', 'Estoc']
@@ -148,6 +145,9 @@ class RedAE(Módulo):
             },
             **{res: {'etapa': Coord(símismo._ecs_simul.cosos_en_categ(res))} for res in l_res}
         }
+
+        # inic = símismo.mnjdr_móds.exper.obt_inic(símismo)  # para hacer
+
         cls_res = {
             'Depredación': ResultadoDepred,
             'Edad': ResultadoEdad
@@ -165,7 +165,8 @@ class RedAE(Módulo):
             (cls_res[nmb] if nmb in cls_res else ResultadoRed)(
                 nmb, dims_base + crd,
                 tiempo=símismo.tiempo if nmb in temporales else None,
-                obs=obs[nmb] if nmb in obs else None
+                obs=obs[nmb] if nmb in obs else None,
+          #      inic=inic[nmb] if nmb in inic else None,
             ) for nmb, crd in coords.items()
         ])
 

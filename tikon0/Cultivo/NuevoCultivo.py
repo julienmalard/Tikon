@@ -1,111 +1,8 @@
 import os
 import subprocess
 
-import numpy as np
-
-from tikon0.Coso import Simulable
 from tikon0.Cultivo import Controles as ctrl
 from tikon0.Cultivo.ModExtern.DSSAT import DSSAT
-
-
-class Cultivo(Simulable):
-    """
-    Esta clase sirve para representar cultivos agrícolas.
-    """
-
-    # La extension para guardar archivos de cultivos.
-    ext = '.clt'
-
-    def __init__(símismo, cultivo, variedad, programa=None, cód_modelo=None):
-        super().__init__(nombre=variedad)
-
-        símismo.cultivo = cultivo
-        símismo.variedad = variedad
-
-        símismo.programa = None
-        símismo.cód_modelo = None
-
-        símismo.modelo = np.array([], dtype=object)
-
-    def estab_modelo(símismo, programa, cód_modelo, dir_trabajo):
-        """
-
-        :param programa:
-        :type programa: str
-
-        :param cód_modelo:
-        :type cód_modelo: str
-
-        :param dir_trabajo:
-        :type dir_trabajo: str
-
-        :return:
-        :rtype: EnvolturaModCult
-        """
-
-        símismo.programa = programa
-        símismo.cód_modelo = cód_modelo
-
-        if programa is None:
-            programa = list(sorted(mods_cult[símismo.cultivo]))[0]
-        if cód_modelo is None:
-            cód_modelo = list(sorted(mods_cult[símismo.cultivo][programa]))[0]
-
-        if programa == 'DSSAT':
-            modelo = EnvolturaDSSAT(cultivo=símismo.cultivo, variedad=símismo.variedad,
-                                    cód_mod=cód_modelo,
-                                    dir_trabajo=dir_trabajo)
-        elif programa == 'CropSyst':
-            raise ValueError('Marcela, ¡este es para ti! Haz CLIC en este error y ya puedes empezar a codigar. :)')
-        else:
-            raise ValueError('Falta implementar el modelo "{}" en Tiko\'n.'.format(programa))
-
-        return modelo
-
-    def actualizar(símismo):
-        pass
-
-    def _sacar_coefs_interno(símismo):
-        pass
-
-    def _llenar_coefs(símismo, nombre_simul, n_rep_parám, dib_dists, calibs=None):
-        pass
-
-    def _sacar_coefs_no_espec(símismo):
-        pass
-
-    def _gen_dics_valid(símismo, exper, paso, n_pasos, n_rep_estoc, n_rep_parám):
-        pass
-
-    def dibujar(símismo, mostrar=True, directorio=None, exper=None, **kwargs):
-        pass
-
-    def _actualizar_vínculos_exps(símismo):
-        pass
-
-    def especificar_apriori(símismo, **kwargs):
-        pass
-
-    def _procesar_simul(símismo):
-        pass
-
-    def _justo_antes_de_simular(símismo):
-        pass
-
-    def _gen_dic_predics_exps(símismo, exper, n_rep_estoc, n_rep_parám, paso, n_pasos, detalles):
-        pass
-
-    def incrementar(símismo, paso, i, detalles, extrn):
-        pass
-
-    def _sacar_líms_coefs_interno(símismo):
-        pass
-
-    def _analizar_valid(símismo):
-        pass
-
-    def _gen_dics_calib(símismo, exper):
-        pass
 
 
 class EnvolturaModCult(object):
@@ -127,15 +24,6 @@ class EnvolturaModCult(object):
         símismo.comanda = NotImplemented
 
         símismo.proceso = None
-
-    def prep_simul(símismo, info_simul):
-        """
-
-        :param info_simul:
-        :type info_simul: dict
-
-        """
-        raise NotImplementedError
 
     def empezar_simul(símismo):
 
@@ -188,9 +76,6 @@ class EnvolturaModCult(object):
         for e in l_egr:
             nmb, val = e.split(': ')
             símismo.egresos[nmb] = float(val)
-
-    def leer_resultados(símismo):
-        raise NotImplementedError
 
 
 class EnvolturaDSSAT(EnvolturaModCult):

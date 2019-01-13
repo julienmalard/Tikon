@@ -1,24 +1,24 @@
 from pprint import pprint
 
 from pruebas.a_prioris import a_prioris
-from tikon.ecs.aprioris import APrioriDens
+# from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
 from tikon.exper.exper import Exper
 from tikon.rae.orgs.insectos import MetamCompleta, Sencillo, Parasitoide
-from tikon.rae.orgs.plantas import Hojas
+# from tikon.rae.orgs.plantas import Hojas
 from tikon.rae.red_ae import RedAE
 from tikon.rae.red_ae.obs import ObsPobs
 
 
-Coco = Hojas(nombre='Palma de coco')  # Unidades: mm2 / ha
-apriori = APrioriDens(rango=(38, 42), certidumbre=0.95)
-Coco.estim_dens(apriori)
+# Coco = Hojas(nombre='Palma de coco')  # Unidades: mm2 / ha
+# apriori = APrioriDens(rango=(38, 42), certidumbre=0.95)
+# Coco.estim_dens(apriori)
 
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
 Paras_larvas = Parasitoide('Parasitoide larvas')
 Paras_pupa = Parasitoide('Parasitoide pupa')
 
-Oarenosella.secome(Coco, etps_símismo='juvenil')
+# Oarenosella.secome(Coco, etps_símismo='juvenil')
 
 Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='pupa')
 Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
@@ -52,7 +52,7 @@ exper_A.agregar_obs(pobs)
 simul = Simulador(red)
 
 calibs = EspecCalibsCorrida(aprioris=True)
-res = simul.simular(días=10, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
+res = simul.simular(días=50, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
 pprint(res.validar())
 res.graficar()
 simul.calibrar(exper_A)

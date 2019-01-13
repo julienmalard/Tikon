@@ -1,11 +1,14 @@
 from setuptools import setup, find_packages
 
-with open('tikon/versión.txt') as archivo_versión:
-    versión = archivo_versión.read().strip()
+
+def leer(arch):
+    with open(arch, 'r', encoding='uft-8') as d:
+        return d.read()
+
 
 setup(
     name='tikon',
-    version=versión,
+    version=leer('tikon/versión.txt').strip(),
     packages=find_packages(),
     url='https://tikon.readthedocs.io',
     download_url='https://github.com/julienmalard/Tikon',
@@ -13,11 +16,8 @@ setup(
     author='Julien Jean Malard',
     author_email='julien.malard@mail.mcgill.ca',
     description='Modelos de redes agroecológicas',
-    long_description='Tiko\'n es una herramienta para desarrollar modelos de agroecología (relaciones tróficas'
-                     'entre insectos, enfermedades, y plantas). Está escrito para permitir la integración de modelos'
-                     'de cultivos existentes.',
-    install_requires=['numpy', 'matplotlib', 'scipy', 'SALib', 'pathvalidate', 'pymc3', 'theano', 'spotpy', 'chardet',
-                      'pandas'],
+    long_description=leer('README.rst'),
+    install_requires=['numpy', 'matplotlib', 'scipy', 'SALib', 'spotpy', 'chardet', 'pandas'],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3 :: Only',

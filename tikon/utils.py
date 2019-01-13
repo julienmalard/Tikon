@@ -39,6 +39,23 @@ def guardar_archivo(texto, archivo):
         shutil.move(arch_temp.name, archivo)
 
 
+def guardar_json(dic, archivo):
+    """
+    Guarda un diccionario json en un archivo.
+
+    Parameters
+    ----------
+    dic: dict
+        El diccionario para guardar.
+    archivo: str
+        El archivo.
+
+    """
+
+    txt = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=2)
+    guardar_archivo(txt, archivo)
+
+
 def detectar_codif(archivo, máx_líneas=None, cortar=None):
     """
     Detecta la codificación de un fuente. (Necesario porque todavía existen programas dinosaurios que no entienden

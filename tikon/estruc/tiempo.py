@@ -8,7 +8,7 @@ import pandas as pd
 class Tiempo(object):
     def __init__(símismo, n_días, día=0, f_inic=None, paso=1):
         símismo._f_inic = _gen_fecha(f_inic)
-        símismo._día = día
+        símismo._día_inic = símismo._día =día
         símismo.paso = paso
         símismo._n_días = n_días
         símismo.eje = EjeTiempo(días=range(día, día + mat.ceil(n_días / paso) + 1, paso), f_inic=f_inic)
@@ -29,6 +29,9 @@ class Tiempo(object):
 
     def índices(símismo, t):
         return símismo.eje.índices(t)
+
+    def reinic(símismo):
+        símismo._día = símismo._día_inic
 
     def __len__(símismo):
         return len(símismo.eje)

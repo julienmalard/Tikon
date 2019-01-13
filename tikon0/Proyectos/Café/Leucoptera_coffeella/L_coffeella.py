@@ -3,7 +3,7 @@ import tikon0.RAE.Planta as Plt
 from tikon0.Matemáticas.Experimentos import Experimento
 from tikon0.Paisaje.Geog import Lugar
 from tikon0.Proyectos.Café.Leucoptera_coffeella.a_prioris import a_prioris
-from tikon0.RAE.RedAE import Red
+from tikon.rae.red_ae import RedAE
 
 # Opciones artísticas
 dib_aprioris = True
@@ -43,8 +43,7 @@ for org in [L_coffeella, Parasitoide_larvas]:
         org.aplicar_ecuación(etapa=etp, tipo_ec={'Edad': {'Ecuación': 'Días grados'}})
 
 # Crear objeto red
-Red_café = Red(nombre='Café', organismos=[L_coffeella, Parasitoide_larvas, Café],
-               proyecto=proyecto)
+Red_café = RedAE([L_coffeella, Parasitoide_larvas, Café])
 
 Red_café.añadir_exp(El_Encanto,
                     corresp={'L. coffeella': {'juvenil': ['Juvenil']

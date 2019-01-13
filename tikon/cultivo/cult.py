@@ -2,8 +2,6 @@ from tikon.estruc.módulo import Módulo
 
 
 class Cultivo(Módulo):
-    def iniciar_vals(símismo):
-        pass
 
     def incrementar(símismo):
         pass

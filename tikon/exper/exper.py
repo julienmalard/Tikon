@@ -15,7 +15,7 @@ class Exper(object):
     def obt_control(símismo, var):
         return símismo.controles[var]
 
-    def obt_inic(símismo, mód, var):
+    def obt_inic(símismo, mód, var=None):
         try:
             mód = símismo.obs[mód]
         except KeyError:
@@ -90,10 +90,7 @@ class MnjdrObsMód(object):
         return max([obs.n_días(f_inic) for obs in símismo])
 
     def obt_inic(símismo, var):
-        try:
-            return símismo[var]
-        except KeyError:
-            return
+        return  # para hacer: implementar para iniciales calibrados (¿y especificados?)
 
     def __contains__(símismo, itema):
         return itema in símismo._obs

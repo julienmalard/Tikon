@@ -11,6 +11,8 @@ class Simulador(object):
 
     def __init__(símismo, módulos):
         símismo._módulos = módulos
+
+        # para hacer: combinar en un objeto
         símismo.mnjdr_móds = None  # type: MnjdrMódulos
         símismo.exper = None  # type: Exper
         símismo.tiempo = None  # type: Tiempo
@@ -70,7 +72,9 @@ class Simulador(object):
         for m in símismo.mnjdr_móds:
             m.cerrar()
 
-    def calibrar(símismo, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30):
+    def calibrar(
+            símismo, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30
+    ):
 
         def func():
             símismo.iniciar_vals()
@@ -80,7 +84,7 @@ class Simulador(object):
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
         símismo.iniciar_estruc(
-            días=None, f_inic=None, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
+            días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
             vars_interés=None
         )
 

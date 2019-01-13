@@ -1,6 +1,6 @@
-.. image:: tikon/LogoTiko'n.png
- :width: 40 %
-   
+.. image:: docs/source/Imágenes/Logo_Tikon.png
+   :width: 40 %
+
 Tiko'n
 ======
 

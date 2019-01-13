@@ -4,6 +4,7 @@ from tikon.result.dims import Coord, Dims
 
 
 class Cohortes(object):
+    # para hacer: convertir en subclase de Resultados
     def __init__(símismo, etapas, n_rep_estoc, n_rep_parám, parc):
         símismo._etps, símismo.í_etps = zip(*[(etp, í) for í, etp in enumerate(etapas) if etp.con_cohortes()])
 
@@ -11,6 +12,10 @@ class Cohortes(object):
 
         símismo._pobs = np.zeros(símismo._dims.frm())
         símismo._edades = np.zeros(símismo._dims.frm())
+
+    def reinic(símismo):
+        símismo._pobs[:] = 0
+        símismo._edades[:] = 0
 
     def agregar(símismo, nuevos, edad=0, etapas=None):
 
