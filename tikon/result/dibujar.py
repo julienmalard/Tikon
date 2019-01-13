@@ -9,7 +9,6 @@ def graficar_pred(
         título, directorio, matr_predic, vector_obs=None, t_pred=None, t_obs=None,
         etiq_y='', etiq_x='Día', color='#99CC00', promedio=True, incert='componentes'
 ):
-
     e_t, e_estoc, e_parám = (0, 1, 2)
     if not os.path.isdir(directorio):
         os.makedirs(directorio)
@@ -99,9 +98,8 @@ def graficar_pred(
         incert_parám = np.multiply(rango_total, frac_des_est_parám)
 
         # Límites de la región de incertidumbre paramétrica en el gráfico
-        mitad = np.divide(np.add(máx_total, mín_total), 2)
-        máx_parám = np.add(mitad, np.divide(incert_parám, 2))
-        mín_parám = np.subtract(mitad, np.divide(incert_parám, 2))
+        mín_parám = np.maximum(mín_total, prom_predic - np.divide(incert_parám, 2))
+        máx_parám = mín_parám + incert_parám
 
         ejes.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
 
