@@ -8,7 +8,7 @@ from tikon.result.dims import Coord, Dims
 class Matriz(object):
     def __init__(símismo, dims):
 
-        símismo._dims = dims
+        símismo.dims = dims
         símismo._matr = np.zeros(dims.frm())
 
     def poner_valor(símismo, vals, rel=False, índs=None):
@@ -30,26 +30,26 @@ class Matriz(object):
             return símismo._matr[símismo.rebanar(índs)]
 
     def sumar(símismo, eje):
-        í_eje = símismo._dims.í_eje(eje)
+        í_eje = símismo.dims.í_eje(eje)
         return símismo._matr.sum(axis=í_eje)
 
     def rebanar(símismo, índs):
-        return símismo._dims.rebanar(índs)
+        return símismo.dims.rebanar(índs)
 
     def reinic(símismo):
         símismo._matr[:] = 0
 
     def ejes(símismo):
-        return símismo._dims.ejes()
+        return símismo.dims.ejes()
 
     def í_eje(símismo, eje):
-        return símismo._dims.í_eje(eje)
+        return símismo.dims.í_eje(eje)
 
     def n_ejes(símismo):
-        return símismo._dims.n_ejes()
+        return símismo.dims.n_ejes()
 
     def iter_índs(símismo, excluir=None):
-        return símismo._dims.iter_índs(excluir=excluir)
+        return símismo.dims.iter_índs(excluir=excluir)
 
 
 class MatrizTiempo(Matriz):

@@ -41,7 +41,8 @@ class Módulo(object):
             símismo._ecs_simul.act_vals()
 
     def iniciar_vals(símismo):
-        raise NotImplementedError
+        if símismo.resultados:  # para hacer: más elegante
+            símismo.resultados.reinic()
 
     def incrementar(símismo):
         raise NotImplementedError

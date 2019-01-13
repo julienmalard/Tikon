@@ -23,10 +23,25 @@ class Resultado(Matriz):
             símismo.matr_t.poner_valor(símismo._matr, índs={'días': [símismo.tiempo.día()]})
 
     def reinic(símismo):
+        super().reinic()
+
         if símismo.matr_t is not None:
             símismo.matr_t.reinic()
 
-        super().reinic()
+        símismo.tiempo.reinic()
+
+        if símismo.obs:
+            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
+            dims_obs = símismo.obs.dims
+
+            # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
+            for índs in dims_obs.iter_índs(excluir='días'):
+                vals_inic = símismo.obs.obt_val_t(t_inic, índs=índs)
+
+                vals_inic[np.isnan(vals_inic)] = 0
+                símismo.poner_valor(vals=vals_inic, índs=índs)
+
+            símismo.actualizar()
 
     def validar(símismo):
         if símismo.matr_t is not None and símismo.obs is not None:

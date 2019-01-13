@@ -1,4 +1,3 @@
-import collections
 import itertools
 
 import numpy as np
@@ -26,12 +25,14 @@ class Dims(object):
         return símismo._coords
 
     def _proc_índs(símismo, eje, índs):
-        if isinstance(índs, (list, tuple, np.ndarray)):
+        if isinstance(índs, (list, tuple, np.ndarray, Coord)):
             return [símismo._coords[eje].índice(í) for í in índs]
         else:
             return símismo._coords[eje].índice(índs)
 
     def rebanar(símismo, índs):
+        if isinstance(índs, Dims):
+            índs = índs.ejes()
         ejes_índs = {símismo.í_eje(eje): símismo._proc_índs(eje, í) for eje, í in índs.items()}
         return tuple(ejes_índs[e] if e in ejes_índs else slice(None) for e in range(símismo.n_ejes()))
 
