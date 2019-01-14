@@ -1,5 +1,6 @@
 from warnings import warn as avisar
 
+import matplotlib.pyplot as dib
 import numpy as np
 import scipy.stats as estad
 from scipy.special import logit, expit
@@ -7,7 +8,7 @@ from scipy.special import logit, expit
 from ._espec_dists import obt_scipy
 from ._utils import líms_compat, proc_líms
 
-_escl_inf = 1e6
+_escl_inf = 1e10
 _dist_mu = 1  # para hacer: da resultados muy raros así
 
 
@@ -22,6 +23,28 @@ class Dist(object):
     def tmñ(símismo):
         raise NotImplementedError
 
+    def aprox_líms(símismo, prc):
+        raise NotImplementedError
+
+    def dibujar(símismo, ejes=None):
+        if ejes is None:
+            fig, ejes = dib.subplots(1, 1)
+        else:
+            fig = None
+
+        n = 10000
+        puntos = símismo.obt_vals(n)
+
+        # Crear el histograma
+        y, delim = np.histogram(puntos, density=True, bins=n // 100)
+        x = 0.5 * (delim[1:] + delim[:-1])
+
+        # Dibujar el histograma
+        ejes[0].plot(x, y, 'b-', lw=2, alpha=0.6)
+        ejes[0].set_title('Distribución')
+
+        return fig, ejes
+
 
 class DistAnalítica(Dist):
     def __init__(símismo, dist, paráms, transf=None):
@@ -30,6 +53,8 @@ class DistAnalítica(Dist):
 
         símismo._transf = transf
 
+        símismo.nombre_dist = dist
+        símismo.paráms = paráms
         símismo.dist = obt_scipy(dist, paráms)
 
     def obt_vals(símismo, n):
@@ -40,6 +65,15 @@ class DistAnalítica(Dist):
 
     def tmñ(símismo):
         return np.inf
+
+    def aprox_líms(símismo, prc):
+
+        # Las superficies de las colas que hay que dejar afuera del rango de los límites
+        colas = ((1 - prc) / 2, 0.5 + prc / 2)
+
+        líms_dist = np.array([símismo.dist.percentiles(colas[0]), símismo.dist.percentiles(colas[1])])
+
+        return símismo._transf_vals(líms_dist)
 
     def _transf_vals(símismo, vals):
 
@@ -57,10 +91,10 @@ class DistAnalítica(Dist):
             if líms[1] == np.inf:
                 return DistAnalítica(dist='Normal', paráms={'ubic': 0, 'escl': _escl_inf})
 
-            return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[1], 'escl': -_escl_inf})
+            return DistAnalítica(dist='Exponencial', paráms={'ubic': líms[1], 'escl': -_escl_inf})
 
         if líms[1] == np.inf:
-            return DistAnalítica(dist='MitadNormal', paráms={'ubic': líms[0], 'escl': _escl_inf})
+            return DistAnalítica(dist='Exponencial', paráms={'ubic': líms[0], 'escl': _escl_inf})
 
         return DistAnalítica(dist='Uniforme', paráms={'ubic': líms[0], 'escl': líms[1] - líms[0]})
 
@@ -115,6 +149,10 @@ class DistAnalítica(Dist):
 
         return DistAnalítica('Normal', paráms={'ubic': mu, 'escl': sg}, transf=transf)
 
+    @classmethod
+    def de_traza(cls, trz, permitidas):
+        raise NotImplementedError
+
 
 class DistTraza(Dist):
     def __init__(símismo, trz, pesos=None):
@@ -138,6 +176,12 @@ class DistTraza(Dist):
 
     def tmñ(símismo):
         return símismo.trz.size
+
+    def aprox_líms(símismo, prc):
+        # Las superficies de las colas que hay que dejar afuera del rango de los límites
+        colas = ((1 - prc) / 2, 0.5 + prc / 2)
+
+        return np.array([np.percentile(símismo.trz, colas[0] * 100, np.percentile(símismo.trz, colas[1] * 100))])
 
 
 class TransfDist(object):
@@ -198,22 +242,3 @@ class MnjdrDists(object):
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
-
-
-class ValoresDist(object):
-    def __init__(símismo, vals):
-        símismo.vals = vals
-
-    def __float__(símismo):
-        return símismo.vals
-
-
-class ValoresDistCalib(ValoresDist):
-    def __index__(símismo, dist_calib):
-        símismo.dist = dist_calib
-        vals = float(símismo.dist)
-        super().__init__(vals)
-
-    def __float__(símismo):
-        símismo.vals[:] = float(símismo.dist)
-        return super().__float__()
