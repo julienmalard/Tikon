@@ -92,15 +92,26 @@ class ValsParámCoso(object):
         return símismo._prm.calib_base()
 
     def llenar_de_base(símismo):
-        calib = símismo.dist_base()
-        símismo.poner_val(calib.obt_vals(símismo._tmñ))
+        val = símismo.dist_base().obt_vals(símismo._tmñ)
+        símismo.poner_val(val)
 
     def apriori(símismo):
-        return símismo._prm.a_priori()
+        return símismo._prm.a_priori(símismo._inter)
 
     def llenar_de_apriori(símismo):
-        calib = símismo.apriori()
-        símismo.poner_val(calib.obt_vals(símismo._tmñ))
+        val = símismo.apriori().obt_vals(símismo._tmñ)
+        símismo.poner_val(val)
+
+    def llenar_de_dists(símismo, dists):
+        val = []
+
+        for d, n in dists.items():
+            if isinstance(n, int):
+                val.append(d.obt_vals(n))
+            else:
+                val.append(d.obt_vals_índ(n))
+
+        símismo.poner_val(np.ravel(val))
 
     def act_vals(símismo):
         pass

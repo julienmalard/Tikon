@@ -96,9 +96,6 @@ class EnvolturaDSSAT(EnvolturaModCult):
         DSSAT.gen_ingr(directorio=símismo.dir, cultivo=símismo.cultivo, variedad=símismo.variedad,
                        disuelo=info_simul['suelo'], meteo=info_simul['meteo'], manejo=info_simul['manejo'])
 
-    def leer_resultados(símismo):
-        resul = DSSAT.leer_egr(directorio=símismo.dir)
-
 
 dic_info = {
     'exe_DSSAT': 'DSCSM046_TKN.EXE'

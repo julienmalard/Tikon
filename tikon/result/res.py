@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from tikon.result.dibujar import graficar_pred
@@ -103,3 +105,42 @@ class Resultado(Matriz):
 
     def __str__(símismo):
         return símismo.nombre
+
+
+class ResultadosSimul(object):
+    def __init__(símismo, módulos, tiempo):
+        símismo.resultados = {mód: mód.resultados for mód in módulos if mód.resultados}
+        símismo.tiempo = tiempo
+
+    def reinic(símismo):
+        for r in símismo:
+            r.reinic()
+
+    def actualizar_res(símismo):
+        for r in símismo:
+            r.actualizar()
+
+    def finalizar(símismo):
+        for r in símismo:
+            r.finalizar()
+
+    def procesar_calib(símismo):
+        raise NotImplementedError
+
+    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
+        return {str(nmbr): mód.reps_necesarias(frac_incert, confianza) for nmbr, mód in símismo.resultados.items()}
+
+    def validar(símismo):
+        valid = {str(mód): res.validar() for mód, res in símismo.resultados.items()}
+        return {ll: v for ll, v in valid.items() if v}
+
+    def graficar(símismo, directorio=''):
+        for mód, res in símismo.resultados.items():
+            res.graficar(directorio=os.path.join(directorio, str(mód)))
+
+    def __getitem__(símismo, itema):
+        return símismo.resultados[next(mód for mód in símismo.resultados if str(mód) == str(itema))]
+
+    def __iter__(símismo):
+        for r in símismo.resultados.values():
+            yield r

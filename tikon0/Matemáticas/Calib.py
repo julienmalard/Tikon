@@ -1,31 +1,11 @@
 import os
 import tempfile
-from warnings import warn as avisar
 
 import numpy as np
-import scipy.stats as estad
 import spotpy
-
 from tikon0.Matemáticas.Experimentos import BDtexto
+
 from tikon0.Matemáticas.Incert import trazas_a_dists
-from tikon0.Matemáticas.Variables import _inv_logit
-
-
-class ModCalib(object):
-    """
-    La clase plantilla (pariente) para modelos de calibración.
-    """
-
-    def __init__(símismo, id_calib, lista_d_paráms, método):
-        símismo.lista_parám = lista_d_paráms
-        símismo.id = id_calib
-        símismo.método = método
-
-    def calib(símismo, rep, quema, extraer):
-        raise NotImplementedError
-
-    def guardar(símismo, nombre=None):
-        raise NotImplementedError
 
 
 class ModSpotPy(ModCalib):
@@ -175,19 +155,3 @@ class ParaSpotPy(object):
         # like = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut(evaluation,simulation)
 
         return _dens_con_pred(evaluation, símismo.res)
-
-
-def _dens_con_pred(obs, sim):
-    res = []
-    for s, o in zip(sim, obs):
-        d = o * (1 + np.exp(-o * 2)) / (1 - np.exp(-o * 2))
-        if np.isnan(d):
-            d = 1
-
-        s = s / d
-        o = o / d
-        try:
-            res.append(_inv_logit(estad.gaussian_kde(s)(o)[0]))
-        except np.linalg.linalg.LinAlgError:
-            res.append(1 if o == s[0] else 0)
-    return np.mean(res)

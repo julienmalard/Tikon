@@ -1,10 +1,10 @@
-import os
-
 from tikon.calib import gen_calibrador
 from tikon.clima.clima import Clima
+from tikon.ecs.dists import DistAnalítica
 from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
 from tikon.exper.manejo import Manejo
+from tikon.result.res import ResultadosSimul
 
 
 class Simulador(object):
@@ -53,6 +53,8 @@ class Simulador(object):
 
     def iniciar_vals(símismo):
 
+        símismo.mnjdr_móds.act_coefs()
+
         símismo.corrida = ResultadosSimul(símismo.mnjdr_móds, símismo.tiempo)
         for m in símismo.mnjdr_móds:
             m.iniciar_vals()
@@ -71,6 +73,13 @@ class Simulador(object):
         símismo.corrida.finalizar()
         for m in símismo.mnjdr_móds:
             m.cerrar()
+
+    def sensib(símismo):
+        # crear dist para corrida sensib
+        anlzdr = AnlzSensib()
+        res = símismo.simular()
+
+        return anlzdr.procesar_res(res)
 
     def calibrar(
             símismo, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30
@@ -113,6 +122,8 @@ class MnjdrMódulos(object):
     def llenar_coefs(símismo, calibs, n_rep_parám):
         # para hacer: ¿separar símismo.paráms()?
         símismo.paráms().llenar_coefs(calibs, n_rep_parám=n_rep_parám)
+
+    def act_coefs(símismo):
         for mód in símismo:
             mód.act_coefs()
 
@@ -167,15 +178,39 @@ class EspecCalibsCorrida(object):
                     extras = n_reps % n_dists
                     n_por_dist[:extras] += 1
 
-                    vl.llenar_de_dist({dist: n for dist, n in zip(d_dists, n_por_dist)})
+                    vl.llenar_de_dists({dist: n for dist, n in zip(d_dists, n_por_dist)})
 
     def gen_dists_calibs(símismo, l_vals_prm, permitidas):
+        l_dists_calib = []
         if símismo.aprioris:
-            raise NotImplementedError
+            for vl in list(l_vals_prm):
+                apriori = vl.apriori()
+                if apriori:
+                    if apriori.nombre_dist not in permitidas:
+                        raise ValueError(apriori.nombre_dist)
+                    l_dists_calib.append(apriori)
+                else:
+                    l_dists_calib.append(None)
 
-        l_dists = símismo._filtrar_dists(l_vals_prm)
+        l_dists = símismo._filtrar_dists(l_vals_prm)[0]
+        import numpy as np
+        for í, (vl, d_dists) in enumerate(zip(l_vals_prm, l_dists)):
+            n_dists = len(d_dists)
+            if n_dists == 0:
+                dist_base = vl.dist_base()
+                if dist_base.nombre_dist not in permitidas:
+                    raise ValueError(dist_base.nombre_dist)
+                l_dists_calib[í] = dist_base
+            elif n_dists == 1:
+                dist = list(d_dists.values())[0]
+                if isinstance(dist, DistAnalítica) and dist.nombre_dist in permitidas:
+                    l_dists_calib[í] = dist
+                    continue
 
-        raise NotImplementedError
+            traza = np.ravel((d.obt_vals(100) for d in d_dists.values()))
+            l_dists_calib[í] = DistAnalítica.de_traza(traza, permitidas)
+
+        return l_dists_calib
 
     def _filtrar_dists(símismo, l_vals_prm):
         dists_disp = [pr.dists_disp(símismo.heredar_inter) for pr in l_vals_prm]
@@ -195,45 +230,6 @@ class EspecCalibsCorrida(object):
                 corresp = False
 
         return dists_disp, corresp
-
-
-class ResultadosSimul(object):
-    def __init__(símismo, módulos, tiempo):
-        símismo.resultados = {mód: mód.resultados for mód in módulos if mód.resultados}
-        símismo.tiempo = tiempo
-
-    def reinic(símismo):
-        for r in símismo:
-            r.reinic()
-
-    def actualizar_res(símismo):
-        for r in símismo:
-            r.actualizar()
-
-    def finalizar(símismo):
-        for r in símismo:
-            r.finalizar()
-
-    def procesar_calib(símismo):
-        raise NotImplementedError
-
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return {str(nmbr): mód.reps_necesarias(frac_incert, confianza) for nmbr, mód in símismo.resultados.items()}
-
-    def validar(símismo):
-        valid = {str(mód): res.validar() for mód, res in símismo.resultados.items()}
-        return {ll: v for ll, v in valid.items() if v}
-
-    def graficar(símismo, directorio=''):
-        for mód, res in símismo.resultados.items():
-            res.graficar(directorio=os.path.join(directorio, str(mód)))
-
-    def __getitem__(símismo, itema):
-        return símismo.resultados[next(mód for mód in símismo.resultados if str(mód) == str(itema))]
-
-    def __iter__(símismo):
-        for r in símismo.resultados.values():
-            yield r
 
 
 def _gen_espec_calibs(calibs, aprioris, heredar, corresp):
