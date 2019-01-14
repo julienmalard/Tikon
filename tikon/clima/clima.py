@@ -3,6 +3,9 @@ from tikon.estruc.módulo import Módulo
 
 class Clima(Módulo):
 
+    def inter(símismo, coso, tipo):
+        pass
+
     def incrementar(símismo):
         pass
 

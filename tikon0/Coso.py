@@ -6,23 +6,12 @@ from warnings import warn as avisar
 
 import numpy as np
 
-from tikon0.Controles import directorio_base
 from tikon0.Matemáticas import Arte, Incert
 from tikon0.Matemáticas.Sensib import prep_anal_sensib
 from tikon0.Matemáticas.Variables import VarSpotPy
 
 
 class Coso(object):
-    """
-    Un "coso", por falta de mejor palabra, se refiere a todo, TODO en el programa
-    Tikon que representa un aspecto físico del ambiente y que tiene datos. Incluye
-    paisajes, parcelas, variedades de cultivos, suelos, insectos, etc. Todos tienen la misma
-    lógica para leer y escribir sus datos en carpetas externas, tanto como para la
-    su calibración.
-    """
-
-    # La extensión para guardar recetas de este tipo de objeto
-    ext = NotImplemented
 
     def borrar_calib(símismo, id_calib, recursivo=True):
         """
@@ -368,31 +357,6 @@ class Simulable(Coso):
 
         # Devolver los resultados
         return nombres_paráms, resultado
-
-    def _procesar_calib(símismo):
-        """
-        Procesa las predicciones de simulación de experimentos del modelo par auso en una calibración.
-
-        :return: Un diccionario de las predicciones.
-        :rtype: dict[dict[np.ndarray]]
-        """
-
-        d_l_m_valid = símismo.dic_simul['d_l_m_valid']
-        d_calib = símismo.dic_simul['d_calib']
-        d_índs = símismo.dic_simul['d_l_í_calib']
-
-        for t_dist, l_matr_v in d_l_m_valid.items():
-            d_dist = d_calib[t_dist]  # type: dict
-
-            for i, m in enumerate(l_matr_v):
-                r = d_índs[t_dist][i]['rango']
-                parc, etps, días = d_índs[t_dist][i]['índs']
-
-                if t_dist == 'Normal':
-                    d_dist[r[0]:r[1]] = m[parc, :, 0, etps, días]
-
-                else:
-                    raise ValueError(t_dist)
 
     def _filtrar_calibs(símismo, calibs, l_paráms, usar_especificadas):
         """

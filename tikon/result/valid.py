@@ -1,30 +1,22 @@
 import numpy as np
-import scipy.stats as estad
-
-
-class Validación(object):
-    def __init__(símismo, res):
-        símismo._res = res
-
-    def _validar(símismo):
-        vld = {}
-        for nmb, m in símismo._res.items():
-            vld[nmb] = m.valid()
-        return vld
+from scipy import stats as estad
 
 
 def validar_matr_pred(matr_predic, vector_obs):
-    # Eje 0 = t, eje 1 = estoc, eje 2 = parám
+
+    # Los ejes
+    eje_t, eje_estoc, eje_parám = [0, 1, 2]
 
     # Quitar observaciones que faltan
-    matr_predic = matr_predic[~np.isnan(vector_obs)]
-    vector_obs = vector_obs[~np.isnan(vector_obs)]
+    faltan = np.isnan(vector_obs)
+    matr_predic = matr_predic[~faltan]
+    vector_obs = vector_obs[~faltan]
 
     # El número de días de predicciones y observaciones
-    n_días, n_rep_estoc, n_rep_parám = matr_predic.shape
+    n_días = matr_predic.shape[eje_t]
 
     # Calcular el promedio de todas las repeticiones de predicciones
-    vector_predic = matr_predic.mean(axis=(1, 2))
+    vector_predic = matr_predic.mean(axis=(eje_estoc, eje_parám))
 
     # Calcular R cuadrado
     r2 = calc_r2(vector_predic, vector_obs)
@@ -128,3 +120,23 @@ def _reg_lin(x, y, eje):
     a = SS_xy / SS_xx
     b = prom_y - a * prom_x
     return a, b
+
+
+def _dens_con_pred(obs, sim):
+    res = []
+    for s, o in zip(sim, obs):
+        d = o * (1 + np.exp(-o * 2)) / (1 - np.exp(-o * 2))
+        if np.isnan(d):
+            d = 1
+
+        s = s / d
+        o = o / d
+        try:
+            res.append(_logit_inv(estad.gaussian_kde(s)(o)[0]))
+        except np.linalg.linalg.LinAlgError:
+            res.append(1 if o == s[0] else 0)
+    return np.mean(res)
+
+
+def _logit_inv(x):
+    return np.divide(np.exp(x), np.add(np.exp(x), 1))

@@ -127,7 +127,6 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
         símismo._a_priori = MnjdrDists()
-        símismo._vals_activos = NotImplemented
 
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
