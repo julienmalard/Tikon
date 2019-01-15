@@ -106,7 +106,7 @@ class ValsParámCoso(object):
         val = []
 
         for d, n in dists.items():
-            if isinstance(n, int):
+            if isinstance(n, (int, np.integer)):
                 val.append(d.obt_vals(n))
             else:
                 val.append(d.obt_vals_índ(n))
@@ -127,6 +127,9 @@ class ValsParámCoso(object):
 
     def poner_val(símismo, val):
         símismo._val[:] = val
+
+    def guardar_calib(símismo, dist, nombre):
+        símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
 
 
 class Inter(object):

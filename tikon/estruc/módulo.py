@@ -1,5 +1,3 @@
-import os
-
 from tikon.ecs import ÁrbolEcs
 from tikon.result.dims import Coord, Dims
 
@@ -68,41 +66,6 @@ class Módulo(object):
 
     def __str__(símismo):
         return símismo.nombre
-
-
-class ResultadosMódulo(object):
-    def __init__(símismo, resultados):
-        símismo._resultados = {str(res): res for res in resultados}
-
-    def reinic(símismo):
-        for r in símismo:
-            r.reinic()
-
-    def actualizar(símismo):
-        for r in símismo:
-            r.actualizar()
-
-    def finalizar(símismo):
-        for r in símismo:
-            r.finalizar()
-
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return {nmbr: res.reps_necesarias(frac_incert, confianza) for nmbr, res in símismo._resultados.items()}
-
-    def validar(símismo):
-        valid = {nmb: res.validar() for nmb, res in símismo._resultados.items()}
-        return {ll: v for ll, v in valid.items() if v}
-
-    def graficar(símismo, directorio):
-        for nmb, res in símismo._resultados.items():
-            res.graficar(directorio=os.path.join(directorio, nmb))
-
-    def __getitem__(símismo, itema):
-        return símismo._resultados[str(itema)]
-
-    def __iter__(símismo):
-        for r in símismo._resultados.values():
-            yield r
 
 
 class DimsRes(Dims):

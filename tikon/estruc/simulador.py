@@ -34,7 +34,7 @@ class Simulador(object):
         símismo.iniciar_estruc(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés)
         símismo.iniciar_vals()
 
-    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
+    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés, llenar=True):
 
         símismo.exper = exper or Exper()
         símismo.mnjdr_móds = MnjdrMódulos(símismo._módulos, símismo.exper)
@@ -49,7 +49,8 @@ class Simulador(object):
         for m in símismo.mnjdr_móds:
             m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
 
-        símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
+        if llenar:
+            símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def iniciar_vals(símismo):
 
@@ -82,7 +83,8 @@ class Simulador(object):
         return anlzdr.procesar_res(res)
 
     def calibrar(
-            símismo, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None, paso=1, n_rep_estoc=30
+            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None,
+            paso=1, n_rep_estoc=30
     ):
 
         def func():
@@ -94,11 +96,11 @@ class Simulador(object):
 
         símismo.iniciar_estruc(
             días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
-            vars_interés=None
+            vars_interés=None, llenar=False
         )
 
-        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms())
-        clbrd.calibrar(n_iter=n_iter)
+        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(), calibs)
+        clbrd.calibrar(n_iter=n_iter, nombre=nombre)
 
 
 class MnjdrMódulos(object):
@@ -178,7 +180,7 @@ class EspecCalibsCorrida(object):
                     extras = n_reps % n_dists
                     n_por_dist[:extras] += 1
 
-                    vl.llenar_de_dists({dist: n for dist, n in zip(d_dists, n_por_dist)})
+                    vl.llenar_de_dists({dist: n for dist, n in zip(d_dists.values(), n_por_dist)})
 
     def gen_dists_calibs(símismo, l_vals_prm, permitidas):
         l_dists_calib = []
@@ -191,16 +193,21 @@ class EspecCalibsCorrida(object):
                     l_dists_calib.append(apriori)
                 else:
                     l_dists_calib.append(None)
+            í_faltan, faltan = zip(*[(í, vl) for í, (d, vl) in enumerate(zip(l_dists_calib, l_vals_prm)) if not d])
+        else:
+            faltan = l_vals_prm
+            í_faltan = range(len(l_vals_prm))
 
-        l_dists = símismo._filtrar_dists(l_vals_prm)[0]
+        l_dists = símismo._filtrar_dists(faltan)[0]
         import numpy as np
-        for í, (vl, d_dists) in enumerate(zip(l_vals_prm, l_dists)):
+        for í, vl, d_dists in zip(í_faltan, faltan, l_dists):
             n_dists = len(d_dists)
             if n_dists == 0:
                 dist_base = vl.dist_base()
                 if dist_base.nombre_dist not in permitidas:
                     raise ValueError(dist_base.nombre_dist)
                 l_dists_calib[í] = dist_base
+                continue
             elif n_dists == 1:
                 dist = list(d_dists.values())[0]
                 if isinstance(dist, DistAnalítica) and dist.nombre_dist in permitidas:

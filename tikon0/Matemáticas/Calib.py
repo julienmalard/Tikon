@@ -46,7 +46,7 @@ class ModSpotPy(ModCalib):
             egr_spotpy = BDtexto(temp.name + '.csv')
 
             cols_prm = [c for c in egr_spotpy.sacar_cols() if c.startswith('par')]
-            trzs = np.array([pr._transf_vals(v) for pr, v in zip(símismo.paráms, egr_spotpy.obt_datos(cols_prm))])
+            trzs = np.array([pr.transf_vals(v) for pr, v in zip(símismo.paráms, egr_spotpy.obt_datos(cols_prm))])
             probs = egr_spotpy.obt_datos('like1')
 
             if os.path.isfile(temp.name + '.csv'):

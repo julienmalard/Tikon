@@ -1,5 +1,6 @@
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import Módulo, ResultadosMódulo, DimsRes
+from tikon.estruc.módulo import Módulo, DimsRes
+from tikon.result.res import ResultadosMódulo
 from tikon.rae.red_ae.res import ResultadoRed, ResultadoEdad, ResultadoDepred
 from tikon.result.dims import Coord
 from .cohortes import Cohortes

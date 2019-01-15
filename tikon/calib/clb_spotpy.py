@@ -5,16 +5,17 @@ import pandas as pd
 import spotpy
 
 from tikon.calib.calibrador import Calibrador
+from tikon.ecs.dists import DistTraza
 
 
 class CalibSpotPy(Calibrador):
-    dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Wald', 'Weibull', 'Triang']
+    dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Wald', 'Triang']
 
     @classmethod
     def métodos(cls):
         return ['epm', 'mc', 'cmmc', 'mhl', 'caa', 'dream']
 
-    def _calibrar(símismo, n_iter):
+    def _calibrar(símismo, n_iter, nombre):
 
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
@@ -26,19 +27,20 @@ class CalibSpotPy(Calibrador):
         else:
             muestreador.sample(n_iter)
         egr_spotpy = pd.read_csv(temp.name + '.csv')
-
-        probs = egr_spotpy.obt_datos('like1')
-
         temp.close()
 
+        vero = egr_spotpy['like1']
         if símismo.método == 'dream':
-            probs = probs[-n_iter:]
+            vero = vero[-n_iter:]
             buenas = slice(-n_iter, None)
         else:
-            buenas = probs >= np.quantile(probs, 0.95)
-            probs = probs[buenas]
+            buenas = vero >= np.quantile(vero, 0.95)
+            vero = vero[buenas].values
 
-        símismo.paráms.guardar_calibs(buenas, probs)
+        for í, (dst, prm) in enumerate(zip(símismo.dists, símismo.paráms)):
+            vals = egr_spotpy['parvar_' + str(í)][buenas].values
+            dist = DistTraza(trz=dst.transf_vals(vals), pesos=vero)
+            prm.guardar_calib(dist, nombre=nombre)
 
 
 _algs_spotpy = {
@@ -65,53 +67,51 @@ class ModSpotPy(object):
         símismo.paráms = paráms
         símismo.dists = dists
 
-        símismo.res = None
-
     def parameters(símismo):
-        return spotpy.parameter.generate([_gen_spotpy(d) for d in símismo.dists])
+        return spotpy.parameter.generate(
+            [_gen_spotpy(d, 'var_' + str(í)) for í, d in enumerate(símismo.dists)]
+        )
 
     def simulation(símismo, x):
-        # para hacer
-        for v, p in zip(x, símismo.paráms):
-            p.agregar_punto(v)
+        for v, p, d in zip(x, símismo.paráms, símismo.dists):
+            p.poner_val(d.transf_vals(v))
 
-        símismo.res = símismo.func()
+        return símismo.func()
         # return np.mean(símismo.res, axis=1)
 
     def evaluation(símismo):
         return  # símismo.res
 
     def objectivefunction(símismo, simulation, evaluation, params=None):
-        return símismo.res
+        return simulation
 
 
 def _gen_spotpy(dist, nmbr_var):
     nombre_dist = dist.nombre_dist
+    paráms = dist.paráms
+
+    ubic = paráms['loc'] if 'loc' in paráms else 0
+    escl = paráms['scale'] if 'scale' in paráms else 1
 
     if nombre_dist == 'Chi2':
-        raise NotImplementedError
         var = spotpy.parameter.Chisquare(nmbr_var, dt=paráms['df'])
 
     elif nombre_dist == 'Exponencial':
-        var = spotpy.parameter.Exponential(nmbr_var, scale=1)
+        var = spotpy.parameter.Exponential(nmbr_var, scale=escl)
 
     elif nombre_dist == 'Gamma':
-        raise NotImplementedError
-        var = spotpy.parameter.Gamma(nmbr_var, k=paráms['a'])
+        var = spotpy.parameter.Gamma(nmbr_var, shape=paráms['a'], scale=escl)
 
     elif nombre_dist == 'LogNormal':
-        raise NotImplementedError
-        var = spotpy.parameter.logNormal(nmbr_var)
+        var = spotpy.parameter.logNormal(nmbr_var, mean=ubic, sigma=escl)
 
     elif nombre_dist == 'Normal':
-        var = spotpy.parameter.Normal(nmbr_var, mean=0, stddev=1)
+        var = spotpy.parameter.Normal(nmbr_var, mean=ubic, stddev=escl)
 
     elif nombre_dist == 'Uniforme':
-        var = spotpy.parameter.Uniform(nmbr_var, low=0, high=1)
-
-    elif nombre_dist == 'Weibull':
-        raise NotImplementedError
-        var = spotpy.parameter.Weibull(nmbr_var)
+        var = spotpy.parameter.Uniform(nmbr_var, low=ubic, high=ubic + escl)
 
     else:
-        raise ValueError(tipo_dist)
+        raise ValueError(nombre_dist)
+
+    return var

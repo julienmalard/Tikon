@@ -39,7 +39,7 @@ class ResultadoRed(Resultado):
         etps_espejo = [(e, buscar_fants(e)) for e in etps if buscar_fants(e)]
 
         def obt_val(e):
-            return símismo.obt_valor_t(0, {'etapa': e})
+            return símismo.obt_valor({'etapa': e})
 
         # para hacer: reorganizar si etps_espejo se convierten en grupos de etapas
         for f in fantasmas:
