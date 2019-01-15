@@ -58,7 +58,7 @@ class DistAnalítica(Dist):
         símismo.dist = obt_scipy(dist, paráms)
 
     def obt_vals(símismo, n):
-        return símismo._transf_vals(símismo.dist.rvs(n))
+        return símismo.transf_vals(símismo.dist.rvs(n))
 
     def obt_vals_índ(símismo, í):
         return símismo.obt_vals(n=len(í))
@@ -73,9 +73,9 @@ class DistAnalítica(Dist):
 
         líms_dist = np.array([símismo.dist.percentiles(colas[0]), símismo.dist.percentiles(colas[1])])
 
-        return símismo._transf_vals(líms_dist)
+        return símismo.transf_vals(líms_dist)
 
-    def _transf_vals(símismo, vals):
+    def transf_vals(símismo, vals):
 
         vals = vals * símismo._escl + símismo._ubic
         if símismo._transf is not None:
@@ -217,13 +217,15 @@ class MnjdrDists(object):
         elif índs is not None:
             índs = list(índs)  # generar copia
 
-        if índs is None or not len(índs):
+        if índs is None or not índs:
             símismo.val = dist
         else:
             í = índs.pop(0)
-            sub_dist = símismo.__class__()
-            sub_dist.actualizar(dist, índs)
-            símismo.índs[í] = sub_dist
+
+            if í not in símismo.índs:
+                símismo.índs[í] = MnjdrDists()
+
+            símismo.índs[í].actualizar(dist, índs)
 
     def obt_val(símismo, índs=None, heredar=True):
 
@@ -237,7 +239,7 @@ class MnjdrDists(object):
         else:
             í = índs.pop(0)
             if í in símismo.índs:
-                return símismo.índs[í].obt_valor(índs, heredar)
+                return símismo.índs[í].obt_val(índs, heredar)
             return símismo.val if heredar else []
 
     def __getitem__(símismo, itema):
