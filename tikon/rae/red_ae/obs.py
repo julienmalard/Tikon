@@ -17,7 +17,7 @@ class ObsPobs(ObsRAE):
         super().__init__(var='Pobs', datos=datos, dims=dims, eje_tiempo=eje_tiempo)
 
     @classmethod
-    def de_csv(cls, archivo, col_tiempo, corresp, parc=None):
+    def de_csv(cls, archivo, col_tiempo, corresp, parc=None, factor=1):
         csv_pd = pd.read_csv(archivo)
 
         if parc is None:
@@ -43,7 +43,7 @@ class ObsPobs(ObsRAE):
         # para hacer: más elegante
         datos[
             (slice(None), *dims.rebanar({'etapa': list(corresp.values()), 'parc': parc}))
-        ] = csv_pd[list(corresp.keys())]
+        ] = csv_pd[list(corresp.keys())]*factor
 
         return ObsPobs(datos=datos, dims=dims, eje_tiempo=tiempo)
 

@@ -158,6 +158,8 @@ class DistTraza(Dist):
     def __init__(símismo, trz, pesos=None):
         if pesos is None:
             pesos = np.ones_like(trz)
+        else:
+            pesos = pesos / np.sum(pesos)
 
         if trz.size != pesos.size:
             raise ValueError
@@ -168,7 +170,7 @@ class DistTraza(Dist):
     def obt_vals(símismo, n):
         reemplazar = n > len(símismo.trz)
         if reemplazar:
-            avisar()
+            avisar('Repitiendo valores porque se pidieron más repeticiones que hay disponibles.')
         return np.random.choice(símismo.trz, n, replace=reemplazar, p=símismo.pesos)
 
     def obt_vals_índ(símismo, í):

@@ -147,44 +147,6 @@ class Simulable(Coso):
     Parcela, pero NO un Insecto.
     """
 
-    def guardar_calib(símismo, descrip, utilizador, contacto=''):
-        """
-        Esta función guarda una calibración existente para uso futuro.
-
-        :param descrip: La descripción de la calibración (para referencia futura).
-        :type descrip: str
-
-        :param utilizador: El nombre del utilizador que hizo la calibración.
-        :type utilizador: str
-
-        :param contacto: El contacto del utilizador
-        :type contacto: str
-
-        """
-
-        # Si no hay modelo, no hay nada para guardar.
-        if símismo.ModCalib is None:
-            raise ValueError('No hay calibraciones para guardar.')
-
-        # La fecha y hora a la cual se guardó
-        ahora = ft.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        # El nombre de identificación de la calibración.
-        nb = símismo.ModCalib.id
-
-        # Guardar la descripción de esta calibración en el diccionario del objeto
-        símismo.receta['Calibraciones'][nb] = dict(Descripción=descrip,
-                                                   Fecha=ahora,
-                                                   Utilizador=utilizador,
-                                                   Contacto=contacto,
-                                                   Config=copiar.deepcopy(símismo.receta['estr']))
-
-        # Guardar los resultados de la calibración
-        símismo.ModCalib.guardar()
-
-        # Borrar el objeto de modelo, ya que no se necesita
-        símismo.ModCalib = None
-
     def sensibilidad(símismo, nombre, exper, n, método='Sobol', calibs=None, por_dist_ingr=0.95,
                      n_rep_estoc=30, tiempo_final=None, detalles=False, usar_especificadas=True,
                      opciones_sens=None, dibujar=False):

@@ -122,7 +122,7 @@ def _reg_lin(x, y, eje):
     return a, b
 
 
-def _dens_con_pred(obs, sim):
+def dens_con_pred(obs, sim):
     res = []
     for s, o in zip(sim, obs):
         d = o * (1 + np.exp(-o * 2)) / (1 - np.exp(-o * 2))
@@ -132,7 +132,7 @@ def _dens_con_pred(obs, sim):
         s = s / d
         o = o / d
         try:
-            res.append(_logit_inv(estad.gaussian_kde(s)(o)[0]))
+            res.append(_logit_inv(estad.gaussian_kde(np.ravel(s))(o)[0]))
         except np.linalg.linalg.LinAlgError:
             res.append(1 if o == s[0] else 0)
     return np.mean(res)
