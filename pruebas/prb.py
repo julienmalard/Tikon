@@ -55,9 +55,9 @@ calibs = EspecCalibsCorrida(aprioris=True)
 # res = simul.simular(días=15, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
 # pprint(res.validar())
 # res.graficar()
-simul.calibrar('Sitio A', días=30, exper=exper_A, n_iter=200)
+simul.calibrar('Sitio A', días=50, exper=exper_A, n_iter=200)
 
-res2 = simul.simular(días=30, exper=exper_A, n_rep_parám=7, n_rep_estoc=30, vars_interés=True)
+res2 = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
 res2.graficar('con calib')
 pprint(res2.validar())
 

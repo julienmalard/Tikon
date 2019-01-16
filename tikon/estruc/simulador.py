@@ -1,3 +1,5 @@
+from copy import copy
+
 from tikon.calib import gen_calibrador
 from tikon.clima.clima import Clima
 from tikon.ecs.dists import DistAnalítica
@@ -168,56 +170,65 @@ class EspecCalibsCorrida(object):
         l_dists, corresp = símismo._filtrar_dists(l_vals_prm)
 
         import numpy as np
-        if corresp:
-            raise NotImplementedError
-        else:
-            for vl, d_dists in zip(l_vals_prm, l_dists):
-                n_dists = len(d_dists)
-                if n_dists == 0:
-                    vl.llenar_de_base()
-                else:
-                    n_por_dist = np.full(n_dists, n_reps // n_dists)
-                    extras = n_reps % n_dists
-                    n_por_dist[:extras] += 1
+        índs_dists = {}
+        for vl, d_dists in zip(l_vals_prm, l_dists):
+            n_dists = len(d_dists)
+            if n_dists == 0:
+                vl.llenar_de_base()
+            else:
+                n_por_dist = np.full(n_dists, n_reps // n_dists)
+                extras = n_reps % n_dists
+                n_por_dist[:extras] += 1
 
+                if corresp:
+                    for í, (nmb, dist) in enumerate(d_dists.items()):
+                        if nmb not in índs_dists:
+                            índs_dists[nmb] = np.random.randint(dist.tmñ(), size=n_por_dist[í])
+                    vl.llenar_de_dists({d_dists[nmb]: índs_dists[nmb] for nmb in d_dists})
+                else:
                     vl.llenar_de_dists({dist: n for dist, n in zip(d_dists.values(), n_por_dist)})
 
     def gen_dists_calibs(símismo, l_vals_prm, permitidas):
-        l_dists_calib = []
+        # Para hacer: limpiar TODO esto...es horriblemente inelegante
+        d_dists_calib = {}
+
+        def agregar_dist(val, dst):
+            try:
+                d_pre = next(d for d in d_dists_calib if any(v == val for v in d_dists_calib[d]))
+                d_dists_calib[d_pre].append(val)
+            except StopIteration:
+                d_dists_calib[dst] = [val]
+
         if símismo.aprioris:
             for vl in list(l_vals_prm):
                 apriori = vl.apriori()
                 if apriori:
                     if apriori.nombre_dist not in permitidas:
                         raise ValueError(apriori.nombre_dist)
-                    l_dists_calib.append(apriori)
-                else:
-                    l_dists_calib.append(None)
-            í_faltan, faltan = zip(*[(í, vl) for í, (d, vl) in enumerate(zip(l_dists_calib, l_vals_prm)) if not d])
-        else:
-            faltan = l_vals_prm
-            í_faltan = range(len(l_vals_prm))
+                    agregar_dist(vl, copy(apriori))
 
-        l_dists = símismo._filtrar_dists(faltan)[0]
+            l_vals_prm = [vl for vl in l_vals_prm if not any(vl in l for l in d_dists_calib.values())]
+
+        l_dists = símismo._filtrar_dists(l_vals_prm)[0]
         import numpy as np
-        for í, vl, d_dists in zip(í_faltan, faltan, l_dists):
+        for vl, d_dists in zip(l_vals_prm, l_dists):
             n_dists = len(d_dists)
             if n_dists == 0:
                 dist_base = vl.dist_base()
                 if dist_base.nombre_dist not in permitidas:
                     raise ValueError(dist_base.nombre_dist)
-                l_dists_calib[í] = dist_base
+                agregar_dist(vl, copy(dist_base))
                 continue
             elif n_dists == 1:
                 dist = list(d_dists.values())[0]
                 if isinstance(dist, DistAnalítica) and dist.nombre_dist in permitidas:
-                    l_dists_calib[í] = dist
+                    agregar_dist(vl, copy(dist))
                     continue
 
             traza = np.ravel((d.obt_vals(100) for d in d_dists.values()))
-            l_dists_calib[í] = DistAnalítica.de_traza(traza, permitidas)
+            agregar_dist(vl, DistAnalítica.de_traza(traza, permitidas))
 
-        return l_dists_calib
+        return d_dists_calib
 
     def _filtrar_dists(símismo, l_vals_prm):
         dists_disp = [pr.dists_disp(símismo.heredar_inter) for pr in l_vals_prm]

@@ -189,7 +189,7 @@ class EtapaFantasma(Etapa):
             símismo.ecs[ctg] = símismo.etp_hués.ecs[ctg]
 
         for ctg in categs_de_prs:
-            símismo.ecs[ctg] = copy(símismo.etp_espejo.ecs[ctg])
+            símismo.ecs[ctg] = símismo.etp_espejo.ecs[ctg]
 
     def siguiente(símismo):
         return símismo.sig
