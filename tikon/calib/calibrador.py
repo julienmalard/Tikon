@@ -3,7 +3,6 @@ class Calibrador(object):
 
     def __init__(símismo, método, func, paráms, calibs):
         símismo.método = método
-        símismo.paráms = paráms
         símismo.func = func
         símismo.calibs = calibs
         símismo.dists = calibs.gen_dists_calibs(paráms, permitidas=símismo.dists_disp)

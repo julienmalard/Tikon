@@ -131,6 +131,9 @@ class ValsParámCoso(object):
     def guardar_calib(símismo, dist, nombre):
         símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
 
+    def __eq__(símismo, otro):
+        return símismo._prm is otro._prm and símismo._inter == otro._inter
+
 
 class Inter(object):
     def __init__(símismo, tmñ, índices):

@@ -1,3 +1,4 @@
+import math as mat
 import tempfile
 
 import numpy as np
@@ -19,7 +20,7 @@ class CalibSpotPy(Calibrador):
 
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
-        mod_spotpy = ModSpotPy(func=símismo.func, paráms=símismo.paráms, dists=símismo.dists)
+        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists)
         muestreador = _algs_spotpy[símismo.método](mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
 
         if símismo.método == 'dream':
@@ -29,18 +30,19 @@ class CalibSpotPy(Calibrador):
         egr_spotpy = pd.read_csv(temp.name + '.csv')
         temp.close()
 
-        vero = egr_spotpy['like1']
+        vero = egr_spotpy['like1'].values
         if símismo.método == 'dream':
             vero = vero[-n_iter:]
             buenas = slice(-n_iter, None)
         else:
-            buenas = vero >= np.quantile(vero, 0.95)
-            vero = vero[buenas].values
+            n = mat.ceil(n_iter / 20)
+            buenas = np.argpartition(vero, -n)[-n:]
+            vero = vero[buenas]
 
-        for í, (dst, prm) in enumerate(zip(símismo.dists, símismo.paráms)):
+        for í, (dst, vls_prms) in enumerate(símismo.dists.items()):
             vals = egr_spotpy['parvar_' + str(í)][buenas].values
             dist = DistTraza(trz=dst.transf_vals(vals), pesos=vero)
-            prm.guardar_calib(dist, nombre=nombre)
+            vls_prms[0].guardar_calib(dist, nombre=nombre)  # para hacer: más elegante
 
 
 _algs_spotpy = {
@@ -62,9 +64,8 @@ _algs_spotpy = {
 
 
 class ModSpotPy(object):
-    def __init__(símismo, func, paráms, dists):
+    def __init__(símismo, func, dists):
         símismo.func = func
-        símismo.paráms = paráms
         símismo.dists = dists
 
     def parameters(símismo):
@@ -73,8 +74,9 @@ class ModSpotPy(object):
         )
 
     def simulation(símismo, x):
-        for v, p, d in zip(x, símismo.paráms, símismo.dists):
-            p.poner_val(d.transf_vals(v))
+        for v, (d, v_prm) in zip(x, símismo.dists.items()):
+            for vl in v_prm:
+                vl.poner_val(d.transf_vals(v))
 
         return símismo.func()
         # return np.mean(símismo.res, axis=1)
