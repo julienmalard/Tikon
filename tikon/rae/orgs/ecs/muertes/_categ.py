@@ -27,4 +27,4 @@ class EcsMuerte(CategEc):
 
     def postproc(símismo, paso):
         muertes = símismo.obt_res(filtrar=False)
-        símismo.poner_val_mód('Pobs', -muertes, rel=True)
+        símismo.mód.quitar_pobs(muertes, etapas=símismo.cosos)
