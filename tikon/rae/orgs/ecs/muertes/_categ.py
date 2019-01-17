@@ -22,3 +22,9 @@ class EcMuerte(SubcategEc):
 class EcsMuerte(CategEc):
     nombre = 'Muertes'
     cls_ramas = [EcMuerte]
+    _nombre_res = 'Muertes'
+    _eje_cosos = 'etapa'
+
+    def postproc(símismo, paso):
+        muertes = símismo.obt_res(filtrar=False)
+        símismo.poner_val_mód('Pobs', -muertes, rel=True)
