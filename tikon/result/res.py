@@ -72,7 +72,7 @@ class Resultado(Matriz):
         if símismo._validable():
             l_proc = []
             pesos = []
-
+            from spotpy.objectivefunctions import nashsutcliffe
             eje_tiempo = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje)
             for índs in símismo.obs.iter_índs(excluir='días'):
                 matr_t = símismo.matr_t
@@ -83,7 +83,8 @@ class Resultado(Matriz):
                 vals_res = vals_res.reshape(vals_res.shape[:3])
                 vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_tiempo.días})
 
-                l_proc.append(dens_con_pred(vals_obs, vals_res))
+                # l_proc.append(dens_con_pred(vals_obs, vals_res))
+                l_proc.append(nashsutcliffe(vals_obs, np.mean(vals_res, axis=(1, 2))))
                 pesos.append(np.sum(np.isfinite(vals_obs)))
             return np.average(l_proc, weights=pesos), np.sum(pesos)
         return 0, 0

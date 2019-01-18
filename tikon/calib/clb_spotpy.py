@@ -14,7 +14,7 @@ class CalibSpotPy(Calibrador):
 
     @classmethod
     def métodos(cls):
-        return ['epm', 'mc', 'cmmc', 'mhl', 'caa', 'dream']
+        return ['epm', 'mc', 'cmmc', 'mhl', 'caa', 'erp', 'dream']
 
     def _calibrar(símismo, n_iter, nombre):
 
@@ -56,7 +56,7 @@ _algs_spotpy = {
 
     # 'sa': spotpy.algorithms.sa,
     # 'sceua': spotpy.algorithms.sceua,
-    # 'rope': spotpy.algorithms.rope,
+    'erp': spotpy.algorithms.rope,
     'caa': spotpy.algorithms.abc,
     # 'fscabc': spotpy.algorithms.fscabc,
 

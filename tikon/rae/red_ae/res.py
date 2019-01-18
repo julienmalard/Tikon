@@ -29,6 +29,8 @@ class ResultadoRed(Resultado):
     def reinic(símismo):
         super().reinic()
 
+        np.round(símismo._matr, out=símismo._matr)
+
         etps = símismo.ejes()['etapa'].índs
 
         fantasmas = [e for e in etps if isinstance(e, EtapaFantasma)]

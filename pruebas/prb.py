@@ -51,14 +51,16 @@ exper_A.agregar_obs(pobs)
 
 simul = Simulador(red)
 
+método = 'epm'
 calibs = EspecCalibsCorrida(aprioris=True)
-# res = simul.simular(días=15, exper=exper_A, n_rep_parám=7, n_rep_estoc=5, calibs=calibs, vars_interés=True)
-# pprint(res.validar())
-# res.graficar()
-simul.calibrar('Sitio A', días=50, exper=exper_A, n_iter=200)
+res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=1, calibs=calibs, vars_interés=True)
+pprint(res.validar())
+res.graficar('antes calib')
+simul.calibrar('Sitio A', días=None, método=método, exper=exper_A, n_iter=200)
+simul.guardar_calib('calibs Sitio A ' + método)
 
 res2 = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
-res2.graficar('con calib')
 pprint(res2.validar())
+res2.graficar('con calib ' + método)
 
 # pprint(res.reps_necesarias(0.9, 0.9))

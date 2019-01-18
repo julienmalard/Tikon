@@ -1,3 +1,5 @@
+import os
+
 from tikon.ecs import ÁrbolEcs
 from tikon.result.dims import Coord, Dims
 
@@ -29,7 +31,7 @@ class Módulo(object):
         símismo.obt_res(var).poner_valor(valor, rel=rel, índs=índs)
 
     def obt_val_extern(símismo, var, mód):
-        símismo.mnjdr_móds.obt_valor(var, mód)
+        return símismo.mnjdr_móds.obt_valor(var, mód)
 
     def obt_val_control(símismo, var):
         return símismo.mnjdr_móds.obt_val_control(var)
@@ -60,9 +62,8 @@ class Módulo(object):
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
         raise NotImplementedError
 
-    def calc_valid(símismo):
-        for res in símismo.resultados.items():
-            res.validar()
+    def guardar_calib(símismo, directorio=''):
+        pass  # para hacer: genérico
 
     def __str__(símismo):
         return símismo.nombre

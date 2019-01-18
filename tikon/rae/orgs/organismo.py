@@ -122,6 +122,9 @@ class Organismo(Coso):
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
 
+    def _ecs_a_json(símismo):
+        return {etp.nombre: etp._ecs_a_json() for etp in símismo}
+
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]
