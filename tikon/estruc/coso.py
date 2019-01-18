@@ -1,3 +1,8 @@
+import os
+
+from tikon.utils import guardar_json, jsonificar
+
+
 class Coso(object):
 
     def __init__(símismo, nombre, ecs):
@@ -20,6 +25,17 @@ class Coso(object):
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
+
+    def guardar_calib(símismo, directorio=''):
+        dic = jsonificar(símismo._ecs_a_json())
+        arch = os.path.join(directorio, símismo.nombre + '.json')
+        guardar_json(dic, arch)
+
+    def _ecs_a_json(símismo):
+        return jsonificar(símismo.ecs.a_dic())
+
+    def cargar_calib(símismo, archivo):
+        raise NotImplementedError
 
     def __str__(símismo):
         return símismo.nombre

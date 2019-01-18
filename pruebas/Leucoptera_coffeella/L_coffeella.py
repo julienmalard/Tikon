@@ -7,7 +7,7 @@ from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
 from tikon.rae.orgs.plantas import Hojas
 from tikon.rae.red_ae import RedAE
 from tikon.rae.red_ae.obs import ObsPobs
-from tikon0.Proyectos.Café.Leucoptera_coffeella.a_prioris import a_prioris
+from pruebas.Leucoptera_coffeella.a_prioris import a_prioris
 
 # Crear objeto planta
 Café = Hojas('Café')

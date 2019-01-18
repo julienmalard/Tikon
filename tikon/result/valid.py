@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import stats as estad
+from scipy.special import expit
 
 
 def validar_matr_pred(matr_predic, vector_obs):
-
     # Los ejes
     eje_t, eje_estoc, eje_parám = [0, 1, 2]
 
@@ -19,10 +19,10 @@ def validar_matr_pred(matr_predic, vector_obs):
     vector_predic = matr_predic.mean(axis=(eje_estoc, eje_parám))
 
     # Calcular R cuadrado
-    r2 = calc_r2(vector_predic, vector_obs)
+    r2 = _r2(vector_obs, vector_predic)
 
     # Raíz cuadrada normalizada del error promedio
-    rcnep = np.divide(np.sqrt(np.square(vector_predic - vector_obs).mean()), np.mean(vector_obs))
+    rcnep = _rcnep(vector_obs, vector_predic)
 
     # Validar el intervalo de incertidumbre
     confianza = np.empty_like(vector_obs, dtype=float)
@@ -34,12 +34,13 @@ def validar_matr_pred(matr_predic, vector_obs):
 
     percentiles = np.divide(np.arange(1, n_días + 1), n_días)
 
-    r2_percentiles = calc_r2(confianza, percentiles)
+    r2_percentiles = _r2(confianza, percentiles)
+    rcnep_prcntl = _rcnep(confianza, percentiles)
 
-    return {'r2': r2, 'rcnep': rcnep, 'r2_percentiles': r2_percentiles}
+    return {'r2': r2, 'rcnep': rcnep, 'r2_prcntl': r2_percentiles, 'rcnep_prcntl': rcnep_prcntl}
 
 
-def calc_r2(y_obs, y_pred):
+def _r2(y_obs, y_pred):
     """
     Calcula el coeficiente de determinación (R2) entre las predicciones de un modelo y los valores observados.
 
@@ -132,11 +133,14 @@ def dens_con_pred(obs, sim):
         s = s / d
         o = o / d
         try:
-            res.append(_logit_inv(estad.gaussian_kde(np.ravel(s))(o)[0]))
+            r = estad.gaussian_kde(np.ravel(s))(o)[0]
         except np.linalg.linalg.LinAlgError:
-            res.append(1 if o == s[0] else 0)
-    return np.mean(res)
+            r = 100 if o == s[0] else 0
+        if r == 0:
+            r = (max(s) - o if o > max(s) else o - min(s))[0]
+        res.append(r)
+    return np.mean(expit(res))
 
 
-def _logit_inv(x):
-    return np.divide(np.exp(x), np.add(np.exp(x), 1))
+def _rcnep(y_obs, y_pred):
+    return np.divide(np.sqrt(np.square(y_pred - y_obs).mean()), np.mean(y_obs))

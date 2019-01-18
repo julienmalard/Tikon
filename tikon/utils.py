@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 
+import numpy as np
 from chardet import UniversalDetector
 
 _dir_config = os.path.join(os.path.split(__file__)[0], 'config.json')
@@ -54,6 +55,31 @@ def guardar_json(dic, archivo):
 
     txt = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=2)
     guardar_archivo(txt, archivo)
+
+
+def jsonificar(dic):
+    nuevo = {}
+    for ll, v in dic.items():
+        if isinstance(v, dict):
+            nuevo[ll] = jsonificar(v)
+        elif isinstance(v, np.ndarray):
+            nuevo[ll] = v.tolist()
+        else:
+            nuevo[ll] = v
+
+    return nuevo
+
+
+def numpyficar(dic):
+    nuevo = {}
+    for ll, v in dic.items():
+        if isinstance(v, dict):
+            nuevo[ll] = numpyficar(v)
+        elif isinstance(v, list):
+            nuevo[ll] = np.ndarray(v)
+        else:
+            nuevo[ll] = v
+    return nuevo
 
 
 def detectar_codif(archivo, máx_líneas=None, cortar=None):

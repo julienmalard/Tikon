@@ -1,3 +1,4 @@
+import os
 from copy import copy
 
 from tikon.calib import gen_calibrador
@@ -104,6 +105,9 @@ class Simulador(object):
         clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(), calibs)
         clbrd.calibrar(n_iter=n_iter, nombre=nombre)
 
+    def guardar_calib(símismo, directorio=''):
+        símismo.mnjdr_móds.guardar_calib(directorio)
+
 
 class MnjdrMódulos(object):
     def __init__(símismo, módulos, exper):
@@ -130,6 +134,10 @@ class MnjdrMódulos(object):
     def act_coefs(símismo):
         for mód in símismo:
             mód.act_coefs()
+
+    def guardar_calib(símismo, directorio=''):
+        for m in símismo:
+            m.guardar_calib(directorio=os.path.join(directorio, str(m)))
 
     def __iter__(símismo):
         for m in símismo.módulos.values():

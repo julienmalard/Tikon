@@ -26,6 +26,9 @@ class Dist(object):
     def aprox_líms(símismo, prc):
         raise NotImplementedError
 
+    def a_dic(símismo):
+        raise NotImplementedError
+
     def dibujar(símismo, ejes=None):
         if ejes is None:
             fig, ejes = dib.subplots(1, 1)
@@ -82,6 +85,13 @@ class DistAnalítica(Dist):
             vals = símismo._transf.transf(vals)
 
         return vals
+
+    def a_dic(símismo):
+        return {
+            '_transf': símismo._transf.a_dic() if símismo._transf else None,
+            'dist': símismo.nombre_dist,
+            'paráms': {**símismo.paráms, 'escl': símismo._escl, 'ubic': símismo._ubic}
+        }
 
     @classmethod
     def de_líms(cls, líms):
@@ -185,10 +195,17 @@ class DistTraza(Dist):
 
         return np.array([np.percentile(símismo.trz, colas[0] * 100, np.percentile(símismo.trz, colas[1] * 100))])
 
+    def a_dic(símismo):
+        return {
+            'trz': símismo.trz,
+            'pesos': símismo.pesos
+        }
+
 
 class TransfDist(object):
     def __init__(símismo, transf, ubic=0, escl=1):
 
+        símismo._transf = transf
         if transf == 'Expit':
             símismo._f = expit
             símismo._f_inv = logit
@@ -206,6 +223,12 @@ class TransfDist(object):
 
     def transf_inv(símismo, vals):
         return símismo._f_inv((vals - símismo._ubic) / símismo._escl)
+
+    def a_dic(símismo):
+        return {
+            'transf': símismo._transf,
+            'ubic': símismo._ubic, 'escl': símismo._escl
+        }
 
 
 class MnjdrDists(object):
@@ -246,3 +269,9 @@ class MnjdrDists(object):
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
+
+    def a_dic(símismo):
+        return {
+            'val': símismo.val.a_dic() if símismo.val else None,
+            'índs': {str(ll): v.a_dic() for ll, v in símismo.índs.items()}
+        }

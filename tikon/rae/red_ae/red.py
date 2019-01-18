@@ -171,6 +171,10 @@ class RedAE(Módulo):
             ) for nmb, crd in coords.items()
         ])
 
+    def guardar_calib(símismo, directorio=''):
+        for org in símismo:
+            org.guardar_calib(directorio)
+
     def __getitem__(símismo, itema):
         return símismo._orgs[str(itema)]
 
