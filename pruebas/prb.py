@@ -19,7 +19,7 @@ Paras_pupa = Parasitoide('Parasitoide pupa')
 
 # Oarenosella.secome(Coco, etps_símismo='juvenil')
 
-Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='pupa')
+Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='juvenil_5')
 Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
 
 Araña = Sencillo('Araña')
@@ -51,9 +51,9 @@ exper_A.agregar_obs(pobs)
 
 simul = Simulador(red)
 
-método = 'epm'
+método = 'fscabc'
 calibs = EspecCalibsCorrida(aprioris=True)
-res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=1, calibs=calibs, vars_interés=True)
+res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
 pprint(res.validar())
 res.graficar('antes calib')
 simul.calibrar('Sitio A', días=None, método=método, exper=exper_A, n_iter=200)

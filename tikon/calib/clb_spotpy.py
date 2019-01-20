@@ -8,15 +8,29 @@ import spotpy
 from tikon.calib.calibrador import Calibrador
 from tikon.ecs.dists import DistTraza
 
+_algs_spotpy = {
+    'maed': spotpy.algorithms.dream,
+    'mc': spotpy.algorithms.mc,
+    'cmmc': spotpy.algorithms.mcmc,
+
+    'epm': spotpy.algorithms.mle,
+    'mhl': spotpy.algorithms.lhs,
+
+    'as': spotpy.algorithms.sa,
+    'sceua': spotpy.algorithms.sceua,
+    'erp': spotpy.algorithms.rope,
+    'caa': spotpy.algorithms.abc,
+    'fscabc': spotpy.algorithms.fscabc,
+
+}
+
 
 class CalibSpotPy(Calibrador):
     dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Wald', 'Triang']
 
-    @classmethod
-    def métodos(cls):
-        return ['epm', 'mc', 'cmmc', 'mhl', 'caa', 'erp', 'dream']
+    métodos = list(_algs_spotpy)
 
-    def _calibrar(símismo, n_iter, nombre):
+    def calibrar(símismo, n_iter, nombre):
 
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
@@ -43,24 +57,6 @@ class CalibSpotPy(Calibrador):
             vals = egr_spotpy['parvar_' + str(í)][buenas].values
             dist = DistTraza(trz=dst.transf_vals(vals), pesos=vero)
             vls_prms[0].guardar_calib(dist, nombre=nombre)  # para hacer: más elegante
-
-
-_algs_spotpy = {
-    # 'fast': spotpy.algorithms.fast,
-    'dream': spotpy.algorithms.dream,
-    'mc': spotpy.algorithms.mc,
-    'cmmc': spotpy.algorithms.mcmc,
-
-    'epm': spotpy.algorithms.mle,
-    'mhl': spotpy.algorithms.lhs,
-
-    # 'sa': spotpy.algorithms.sa,
-    # 'sceua': spotpy.algorithms.sceua,
-    'erp': spotpy.algorithms.rope,
-    'caa': spotpy.algorithms.abc,
-    # 'fscabc': spotpy.algorithms.fscabc,
-
-}
 
 
 class ModSpotPy(object):

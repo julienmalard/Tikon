@@ -115,8 +115,6 @@ def graficar_pred(
 
     ejes.legend(loc=2)
 
-    if directorio[-4:] != '.png':
-        válidos = (' ', '.', '_')
-        nombre_arch = "".join(c for c in (título + '.png') if c.isalnum() or c in válidos).rstrip()
-        directorio = os.path.join(directorio, nombre_arch)
+    if os.path.splitext(directorio)[1] != '.png':
+        directorio = os.path.join(directorio, título + '.png')
     fig.savefig(directorio)

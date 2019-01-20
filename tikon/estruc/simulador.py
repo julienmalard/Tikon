@@ -8,6 +8,7 @@ from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
 from tikon.exper.manejo import Manejo
 from tikon.result.res import ResultadosSimul
+from tikon.sensib import gen_anlzdr_sensib
 
 
 class Simulador(object):
@@ -78,12 +79,25 @@ class Simulador(object):
         for m in símismo.mnjdr_móds:
             m.cerrar()
 
-    def sensib(símismo):
-        # crear dist para corrida sensib
-        anlzdr = AnlzSensib()
-        res = símismo.simular()
+    def sensib(
+            símismo, días=None, f_inic=None, exper=None, n=10, método='sobol', calibs=None, paso=1, n_rep_estoc=30,
+            vars_interés=None, ops_mstr=None, ops_anlz=None
+    ):
+        ops_mstr = ops_mstr or {}
+        ops_anlz = ops_anlz or {}
+        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
+        anlzdr = gen_anlzdr_sensib(método, símismo.mnjdr_móds.paráms(), calibs=calibs)
 
-        return anlzdr.procesar_res(res)
+        símismo.iniciar_estruc(
+            días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
+            vars_interés=vars_interés
+        )
+        anlzdr.aplicar_muestrea(n, ops=ops_mstr)
+        símismo.iniciar_vals()
+        símismo.correr()
+        símismo.cerrar()
+
+        return anlzdr.analizar(símismo.corrida, ops=ops_anlz)
 
     def calibrar(
             símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None,

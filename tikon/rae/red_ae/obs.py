@@ -4,6 +4,7 @@ import pandas as pd
 from tikon.estruc.tiempo import EjeTiempo
 from tikon.result.dims import Dims, Coord
 from tikon.result.obs import Obs
+from tikon.utils import detectar_codif
 from .red import RedAE
 
 
@@ -18,10 +19,9 @@ class ObsPobs(ObsRAE):
 
     @classmethod
     def de_csv(cls, archivo, col_tiempo, corresp, parc=None, factor=1):
-        csv_pd = pd.read_csv(archivo)
+        csv_pd = pd.read_csv(archivo, encoding='utf8')
 
-        if parc is None:
-            parc = '1'  # para hacer: sincronizar con opciones automáticas
+        parc = parc or '1'  # para hacer: sincronizar con opciones automáticas
 
         coords = {
             'etapa': Coord(list(corresp.values())),

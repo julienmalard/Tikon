@@ -1,5 +1,9 @@
 from pprint import pprint
 
+from تقدیر.ذرائع import سی_اس_وی as clima_csv
+
+from pruebas.Leucoptera_coffeella.a_prioris import a_prioris
+from tikon.clima.clima import Clima
 from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
 from tikon.exper.exper import Exper
@@ -7,7 +11,6 @@ from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
 from tikon.rae.orgs.plantas import Hojas
 from tikon.rae.red_ae import RedAE
 from tikon.rae.red_ae.obs import ObsPobs
-from pruebas.Leucoptera_coffeella.a_prioris import a_prioris
 
 # Crear objeto planta
 Café = Hojas('Café')
@@ -54,32 +57,33 @@ pobs = ObsPobs.de_csv(
 # El factor de 100 cambia los datos de individuos/plantas a individuos/hectarias.
 
 
-Finca_el_Encanto = Lugar('El Encanto', lat=14.98916667, long=-91.16527778, elev=480)
-Finca_el_Encanto.observar_mensuales(
-    archivo='Finca_El_Encanto.csv', meses='Meses', años='Años',
-    cols_datos={'Precipitación': 'Lluvia',
-                'Temperatura máxima': 'Temp máx',
-                'Temperatura mínima': 'Temp mín'},
+datos_elencanto = clima_csv(
+    'Finca_El_Encanto.csv', چوڑائی=14.98916667, طول=-91.16527778, بلندی=480,
+    تبدل_ستون={
+        'Mes': 'تاریخ',
+        'Lluvia': 'بارش',
+        'Temp máx': 'درجہ_حرارت_زیادہ',
+        'Temp mín': 'درجہ_حرارت_کم'
+    }
 )
+ClimaElEncanto = Clima(datos_elencanto)
 
 calibs = EspecCalibsCorrida(aprioris=True)
 
-sim = Simulador(Red_café)
+sim = Simulador([Red_café, ClimaElEncanto])
 res = sim.simular(exper=El_Encanto, calibs=calibs, n_rep_estoc=10, n_rep_parám=10)
 print('Valid antes de calib')
 pprint(res.validar())
 res.graficar('antes calib')
 
-# sensib = sim.sensib(exper=El_Encanto, n=10)
-# sensib.graficar('sensib antes calib')
+sensib = sim.sensib(exper=El_Encanto, n=10)
+sensib.graficar('sensib antes calib')
 
 sim.calibrar('El Encanto', exper=El_Encanto)
-
-Red_café.ubicar(Finca_el_Encanto)
 
 res_después = sim.simular(exper=El_Encanto, n_rep_estoc=10, n_rep_parám=10)
 pprint(res_después.validar())
 res_después.graficar('después calib')
 
-# sensib = sim.sensib(exper=El_Encanto, n=10)
-# sensib.graficar('sensib después calib')
+sensib = sim.sensib(exper=El_Encanto, n=10)
+sensib.graficar('sensib después calib')
