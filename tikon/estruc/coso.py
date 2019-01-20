@@ -34,6 +34,9 @@ class Coso(object):
     def _ecs_a_json(símismo):
         return jsonificar(símismo.ecs.a_dic())
 
+    def borrar_calib(símismo, nombre):
+        símismo.ecs.borrar_calib(nombre)
+
     def cargar_calib(símismo, archivo):
         raise NotImplementedError
 

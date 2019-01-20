@@ -1,14 +1,9 @@
-from tikon0.Cultivo.NuevoCultivo import Cultivo
 from tikon0.Manejo.Aplicación import Insecticida
-from tikon0.Paisaje.NuevaParcela import Parcela
-from tikon0.RAE.RedAE import Red
+from tikon.rae.red_ae import RedAE
 
-proyecto = 'Opisina_arenosella'
 
-red_cocos = Red(nombre='Campos coco sencillo', proyecto=proyecto)
+red_cocos = RedAE()
 cocos = Cultivo('Coco')
-
-parc = Parcela(nombre='Control', cultivo=cocos, red=red_cocos)
 
 insecticida = Insecticida('90%', proyecto=proyecto)
 insecticida.estab_mortalidad(.90)

@@ -19,6 +19,14 @@ class PlantillaRamaEcCoso(object):
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
 
+    def borrar_calib(símismo, nombre):
+        for r in símismo:
+            r.borrar_calib(nombre)
+
+    def renombrar_calib(símismo, nombre, nuevo):
+        for r in símismo:
+            r.renombrar_calib(nombre, nuevo)
+
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
 
@@ -139,6 +147,12 @@ class ParámCoso(PlantillaRamaEcCoso):
             símismo._calibs[id_cal] = MnjdrDists()
 
         símismo._calibs[id_cal].actualizar(dist, inter)
+
+    def borrar_calib(símismo, nombre):
+        símismo._calibs.pop(nombre)
+
+    def renombrar_calib(símismo, nombre, nuevo):
+        símismo._calibs[nuevo] = símismo._calibs.pop(nombre)
 
     def espec_a_priori(símismo, apriori, inter=None):
         dist = apriori.dist(símismo.líms)

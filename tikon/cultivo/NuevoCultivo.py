@@ -1,8 +1,13 @@
 import os
 import subprocess
 
-from tikon0.Cultivo import Controles as ctrl
 from tikon0.Cultivo.ModExtern.DSSAT import DSSAT
+
+from tikon0.Cultivo import Controles as ctrl
+
+dirs_auto = {
+    'DSSAT': "C:\\DSSAT46",
+}
 
 
 class EnvolturaModCult(object):

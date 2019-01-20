@@ -1,4 +1,4 @@
-from tikon0.Cultivo.NuevoCultivo import Cultivo
+from tikon.cultivo.NuevoCultivo import Cultivo
 from tikon0.Manejo.Aplicación import Insecticida
 from tikon0.Paisaje.NuevaParcela import Parcela
 from tikon0.RAE.RedAE import Red
