@@ -2,7 +2,7 @@ from pprint import pprint
 
 from تقدیر.ذرائع import سی_اس_وی as clima_csv
 
-from pruebas.Leucoptera_coffeella.a_prioris import a_prioris
+from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
 from tikon.clima.clima import Clima
 from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.simulador import Simulador, EspecCalibsCorrida

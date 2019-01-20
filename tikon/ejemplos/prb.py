@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from pruebas.a_prioris import a_prioris
+from tikon.ejemplos.a_prioris import a_prioris
 # from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
 from tikon.exper.exper import Exper
