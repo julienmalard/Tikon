@@ -127,6 +127,3 @@ crashlytics-build.properties
 fabric.properties
 
 docs/.tx
-
-*.2mdl
-*.vdf
