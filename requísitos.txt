@@ -1,0 +1,7 @@
+numpy
+matplotlib
+scipy
+SALib
+spotpy
+chardet
+pandas
