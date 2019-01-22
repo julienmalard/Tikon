@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 def leer(arch):
-    with open(arch, 'r', encoding='uft-8') as d:
+    with open(arch, 'r', encoding='utf-8') as d:
         return d.read()
 
 
@@ -16,7 +16,7 @@ setup(
     author='Julien Jean Malard',
     author_email='julien.malard@mail.mcgill.ca',
     description='Modelos de redes agroecológicas',
-    long_description=leer('README.rst'),
+    long_description=leer('README.md'),
     install_requires=['numpy', 'matplotlib', 'scipy', 'SALib', 'spotpy', 'chardet', 'pandas'],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
