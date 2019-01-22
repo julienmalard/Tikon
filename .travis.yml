@@ -1,0 +1,31 @@
+language: python
+python:
+  - "3.6"
+
+os:
+  - linux
+
+install:
+  - pip install --upgrade pip setuptools wheel
+  - pip install -r requísitos.txt
+  - pip install coveralls codecov
+  - python setup.py sdist bdist_wheel
+  - pip install tinamit --no-index --find-links=./dist
+
+script:
+  - cd pruebas
+  - coverage run -m unittest
+
+after_success:
+  - coveralls --rcfile=.coveragerc
+  - codecov
+
+deploy:
+  provider: pypi
+  user: julien.malard
+  password:
+    secure: ErjuaoQ11G0blTBiUcaj+OBqYh+gCYW5+LgmTO1NKJQh7l2ZHlrpbiseW9x/HQ+cPgJB9H4ivBpn1w6rAwyUT1FMX+0DW+y+tepk1x91H8E+gvUb9yhqS1BpJ6sEXAtGMmwCCyNPTOn2xa/RHve3DcitzWzaWyu3JQH4D1K/2PQ6C9rmNhU/xISf9EzqiK7/FVVwBhPSPK8SHsXR8QpMIICupVGzFOJUcb7PpcbNhsCzZwflhFwws0mzZued4z3o4wkIMPxadecp7lyczEAjlORCRcxCUcQ85J+8SsI+WMp3grQvjA/O43TavWPsaa4QdNHDiBtjz0/KbOUDVwRaPZXRjxA4F8LfCZrC/rMst2xdTrn5sg10qRbV1AC/enUIJXtjn2+lZKS0YKM558n4gdOk+PjTtXyzm85uj0jXqynXjULPND8ReKExseEx92b1XpeCAgQ5TWpdydOje7V7J4CX/o1d/jHZ8Wrt8Dvs0zViHIsDsmvTIOMYgEvGPA/da+w+ct/a6xfwsew/G16pUg19VZaekkH0DAbD31GalQ8TLhNVG763k8Cu6roWte0xHncy7djChTyFNJU/iyYCYId+etPE6JKdE5Ft1gDbJE+PfF1+VF63HEUGkqmlIEH2UtBwqvEq9MGJaZtsJexoS9VZHeturbvAOOhAhxnfLjI=
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  on:
+    tags: true
