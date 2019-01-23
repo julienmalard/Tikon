@@ -1,11 +1,11 @@
 ![Tiko'n](docs/source/Imágenes/Logo_Tikon.png)
 
-[![Build Status](https://travis-ci.org/julienmalard/Taqdir.svg?branch=master)](https://travis-ci.org/julienmalard/Taqdir)
-[![Coverage Status](https://coveralls.io/repos/github/julienmalard/Taqdir/badge.svg?branch=master)](https://coveralls.io/github/julienmalard/Taqdir?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/taqdir/badge/?version=latest)](https://taqdir.readthedocs.io/ur/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/julienmalard/Tikon.svg?branch=master)](https://travis-ci.org/julienmalard/Tikon)
+[![Coverage Status](https://coveralls.io/repos/github/julienmalard/Tikon/badge.svg?branch=master)](https://coveralls.io/github/julienmalard/Tikon?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/tikon/badge/?version=latest)](https://tikon.readthedocs.io/ur/latest/?badge=latest)
 
-[![CodeFactor](https://www.codefactor.io/repository/github/julienmalard/taqdir/badge)](https://www.codefactor.io/repository/github/julienmalard/taqdir)
-[![Maintainability](https://api.codeclimate.com/v1/badges/d1e4113d31c354cb6f20/maintainability)](https://codeclimate.com/github/julienmalard/Taqdir/maintainability)
+[![CodeFactor](https://www.codefactor.io/repository/github/julienmalard/tikon/badge)](https://www.codefactor.io/repository/github/julienmalard/tikon)
+[![Maintainability](https://api.codeclimate.com/v1/badges/d1e4113d31c354cb6f20/maintainability)](https://codeclimate.com/github/julienmalard/Tikon/maintainability)
 
 # Tiko'n
 
