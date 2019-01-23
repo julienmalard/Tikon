@@ -19,7 +19,7 @@
 #
 import os
 
-import tikon0
+import tikon
 
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
