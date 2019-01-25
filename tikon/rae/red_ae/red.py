@@ -85,17 +85,17 @@ class RedAE(Módulo):
             return super().obt_valor(var, índs=índs)
 
     def agregar_pobs(símismo, pobs, etapas=None):
-        índs = {'etapa': etapas} if etapas else etapas
+        índs = {'etapa': etapas} if etapas else None
         símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
         símismo.cohortes.agregar(pobs, etapas=etapas)
 
     def quitar_pobs(símismo, pobs, etapas=None):
-        índs = {'etapa': etapas} if etapas else etapas
+        índs = {'etapa': etapas} if etapas else None
         símismo.poner_valor('Pobs', -pobs, rel=True, índs=índs)
         símismo.cohortes.quitar(pobs, etapas=etapas)
 
     def ajustar_pobs(símismo, pobs, etapas=None):
-        índs = {'etapa': etapas} if etapas else etapas
+        índs = {'etapa': etapas} if etapas else None
         símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
         símismo.cohortes.ajustar(pobs, etapas=etapas)
 
