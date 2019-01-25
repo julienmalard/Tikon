@@ -46,7 +46,7 @@ class Simulador(object):
         f_inic = f_inic or símismo.exper.f_inic()
         n_días = días or símismo.exper.n_días()
 
-        símismo.tiempo = Tiempo(día=0, f_inic=f_inic, paso=paso, n_días=n_días)
+        símismo.tiempo = Tiempo(f_inic=f_inic, paso=paso, n_días=n_días)
         parc = símismo.mnjdr_móds.obt_val_control('parcelas')
 
         calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
@@ -135,6 +135,9 @@ class MnjdrMódulos(object):
     def obt_valor(símismo, var, mód, índs=None):
         # para hacer: ¿Necesario o simplemente emplear MnjdrMódulos['mód'].obt_valor()?
         return símismo[str(mód)].obt_valor(var, índs=índs)
+
+    def poner_valor(símismo, var, mód, val, rel=False, índs=None):
+        return símismo[str(mód)].poner_valor(var, valor=val, rel=rel, índs=índs)
 
     def obt_val_control(símismo, var):
         return símismo.exper.obt_control(var)
