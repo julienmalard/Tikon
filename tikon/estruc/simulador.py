@@ -6,7 +6,7 @@ from tikon.clima.clima import Clima
 from tikon.ecs.dists import DistAnalítica
 from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
-from tikon.exper.manejo import Manejo
+from tikon.manejo.manejo import Manejo
 from tikon.result.res import ResultadosSimul
 from tikon.sensib import gen_anlzdr_sensib
 
@@ -132,8 +132,9 @@ class MnjdrMódulos(object):
         símismo.módulos = {str(mód): mód for mód in módulos}
         símismo.exper = exper
 
-    def obt_valor(símismo, var, mód):
-        return símismo[str(mód)].obt_valor(var)
+    def obt_valor(símismo, var, mód, índs=None):
+        # para hacer: ¿Necesario o simplemente emplear MnjdrMódulos['mód'].obt_valor()?
+        return símismo[str(mód)].obt_valor(var, índs=índs)
 
     def obt_val_control(símismo, var):
         return símismo.exper.obt_control(var)

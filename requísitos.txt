@@ -5,3 +5,4 @@ SALib
 spotpy
 chardet
 pandas
+taqdir

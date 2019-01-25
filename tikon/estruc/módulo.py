@@ -24,8 +24,8 @@ class Módulo(object):
     def obt_res(símismo, var):
         return símismo.resultados[var]
 
-    def obt_valor(símismo, var):
-        return símismo.obt_res(var).obt_valor()
+    def obt_valor(símismo, var, índs=None):
+        return símismo.obt_res(var).obt_valor(índs=índs)
 
     def poner_valor(símismo, var, valor, rel=False, índs=None):
         símismo.obt_res(var).poner_valor(valor, rel=rel, índs=índs)

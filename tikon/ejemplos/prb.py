@@ -33,7 +33,7 @@ red.espec_aprioris(a_prioris)
 # Datos de observaciones
 exper_A = Exper()
 pobs = ObsPobs.de_csv(
-    '/Users/julienmalard/PycharmProjects/Tikon/pruebas/Oarenosella_A.csv',
+    '/Users/julienmalard/PycharmProjects/Tikon/tikon/ejemplos/Oarenosella_A.csv',
     col_tiempo='Día',
     corresp={
         'Estado 1': Oarenosella['juvenil_1'],
