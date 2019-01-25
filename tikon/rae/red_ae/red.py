@@ -76,13 +76,13 @@ class RedAE(Módulo):
         else:
             raise ValueError(var)
 
-    def obt_valor(símismo, var):
+    def obt_valor(símismo, var, índs=None):
         if var == 'Dens':
-            pobs = super().obt_valor('Pobs')
-            superficies = símismo.obt_val_control('superficies')
+            pobs = super().obt_valor('Pobs', índs=índs)
+            superficies = símismo.obt_val_control('superficies')  # para hacer: si índs contienen parcelas
             return pobs / superficies
         else:
-            return super().obt_valor(var)
+            return super().obt_valor(var, índs=índs)
 
     def agregar_pobs(símismo, pobs, etapas=None):
         índs = {'etapa': etapas} if etapas else etapas

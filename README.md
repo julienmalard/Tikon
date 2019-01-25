@@ -6,6 +6,7 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/julienmalard/tikon/badge)](https://www.codefactor.io/repository/github/julienmalard/tikon)
 [![Maintainability](https://api.codeclimate.com/v1/badges/855ebb601a34ec094956/maintainability)](https://codeclimate.com/github/julienmalard/Tikon/maintainability)
+
 # Tiko'n
 
 Tiko'n es una librería Python para desarrollar modelos de redes agroecológicas (RAE).
