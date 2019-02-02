@@ -1,4 +1,5 @@
 from pprint import pprint
+import os
 
 from tikon.ejemplos.a_prioris import a_prioris
 # from tikon.ecs.aprioris import APrioriDens
@@ -31,9 +32,10 @@ red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])
 red.espec_aprioris(a_prioris)
 
 # Datos de observaciones
+dir_base = os.path.split(__file__)[0]
 exper_A = Exper()
 pobs = ObsPobs.de_csv(
-    '/Users/julienmalard/PycharmProjects/Tikon/tikon/ejemplos/Oarenosella_A.csv',
+    os.path.join(dir_base, 'Oarenosella_A.csv'),
     col_tiempo='Día',
     corresp={
         'Estado 1': Oarenosella['juvenil_1'],
