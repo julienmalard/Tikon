@@ -2,8 +2,8 @@ import numpy as np
 
 
 class Exper(object):
-    def __init__(símismo):
-        símismo.obs = MnjdrObsExper()
+    def __init__(símismo, obs=None):
+        símismo.obs = MnjdrObsExper(obs)
         símismo.controles = MnjdrControlesExper()
 
     def n_días(símismo):
@@ -30,6 +30,24 @@ class Exper(object):
             return símismo.obs[mód][var]
         return símismo.obs[mód]
 
+    def paráms(símismo, módulos):
+        try:
+            red = módulos['red']
+        except KeyError:
+            return []
+
+        etps = red.info_etps.etapas
+        # para hacer: limpiar, y agregar fecha de inicio y parcelas. Igualmente generalizar y quitar mención de 'red' y 'etapa'
+        obs = símismo.obtener_obs(red, 'Pobs')
+        prms = []
+        for etp in etps:
+            try:
+                obs.obt_val_t(0, {'etapa': etps[0]})
+            except ValueError:
+                prms.append(NotImplementedError)
+
+        return prms
+
 
 _controles_auto = {  # para hacer: más bonito
     'parcelas': ['1'],
@@ -46,10 +64,16 @@ class MnjdrControlesExper(object):
 
 
 class MnjdrObsExper(object):
-    def __init__(símismo):
+    def __init__(símismo, obs=None):
         símismo._obs = {}
+        if obs is not None:
+            símismo.agregar_obs(obs)
 
     def agregar_obs(símismo, obs):
+        if isinstance(obs, list):
+            for ob in obs:
+                símismo.agregar_obs(ob)
+
         mód = str(obs.mód)
         if mód not in símismo._obs:
             símismo._obs[mód] = MnjdrObsMód()

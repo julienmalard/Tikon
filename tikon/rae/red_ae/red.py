@@ -46,7 +46,7 @@ class RedAE(Módulo):
             for d_apr in l_org:
                 obj_org.espec_apriori_etp(**d_apr)
 
-    def paráms(símismo):
+    def paráms(símismo, módulos):
         return símismo._ecs_simul.vals_paráms()
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
@@ -208,6 +208,10 @@ class RedAE(Módulo):
     def __iter__(símismo):
         for org in símismo._orgs.values():
             yield org
+
+    def cargar_calib(símismo, directorio):
+        for org in símismo:
+            org.cargar_calib(directorio)
 
 
 class InfoEtapas(object):

@@ -16,7 +16,7 @@ class Manejo(Módulo):
     def cerrar(símismo):
         pass
 
-    def paráms(símismo):
+    def paráms(símismo, módulos):
         return []
 
     def reqs_externos(símismo):
