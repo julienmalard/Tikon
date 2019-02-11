@@ -1,3 +1,4 @@
+from tikon.calib.calibrador import Calibrador
 from .clb_spotpy import CalibSpotPy
 
 _opciones = [CalibSpotPy]
@@ -10,3 +11,13 @@ def gen_calibrador(método, func, paráms, calibs):
         raise ValueError('Método de calibración "{m}" no reconocido'.format(m=método))
 
     return cls(método=método, func=func, paráms=paráms, calibs=calibs)
+
+
+def agregar_calibrador(calibrador):
+    if not isinstance(calibrador, Calibrador):
+        raise TypeError(type(calibrador))
+    _opciones.insert(0, calibrador)
+
+
+def quitar_calibrador(calibrador):
+    _opciones.remove(calibrador)

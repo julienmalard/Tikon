@@ -50,7 +50,7 @@ class Módulo(object):
     def cerrar(símismo):
         raise NotImplementedError
 
-    def paráms(símismo):
+    def paráms(símismo, módulos):
         raise NotImplementedError
 
     def reqs_externos(símismo):

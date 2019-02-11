@@ -1,26 +1,33 @@
+import os
 from pprint import pprint
 
-from tikon.ejemplos.prb import red, Oarenosella, Paras_pupa, Paras_larvas, exper_A
+from tikon.ejemplos.prb import Oarenosella, red
 from tikon.estruc.simulador import Simulador
-from tikon.manejo.acciones import AgregarPob
-from tikon.manejo.conds import CondTiempo
-from tikon.manejo.manejo import Manejo, Regla
+from tikon.exper.exper import Exper
+from tikon.rae.red_ae.obs import ObsPobs
+
+dir_base = os.path.split(__file__)[0]
+pobs = ObsPobs.de_csv(
+    os.path.join(dir_base, 'Oarenosella_B.csv'),
+    col_tiempo='Día',
+    corresp={
+        'Estado 1': Oarenosella['juvenil_1'],
+        'Estado 2': Oarenosella['juvenil_2'],
+        'Estado 3': Oarenosella['juvenil_3'],
+        'Estado 4': Oarenosella['juvenil_4'],
+        'Estado 5': Oarenosella['juvenil_5'],
+        'Pupa': Oarenosella['pupa'],
+    },
+    factor=655757.1429 / 500
+)
+exper_B = Exper(pobs)
 
 simul = Simulador(red)
 
-dir_calibs = 'calibs Sitio A fscabc'
-Oarenosella.cargar_calib(dir_calibs)
-Paras_larvas.cargar_calib(dir_calibs)
-Paras_pupa.cargar_calib(dir_calibs)
+red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc'))
 
-método = 'fscabc'
-res = simul.simular(exper=exper_A)
+simul.calibrar('Sitio B', días=21, exper=exper_B, paráms=exper_B, método='fscabc')
+
+res = simul.simular(exper=exper_B)
 pprint(res.validar())
-res.graficar('con calib ' + método)
-
-biocontrol = Regla(CondTiempo(20), AgregarPob(Paras_pupa['adulto'], 2e6))
-manejo = Manejo(biocontrol)
-simul2 = Simulador([red, manejo])
-
-res2 = simul2.simular(exper=exper_A)
-res2.graficar('con biocontrol')
+res.graficar('valid sitio B')

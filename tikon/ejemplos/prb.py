@@ -33,7 +33,6 @@ red.espec_aprioris(a_prioris)
 
 # Datos de observaciones
 dir_base = os.path.split(__file__)[0]
-exper_A = Exper()
 pobs = ObsPobs.de_csv(
     os.path.join(dir_base, 'Oarenosella_A.csv'),
     col_tiempo='Día',
@@ -49,7 +48,7 @@ pobs = ObsPobs.de_csv(
     },
     factor=655757.1429 / 500
 )
-exper_A.agregar_obs(pobs)
+exper_A = Exper(pobs)
 
 simul = Simulador(red)
 

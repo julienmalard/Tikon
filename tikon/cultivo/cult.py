@@ -9,7 +9,7 @@ class Cultivo(Módulo):
     def cerrar(símismo):
         pass
 
-    def paráms(símismo):
+    def paráms(símismo, módulos):
         return []
 
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
