@@ -418,11 +418,17 @@ class MnjdrDists(object):
         }
 
     @classmethod
-    def de_dic(cls, dic, mnjdr=None, índs=None):
+    def de_dic(cls, dic, mnjdr=None):
         if mnjdr is None:
             mnjdr = MnjdrDists()
-        mnjdr.actualizar(Dist.gen_dist(dic['val']), índs=índs)
 
-        for índ, vals in dic['índs'].items():
-            mnjdr.actualizar(Dist.gen_dist(dic['val']), índs=índ)
+        def act_mnjdr(mnj, d, índs_ant=None):
+            val = d['val']
+            índs = d['índs']
+            mnj.actualizar(dist=Dist.gen_dist(val), índs=índs_ant)
+            for í in índs:
+                act_mnjdr(mnj, d=índs[í], índs_ant=(índs_ant or []) + [í])
+
+        act_mnjdr(mnjdr, d=dic)
+
         return mnjdr
