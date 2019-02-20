@@ -13,6 +13,7 @@ class ATipoI(Parám):
 class MTipoI(Parám):
     nombre = 'm'
     líms = (0, None)
+    unids = None
     inter = ['presa', 'huésped']
 
 
@@ -50,6 +51,7 @@ class BTipoII(Parám):
 class MTipoII(Parám):
     nombre = 'm'
     líms = (0, None)
+    unids = None
     inter = ['presa', 'huésped']
 
 
@@ -82,6 +84,7 @@ class BTipoIII(Parám):
 class MTipoIII(Parám):
     nombre = 'm'
     líms = (0, None)
+    unids = None
     inter = ['presa', 'huésped']
 
 

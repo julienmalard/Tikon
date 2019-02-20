@@ -8,12 +8,14 @@ from tikon.rae.orgs.ecs.utils import probs_conj
 class PrAKovai(Parám):
     nombre = 'a'
     líms = (0, None)
+    unids = 'presa / depredador / día'
     inter = ['presa', 'huésped']
 
 
 class PrBKovai(Parám):
     nombre = 'b'
     líms = (0, None)
+    unids = 'presa / ha'
     inter = ['presa', 'huésped']
 
 
