@@ -12,5 +12,5 @@ from .trans import EcsTrans
 class EcsOrgs(ÁrbolEcs):
     nombre = 'organismo'
 
-    # ¡Éste órden queda muy importante!
+    # ¡Este órden queda muy importante!
     cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]

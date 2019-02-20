@@ -4,7 +4,6 @@ import pandas as pd
 from tikon.estruc.tiempo import EjeTiempo
 from tikon.result.dims import Dims, Coord
 from tikon.result.obs import Obs
-from tikon.utils import detectar_codif
 from .red import RedAE
 
 

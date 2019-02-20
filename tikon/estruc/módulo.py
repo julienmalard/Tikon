@@ -1,5 +1,3 @@
-import os
-
 from tikon.ecs import ÁrbolEcs
 from tikon.result.dims import Coord, Dims
 
@@ -44,13 +42,15 @@ class Módulo(object):
         if símismo.resultados:  # para hacer: más elegante
             símismo.resultados.reinic()
 
+    def paráms(símismo):
+        if símismo._ecs_simul is not None:
+            return símismo._ecs_simul.vals_paráms()
+        return []
+
     def incrementar(símismo):
         raise NotImplementedError
 
     def cerrar(símismo):
-        raise NotImplementedError
-
-    def paráms(símismo, módulos):
         raise NotImplementedError
 
     def reqs_externos(símismo):

@@ -1,8 +1,10 @@
+import numpy as np
+
 from tikon.ecs.paráms import Inter
 from tikon.estruc.módulo import Módulo, DimsRes
-from tikon.result.res import ResultadosMódulo
 from tikon.rae.red_ae.res import ResultadoRed, ResultadoEdad, ResultadoDepred
 from tikon.result.dims import Coord
+from tikon.result.res import ResultadosMódulo
 from .cohortes import Cohortes
 from .. import Organismo
 from ..orgs.ecs import EcsOrgs
@@ -45,9 +47,6 @@ class RedAE(Módulo):
 
             for d_apr in l_org:
                 obj_org.espec_apriori_etp(**d_apr)
-
-    def paráms(símismo, módulos):
-        return símismo._ecs_simul.vals_paráms()
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
         símismo.info_etps = InfoEtapas(símismo._orgs)
@@ -133,6 +132,7 @@ class RedAE(Módulo):
         parc = símismo.obt_val_control('parcelas')
 
         obs = símismo.mnjdr_móds.exper.obtener_obs(símismo)
+        inic_pobs = símismo.mnjdr_móds.exper.obt_inic(símismo, 'Pobs')
 
         coords = {
             'Pobs': {'etapa': Coord(símismo.info_etps.etapas)},
@@ -147,14 +147,13 @@ class RedAE(Módulo):
             **{res: {'etapa': Coord(símismo._ecs_simul.cosos_en_categ(res))} for res in l_res}
         }
 
-        # inic = símismo.mnjdr_móds.exper.obt_inic(símismo)  # para hacer
-
         cls_res = {
             'Depredación': ResultadoDepred,
             'Edad': ResultadoEdad
         }
         dims_base = DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc)
 
+        # para hacer: generalizar para todos módulos
         if vars_interés is None:
             temporales = [vr for vr in coords if vr in obs]
         elif vars_interés is True:
@@ -162,45 +161,18 @@ class RedAE(Módulo):
         else:
             temporales = vars_interés
 
-        return ResultadosMódulo([
+        return ResultadosRed([
             (cls_res[nmb] if nmb in cls_res else ResultadoRed)(
                 nmb, dims_base + crd,
                 tiempo=símismo.tiempo if nmb in temporales else None,
                 obs=obs[nmb] if nmb in obs else None,
-          #      inic=inic[nmb] if nmb in inic else None,
+                inic=inic_pobs if nmb == 'Pobs' else None,  # para hacer: ¿más elegante?
             ) for nmb, crd in coords.items()
         ])
 
     def guardar_calib(símismo, directorio=''):
         for org in símismo:
             org.guardar_calib(directorio)
-
-    def verificar_estado(símismo):
-
-        etps_ins = [j for j, x in enumerate(símismo.etapas)
-                    if isinstance(símismo.organismos[x['org']], Ins.Insecto)]
-
-        mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
-
-        if pobs.min() < 0:
-            raise ValueError('Población inferior a 0 justo después de calcular {}.\n{}'.format(punto, mnsg))
-        if np.any(np.isnan(pobs)):
-            raise ValueError('Población "nan" justo después de calcular {}.\n{}'.format(punto, mnsg))
-        if np.any(np.not_equal(pobs[..., etps_ins].astype(int), pobs[..., etps_ins])):
-            raise ValueError('Población fraccional justo después de calcular {}\n{}.'.format(punto, mnsg))
-        if len(símismo.predics['Cohortes']):
-            pobs_coh = símismo.predics['Cohortes']['Pobs']
-            if pobs_coh.min() < 0:
-                raise ValueError('Población de cohorte inferior a 0 justo después de calcular {}.\n{}'
-                                 .format(punto, mnsg))
-            if np.any(np.not_equal(pobs_coh.astype(int), pobs_coh)):
-                raise ValueError('Población de cohorte fraccional justo después de calcular {}.\n{}'
-                                 .format(punto, mnsg))
-            if np.any(np.isnan(pobs_coh)):
-                raise ValueError('Población de cohorte "nan" justo después de calcular {}.\n{}'.format(punto, mnsg))
-            if np.any(np.not_equal(pobs_coh.sum(axis=0), pobs[..., símismo.índices_cohortes])):
-                raise ValueError('Población de cohorte no suma a población total justo después de calcular {}.'
-                                 .format(punto))
 
     def __getitem__(símismo, itema):
         return símismo._orgs[str(itema)]
@@ -245,3 +217,32 @@ class InfoEtapas(object):
 
     def __len__(símismo):
         return len(símismo.etapas)
+
+
+class ResultadosRed(ResultadosMódulo):
+
+    def verificar_estado(símismo):
+        mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
+        pobs = símismo['Pobs'].obt_valor()
+        if pobs.min() < 0:
+            raise ValueError('Población inferior a 0.\n{}'.format(mnsg))
+        if np.any(np.isnan(pobs)):
+            raise ValueError('Población no numérica (p. ej., división por 0).\n{}'.format(mnsg))
+        if np.any(np.not_equal(pobs.astype(int), pobs)):
+            raise ValueError('Población fraccional.'.format(mnsg))
+        # para hacer: incorporar cohortes como resultados e incluir las pruebas siguientes
+        """
+        if len(símismo.predics['Cohortes']):
+            pobs_coh = símismo.predics['Cohortes']['Pobs']
+            if pobs_coh.min() < 0:
+                raise ValueError('Población de cohorte inferior a 0 justo después de calcular {}.\n{}'
+                                 .format(punto, mnsg))
+            if np.any(np.not_equal(pobs_coh.astype(int), pobs_coh)):
+                raise ValueError('Población de cohorte fraccional justo después de calcular {}.\n{}'
+                                 .format(punto, mnsg))
+            if np.any(np.isnan(pobs_coh)):
+                raise ValueError('Población de cohorte "nan" justo después de calcular {}.\n{}'.format(punto, mnsg))
+            if np.any(np.not_equal(pobs_coh.sum(axis=0), pobs[..., símismo.índices_cohortes])):
+                raise ValueError('Población de cohorte no suma a población total justo después de calcular {}.'
+                                 .format(punto))
+        """

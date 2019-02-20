@@ -8,7 +8,7 @@ from ._matr import Matriz, MatrizTiempo
 
 
 class Resultado(Matriz):
-    def __init__(símismo, nombre, dims, tiempo=None, obs=None):
+    def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
         super().__init__(dims)
         símismo.nombre = nombre
 
@@ -19,6 +19,7 @@ class Resultado(Matriz):
 
         símismo.tiempo = tiempo  # para hacer: ¿combinar tiempo y matr_t?
         símismo.obs = obs
+        símismo.inic = inic
 
     def actualizar(símismo):
         if símismo.matr_t:
@@ -33,8 +34,13 @@ class Resultado(Matriz):
         if símismo.tiempo:
             símismo.tiempo.reinic()
 
+        t_inic = símismo.tiempo.día()  # para hacer: con f_inic
+
+        if símismo.inic:
+            pass
+
         if símismo.obs:
-            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
+
             dims_obs = símismo.obs.dims
 
             # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
@@ -46,6 +52,7 @@ class Resultado(Matriz):
 
             símismo.actualizar()
 
+    # para hacer: reorganizar las tres funciones siguientes
     def validar(símismo):
         if símismo._validable():
             d_valid = {}
@@ -84,6 +91,8 @@ class Resultado(Matriz):
                 vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_tiempo.días})
 
                 # l_proc.append(dens_con_pred(vals_obs, vals_res))
+
+                # para hacer: opciones de algoritmo especificados por el usuario
                 l_proc.append(nashsutcliffe(vals_obs, np.mean(vals_res, axis=(1, 2))))
                 pesos.append(np.sum(np.isfinite(vals_obs)))
             return np.average(l_proc, weights=pesos), np.sum(pesos)
@@ -164,6 +173,10 @@ class ResultadosSimul(object):
         for mód, res in símismo._resultados.items():
             res.graficar(directorio=os.path.join(directorio, str(mód)))
 
+    def verificar_estado(símismo):
+        for res in símismo:
+            res.verificar_estado()
+
     def __getitem__(símismo, itema):
         return símismo._resultados[next(mód for mód in símismo._resultados if str(mód) == str(itema))]
 
@@ -187,6 +200,9 @@ class ResultadosMódulo(object):
     def finalizar(símismo):
         for r in símismo:
             r.finalizar()
+
+    def verificar_estado(símismo):
+        pass
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
         return {nmbr: res.reps_necesarias(frac_incert, confianza) for nmbr, res in símismo._resultados.items()}

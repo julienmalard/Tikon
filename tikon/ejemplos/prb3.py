@@ -1,3 +1,4 @@
+import os
 from pprint import pprint
 
 from tikon.ejemplos.prb import red, Oarenosella, Paras_pupa, Paras_larvas, exper_A
@@ -8,10 +9,8 @@ from tikon.manejo.manejo import Manejo, Regla
 
 simul = Simulador(red)
 
-dir_calibs = 'calibs Sitio A fscabc'
-Oarenosella.cargar_calib(dir_calibs)
-Paras_larvas.cargar_calib(dir_calibs)
-Paras_pupa.cargar_calib(dir_calibs)
+dir_base = os.path.split(__file__)[0]
+red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc'))
 
 método = 'fscabc'
 res = simul.simular(exper=exper_A)

@@ -57,6 +57,11 @@ def guardar_json(dic, archivo):
     guardar_archivo(txt, archivo)
 
 
+def leer_json(archivo):
+    with open(archivo, 'r', encoding='utf8') as d:
+        dic = json.load(d)
+    return numpyficar(dic)
+
 def jsonificar(dic):
     nuevo = {}
     for ll, v in dic.items():
@@ -76,7 +81,7 @@ def numpyficar(dic):
         if isinstance(v, dict):
             nuevo[ll] = numpyficar(v)
         elif isinstance(v, list):
-            nuevo[ll] = np.ndarray(v)
+            nuevo[ll] = np.array(v)
         else:
             nuevo[ll] = v
     return nuevo

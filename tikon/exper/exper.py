@@ -1,5 +1,8 @@
 import numpy as np
 
+from tikon.ecs.paráms import ValsParámCoso
+from tikon.ecs.árb_mód import Parám
+
 
 class Exper(object):
     def __init__(símismo, obs=None):
@@ -37,14 +40,14 @@ class Exper(object):
             return []
 
         etps = red.info_etps.etapas
-        # para hacer: limpiar, y agregar fecha de inicio y parcelas. Igualmente generalizar y quitar mención de 'red' y 'etapa'
+        # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
         obs = símismo.obtener_obs(red, 'Pobs')
         prms = []
         for etp in etps:
             try:
                 obs.obt_val_t(0, {'etapa': etps[0]})
             except ValueError:
-                prms.append(NotImplementedError)
+                prms.append(ValsParámCoso(prm_base=Parám()))
 
         return prms
 

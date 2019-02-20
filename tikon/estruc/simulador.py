@@ -123,7 +123,6 @@ class Simulador(object):
     def guardar_calib(símismo, directorio=''):
         símismo.mnjdr_móds.guardar_calib(directorio)
 
-
 class MnjdrMódulos(object):
     def __init__(símismo, módulos, exper):
         if not isinstance(módulos, list):
@@ -179,9 +178,9 @@ class MnjdrParámsSimul(object):
     def __init__(símismo, módulos, móds_paráms=None, exper=None):
         # para hacer: reorganizar móds_paráms y módulos
         móds_paráms = móds_paráms or módulos
-        símismo.vals_paráms = [pr for mód in móds_paráms for pr in mód.paráms(módulos)]
+        símismo.vals_paráms = [pr for mód in móds_paráms for pr in mód.paráms()]
         if exper:
-            símismo.vals_paráms.append(exper.paráms(módulos))
+            símismo.vals_paráms.append(exper.paráms())
 
     def __iter__(símismo):
         for prm in símismo.vals_paráms:
