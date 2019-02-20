@@ -19,6 +19,11 @@ class PlantillaRamaEcCoso(object):
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
 
+    def de_dic(símismo, dic):
+        for rm in símismo:
+            if str(rm) in dic:
+                rm.de_dic(dic[str(rm)])
+
     def borrar_calib(símismo, nombre):
         for r in símismo:
             r.borrar_calib(nombre)
@@ -62,9 +67,6 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
     def desactivar_ec(símismo, categ, subcateg=None):
         símismo[categ].desactivar_ec(subcateg=subcateg)
-
-    def de_dic(símismo, dic):
-        raise NotImplementedError
 
 
 class CategEcCoso(PlantillaRamaEcCoso):
@@ -169,6 +171,12 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: clb.a_dic() for nmb, clb in símismo._calibs.items()}.items() if len(v)}
+
+    def de_dic(símismo, dic):
+        for calib, d_dist in dic.items():
+            símismo._calibs[calib] = MnjdrDists.de_dic(
+                d_dist, mnjdr=símismo._calibs[calib] if calib in símismo._calibs else None
+            )
 
     def __copy__(símismo):
         return ParámCoso(símismo.cls_pariente, coso=símismo.coso)

@@ -124,6 +124,11 @@ class Organismo(Coso):
     def _ecs_a_json(símismo):
         return {etp.nombre: etp._ecs_a_json() for etp in símismo}
 
+    def _ecs_de_json(símismo, calibs):
+        for etp in símismo:
+            if etp.nombre in calibs:
+                etp._ecs_de_json(calibs[etp.nombre])
+
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]

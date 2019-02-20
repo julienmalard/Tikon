@@ -57,6 +57,21 @@ class Dist(object):
 
         return fig, ejes
 
+    @classmethod
+    def de_dic(cls, dic):
+        raise NotImplementedError
+
+    @classmethod
+    def gen_dist(cls, dic):
+        if not dic:
+            return
+        tipo = dic['tipo']
+        for x in cls.__subclasses__():
+            if x.__name__ == tipo:
+                return x.de_dic(dic)
+
+        raise ValueError(tipo)
+
 
 class DistAnalítica(Dist):
     def __init__(símismo, dist, paráms, transf=None):
@@ -97,10 +112,16 @@ class DistAnalítica(Dist):
 
     def a_dic(símismo):
         return {
+            'tipo': símismo.__class__.__name__,
             '_transf': símismo._transf.a_dic() if símismo._transf else None,
             'dist': símismo.nombre_dist,
             'paráms': {**símismo.paráms, 'escl': símismo._escl, 'ubic': símismo._ubic}
         }
+
+    @classmethod
+    def de_dic(cls, dic):
+        transf = TransfDist.de_dic(dic['_transf']) if dic['_transf'] else None
+        return cls(dist=dic['dist'], paráms=dic['paráms'], transf=transf)
 
     @classmethod
     def de_líms(cls, líms):
@@ -308,9 +329,14 @@ class DistTraza(Dist):
 
     def a_dic(símismo):
         return {
+            'tipo': símismo.__class__.__name__,
             'trz': símismo.trz,
             'pesos': símismo.pesos
         }
+
+    @classmethod
+    def de_dic(cls, dic):
+        return DistTraza(trz=dic['trz'], pesos=dic['pesos'])
 
 
 class TransfDist(object):
@@ -340,6 +366,10 @@ class TransfDist(object):
             'transf': símismo._transf,
             'ubic': símismo._ubic, 'escl': símismo._escl
         }
+
+    @classmethod
+    def de_dic(cls, dic):
+        return TransfDist(dic['transf'], ubic=dic['ubic'], escl=dic['escl'])
 
 
 class MnjdrDists(object):
@@ -386,3 +416,13 @@ class MnjdrDists(object):
             'val': símismo.val.a_dic() if símismo.val else None,
             'índs': {str(ll): v.a_dic() for ll, v in símismo.índs.items()}
         }
+
+    @classmethod
+    def de_dic(cls, dic, mnjdr=None, índs=None):
+        if mnjdr is None:
+            mnjdr = MnjdrDists()
+        mnjdr.actualizar(Dist.gen_dist(dic['val']), índs=índs)
+
+        for índ, vals in dic['índs'].items():
+            mnjdr.actualizar(Dist.gen_dist(dic['val']), índs=índ)
+        return mnjdr

@@ -1,4 +1,4 @@
-![Tiko'n](docs/source/Imágenes/Logo_Tikon.png)
+![Tiko'n](docs/source/_estático/logos/Logo_Tikon.png)
 
 [![Build Status](https://travis-ci.org/julienmalard/Tikon.svg?branch=master)](https://travis-ci.org/julienmalard/Tikon)
 [![Coverage Status](https://coveralls.io/repos/github/julienmalard/Tikon/badge.svg?branch=master)](https://coveralls.io/github/julienmalard/Tikon?branch=master)

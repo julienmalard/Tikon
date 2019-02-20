@@ -24,7 +24,7 @@ exper_B = Exper(pobs)
 
 simul = Simulador(red)
 
-red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc'))
+red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc/red'))
 
 simul.calibrar('Sitio B', días=21, exper=exper_B, paráms=exper_B, método='fscabc')
 
