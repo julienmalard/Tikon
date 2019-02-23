@@ -50,16 +50,24 @@ class Simulador(object):
         parc = símismo.mnjdr_móds.obt_val_control('parcelas')
 
         calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
+
         for m in símismo.mnjdr_móds:
             m.iniciar_estruc(símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
+
+        # para hacer: ¿más elegante en general?
+        símismo.exper.iniciar_estruc(
+            símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés
+        )
 
         if llenar:
             # para hacer: reorganizar sin paráms y exper
             símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám, exper=exper)
+            símismo.exper.llenar_coefs(calibs, n_rep_parám)
 
     def iniciar_vals(símismo):
 
         símismo.mnjdr_móds.act_coefs()
+        símismo.exper.act_coefs()
 
         símismo.corrida = ResultadosSimul(símismo.mnjdr_móds, símismo.tiempo)
         for m in símismo.mnjdr_móds:

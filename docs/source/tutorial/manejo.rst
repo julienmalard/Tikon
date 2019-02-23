@@ -1,0 +1,11 @@
+Manejo
+======
+
+Reglas
+------
+
+Condiciones
+-----------
+
+Acciones
+--------
