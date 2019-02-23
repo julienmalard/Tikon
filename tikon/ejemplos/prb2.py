@@ -3,8 +3,8 @@ from pprint import pprint
 
 from tikon.ejemplos.prb import Oarenosella, red
 from tikon.estruc.simulador import Simulador
-from tikon.exper.exper import Exper
-from tikon.rae.red_ae.obs import ObsPobs
+from tikon.exper import Exper
+from tikon.rae import ObsPobs
 
 dir_base = os.path.split(__file__)[0]
 pobs = ObsPobs.de_csv(

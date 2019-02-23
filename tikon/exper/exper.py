@@ -1,13 +1,15 @@
 import numpy as np
 
-from tikon.ecs.paráms import ValsParámCoso
+from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
+from tikon.exper.inic import MnjdrInicExper, MnjdrInicMód
 
 
 class Exper(object):
     def __init__(símismo, obs=None):
         símismo.obs = MnjdrObsExper(obs)
         símismo.controles = MnjdrControlesExper()
+        símismo.inic = MnjdrInicExper()
 
     def n_días(símismo):
         return símismo.obs.n_días(símismo.f_inic())
@@ -20,10 +22,11 @@ class Exper(object):
 
     def obt_inic(símismo, mód, var=None):
         try:
-            mód = símismo.obs[mód]
+            inic_mód = símismo.inic[mód]
         except KeyError:
-            return
-        return mód.obt_inic(var)
+            inic_mód = MnjdrInicMód()
+            símismo.inic._inic[str(mód)] = inic_mód
+        return inic_mód.obt_inic(var)
 
     def agregar_obs(símismo, obs):
         símismo.obs.agregar_obs(obs)
@@ -33,23 +36,37 @@ class Exper(object):
             return símismo.obs[mód][var]
         return símismo.obs[mód]
 
-    def paráms(símismo, módulos):
+    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
+
+        # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
+        # TODO LO QUE SIGUE ES CÓDIGO TEMPORARIO Y HORRIBLEMENTE INELEGANTE, INEFICAZ, E INCÓMODO1
+
         try:
-            red = módulos['red']
+            red = mnjdr_móds['red']
         except KeyError:
             return []
 
         etps = red.info_etps.etapas
         # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
         obs = símismo.obtener_obs(red, 'Pobs')
-        prms = []
         for etp in etps:
             try:
-                obs.obt_val_t(0, {'etapa': etps[0]})
+                obs.obt_val_t(0, {'etapa': etp})
             except ValueError:
-                prms.append(ValsParámCoso(prm_base=Parám()))
+                class prm(Parám):
+                    nombre = 'inic'
+                    líms = (0, None)
 
-        return prms
+                prm_coso = prm.para_coso(None)
+                apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
+                prm_coso.espec_a_priori(apriori)
+                símismo.inic.agregar_prm(mód='red', var='Pobs', índs={'etapa': etp}, prm_base=prm_coso)
+
+    def act_coefs(símismo):
+        raise NotImplementedError
+
+    def paráms(símismo):
+        return símismo.inic.vals_paráms()
 
 
 _controles_auto = {  # para hacer: más bonito
@@ -115,9 +132,6 @@ class MnjdrObsMód(object):
 
     def n_días(símismo, f_inic):
         return max([obs.n_días(f_inic) for obs in símismo])
-
-    def obt_inic(símismo, var):
-        return  # para hacer: implementar para iniciales calibrados (¿y especificados?)
 
     def __contains__(símismo, itema):
         return itema in símismo._obs
