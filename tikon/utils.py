@@ -53,14 +53,16 @@ def guardar_json(dic, archivo):
 
     """
 
-    txt = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=2)
+    txt = json.dumps(jsonificar(dic), ensure_ascii=False, sort_keys=True, indent=2)
     guardar_archivo(txt, archivo)
 
 
-def leer_json(archivo):
+def leer_json(archivo, numpy=True):
     with open(archivo, 'r', encoding='utf8') as d:
         dic = json.load(d)
-    return numpyficar(dic)
+    if numpy:
+        dic = numpyficar(dic)
+    return dic
 
 def jsonificar(dic):
     nuevo = {}

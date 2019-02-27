@@ -1,12 +1,16 @@
+import os
+
 import numpy as np
 
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
 from tikon.exper.inic import MnjdrInicExper, MnjdrInicMód
+from tikon.rae.orgs.organismo import EtapaFantasma
 
 
 class Exper(object):
-    def __init__(símismo, obs=None):
+    def __init__(símismo, nombre, obs=None):
+        símismo.nombre = nombre
         símismo.obs = MnjdrObsExper(obs)
         símismo.controles = MnjdrControlesExper()
         símismo.inic = MnjdrInicExper()
@@ -46,7 +50,7 @@ class Exper(object):
         except KeyError:
             return []
 
-        etps = red.info_etps.etapas
+        etps = [e for e in red.info_etps.etapas if not isinstance(e, EtapaFantasma)]
         # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
         obs = símismo.obtener_obs(red, 'Pobs')
         for etp in etps:
@@ -60,13 +64,16 @@ class Exper(object):
                 prm_coso = prm.para_coso(None)
                 apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
                 prm_coso.espec_a_priori(apriori)
-                símismo.inic.agregar_prm(mód='red', var='Pobs', índs={'etapa': etp}, prm_base=prm_coso)
-
-    def act_coefs(símismo):
-        raise NotImplementedError
+                símismo.inic.agregar_prm(
+                    mód='red', var='Pobs', índs={'etapa': etp}, prm_base=prm_coso, tmñ=n_rep_parám
+                )
 
     def paráms(símismo):
         return símismo.inic.vals_paráms()
+
+    def guardar_calib(símismo, directorio=''):
+        archivo = os.path.join(directorio, símismo.nombre)
+        símismo.inic.guardar_calib(archivo)
 
 
 _controles_auto = {  # para hacer: más bonito

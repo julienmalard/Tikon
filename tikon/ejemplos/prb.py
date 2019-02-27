@@ -48,18 +48,19 @@ pobs = ObsPobs.de_csv(
     },
     factor=655757.1429 / 500
 )
-exper_A = Exper(pobs)
+exper_A = Exper('Sitio A', pobs)
 
 simul = Simulador(red)
 
 if __name__ == '__main__':
     método = 'fscabc'
     calibs = EspecCalibsCorrida(aprioris=True)
-    res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
-    pprint(res.validar())
-    res.graficar('antes calib')
-    simul.calibrar('Sitio A', días=None, método=método, exper=exper_A, n_iter=200)
+    # res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
+    # pprint(res.validar())
+    # res.graficar('antes calib')
+    simul.calibrar('Sitio A', días=None, método=método, exper=exper_A, n_iter=10)
     simul.guardar_calib('calibs Sitio A ' + método)
+    exper_A.guardar_calib('calibs Sitio A ' + método)
 
     res2 = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
     pprint(res2.validar())

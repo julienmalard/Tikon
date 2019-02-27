@@ -4,6 +4,7 @@ from copy import copy
 from tikon.calib import gen_calibrador
 from tikon.clima.clima import Clima
 from tikon.ecs.dists import DistAnalítica
+from tikon.estruc.módulo import Módulo
 from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
 from tikon.manejo.manejo import Manejo
@@ -59,15 +60,13 @@ class Simulador(object):
             símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés
         )
 
-        if llenar:
+        if llenar or True:  # para hacer: arreglar con calibraciones selectivas
             # para hacer: reorganizar sin paráms y exper
-            símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám, exper=exper)
-            símismo.exper.llenar_coefs(calibs, n_rep_parám)
+            símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def iniciar_vals(símismo):
 
         símismo.mnjdr_móds.act_coefs()
-        símismo.exper.act_coefs()
 
         símismo.corrida = ResultadosSimul(símismo.mnjdr_móds, símismo.tiempo)
         for m in símismo.mnjdr_móds:
@@ -125,7 +124,7 @@ class Simulador(object):
             vars_interés=None, llenar=False
         )
 
-        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(paráms, exper), calibs)
+        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(paráms), calibs)
         clbrd.calibrar(n_iter=n_iter, nombre=nombre)
 
     def guardar_calib(símismo, directorio=''):
@@ -155,20 +154,20 @@ class MnjdrMódulos(object):
     def obt_val_control(símismo, var):
         return símismo.exper.obt_control(var)
 
-    def paráms(símismo, paráms, exper):
+    def paráms(símismo, paráms):
         # para hacer: reorganizar
-        return MnjdrParámsSimul(símismo, paráms, exper)
+        if paráms is None:
+            paráms = list(símismo.módulos.values()) + [símismo.exper]
+        return MnjdrParámsSimul(símismo, paráms)
 
-    def llenar_coefs(símismo, calibs, n_rep_parám, exper):
+    def llenar_coefs(símismo, calibs, n_rep_parám):
         # para hacer: ¿separar símismo.paráms()?
-        símismo.paráms(paráms=None, exper=exper).llenar_coefs(calibs, n_rep_parám=n_rep_parám)
+        símismo.paráms(paráms=None).llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def act_coefs(símismo):
         for mód in símismo:
             mód.act_coefs()
         # para hacer: un día, permitir calibraciones simultáneas con varios experimentos al mismo tiempo
-        if símismo.exper is not None:
-            símismo.exper.act_coefs()
 
     def guardar_calib(símismo, directorio=''):
         for m in símismo:
@@ -183,12 +182,12 @@ class MnjdrMódulos(object):
 
 
 class MnjdrParámsSimul(object):
-    def __init__(símismo, módulos, móds_paráms=None, exper=None):
+    def __init__(símismo, módulos, móds_paráms=None):
         # para hacer: reorganizar móds_paráms y módulos
         móds_paráms = móds_paráms or módulos
+        if isinstance(móds_paráms, (Exper, Módulo)):
+            móds_paráms = [móds_paráms]
         símismo.vals_paráms = [pr for mód in móds_paráms for pr in mód.paráms()]
-        if exper:
-            símismo.vals_paráms.append(exper.paráms())
 
     def __iter__(símismo):
         for prm in símismo.vals_paráms:
