@@ -34,9 +34,8 @@ class Resultado(Matriz):
         if símismo.tiempo:
             símismo.tiempo.reinic()
 
-        t_inic = símismo.tiempo.día()  # para hacer: con f_inic
-
         if símismo.obs:
+            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
 
             dims_obs = símismo.obs.dims
 
@@ -51,7 +50,8 @@ class Resultado(Matriz):
 
         if símismo.inic:
             for val in símismo.inic:
-                símismo.poner_valor(vals=val.valor(), índs=val.dims)
+                símismo.poner_valor(vals=val.valor(), índs=val.índs)
+            símismo.actualizar()
 
     # para hacer: reorganizar las tres funciones siguientes
     def validar(símismo):

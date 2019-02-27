@@ -31,6 +31,7 @@ class Coso(object):
         guardar_json(símismo._ecs_a_json(), arch)
 
     def _ecs_a_json(símismo):
+        # para hacer: no debería ser necesario llenar jsonificar() aquí
         return jsonificar(símismo.ecs.a_dic())
 
     def borrar_calib(símismo, nombre):
