@@ -1,8 +1,8 @@
 import os
 from pprint import pprint
 
-from tikon.ejemplos.prb import Oarenosella, red
-from tikon.estruc.simulador import Simulador
+from tikon.ejemplos.prb import Oarenosella, red, exper_A
+from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
 from tikon.exper import Exper
 from tikon.rae import ObsPobs
 
@@ -20,13 +20,18 @@ pobs = ObsPobs.de_csv(
     },
     factor=655757.1429 / 500
 )
-exper_B = Exper(pobs)
+exper_B = Exper('Sitio B', pobs)
 
 simul = Simulador(red)
 
 red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc/red'))
+# exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc'))
+# res_A = simul.simular(exper=exper_A)
+# pprint(res_A.validar())
+# res_A.graficar('valid sitio A')
 
-simul.calibrar('Sitio B', días=21, exper=exper_B, paráms=exper_B, método='fscabc')
+simul.calibrar('Sitio B', días=100, exper=exper_B, paráms=exper_B, método='fscabc')
+exper_B.guardar_calib('calibs Sitio B')
 
 res = simul.simular(exper=exper_B)
 pprint(res.validar())

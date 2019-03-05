@@ -225,13 +225,11 @@ class EspecCalibsCorrida(object):
                 extras = n_reps % n_dists
                 n_por_dist[:extras] += 1
 
-                if corresp:
-                    for í, (nmb, dist) in enumerate(d_dists.items()):
-                        if nmb not in índs_dists:
-                            índs_dists[nmb] = np.random.randint(dist.tmñ(), size=n_por_dist[í])
-                    vl.llenar_de_dists({d_dists[nmb]: índs_dists[nmb] for nmb in d_dists})
-                else:
-                    vl.llenar_de_dists({dist: n for dist, n in zip(d_dists.values(), n_por_dist)})
+                # Intentar preservar correspondencias como posible aunque `corresp` sea ``Falso``
+                for í, (nmb, dist) in enumerate(d_dists.items()):
+                    if nmb not in índs_dists:
+                        índs_dists[nmb] = np.random.randint(dist.tmñ(), size=n_por_dist[í])
+                vl.llenar_de_dists({d_dists[nmb]: índs_dists[nmb] for nmb in d_dists})
 
     def gen_dists_calibs(símismo, l_vals_prm, permitidas):
         # Para hacer: limpiar TODO esto...es horriblemente inelegante (pero en su favor, por el momento, sí funciona)
