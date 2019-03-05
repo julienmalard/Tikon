@@ -4,7 +4,7 @@ import numpy as np
 
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
-from tikon.exper.inic import MnjdrInicExper, MnjdrInicMód
+from tikon.exper.inic import MnjdrInicExper
 from tikon.rae.orgs.organismo import EtapaFantasma
 
 
@@ -28,8 +28,7 @@ class Exper(object):
         try:
             inic_mód = símismo.inic[mód]
         except KeyError:
-            inic_mód = MnjdrInicMód()
-            símismo.inic._inic[str(mód)] = inic_mód
+            inic_mód = símismo.inic.agregar_mód(mód)
         return inic_mód.obt_inic(var)
 
     def agregar_obs(símismo, obs):
@@ -57,16 +56,22 @@ class Exper(object):
             try:
                 obs.obt_val_t(0, {'etapa': etp})
             except ValueError:
-                class prm(Parám):
-                    nombre = 'inic'
-                    líms = (0, None)
+                try:
+                    # para hacer: necesitamos objeto para índs. Idealmente el mismo que para índs de matrices
+                    prm_inic = símismo.inic['red']['Pobs'].obt_val({'etapa': str(etp)})
 
-                prm_coso = prm.para_coso(None)
-                apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
-                prm_coso.espec_a_priori(apriori)
-                símismo.inic.agregar_prm(
-                    mód='red', var='Pobs', índs={'etapa': etp}, prm_base=prm_coso, tmñ=n_rep_parám
-                )
+                except KeyError:
+                    class prm(Parám):
+                        nombre = 'inic'
+                        líms = (0, None)
+
+                    prm_coso = prm.para_coso(None)
+                    apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
+                    prm_coso.espec_a_priori(apriori)
+                    prm_inic = símismo.inic.agregar_prm(
+                        mód='red', var='Pobs', índs={'etapa': str(etp)}, prm_base=prm_coso
+                    )
+                prm_inic.iniciar_prm(tmñ=n_rep_parám)
 
     def paráms(símismo):
         return símismo.inic.vals_paráms()
@@ -74,6 +79,13 @@ class Exper(object):
     def guardar_calib(símismo, directorio=''):
         archivo = os.path.join(directorio, símismo.nombre)
         símismo.inic.guardar_calib(archivo)
+
+    def cargar_calib(símismo, directorio=''):
+        if os.path.splitext(directorio) == '.json':
+            archivo = directorio
+        else:
+            archivo = os.path.join(directorio, símismo.nombre + '.json')
+        símismo.inic.cargar_calib(archivo)
 
 
 _controles_auto = {  # para hacer: más bonito

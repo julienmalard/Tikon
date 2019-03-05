@@ -48,3 +48,4 @@ class Coso(object):
 
     def __str__(símismo):
         return símismo.nombre
+

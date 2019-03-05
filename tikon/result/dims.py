@@ -70,7 +70,7 @@ class Coord(object):
     def índice(símismo, itema):
         if isinstance(símismo.índs, np.ndarray):
             return np.where(símismo.índs == itema)[0][0]
-        return símismo.índs.index(itema)
+        return [str(x) for x in símismo.índs].index(str(itema))
 
     def __iter__(símismo):
         for í in símismo.índs:

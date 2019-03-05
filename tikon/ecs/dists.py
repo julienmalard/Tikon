@@ -404,8 +404,8 @@ class MnjdrDists(object):
             return símismo.val
         else:
             í = índs.pop(0)
-            if í in símismo.índs:
-                return símismo.índs[í].obt_val(índs, heredar)
+            if str(í) in símismo.índs:
+                return símismo.índs[str(í)].obt_val(índs, heredar)
             return símismo.val if heredar else []
 
     def __getitem__(símismo, itema):

@@ -5,6 +5,8 @@ class Manejo(Módulo):
     nombre = 'manejo'
 
     def __init__(símismo, reglas=None):
+        if isinstance(reglas, Regla):
+            reglas = [reglas]
         símismo.reglas = reglas or []
 
         super().__init__()
