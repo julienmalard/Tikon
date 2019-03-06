@@ -7,7 +7,7 @@ from matplotlib.figure import Figure as Figura
 
 def graficar_pred(
         título, directorio, matr_predic, vector_obs=None, t_pred=None, t_obs=None,
-        etiq_y='', etiq_x='Día', color='#99CC00', promedio=True, incert='componentes'
+        etiq_y='', etiq_x='Día', color='#99CC00', promedio=True, incert='confianza'
 ):
     e_t, e_estoc, e_parám = (0, 1, 2)
     if not os.path.isdir(directorio):
