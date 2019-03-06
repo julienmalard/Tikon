@@ -53,7 +53,7 @@ exper_A = Exper('Sitio A', pobs)
 simul = Simulador(red)
 
 if __name__ == '__main__':
-    método = 'epm'
+    método = 'fscabc'
     calibs = EspecCalibsCorrida(aprioris=True)
     res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
     pprint(res.validar())

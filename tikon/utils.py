@@ -64,6 +64,7 @@ def leer_json(archivo, numpy=True):
         dic = numpyficar(dic)
     return dic
 
+
 def jsonificar(dic):
     nuevo = {}
     for ll, v in dic.items():
@@ -111,7 +112,7 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
         La codificación más probable.
 
     """
-
+    archivo = resolver_dir(archivo)
     detector = UniversalDetector()
     with open(archivo, 'rb') as d:
         for í, línea in enumerate(d.readlines()):
