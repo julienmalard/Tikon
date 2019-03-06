@@ -50,8 +50,8 @@ from tikon.ejemplos import en_ejemplos
 
 simul = Simulador(red)
 
-red.cargar_calib(en_ejemplos('calibs Sitio A fscabc/red'))
-exper_A.cargar_calib(en_ejemplos('calibs Sitio A fscabc'))
+red.cargar_calib(en_ejemplos('calibs Sitio A/red'))
+exper_A.cargar_calib(en_ejemplos('calibs Sitio A'))
 
 res = simul.simular(exper=exper_A, n_rep_estoc=15, n_rep_parám=15, vars_interés=True)
 print('¡Instalación exitosa!')
