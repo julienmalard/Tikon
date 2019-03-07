@@ -1,24 +1,20 @@
-import os
 import sys
 import tempfile
 import zipfile
 from subprocess import run
+import os
+
+from pip._internal import main as pipmain
 
 print('preparando instalación...')
 EXE_PYTHON = sys.executable
-EXE_PIP = os.path.join(os.path.split(EXE_PYTHON)[0], 'scripts/pip')
 
-run([EXE_PIP, 'install', 'requests'])
+pipmain(['install', 'requests'])
 run([EXE_PYTHON, '-m', 'pip', 'install', '--upgrade', 'pip'])
 import requests
 
 
-def instalar_con_pip(nombre, repo):
-    print('instalando ' + nombre)
-    run([EXE_PIP, 'install', 'git+' + repo + '.git@master'])
-
-
-def instalar_de_zip(nombre, repo):
+def instalar_de_zip(nombre, repo, reqs='requísitos.txt'):
     print('instalando ' + nombre)
     url = repo + '/archive/master.zip'
     r = requests.get(url)
@@ -33,13 +29,12 @@ def instalar_de_zip(nombre, repo):
 
 paquetes_github = {
     'ennikkai': 'https://github.com/julienmalard/ennikkai',
-    'taqdir': 'https://github.com/julienmalard/taqdir'
+    'taqdir': 'https://github.com/julienmalard/taqdir',
+    'tikon': 'https://github.com/julienmalard/tikon'
 }
 
 for nmbr, url in paquetes_github.items():
     instalar_de_zip(nmbr, url)
-
-instalar_con_pip('tikon', 'https://github.com/julienmalard/tikon')
 
 print('verificando instalación...')
 import os

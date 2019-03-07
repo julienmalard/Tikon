@@ -25,6 +25,6 @@ setup(
     ],
     package_data={
         # Incluir estos documentos de los paquetes:
-        '': ['*.csv', 'versión.txt', '*.json', 'Interfaz/*.png', 'Interfaz/*.jpg'],
+        '': ['*.csv', 'versión.txt', '*.json'],
     },
 )
