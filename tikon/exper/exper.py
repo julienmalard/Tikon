@@ -77,11 +77,11 @@ class Exper(object):
         return símismo.inic.vals_paráms()
 
     def guardar_calib(símismo, directorio=''):
-        archivo = os.path.join(directorio, símismo.nombre)
+        archivo = os.path.join(directorio, símismo.nombre + '.json')
         símismo.inic.guardar_calib(archivo)
 
     def cargar_calib(símismo, directorio=''):
-        if os.path.splitext(directorio) == '.json':
+        if os.path.splitext(directorio)[1] == '.json':
             archivo = directorio
         else:
             archivo = os.path.join(directorio, símismo.nombre + '.json')
