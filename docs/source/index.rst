@@ -1,8 +1,3 @@
-.. Tiko'n documentation master file, created by
-sphinx-quickstart on Wed Jan 11 14:45:45 2017.
-You can adapt this file completely to your liking, but it should at least
-contain the root `toctree` directive.
-
 .. image:: _estático/logos/Logo_Tikon.png
    :width: 250px
    :alt: Logo de Tiko'n
@@ -41,19 +36,16 @@ Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3 
 
 #. Multitud de parámetros (15+ por insecto)
 #. Inestabilidad matemática (dificultando predicciones fiables)
-#. Multitud de posibilidades de ecuaciones en la literatura para cada fase de vida (reproducción, edad, transiciones,
-muertes, depredación)
+#. Multitud de posibilidades de ecuaciones en la literatura para cada fase de vida (reproducción, edad, transiciones, muertes, depredación)
 #. Muy alta incertidumbre en los valores verdaderos de los parámetros
 #. Pocos datos para calibración y validación
-#. Requerimiento de conocimientos informáticos avanzados para conectar con modelos de cultivos externos o con
-predicciones de cambios climáticos
+#. Requerimiento de conocimientos informáticos avanzados para conectar con modelos de cultivos externos o con predicciones de cambios climáticos
 
 Así que si quieres hacer modelos tróficos pero te desaniman estos retos, ¡Tiko'n es para ti! Tiko'n manejará
 todos los puntos arriba para ti, siempre dándote el nivel de control que quieres sobre los detalles de tu modelo,
 nada menos, nada más.
 
-#. Colección interna de la mayoría de ecuaciones para redes tróficas disponibles en la literatura, con selección
-automática de ecuaciones para principiantes
+#. Colección interna de la mayoría de ecuaciones para redes tróficas disponibles en la literatura, con selección automática de ecuaciones para principiantes
 #. Posibilidad de agregar tus propias ecuaciones si quieres
 #. Conexión automática con bases de datos y con predicciones y observaciones climáticas
 #. Manejo automático de parametros y de cálculos de poblaciones y de depredación
