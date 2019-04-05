@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from tikon.result.dibujar import graficar_pred
-from tikon.result.valid import reps_necesarias, validar_matr_pred, dens_con_pred
+from tikon.result.valid import reps_necesarias, validar_matr_pred, dens_con_pred, _rcnep
 from ._matr import Matriz, MatrizTiempo
 
 
