@@ -1,0 +1,9 @@
+[run]
+source=tikon
+
+[report]
+exclude_lines =
+    pragma: sin cobertura
+    def __repr__
+    raise NotImplementedError
+    if __name__== .__main__.:
