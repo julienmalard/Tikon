@@ -18,8 +18,8 @@ class RedAE(Módulo):
         super().__init__()
 
         símismo._orgs = {}
-        símismo.info_etps = None  # type: InfoEtapas
-        símismo.cohortes = None  # type: Cohortes
+        símismo.info_etps = None
+        símismo.cohortes = None
 
         if orgs is not None:
             if isinstance(orgs, Organismo):
@@ -46,7 +46,8 @@ class RedAE(Módulo):
                 continue
 
             for d_apr in l_org:
-                obj_org.espec_apriori_etp(**d_apr)
+                if d_apr['etapa'] in obj_org:
+                    obj_org.espec_apriori_etp(**d_apr)
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
         símismo.info_etps = InfoEtapas(símismo._orgs)

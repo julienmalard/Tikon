@@ -145,6 +145,10 @@ class Organismo(Coso):
         for etp in símismo._etapas:
             yield etp
 
+    def __contains__(símismo, itema):
+        # para hacer: más elegante, y coordinar con __getitem__()
+        return any(str(itema) == e.nombre for e in símismo._etapas)
+
     def __len__(símismo):
         return len(símismo._etapas)
 

@@ -15,8 +15,8 @@ from tikon.rae.red_ae.obs import ObsPobs
 # Coco.estim_dens(apriori)
 
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
-Paras_larvas = Parasitoide('Parasitoide larvas')
-Paras_pupa = Parasitoide('Parasitoide pupa')
+Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)
+Paras_pupa = Parasitoide('Parasitoide pupa', pupa=True)
 
 # Oarenosella.secome(Coco, etps_símismo='juvenil')
 
