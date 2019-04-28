@@ -1,9 +1,10 @@
 import os
 
 import numpy as np
+from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared
 
 from tikon.result.dibujar import graficar_pred
-from tikon.result.valid import reps_necesarias, validar_matr_pred, dens_con_pred, _rcnep
+from tikon.result.valid import reps_necesarias, validar_matr_pred
 from ._matr import Matriz, MatrizTiempo
 
 
@@ -53,7 +54,7 @@ class Resultado(Matriz):
                 símismo.poner_valor(vals=val.valor(), índs=val.índs)
             símismo.actualizar()
 
-    # para hacer: reorganizar las tres funciones siguientes
+    # para hacer: reorganizar las 4 funciones siguientes
     def validar(símismo):
         if símismo._validable():
             d_valid = {}
@@ -76,11 +77,13 @@ class Resultado(Matriz):
                 dic[l_llaves[-1]] = validar_matr_pred(vals_res, vals_obs)
             return d_valid
 
-    def procesar_calib(símismo):
+    def procesar_calib(símismo, f=None):
         if símismo._validable():
+            f = f or 'ens'
+            if isinstance(f, str):
+                f = _funcs[f]
             l_proc = []
             pesos = []
-            from spotpy.objectivefunctions import nashsutcliffe
             eje_tiempo = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje)
             for índs in símismo.obs.iter_índs(excluir='días'):
                 matr_t = símismo.matr_t
@@ -93,8 +96,8 @@ class Resultado(Matriz):
 
                 # l_proc.append(dens_con_pred(vals_obs, vals_res))
 
-                # para hacer: opciones de algoritmo especificados por el usuario
-                l_proc.append(nashsutcliffe(vals_obs, np.mean(vals_res, axis=(1, 2))))
+                # para hacer: formalizar opciones de algoritmo especificados por el usuario
+                l_proc.append(f(vals_obs, np.mean(vals_res, axis=(1, 2))))
                 pesos.append(np.sum(np.isfinite(vals_obs)))
             return np.average(l_proc, weights=pesos), np.sum(pesos)
         return 0, 0
@@ -159,8 +162,8 @@ class ResultadosSimul(object):
         for r in símismo:
             r.finalizar()
 
-    def procesar_calib(símismo):
-        vals, pesos = zip(*[r.procesar_calib() for r in símismo])
+    def procesar_calib(símismo, f):
+        vals, pesos = zip(*[r.procesar_calib(f) for r in símismo])
         return np.average(vals, weights=pesos)
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
@@ -212,8 +215,8 @@ class ResultadosMódulo(object):
         valid = {nmb: res.validar() for nmb, res in símismo._resultados.items()}
         return {ll: v for ll, v in valid.items() if v}
 
-    def procesar_calib(símismo):
-        vals, pesos = zip(*[r.procesar_calib() for r in símismo])
+    def procesar_calib(símismo, f):
+        vals, pesos = zip(*[r.procesar_calib(f) for r in símismo])
         return np.average(vals, weights=pesos), np.sum(pesos)
 
     def graficar(símismo, directorio):
@@ -226,3 +229,13 @@ class ResultadosMódulo(object):
     def __iter__(símismo):
         for r in símismo._resultados.values():
             yield r
+
+
+_funcs = {
+    'ens': nashsutcliffe,
+    'rcep': lambda x, y: -rmse(x, y),
+    'corresp': agreementindex,
+    'ekg': kge,
+    'r2': rsquared,
+    'rcnep': lambda x, y: -rrmse(x, y)
+}

@@ -66,10 +66,14 @@ def graficar_pred(
             op_mín = 0.01
             opacidad = (1 - n / (len(percentiles) - 1)) * (op_máx - op_mín) + op_mín
 
-            ejes.fill_between(x, máx_perc_ant, máx_perc,
-                              facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
-            ejes.fill_between(x, mín_perc, mín_perc_ant,
-                              facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color)
+            ejes.fill_between(
+                x, máx_perc_ant, máx_perc,
+                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color, label='IC {} %'.format(p)
+            )
+            ejes.fill_between(
+                x, mín_perc, mín_perc_ant,
+                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color, label='IC {} %'.format(p)
+            )
 
             # Guardar los máximos y mínimos
             mín_perc_ant = mín_perc

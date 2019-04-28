@@ -108,14 +108,14 @@ class Simulador(object):
         return anlzdr.analizar(símismo.corrida, ops=ops_anlz)
 
     def calibrar(
-            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', calibs=None, paráms=None,
+            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', f=None, calibs=None, paráms=None,
             paso=1, n_rep_estoc=30
     ):
 
         def func():
             símismo.iniciar_vals()
             símismo.correr()
-            return símismo.corrida.procesar_calib()
+            return símismo.corrida.procesar_calib(f)
 
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 

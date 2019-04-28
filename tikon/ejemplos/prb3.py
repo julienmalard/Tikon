@@ -1,5 +1,3 @@
-import os
-
 from tikon.ejemplos.prb import red, Paras_pupa, exper_A, Paras_larvas
 from tikon.estruc.simulador import Simulador
 from tikon.manejo.acciones import AgregarPob

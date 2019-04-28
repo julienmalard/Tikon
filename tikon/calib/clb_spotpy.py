@@ -1,26 +1,27 @@
 import math as mat
 import tempfile
+from warnings import warn as avisar
 
 import numpy as np
 import pandas as pd
-import spotpy
+import spotpy as spt
 
 from tikon.calib.calibrador import Calibrador
 from tikon.ecs.dists import DistTraza
 
 _algs_spotpy = {
-    'maed': spotpy.algorithms.dream,
-    'mc': spotpy.algorithms.mc,
-    'cmmc': spotpy.algorithms.mcmc,
+    'maed': spt.algorithms.dream,
+    'mc': spt.algorithms.mc,
+    'cmmc': spt.algorithms.mcmc,
 
-    'epm': spotpy.algorithms.mle,
-    'mhl': spotpy.algorithms.lhs,
+    'epm': spt.algorithms.mle,
+    'mhl': spt.algorithms.lhs,
 
-    'as': spotpy.algorithms.sa,
-    'sceua': spotpy.algorithms.sceua,
-    'erp': spotpy.algorithms.rope,
-    'caa': spotpy.algorithms.abc,
-    'fscabc': spotpy.algorithms.fscabc,
+    'as': spt.algorithms.sa,
+    'sceua': spt.algorithms.sceua,
+    'erp': spt.algorithms.rope,
+    'caa': spt.algorithms.abc,
+    'fscabc': spt.algorithms.fscabc,
 
 }
 
@@ -34,8 +35,10 @@ class CalibSpotPy(Calibrador):
 
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
-        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists)
-        muestreador = _algs_spotpy[símismo.método](mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
+        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists, inversar=símismo.método in ['caa', 'fscabc'])
+        muestreador = _algs_spotpy[símismo.método](
+            mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False, alt_objfun=None
+        )
 
         if símismo.método == 'dream':
             muestreador.sample(repetitions=2000 + n_iter, runs_after_convergence=n_iter)
@@ -53,6 +56,10 @@ class CalibSpotPy(Calibrador):
             buenas = np.argpartition(vero, -n)[-n:]
             vero = vero[buenas]
 
+        if not len(buenas):
+            avisar('No se encontró solución aceptable.')
+            return
+
         for í, (dst, vls_prms) in enumerate(símismo.dists.items()):
             vals = egr_spotpy['parvar_' + str(í)][buenas].values
             dist = DistTraza(trz=dst.transf_vals(vals), pesos=vero)
@@ -60,12 +67,13 @@ class CalibSpotPy(Calibrador):
 
 
 class ModSpotPy(object):
-    def __init__(símismo, func, dists):
+    def __init__(símismo, func, dists, inversar):
         símismo.func = func
         símismo.dists = dists
+        símismo.inversar = inversar
 
     def parameters(símismo):
-        return spotpy.parameter.generate(
+        return spt.parameter.generate(
             [_gen_spotpy(d, 'var_' + str(í)) for í, d in enumerate(símismo.dists)]
         )
 
@@ -81,7 +89,7 @@ class ModSpotPy(object):
         return  # símismo.res
 
     def objectivefunction(símismo, simulation, evaluation, params=None):
-        return simulation
+        return simulation if not símismo.inversar else -simulation
 
 
 def _gen_spotpy(dist, nmbr_var):
@@ -92,22 +100,22 @@ def _gen_spotpy(dist, nmbr_var):
     escl = paráms['scale'] if 'scale' in paráms else 1
 
     if nombre_dist == 'Chi2':
-        var = spotpy.parameter.Chisquare(nmbr_var, dt=paráms['df'])
+        var = spt.parameter.Chisquare(nmbr_var, dt=paráms['df'])
 
     elif nombre_dist == 'Exponencial':
-        var = spotpy.parameter.Exponential(nmbr_var, scale=escl)
+        var = spt.parameter.Exponential(nmbr_var, scale=escl)
 
     elif nombre_dist == 'Gamma':
-        var = spotpy.parameter.Gamma(nmbr_var, shape=paráms['a'], scale=escl)
+        var = spt.parameter.Gamma(nmbr_var, shape=paráms['a'], scale=escl)
 
     elif nombre_dist == 'LogNormal':
-        var = spotpy.parameter.logNormal(nmbr_var, mean=ubic, sigma=escl)
+        var = spt.parameter.logNormal(nmbr_var, mean=ubic, sigma=escl)
 
     elif nombre_dist == 'Normal':
-        var = spotpy.parameter.Normal(nmbr_var, mean=ubic, stddev=escl)
+        var = spt.parameter.Normal(nmbr_var, mean=ubic, stddev=escl)
 
     elif nombre_dist == 'Uniforme':
-        var = spotpy.parameter.Uniform(nmbr_var, low=ubic, high=ubic + escl)
+        var = spt.parameter.Uniform(nmbr_var, low=ubic, high=ubic + escl)
 
     else:
         raise ValueError(nombre_dist)
