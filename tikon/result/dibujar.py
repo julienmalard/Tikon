@@ -53,7 +53,7 @@ def graficar_pred(
         percentiles.sort()
 
         # Mínimo y máximo del percentil anterior
-        máx_perc_ant = mín_perc_ant = np.median(axis=(e_estoc, e_parám))
+        máx_perc_ant = mín_perc_ant = np.median(matr_predic, axis=(e_estoc, e_parám))
 
         # Para cada percentil...
         for n, p in enumerate(percentiles):
