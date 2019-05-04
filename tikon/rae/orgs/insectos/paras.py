@@ -27,7 +27,7 @@ class Parasitoide(Insecto):
         tipo_ec['juvenil'] = dict(
             Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
             Depredación={'Ecuación': 'Nada'},
-            Muertes={'Ecuación': 'Nada'},
+            Muertes={'Ecuación': 'Constante'},
             Edad={'Ecuación': 'Días'},
             Transiciones={'Prob': 'Normal', 'Mult': 'Linear'},
             Reproducción={'Prob': 'Nada'},
