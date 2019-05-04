@@ -193,7 +193,7 @@ class EtapaFantasma(Etapa):
         if isinstance(símismo.sig, EtapaFantasma):
             categs_de_prs = []
         else:
-            categs_de_prs = ['Transiciones', 'Edad']
+            categs_de_prs = ['Transiciones', 'Edad', 'Muertes']
         categs_de_hués = [str(ctg) for ctg in símismo.ecs if str(ctg) not in categs_de_prs]
 
         for ctg in categs_de_hués:
