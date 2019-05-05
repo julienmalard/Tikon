@@ -404,11 +404,14 @@ class MnjdrDists(object):
             return símismo.val
         else:
             í = índs.pop(0)
+            val = None
             if str(í) in símismo.índs:
-                return símismo.índs[str(í)].obt_val(índs, heredar)
+                val = símismo.índs[str(í)].obt_val(índs, heredar)
             elif í in símismo.índs:  # para hacer: es muy inelegante.
-                return símismo.índs[í].obt_val(índs, heredar)
-            return símismo.val if heredar else []
+                val = símismo.índs[í].obt_val(índs, heredar)
+            if not val:
+                val = símismo.val if heredar else []
+            return val
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]
