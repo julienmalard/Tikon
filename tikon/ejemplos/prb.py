@@ -1,9 +1,9 @@
-from pprint import pprint
 import os
+from pprint import pprint
 
 from tikon.ejemplos.a_prioris import a_prioris
 # from tikon.ecs.aprioris import APrioriDens
-from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
+from tikon.estruc.simulador import Simulador
 from tikon.exper.exper import Exper
 from tikon.rae.orgs.insectos import MetamCompleta, Sencillo, Parasitoide
 # from tikon.rae.orgs.plantas import Hojas
@@ -16,11 +16,11 @@ from tikon.rae.red_ae.obs import ObsPobs
 
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
 Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)
-Paras_pupa = Parasitoide('Parasitoide pupa', pupa=True)
+Paras_pupa = Parasitoide('Parasitoide pupa')
 
 # Oarenosella.secome(Coco, etps_símismo='juvenil')
 
-Paras_larvas.parasita(Oarenosella, ['juvenil_1', 'juvenil_2', 'juvenil_3'], etp_emerg='juvenil_5')
+Paras_larvas.parasita(Oarenosella, ['juvenil_2', 'juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
 Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
 
 Araña = Sencillo('Araña')
@@ -53,17 +53,18 @@ exper_A = Exper('Sitio A', pobs)
 simul = Simulador(red)
 
 if __name__ == '__main__':
-    método = 'fscabc'
-    calibs = EspecCalibsCorrida(aprioris=True)
-    res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
-    pprint(res.validar())
-    res.graficar('antes calib')
-    simul.calibrar('Sitio A', días=None, método=método, exper=exper_A)
-    simul.guardar_calib('calibs Sitio A ' + método)
-    exper_A.guardar_calib('calibs Sitio A ' + método)
+    método = 'epm'
+    f = 'ens'
+    # calibs = EspecCalibsCorrida(aprioris=True)
+    # res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
+    # pprint(res.validar())
+    # res.graficar('antes calib')
+    simul.calibrar('Sitio A', método=método, f=f, exper=exper_A)
+    simul.guardar_calib(f'calibs Sitio A {método} {f} j45')
+    exper_A.guardar_calib(f'calibs Sitio A {método} {f} j45')
 
-    res2 = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
+    res2 = simul.simular(exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
     pprint(res2.validar())
-    res2.graficar('con calib ' + método)
+    res2.graficar(f'con calib {método} {f} j345')
 
     # pprint(res.reps_necesarias(0.9, 0.9))

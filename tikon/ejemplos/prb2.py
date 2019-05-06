@@ -24,8 +24,8 @@ exper_B = Exper('Sitio B', pobs)
 
 simul = Simulador(red)
 
-red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc/red'))
-exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A fscabc'))
+red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens/red'))
+exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens'))
 
 print('Validando sitio A...')
 res_A = simul.simular(exper=exper_A)
