@@ -36,9 +36,10 @@ class CalibSpotPy(Calibrador):
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
         mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists, inversar=símismo.método in ['caa', 'fscabc'])
-        muestreador = _algs_spotpy[símismo.método](
-            mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False, alt_objfun=None
-        )
+        args = dict(spot_setup=mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
+        if símismo.método != 'erp':
+            args['alt_objfun'] = None
+        muestreador = _algs_spotpy[símismo.método](**args)
 
         if símismo.método == 'dream':
             muestreador.sample(repetitions=2000 + n_iter, runs_after_convergence=n_iter)

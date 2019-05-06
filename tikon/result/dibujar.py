@@ -26,7 +26,7 @@ def graficar_pred(
     # Si necesario, incluir el promedio de todas las repeticiones (estocásticas y paramétricas)
     prom_predic = matr_predic.mean(axis=(e_estoc, e_parám))
     if promedio:
-        ejes.plot(x, prom_predic, lw=2, color=color)
+        ejes.plot(x, prom_predic, lw=2, color=color, label='Promedio')
 
     # Si hay observaciones, mostrarlas también
     if vector_obs is not None:
@@ -49,7 +49,7 @@ def graficar_pred(
         # Mostrar el nivel de confianza en la incertidumbre
 
         # Los niveles de confianza para mostrar
-        percentiles = [50, 75, 95, 99, 100]
+        percentiles = [50, 75, 95, 99]
         percentiles.sort()
 
         # Mínimo y máximo del percentil anterior
@@ -62,8 +62,8 @@ def graficar_pred(
             mín_perc = np.percentile(matr_predic, (100 - p) / 2, axis=(e_estoc, e_parám))
 
             # Calcular el % de opacidad y dibujar
-            op_máx = 0.5
-            op_mín = 0.01
+            op_máx = 0.6
+            op_mín = 0.2
             opacidad = (1 - n / (len(percentiles) - 1)) * (op_máx - op_mín) + op_mín
 
             ejes.fill_between(
@@ -72,7 +72,7 @@ def graficar_pred(
             )
             ejes.fill_between(
                 x, mín_perc, mín_perc_ant,
-                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color, label='IC {} %'.format(p)
+                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color
             )
 
             # Guardar los máximos y mínimos
