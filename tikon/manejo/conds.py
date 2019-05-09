@@ -1,40 +1,80 @@
 import numpy as np
 
 
-def superior_o_igual(v):
-    return lambda x: np.greater_equal(x, v)
+class SuperiorOIgual(object):
+    def __init__(símismo, v):
+        símismo.v = v
+
+    def __call__(símismo, x):
+        return np.greater_equal(x, símismo.v)
 
 
-def inferior_o_igual(v):
-    return lambda x: np.less_equal(x, v)
+class InferiorOIgual(object):
+    def __init__(símismo, v):
+        símismo.v = v
+
+    def __call__(símismo, x):
+        return np.less_equal(x, símismo.v)
 
 
-def superior(v):
-    return lambda x: np.greater(x, v)
+class Superior(object):
+    def __init__(símismo, v):
+        símismo.v = v
+
+    def __call__(símismo, x):
+        return np.greater(x, símismo.v)
 
 
-def inferior(v):
-    return lambda x: np.less(x, v)
+class Inferior(object):
+    def __init__(símismo, v):
+        símismo.v = v
+
+    def __call__(símismo, x):
+        return np.less(x, símismo.v)
 
 
-def igual(v):
-    return lambda x: np.equal(x, v)
+class Igual(object):
+    def __init__(símismo, v):
+        símismo.v = v
+
+    def __call__(símismo, x):
+        return np.equal(x, símismo.v)
 
 
-def entre_inclusivo(mín, máx):
-    return lambda x: np.logical_and(np.less_equal(x, máx), np.greater_equal(x, mín))
+class EntreInclusivo(object):
+    def __init__(símismo, mín, máx):
+        símismo.líms = (mín, máx)
+
+    def __call__(símismo, x):
+        (mín, máx) = símismo.líms
+
+        return np.logical_and(np.less_equal(x, máx), np.greater_equal(x, mín))
 
 
-def entre_exclusivo(mín, máx):
-    return lambda x: np.logical_and(np.less(x, máx), np.greater(x, mín))
+class EntreExclusivo(object):
+    def __init__(símismo, mín, máx):
+        símismo.líms = (mín, máx)
+
+    def __call__(símismo, x):
+        (mín, máx) = símismo.líms
+
+        return np.logical_and(np.less(x, máx), np.greater(x, mín))
 
 
-def incluye(lista):
-    return lambda x: np.isin(x, lista)
+class Incluye(object):
+    def __init__(símismo, lista):
+        símismo.lista = lista
+
+    def __call__(símismo, x):
+        return np.isin(x, símismo.lista)
 
 
-def módulo(cada):
-    return lambda x: np.equal(np.mod(x, cada), 0)
+class Cada(object):
+    def __init__(símismo, cada):
+        símismo.cada = cada
+
+    def __call__(símismo, x):
+        return np.equal(np.mod(x, símismo.cada), 0)
 
 
 class Condición(object):
@@ -45,7 +85,7 @@ class Condición(object):
 
 class CondTiempo(Condición):
 
-    def __init__(símismo, umbral, prueba=igual):
+    def __init__(símismo, umbral, prueba=Igual):
         símismo.umbral = umbral
         símismo.prueba = prueba(umbral)
 
