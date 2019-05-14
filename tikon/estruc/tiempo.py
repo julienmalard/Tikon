@@ -65,6 +65,14 @@ class EjeTiempo(object):
         días = símismo.días
         return EjeTiempo(días=días[np.logical_and(días >= mín, días <= máx)], f_inic=símismo.f_inic)
 
+    def a_dic(símismo):
+        return {'días': símismo.días, 'f_inic': símismo.f_inic.strftime('%Y-%m-%d') if símismo.f_inic else None}
+
+    @classmethod
+    def de_dic(cls, dic):
+        return cls(días=dic['días'],
+                   f_inic=datetime.strptime(dic['f_inic'], '%Y-%m-%d').date() if dic['f_inic'] else None)
+
     def __len__(símismo):
         return len(símismo.días)
 

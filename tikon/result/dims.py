@@ -56,6 +56,13 @@ class Dims(object):
         tpls = itertools.product(*[símismo._coords[crd].índs for crd in crds])
         return ({crd: vl for crd, vl in zip(crds, tpl)} for tpl in tpls)
 
+    def a_dic(símismo):
+        return {ll: v.a_dic for ll, v in símismo._coords.items()}
+
+    @classmethod
+    def de_dic(cls, dic):
+        return cls({ll: Coord.de_dic(v) for ll, v in dic.items()})
+
 
 class Coord(object):
     def __init__(símismo, índs):
@@ -71,6 +78,13 @@ class Coord(object):
         if isinstance(símismo.índs, np.ndarray):
             return np.where(símismo.índs == itema)[0][0]
         return [str(x) for x in símismo.índs].index(str(itema))
+
+    def a_dic(símismo):
+        return [str(i) if not isinstance(i, int) else i for i in símismo.índs]
+
+    @classmethod
+    def de_dic(cls, dic):
+        return cls(dic)
 
     def __iter__(símismo):
         for í in símismo.índs:

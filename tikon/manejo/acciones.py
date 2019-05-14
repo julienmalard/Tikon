@@ -1,5 +1,8 @@
+import numpy as np
+
+
 class Acción(object):
-    def __call__(símismo, mnjdr):
+    def __call__(símismo, mnjdr, reps):
         raise NotImplementedError
 
 
@@ -8,8 +11,9 @@ class AgregarPob(Acción):
         símismo.etapa = etapa
         símismo.valor = valor
 
-    def __call__(símismo, mnjdr):
-        mnjdr['red'].agregar_pobs(pobs=símismo.valor, etapas=símismo.etapa)
+    def __call__(símismo, mnjdr, reps):
+        cambio = np.where(reps, símismo.valor, 0)
+        mnjdr['red'].agregar_pobs(pobs=cambio, etapas=símismo.etapa)
 
 
 class PonerPob(Acción):
@@ -17,9 +21,10 @@ class PonerPob(Acción):
         símismo.etapa = etapa
         símismo.valor = valor
 
-    def __call__(símismo, mnjdr):
-        pobs = mnjdr.obt_valor('red', 'Pobs', índs={'etapa': símismo.etapa})
-        mnjdr['red'].ajustar_pobs(pobs=símismo.valor - pobs, etapas=símismo.etapa)
+    def __call__(símismo, mnjdr, reps):
+        pobs = mnjdr.obt_valor(mód='red', var='Pobs', índs={'etapa': símismo.etapa})
+        cambio = np.where(reps, símismo.valor - pobs, 0)
+        mnjdr['red'].ajustar_pobs(pobs=cambio, etapas=símismo.etapa)
 
 
 class MultPob(Acción):
@@ -27,6 +32,7 @@ class MultPob(Acción):
         símismo.etapa = etapa
         símismo.valor = valor
 
-    def __call__(símismo, mnjdr):
-        pobs = mnjdr.obt_valor('red', 'Pobs', índs={'etapa': símismo.etapa})
-        mnjdr.poner_valor('red', var='Pobs', val=pobs * (símismo.valor - 1), etapas=símismo.etapa)
+    def __call__(símismo, mnjdr, reps):
+        pobs = mnjdr.obt_valor(mód='red', var='Pobs', índs={'etapa': símismo.etapa})
+        cambio = np.where(reps, pobs * (símismo.valor - 1), 0)
+        mnjdr['red'].ajustar_pobs(pobs=cambio, etapas=símismo.etapa)

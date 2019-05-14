@@ -1,3 +1,5 @@
+import numpy as np
+
 from tikon.estruc.módulo import Módulo
 
 
@@ -32,8 +34,10 @@ class Manejo(Módulo):
 class Regla(object):
     def __init__(símismo, condición, acción):
         símismo.condición = condición
-        símismo.acción = acción
+        símismo.acción = [acción] if callable(acción) else acción
 
     def __call__(símismo, mnjdr, tiempo):
-        if símismo.condición(mnjdr, tiempo):
-            símismo.acción(mnjdr)
+        cond_verdad = símismo.condición(mnjdr, tiempo)
+        if np.any(cond_verdad):
+            for a in símismo.acción:
+                a(mnjdr, reps=cond_verdad)

@@ -74,7 +74,7 @@ class RedAE(Módulo):
         if var == 'Pobs':
             super().poner_valor(var, valor, rel=rel, índs=índs)
         else:
-            raise ValueError(var)
+            raise ValueError('No se puede cambiar el valor de {} durante una simulación.'.format(var))
 
     def obt_valor(símismo, var, índs=None):
         if var == 'Dens':
@@ -95,8 +95,7 @@ class RedAE(Módulo):
         símismo.cohortes.quitar(pobs, etapas=etapas)
 
     def ajustar_pobs(símismo, pobs, etapas=None):
-        índs = {'etapa': etapas} if etapas else None
-        símismo.poner_valor('Pobs', pobs, rel=True, índs=índs)
+        símismo.poner_valor('Pobs', pobs, rel=True, índs={'etapa': etapas} if etapas else None)
         símismo.cohortes.ajustar(pobs, etapas=etapas)
 
     def inter(símismo, coso, tipo):

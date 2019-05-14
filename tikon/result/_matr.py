@@ -51,6 +51,15 @@ class Matriz(object):
     def iter_índs(símismo, excluir=None):
         return símismo.dims.iter_índs(excluir=excluir)
 
+    def a_dic(símismo):
+        return {'dims': símismo.dims.a_dic(), 'val': símismo._matr.tolist()}
+
+    @classmethod
+    def de_dic(cls, dic):
+        m = cls(Dims.de_dic(dic['dims']))
+        m.poner_valor(np.array(dic['val']))
+        return m
+
 
 class MatrizTiempo(Matriz):
     def __init__(símismo, dims, eje_tiempo):
@@ -66,7 +75,6 @@ class MatrizTiempo(Matriz):
         super().__init__(dims={'días': Coord(eje_tiempo.días)} + dims)
 
     def obt_val_t(símismo, t, índs=None):
-
         if not isinstance(t, EjeTiempo):
             t = EjeTiempo(días=t)
 
@@ -76,3 +84,15 @@ class MatrizTiempo(Matriz):
 
         f = interp.interp1d(x=días_act, y=símismo.obt_valor(índs), axis=eje)
         return f(índs_t)
+
+    def a_dic(símismo):
+        dic = super().a_dic()
+        dic['tiempo'] = símismo.eje_tiempo.a_dic()
+        return dic
+
+    @classmethod
+    def de_dic(cls, dic):
+        dims = dic['dims'].copy()
+        dims.pop('días')
+        m = cls(dims=dims, eje_tiempo=EjeTiempo.de_dic(dic['tiempo']))
+        m.poner_valor(np.array(dic['val']))
