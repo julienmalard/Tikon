@@ -1,10 +1,11 @@
 import os
 
 import numpy as np
-from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared
+from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared, log_p
 
 from tikon.result.dibujar import graficar_pred
 from tikon.result.valid import reps_necesarias, validar_matr_pred
+from tikon.utils import guardar_json
 from ._matr import Matriz, MatrizTiempo
 
 
@@ -97,7 +98,7 @@ class Resultado(Matriz):
                 # l_proc.append(dens_con_pred(vals_obs, vals_res))
 
                 # para hacer: formalizar opciones de algoritmo especificados por el usuario
-                l_proc.append(f(vals_obs, np.mean(vals_res, axis=(1, 2))))
+                l_proc.append(f(vals_obs, vals_res))
                 pesos.append(np.sum(np.isfinite(vals_obs)))
             return np.average(l_proc, weights=pesos), np.sum(pesos)
         return 0, 0
@@ -138,6 +139,13 @@ class Resultado(Matriz):
     def finalizar(símismo):
         pass
 
+    def a_dic(símismo):
+        if símismo.matr_t is not None:
+            return {
+                'obs': símismo.obs.a_dic() if símismo.obs else None,
+                'preds': símismo.matr_t.a_dic(),
+            }
+
     def _validable(símismo):
         return símismo.matr_t is not None and símismo.obs is not None
 
@@ -176,6 +184,12 @@ class ResultadosSimul(object):
     def graficar(símismo, directorio=''):
         for mód, res in símismo._resultados.items():
             res.graficar(directorio=os.path.join(directorio, str(mód)))
+
+    def a_dic(símismo):
+        return {str(mód): res.a_dic() for mód, res in símismo._resultados.items()}
+
+    def guardar(símismo, arch):
+        guardar_json(símismo.a_dic(), archivo=arch)
 
     def verificar_estado(símismo):
         for res in símismo:
@@ -223,6 +237,13 @@ class ResultadosMódulo(object):
         for nmb, res in símismo._resultados.items():
             res.graficar(directorio=os.path.join(directorio, nmb))
 
+    def a_dic(símismo):
+        return [res.a_dic() for nmb, res in símismo._resultados.items()]
+
+    @classmethod
+    def de_dic(cls, l):
+        return cls([Resultado.de_dic(d) for d in l])
+
     def __getitem__(símismo, itema):
         return símismo._resultados[str(itema)]
 
@@ -231,11 +252,20 @@ class ResultadosMódulo(object):
             yield r
 
 
+def _ens_dens(o, s):
+    prom_obs = np.nanmean(o)
+    num = np.nansum((o - s) ** 2, axis=0)
+    denom = np.nansum((o - prom_obs) ** 2, axis=0)
+    return np.mean(1 - (num / denom))
+
+
 _funcs = {
-    'ens': nashsutcliffe,
-    'rcep': lambda x, y: -rmse(x, y),
-    'corresp': agreementindex,
-    'ekg': kge,
-    'r2': rsquared,
-    'rcnep': lambda x, y: -rrmse(x, y)
+    'ens': lambda o, s: nashsutcliffe(o, np.mean(s, axis=(1, 2))),
+    'rcep': lambda o, s: -rmse(o, np.mean(s, axis=(1, 2))),
+    'corresp': lambda o, s: agreementindex(o, np.mean(s, axis=(1, 2))),
+    'ekg': lambda o, s: kge(o, np.mean(s, axis=(1, 2))),
+    'r2': lambda o, s: rsquared(o, np.mean(s, axis=(1, 2))),
+    'rcnep': lambda o, s: -rrmse(o, np.mean(s, axis=(1, 2))),
+    'log p': lambda o, s: log_p(o, np.mean(s, axis=(1, 2))),
+    'dens': _ens_dens
 }

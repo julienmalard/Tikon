@@ -60,11 +60,11 @@ if __name__ == '__main__':
     # pprint(res.validar())
     # res.graficar('antes calib')
     simul.calibrar('Sitio A', método=método, f=f, exper=exper_A)
-    simul.guardar_calib(f'calibs Sitio A {método} {f} j45')
-    exper_A.guardar_calib(f'calibs Sitio A {método} {f} j45')
+    simul.guardar_calib(f'calibs Sitio A {método} {f} 2')
+    exper_A.guardar_calib(f'calibs Sitio A {método} {f} 2')
 
-    res2 = simul.simular(exper=exper_A, n_rep_parám=30, n_rep_estoc=30, vars_interés=True)
+    res2 = simul.simular(exper=exper_A, vars_interés=True)
     pprint(res2.validar())
-    res2.graficar(f'con calib {método} {f} j345')
+    res2.graficar(f'con calib {método} {f} 2')
 
     # pprint(res.reps_necesarias(0.9, 0.9))

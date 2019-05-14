@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import stats as estad
 from scipy.special import expit
+from spotpy.objectivefunctions import nashsutcliffe, kge
 
 
 def validar_matr_pred(matr_predic, vector_obs):
@@ -24,6 +25,11 @@ def validar_matr_pred(matr_predic, vector_obs):
     # Raíz cuadrada normalizada del error promedio
     rcnep = _rcnep(vector_obs, vector_predic)
 
+    # Eficacidad Nash-Sutcliffe
+    ens = nashsutcliffe(vector_obs, vector_predic)
+
+    ekg = kge(vector_obs, vector_predic)
+
     # Validar el intervalo de incertidumbre
     confianza = np.empty_like(vector_obs, dtype=float)
     for n in range(n_días):
@@ -37,7 +43,7 @@ def validar_matr_pred(matr_predic, vector_obs):
     r2_percentiles = _r2(confianza, percentiles)
     rcnep_prcntl = _rcnep(confianza, percentiles)
 
-    return {'r2': r2, 'rcnep': rcnep, 'r2_prcntl': r2_percentiles, 'rcnep_prcntl': rcnep_prcntl}
+    return {'r2': r2, 'rcnep': rcnep, 'ens': ens, 'ekg': ekg, 'r2_prcntl': r2_percentiles, 'rcnep_prcntl': rcnep_prcntl}
 
 
 def _r2(y_obs, y_pred):
@@ -123,7 +129,7 @@ def _reg_lin(x, y, eje):
     return a, b
 
 
-def dens_con_pred(obs, sim):
+def opt_dens(obs, sim):
     res = []
     for s, o in zip(sim, obs):
         d = o * (1 + np.exp(-o * 2)) / (1 - np.exp(-o * 2))
