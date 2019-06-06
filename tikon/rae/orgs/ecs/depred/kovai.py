@@ -22,7 +22,8 @@ class PrBKovai(Parám):
 class Kovai(EcuaciónDepred):
     """
     Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-    y = u*(1 - e^(-P/(u*D))); u = (1 - e^(-P / b))
+    # y = a*u*(1 - e^(-P/(a*u*D))); u = (1 - e^(-P / b))
+    y = a*(1 - e^(-P*u/(a*D))); u = (1 - e^(-P / b))
 
       a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
         depredadores no compiten entre sí mismos)
@@ -41,25 +42,12 @@ class Kovai(EcuaciónDepred):
         #
         dens_depred = símismo.obt_dens_pobs(eje_extra='víctima')  # La población de esta etapa (depredador)
 
-        u = np.subtract(
-            1,
-            np.exp(-np.divide(dens, cf['b']))
-        )
+        u = 1 - np.exp(-dens / cf['b'])
 
         ratio = dens / dens_depred
+        ratio[np.isinf(ratio)] = 0
 
-        depred_etp = np.multiply(
-            cf['a']*u,
-            np.subtract(
-                1,
-                np.exp(
-                    np.divide(
-                        -np.where(ratio == np.inf, [0], ratio),
-                        cf['a']*u
-                    )
-                )
-            )
-        )
+        depred_etp = cf['a'] * (1 - np.exp(-ratio * u / cf['a']))
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
         eje_presas = símismo.í_eje_res('víctima')

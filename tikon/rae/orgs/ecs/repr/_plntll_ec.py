@@ -9,6 +9,7 @@ class EcuaciónRepr(EcuaciónConCohorte):
         raise NotImplementedError
 
     def eval(símismo, paso):
+        # para hacer: ¿algo raro aquí?
         repr_de_etapa = símismo.trans_cohortes(símismo.cambio_edad(), símismo.dist, quitar=False)
 
         return np.multiply(símismo.cf['n'], repr_de_etapa)

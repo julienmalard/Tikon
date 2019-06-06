@@ -20,7 +20,7 @@ Paras_pupa = Parasitoide('Parasitoide pupa')
 
 # Oarenosella.secome(Coco, etps_símismo='juvenil')
 
-Paras_larvas.parasita(Oarenosella, ['juvenil_2', 'juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
+Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
 Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
 
 Araña = Sencillo('Araña')
@@ -55,16 +55,18 @@ simul = Simulador(red)
 if __name__ == '__main__':
     método = 'epm'
     f = 'ens'
+    post = 'k2 rep 2'
+    print(post)
     # calibs = EspecCalibsCorrida(aprioris=True)
     # res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
     # pprint(res.validar())
     # res.graficar('antes calib')
     simul.calibrar('Sitio A', método=método, f=f, exper=exper_A)
-    simul.guardar_calib(f'calibs Sitio A {método} {f} 2')
-    exper_A.guardar_calib(f'calibs Sitio A {método} {f} 2')
+    simul.guardar_calib(f'calibs Sitio A {método} {f}_{post}')
+    exper_A.guardar_calib(f'calibs Sitio A {método} {f}_{post}')
 
     res2 = simul.simular(exper=exper_A, vars_interés=True)
     pprint(res2.validar())
-    res2.graficar(f'con calib {método} {f} 2')
+    res2.graficar(f'con calib {método} {f}_{post}')
 
     # pprint(res.reps_necesarias(0.9, 0.9))

@@ -24,19 +24,19 @@ exper_B = Exper('Sitio B', pobs)
 
 simul = Simulador(red)
 
-red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens/red'))
-exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens'))
+red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens final/red'))
+exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens final'))
 
 print('Validando sitio A...')
 res_A = simul.simular(exper=exper_A)
 pprint(res_A.validar())
 res_A.graficar('valid sitio A')
 
-# res_B = simul.simular(exper=exper_B)
-# pprint(res_B.validar())
-# res_B.graficar('valid sitio B antes calib')
+res_B = simul.simular(exper=exper_B)
+pprint(res_B.validar())
+res_B.graficar('valid sitio B antes calib')
 
-simul.calibrar('Sitio B', días=100, exper=exper_B, paráms=exper_B, método='fscabc')
+simul.calibrar('Sitio B', días=100, exper=exper_B, paráms=exper_B, método='epm')
 exper_B.guardar_calib('calibs Sitio B')
 
 res = simul.simular(exper=exper_B)
