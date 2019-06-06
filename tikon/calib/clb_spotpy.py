@@ -22,6 +22,8 @@ _algs_spotpy = {
     'erp': spt.algorithms.rope,
     'caa': spt.algorithms.abc,
     'fscabc': spt.algorithms.fscabc,
+    'bdd': spt.algorithms.dds,
+    'cmed': spt.algorithms.demcz
 
 }
 
