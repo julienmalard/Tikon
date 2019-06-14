@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared, log_p
+from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
 
 from tikon.result.dibujar import graficar_pred
 from tikon.result.valid import reps_necesarias, validar_matr_pred
@@ -267,5 +268,7 @@ _funcs = {
     'r2': lambda o, s: rsquared(o, np.mean(s, axis=(1, 2))),
     'rcnep': lambda o, s: -rrmse(o, np.mean(s, axis=(1, 2))),
     'log p': lambda o, s: log_p(o, np.mean(s, axis=(1, 2))),
-    'dens': _ens_dens
+    'dens': _ens_dens,
+    'verosimil_gaus': gaussianLikelihoodMeasErrorOut
 }
+
