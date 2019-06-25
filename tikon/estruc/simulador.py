@@ -108,8 +108,9 @@ class Simulador(object):
         return anlzdr.analizar(símismo.corrida, ops=ops_anlz)
 
     def calibrar(
-            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', f=None, calibs=None, paráms=None,
-            paso=1, n_rep_estoc=30
+            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', f=None, calibs=None,
+            paráms=None,
+            paso=1, n_rep_estoc=30, n_rep_parám=1
     ):
 
         def func():
@@ -117,18 +118,20 @@ class Simulador(object):
             símismo.correr()
             return símismo.corrida.procesar_calib(f)
 
-        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
+        calibs_calib = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
+        calibs_inic = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
         símismo.iniciar_estruc(
-            días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs, n_rep_estoc=n_rep_estoc, n_rep_parám=1,
-            vars_interés=None, llenar=False
+            días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs_inic, n_rep_estoc=n_rep_estoc,
+            n_rep_parám=n_rep_parám, vars_interés=None, llenar=False
         )
 
-        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(paráms), calibs)
+        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(paráms), calibs_calib)
         clbrd.calibrar(n_iter=n_iter, nombre=nombre)
 
     def guardar_calib(símismo, directorio=''):
         símismo.mnjdr_móds.guardar_calib(directorio)
+
 
 class MnjdrMódulos(object):
     def __init__(símismo, módulos, exper):
@@ -212,6 +215,7 @@ class EspecCalibsCorrida(object):
                     vl.llenar_de_apriori()
             l_vals_prm = [vl for vl in l_vals_prm if not vl.apriori()]
 
+        # Para hacer: ya no es necesario guardar el variable corresp
         l_dists, corresp = símismo._filtrar_dists(l_vals_prm)
 
         import numpy as np

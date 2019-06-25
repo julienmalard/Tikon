@@ -70,10 +70,14 @@ Contenido
    :maxdepth: 2
    :caption: Tutorial
 
-   tutorial/inic
+   tutorial/constr
+   tutorial/insectos
+   tutorial/cultivos
    tutorial/manejo
-   tutorial/camb_ecs
+   tutorial/aprioris
+   tutorial/ecs
    tutorial/clima
+   tutorial/calibs_simul
 
 .. toctree::
    :maxdepth: 2

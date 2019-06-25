@@ -37,25 +37,25 @@ class CalibSpotPy(Calibrador):
 
         temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
 
-        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists, inversar=símismo.método in ['caa', 'fscabc'])
-        args = dict(spot_setup=mod_spotpy, dbname=temp.name, dbformat='csv', save_sim=False)
+        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists,
+                               inversar=símismo.método in ['caa', 'fscabc', 'sceua'])
+        args = dict(spot_setup=mod_spotpy, dbname=temp.name, parallel='seq', dbformat='csv', save_sim=False)
         if símismo.método != 'erp':
             args['alt_objfun'] = None
         muestreador = _algs_spotpy[símismo.método](**args)
-
-        if símismo.método == 'dream':
-            muestreador.sample(repetitions=2000 + n_iter, runs_after_convergence=n_iter)
+        n = mat.ceil(n_iter / 20)
+        if símismo.método in ['maed', 'cmmc', 'sceua']:
+            muestreador.sample(repetitions=n_iter, runs_after_convergence=n)
         else:
             muestreador.sample(n_iter)
         egr_spotpy = pd.read_csv(temp.name + '.csv')
         temp.close()
 
         vero = egr_spotpy['like1'].values
-        if símismo.método == 'dream':
-            vero = vero[-n_iter:]
-            buenas = slice(-n_iter, None)
+        if símismo.método in ['maed', 'cmmc', 'sceua']:
+            vero = vero[-n:]
+            buenas = slice(-n, None)
         else:
-            n = mat.ceil(n_iter / 20)
             buenas = np.argpartition(vero, -n)[-n:]
             vero = vero[buenas]
 
