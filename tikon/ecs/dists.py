@@ -175,9 +175,8 @@ class DistAnalítica(Dist):
                     'Rangos idénticos como {r1} y {r2} no pueden tener densidad inferior a '
                     '1.'.format(r1=líms, r2=líms_dens)
                 )
-            else:
-                mu = líms_dens_intern[1] - _dist_mu
-                sg = -_dist_mu / estad.norm.ppf(1 - dens)
+            mu = líms_dens_intern[1] - _dist_mu
+            sg = -_dist_mu / estad.norm.ppf(1 - dens)
 
         elif líms_dens_intern[1] == np.inf:
             mu = líms_dens_intern[0] + _dist_mu

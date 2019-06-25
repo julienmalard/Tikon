@@ -12,7 +12,7 @@ Si quieres la versión más recién (en desarrollo), puedes obtenerla de GitHub 
 
 .. note::
 
-   Si tienes Windows, es posible que tengas que instalar el ``C++ 2015 redistributable`` de
+   Si tienes Windows, es posible que tengas que instalar el ``C++ redistributable`` de
    `aquí <https://www.microsoft.com/es-ES/download/details.aspx?id=53840>`_. Toma la versión terminando en ``…x86.exe``
    si tienes Python de 32 bits y en ``…x64.exe`` si tienes **Python** (no Windows) de
    64 bits. Después, instálalo. Por razones obscuras, ``SciPy``, un paquete requerido por Tiko'n, no funciona en
