@@ -9,47 +9,48 @@ msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-07-04 04:04+0000\n"
-"PO-Revision-Date: 2017-01-13 17:14+0000\n"
-"Language-Team: Tamil (https://www.transifex.com/qatikon/teams/70660/ta/)\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ta\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../source/index.rst:59 ../../source/index.rst:59
 msgid "General"
-msgstr ""
+msgstr "General"
 
 #: ../../source/index.rst:69 ../../source/index.rst:69
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutorial"
 
 #: ../../source/index.rst:82 ../../source/index.rst:82
 msgid "Desarrollo"
-msgstr ""
+msgstr "Desarrollo"
 
 #: ../../source/index.rst:91 ../../source/index.rst:91
 msgid "Referencia"
-msgstr ""
+msgstr "Referencia"
 
 #: ../../source/index.rst:7
 msgid "¡Bienvenidoas a la documentación de Tiko'n!"
-msgstr ""
+msgstr "¡Bienvenidoas a la documentación de Tiko'n!"
 
 #: ../../source/index.rst:22
 msgid "¿Qué es Tiko'n?"
-msgstr ""
+msgstr "¿Qué es Tiko'n?"
 
 #: ../../source/index.rst:23
 msgid ""
 "Tiko'n es un programa para desarrollar modelos de redes tróficas "
 "agroecológicas de manera sencilla, reproducible y divertida."
 msgstr ""
+"Tiko'n es un programa para desarrollar modelos de redes tróficas "
+"agroecológicas de manera sencilla, reproducible y divertida."
 
 #: ../../source/index.rst:27
 msgid "¿Qué es un modelo de redes tróficas?"
-msgstr ""
+msgstr "¿Qué es un modelo de redes tróficas?"
 
 #: ../../source/index.rst:28
 msgid ""
@@ -60,44 +61,56 @@ msgid ""
 "benéficos, y hacia permite predecir cuáles serían los impacto de varias "
 "estrategias de manejo de plagas."
 msgstr ""
+"Un modelo de redes tróficas es un modelo que representa las interacciones "
+"entre organismos vivos en un campo agrícola (en general insectos y otros "
+"artrópodos). Predice el nivel de control biológico natural, las presiones "
+"futuras de plagas dado factores como el clima y la presencia de insectos "
+"benéficos, y hacia permite predecir cuáles serían los impacto de varias "
+"estrategias de manejo de plagas."
 
 #: ../../source/index.rst:34
 msgid "¿Por qué utilizar Tiko'n?"
-msgstr ""
+msgstr "¿Por qué utilizar Tiko'n?"
 
 #: ../../source/index.rst:35
 msgid ""
 "Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3"
 " insectos) presentan problemas como"
 msgstr ""
+"Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3"
+" insectos) presentan problemas como"
 
 #: ../../source/index.rst:37
 msgid "Multitud de parámetros (15+ por insecto)"
-msgstr ""
+msgstr "Multitud de parámetros (15+ por insecto)"
 
 #: ../../source/index.rst:38
 msgid "Inestabilidad matemática (dificultando predicciones fiables)"
-msgstr ""
+msgstr "Inestabilidad matemática (dificultando predicciones fiables)"
 
 #: ../../source/index.rst:39
 msgid ""
 "Multitud de posibilidades de ecuaciones en la literatura para cada fase de "
 "vida (reproducción, edad, transiciones, muertes, depredación)"
 msgstr ""
+"Multitud de posibilidades de ecuaciones en la literatura para cada fase de "
+"vida (reproducción, edad, transiciones, muertes, depredación)"
 
 #: ../../source/index.rst:40
 msgid "Muy alta incertidumbre en los valores verdaderos de los parámetros"
-msgstr ""
+msgstr "Muy alta incertidumbre en los valores verdaderos de los parámetros"
 
 #: ../../source/index.rst:41
 msgid "Pocos datos para calibración y validación"
-msgstr ""
+msgstr "Pocos datos para calibración y validación"
 
 #: ../../source/index.rst:42
 msgid ""
 "Requerimiento de conocimientos informáticos avanzados para conectar con "
 "modelos de cultivos externos o con predicciones de cambios climáticos"
 msgstr ""
+"Requerimiento de conocimientos informáticos avanzados para conectar con "
+"modelos de cultivos externos o con predicciones de cambios climáticos"
 
 #: ../../source/index.rst:44
 msgid ""
@@ -106,6 +119,10 @@ msgid ""
 " dándote el nivel de control que quieres sobre los detalles de tu modelo, "
 "nada menos, nada más."
 msgstr ""
+"Así que si quieres hacer modelos tróficos pero te desaniman estos retos, "
+"¡Tiko'n es para ti! Tiko'n manejará todos los puntos arriba para ti, siempre"
+" dándote el nivel de control que quieres sobre los detalles de tu modelo, "
+"nada menos, nada más."
 
 #: ../../source/index.rst:48
 msgid ""
@@ -113,35 +130,42 @@ msgid ""
 "disponibles en la literatura, con selección automática de ecuaciones para "
 "principiantes"
 msgstr ""
+"Colección interna de la mayoría de ecuaciones para redes tróficas "
+"disponibles en la literatura, con selección automática de ecuaciones para "
+"principiantes"
 
 #: ../../source/index.rst:49
 msgid "Posibilidad de agregar tus propias ecuaciones si quieres"
-msgstr ""
+msgstr "Posibilidad de agregar tus propias ecuaciones si quieres"
 
 #: ../../source/index.rst:50
 msgid ""
 "Conexión automática con bases de datos y con predicciones y observaciones "
 "climáticas"
 msgstr ""
+"Conexión automática con bases de datos y con predicciones y observaciones "
+"climáticas"
 
 #: ../../source/index.rst:51
 msgid ""
 "Manejo automático de parametros y de cálculos de poblaciones y de "
 "depredación"
 msgstr ""
+"Manejo automático de parametros y de cálculos de poblaciones y de "
+"depredación"
 
 #: ../../source/index.rst:52
 msgid "Funcionalidades integradas para calibración y validación de modelos"
-msgstr ""
+msgstr "Funcionalidades integradas para calibración y validación de modelos"
 
 #: ../../source/index.rst:53
 msgid "Formato estandardizado para guardar y compartir modelos calibrados"
-msgstr ""
+msgstr "Formato estandardizado para guardar y compartir modelos calibrados"
 
 #: ../../source/index.rst:54
 msgid "Y, por supuesto, gráficos bonitos"
-msgstr ""
+msgstr "Y, por supuesto, gráficos bonitos"
 
 #: ../../source/index.rst:57
 msgid "Contenido"
-msgstr ""
+msgstr "Contenido"
