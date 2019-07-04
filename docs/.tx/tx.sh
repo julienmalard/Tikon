@@ -12,7 +12,7 @@ commit_translation_files() {
   echo "checkout"
   git checkout -b transifex
   echo "add"
-  git add source/_locale/*.po
+  git add source/locale/*.po
   echo "commit"
   git commit -m "Actualización de traducciones de Transifex" -m "[ci skip]"
 }
@@ -36,7 +36,7 @@ update_translations() {
   make gettext
   rm .tx/config
   sphinx-intl create-txconfig
-  sphinx-intl update-txconfig-resources --transifex-project-name tqdyr
+  sphinx-intl update-txconfig-resources --transifex-project-name tikon
 }
 
 tx_push() {
