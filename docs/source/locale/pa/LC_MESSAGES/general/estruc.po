@@ -1,0 +1,52 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"PO-Revision-Date: 2019-07-04 04:04+0000\n"
+"Language-Team: Panjabi (Punjabi) (https://www.transifex.com/qatikon/teams/70660/pa/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pa\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/general/estruc.rst:2
+msgid "Estructura general"
+msgstr ""
+
+#: ../../source/general/estruc.rst:3
+msgid ""
+"La modelización agroecológica es un tema un poco más complicado que otros "
+"tipos de modelos, en"
+msgstr ""
+
+#: ../../source/general/estruc.rst:6
+msgid "Simulador"
+msgstr ""
+
+#: ../../source/general/estruc.rst:9
+msgid "Módulos"
+msgstr ""
+
+#: ../../source/general/estruc.rst:12
+msgid "Experimentos"
+msgstr ""
+
+#: ../../source/general/estruc.rst:15
+msgid "Simulaciones"
+msgstr ""
+
+#: ../../source/general/estruc.rst:18
+msgid "Parámetros"
+msgstr ""
+
+#: ../../source/general/estruc.rst:21
+msgid "Ecuaciones"
+msgstr ""
