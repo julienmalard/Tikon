@@ -8,6 +8,7 @@ env:
   - TX_BRANCH="master"
 install:
   - pip install --upgrade pip setuptools wheel
+  - pip install transifex-client sphinx sphinx-intl
   - pip install -r requísitos.txt
   - pip install coveralls codecov
   - python setup.py sdist bdist_wheel
