@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"PO-Revision-Date: 2019-07-04 04:04+0000\n"
+"Language-Team: Kashmiri (https://www.transifex.com/qatikon/teams/70660/ks/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ks\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/general/instal.rst:2
+msgid "Instalación"
+msgstr ""
+
+#: ../../source/general/instal.rst:4
+msgid ""
+"Es muy fácil instalar Tiko'n. Primero necesitarás `Python 3.6+ "
+"<(https://www.python.org/downloads)>`_. Después, puedes instalar Tiko'n en "
+"la terminal con:"
+msgstr ""
+
+#: ../../source/general/instal.rst:7
+msgid ":command:`pip install tikon`"
+msgstr ""
+
+#: ../../source/general/instal.rst:9
+msgid ""
+"Si quieres la versión más recién (en desarrollo), puedes obtenerla de GitHub"
+" directamente con:"
+msgstr ""
+
+#: ../../source/general/instal.rst:11
+msgid ""
+":command:`pip install git+git://github.com/julienmalard/tikon.git@master`"
+msgstr ""
+
+#: ../../source/general/instal.rst:15
+msgid ""
+"Si tienes Windows, es posible que tengas que instalar el ``C++ "
+"redistributable`` de `aquí <https://www.microsoft.com/es-"
+"ES/download/details.aspx?id=53840>`_. Toma la versión terminando en "
+"``…x86.exe`` si tienes Python de 32 bits y en ``…x64.exe`` si tienes "
+"**Python** (no Windows) de 64 bits. Después, instálalo. Por razones "
+"obscuras, ``SciPy``, un paquete requerido por Tiko'n, no funciona en Windows"
+" sin éste."
+msgstr ""

@@ -1,0 +1,56 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"PO-Revision-Date: 2019-07-04 04:04+0000\n"
+"Language-Team: Kaqchikel (https://www.transifex.com/qatikon/teams/70660/cak/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: cak\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/general/agrad.rst:2
+msgid "Agradecimientos"
+msgstr ""
+
+#: ../../source/general/agrad.rst:3
+msgid ""
+"Tiko'n es un proyecto de fuente abierta. Las personas e instituciones "
+"siguientes hicieron posible su desarrollo."
+msgstr ""
+
+#: ../../source/general/agrad.rst:6
+msgid "Autores del código"
+msgstr ""
+
+#: ../../source/general/agrad.rst:7 ../../source/general/agrad.rst:13
+msgid ""
+"Julien Malard (`Sitio internet "
+"<https://www.researchgate.net/profile/Julien_Malard>`_)"
+msgstr ""
+
+#: ../../source/general/agrad.rst:8
+msgid ""
+"Marcela Rojas (`Sitio internet "
+"<https://www.researchgate.net/profile/Marcela_Rojas5>`_)"
+msgstr ""
+
+#: ../../source/general/agrad.rst:12
+msgid "Traductores"
+msgstr ""
+
+#: ../../source/general/agrad.rst:16
+msgid "Instituciones afiliadas"
+msgstr ""
+
+#: ../../source/general/agrad.rst:17
+msgid "Tiko'n se desarrolla en colaboración con las instituciones siguientes:"
+msgstr ""
