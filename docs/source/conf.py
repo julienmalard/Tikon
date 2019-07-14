@@ -449,5 +449,5 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 # Para la internacionalización
-locale_dirs = ['locale/']  # path is example but recommended.
+locale_dirs = ['_local/']  # path is example but recommended.
 gettext_compact = False  # optional.
