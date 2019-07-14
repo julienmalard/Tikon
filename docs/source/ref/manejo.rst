@@ -1,2 +1,2 @@
-Referencia Manejo
-=================
+Manejo
+======

@@ -1,2 +1,2 @@
-Referencia Red
-==============
+Red
+===
