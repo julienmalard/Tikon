@@ -14,8 +14,7 @@ Comportamiento automático
 Si no se especifican calibraciones para una corrida, Tiko'n tomará una decisión razonable para ti.
 
 * Si es una corrida de **simulación**, se tomará cada calibración disponible, y se ignorarán *a prioris* especificados
-* Si es una corrida de **calibración**, se tomarán primero los *a prioris* especificados, y, para los parámetros
-sin aprioris, se generarán distribuciones a base de las calibraciones ya existentes.
+* Si es una corrida de **calibración**, se tomarán primero los *a prioris* especificados, y, para los parámetros sin aprioris, se generarán distribuciones a base de las calibraciones ya existentes.
 
 Calibraciones específicas
 -------------------------
