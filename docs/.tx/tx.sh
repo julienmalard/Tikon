@@ -34,7 +34,6 @@ token =" > ~/.transifexrc
 
 update_translations() {
   make gettext
-  rm .tx/config
   sphinx-intl create-txconfig
   sphinx-intl update-txconfig-resources --transifex-project-name tikon
 }
