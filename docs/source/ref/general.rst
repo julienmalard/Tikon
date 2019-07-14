@@ -1,2 +1,5 @@
-Referencia general
-==================
+General
+=======
+
+.. automodule:: tikon.
+   :members:
