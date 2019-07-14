@@ -1,6 +1,7 @@
 Insectos
 ========
-Tiko'n implementa una gran variedad de ciclos de vida de insectos a través de subclases especiales de `Insecto`.
+Tiko'n implementa una gran variedad de ciclos de vida de insectos a través de subclases especiales de
+:class:`~tikon.rae.orgs.insectos.Insecto`.
 
 .. note::
    Tiko'n toma una vista *ecológica* de lo que es un insecto. Es decir, si come como un insecto y se come como un

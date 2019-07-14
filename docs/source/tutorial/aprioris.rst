@@ -12,13 +12,13 @@ Existen dos maneras de especificar una distribución a priori: por densidad y po
 
 Densidad
 --------
-
+Se puede especificar *a prioris* por un rango de dos valores y el nivel de confianza que el valor verdadero
+se encuentre efectivamente en el rango. Tiko'n generará automáticamente una distribución que corresponde a
+la especificación, y eso, tomando también en cuenta los límites teoréticos del parámetro.
 
 Analíticas
 ----------
-Se puede especificar un *a priori* directamente por su forma analítica.
-
-
+También se puede especificar un *a priori* directamente por su forma analítica.
 
 Uso en modelos
 --------------
