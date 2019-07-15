@@ -9,16 +9,23 @@ para la lista completa de clases disponibles).
 
 .. code-block:: python
 
-   from tikon.rae.orgs.insectos import MetamCompleta, Sencillo, Parasitoide
+   from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
    from tikon.rae.red_ae import RedAE
 
+   # Mariposas tienen metamórfosis completa
    Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
+
+   # 2 tipos de parasitoides
    Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)
    Paras_pupa = Parasitoide('Parasitoide pupa')
 
+   # El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta
    Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
+
+   # El parasitoide de pupas parasita y emerge de la pupa
    Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
 
+   # Juntamos todo en una red
    red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])
 
 
@@ -46,12 +53,15 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
 
 .. code-block:: python
 
-   from tikon.ejemplos.datos import obt_datos
+   from tikon.ejemplos.datos import obt_datos, obt_ref
    from tikon.exper.exper import Exper
    from tikon.rae.red_ae.obs import ObsPobs
 
    # Datos de observaciones
    datos = obt_datos('Perera et al 1988/Oarenosella_A.csv')
+
+   # También se puede visualisar la referencia para los datos
+   print(obt_ref('Perera et al 1988/Oarenosella_A.csv'))
 
    # Se trata de observaciones de poblaciones (y no de otro variable, como depredación).
    pobs = ObsPobs.de_csv(
@@ -76,7 +86,7 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
 Calibración
 -----------
 Ahora vamos a calibrar nuestro modelo. Primero creamos un :class:`~tikon.estruc.simulador.Simulador` para poder correr
-simulaciones y calibraciones. En nuestro ejemplo sencillo el simulado solamente tiene un módulo (la red), pero
+simulaciones y calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un módulo (la red), pero
 se podrían incluir clima, manejo, o cultivos también.
 
 .. code-block:: python
@@ -87,21 +97,11 @@ se podrían incluir clima, manejo, o cultivos también.
 
    simul.calibrar('Sitio A', exper=exper_A)
 
-Vamos a guardar los resultados de la calibración. Tiko'n también automáticamente calibra las poblaciones iniciales
-para etapas cuyas poblaciones no se observaron en el experimento, así que guardaremos la calibración del
-experimento también.
-
-.. code-block:: python
-
-   simul.guardar_calib('calibs Sitio A')
-   exper_A.guardar_calib('calibs Sitio A')
-
-
 Validación
 ----------
 En este ejemplo vamos a hacer trampa y validar con los mismos datos de calibración.
-Primero hacemos una simulación normal, y despues vamos a :func:`tikon.result.res.ResultadosSimul.validar` los
-resultados. También los podremos :func:`tikon.result.res.ResultadosSimul.graficar`.
+Primero hacemos una simulación normal, y despues vamos a :func:`~tikon.result.res.ResultadosSimul.validar` los
+resultados. También los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`.
 
 Las observaciones especificadas arriba quedaron vinculadas en los resultados y por eso se tomarán en cuenta
 en la validación y en los gráficos.
@@ -109,9 +109,60 @@ en la validación y en los gráficos.
 .. code-block:: python
 
    res = simul.simular(exper=exper_A)
+
+   from pprint import pprint
    pprint(res.validar())
 
    res.graficar('gráficos Sitio A')
 
+.. _guardar_y_cargar:
+
 Guardar y cargar
 ----------------
+Vamos a guardar los resultados de la calibración para ahorar tiempo en el futuro. Tiko'n calibra automáticamente
+las poblaciones iniciales para etapas cuyas poblaciones no se observaron en el experimento, así que guardaremos
+la calibración del experimento también.
+
+.. code-block:: python
+
+   simul.guardar_calib('calibs Sitio A')
+   exper_A.guardar_calib('calibs Sitio A')
+
+
+Se pueden después cargar las calibraciones para más trabajo. Igualmente se pueden compartir entre usuarias de Tiko'n.
+Por ejemplo, en otra sesión de Python:
+
+.. code-block:: python
+
+   red.cargar_calib('calibs Sitio A')
+   exper_A.cargar_calib('calibs Sitio A')
+
+   red.simular(exper=exper_A)
+
+Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será después disponible para todas los usuarios
+de tu instalación de Tiko'n. Si quieres, también lo puedes compartir en GitHub con el resto de la comunidad de Tiko'n.
+
+.. code-block:: python
+
+   from tikon.ejemplos.calibs import guardar_calib
+
+   guardar_calib(
+       [red, exper_A],
+       'Opisina arenosella, Perera et al. 1988',
+       autor='Yo :)'
+       correo='julien.malard@mail.mcgill.ca',
+       detalles='Calibración con Sitio A'
+   )
+
+Después se podrá acceder con:
+
+.. code-block:: python
+
+   from tikon.ejemplos.calibs import obt_calib, obt_ref
+
+   dir_ = 'Opisina arenosella, Perera et al. 1988'
+   red.cargar_calib(obt_calib(dir_)
+   exper_A.cargar_calib(dir_)
+
+   # Visualizar la información de la calibración
+   print(obt_ref(dir_))
