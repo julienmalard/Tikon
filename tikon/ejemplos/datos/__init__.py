@@ -39,5 +39,4 @@ def guardar_datos(datos, nombre, módulo, variable, unidades, ref=None):
     guardar_json(info, os.path.join(dir_, os.path.splitext(nombre_datos)[0] + _EXT_INFO))
 
     if ref:
-        with open(os.path.join(dir_, _ARCH_REF), 'w', encoding='utf8') as arch_bibtex:
-            return bibtexparser.load(arch_bibtex)
+        shutil.copy(src=ref, dst=os.path.join(dir_, _ARCH_REF))
