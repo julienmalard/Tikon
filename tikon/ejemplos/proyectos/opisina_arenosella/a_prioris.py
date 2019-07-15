@@ -2,8 +2,6 @@
 
 
 """
-Estos datos de distribuciones a prioris vienen de la literatura (ver el documento Excel adjunto).
-¿Se me olvidó juntarlo? Escríbame: julien.malard@mail.mcgill.ca
 
 Referencia excelente:
 http://www.nhm.ac.uk/our-science/data/chalcidoids/database/detail.dsml?VALDATE=1930&ValidAuthBracket=false&FamilyCode

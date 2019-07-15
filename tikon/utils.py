@@ -112,7 +112,6 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
         La codificación más probable.
 
     """
-    archivo = resolver_dir(archivo)
     detector = UniversalDetector()
     with open(archivo, 'rb') as d:
         for í, línea in enumerate(d.readlines()):

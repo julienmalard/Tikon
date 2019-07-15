@@ -65,6 +65,9 @@ class Módulo(object):
     def guardar_calib(símismo, directorio=''):
         pass  # para hacer: genérico
 
+    def cargar_calib(símismo, directorio=''):
+        pass # para hacer: genérico
+
     def __str__(símismo):
         return símismo.nombre
 

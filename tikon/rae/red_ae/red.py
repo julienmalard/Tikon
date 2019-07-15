@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from tikon.ecs.paráms import Inter
@@ -181,7 +183,11 @@ class RedAE(Módulo):
         for org in símismo._orgs.values():
             yield org
 
-    def cargar_calib(símismo, directorio):
+    def cargar_calib(símismo, directorio=''):
+        # para hacer: genérico
+        if os.path.split(directorio)[1] != 'red':
+            directorio = os.path.join(directorio, 'red')
+
         for org in símismo:
             org.cargar_calib(directorio)
 
