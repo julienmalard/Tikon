@@ -451,3 +451,6 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # Para la internacionalización
 locale_dirs = ['_local/']  # path is example but recommended.
 gettext_compact = False  # optional.
+gettext_additional_targets = ['literal-block']
+
+html_scaled_image_link = False
