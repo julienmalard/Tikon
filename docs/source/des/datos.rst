@@ -16,7 +16,7 @@ Puedes contribuir bases de datos de observaciones de campo.
        módulo='red',
        variable='Pobs',
        unidades='individuos por ha',
-       ref=None  # puedes incluir una referencia Bibtex
+       ref='ref/bibtex/aquí.txt'
    )
 
 Contribuir calibraciones
