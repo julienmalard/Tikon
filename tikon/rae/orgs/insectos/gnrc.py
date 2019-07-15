@@ -25,8 +25,7 @@ class Sencillo(Insecto):
 
 class MetamCompleta(Insecto):
     """
-    Esta clase representa insectos que tienen una metamórfosis completa. No necesita extensión propia, visto que
-    no tiene métodos o atributos distintos a los de Insecto.
+    Esta clase representa insectos que tienen una metamórfosis completa.
     """
 
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
@@ -79,6 +78,9 @@ class MetamCompleta(Insecto):
 
 
 class MetamIncompleta(Insecto):
+    """
+    Esta clase representa insectos que tienen una metamórfosis incompleta.
+    """
 
     def __init__(símismo, nombre, huevo=True, njuvenil=1, adulto=True):
 
