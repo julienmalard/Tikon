@@ -4,6 +4,10 @@ JUVENIL = 'juvenil'
 
 
 class Insecto(Organismo):
+    """
+    La clase pariente para cada tipo de insecto.
+    """
+
     def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None):
 
         super().__init__(nombre=nombre)
