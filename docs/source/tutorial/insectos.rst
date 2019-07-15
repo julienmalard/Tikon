@@ -1,7 +1,7 @@
 Insectos
 ========
 Tiko'n implementa una gran variedad de ciclos de vida de insectos a través de subclases especiales de
-:class:`~tikon.rae.orgs.insectos.Insecto`.
+:class:`~tikon.rae.orgs.insectos.ins.Insecto`.
 
 .. note::
    Tiko'n toma una vista *ecológica* de lo que es un insecto. Es decir, si come como un insecto y se come como un
@@ -15,29 +15,29 @@ Cada insecto viene con sus etapas (huevo, larva, etc.) y las ecuaciones correspo
 Sencillo
 --------
 El tipo de insecto más sencillo posible. Por lo tanto es también generalmente inútil, pruebas teoréticas a parte.
-Solamente lleva una forma adulta, y se implementa con la clase :class:`~tikon.rae.orgs.insectos.Sencillo`.
+Solamente lleva una forma adulta, y se implementa con la clase :class:`~tikon.rae.orgs.insectos.ins.Sencillo`.
 
 Metamórfosis completa
 ---------------------
-Tiko'n lleva la clase :class:`~tikon.rae.orgs.insectos.MetamCompleta` para representar a insectos con ciclos de vida
+Tiko'n lleva la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamCompleta` para representar a insectos con ciclos de vida
 completos (de huevo a adulto, pasando por una pupa).
 
 Metamórfosis incompleta
 -----------------------
 Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con la clase
-:class:`~tikon.rae.orgs.insectos.MetamIncompleta`.
+:class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`.
 
 Parasitoides
 ------------
 Parasitoides, aunque técnicamente por su mayor parte insectos con metamórfosis completa, se representan por su
-propia clase (:class:`~tikon.rae.orgs.insectos.Parasitoide`) porque se debe tomar en cuenta el hecho de que su
+propia clase (:class:`~tikon.rae.orgs.insectos.paras.Parasitoide`) porque se debe tomar en cuenta el hecho de que su
 fase juvenil se desarrolla adentro de su huésped.
 
 Esfécidos
 ---------
 Esfécidos son avispas similares a parasitoides pero que paralizan e inactivan su presa al momento del parasitismo,
 lo cual puede se interior o exterior. Se deben representar de manera distinta
-(:class:`~tikon.rae.orgs.insectos.Esfécido`) a paridoides convencionales, porque
+(:class:`~tikon.rae.orgs.insectos.paras.Esfécido`) a paridoides convencionales, porque
 la presa se quita del ecosistema al momento del acto de parasitismo y no al momento de la emergencia de la avispa
 adulta.
 
