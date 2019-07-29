@@ -3,6 +3,9 @@ Construir una red
 En este ejemplo vamos a construir nuestra propria red trófica de un sistema de coco en Sri Lanka. Para guardar las
 cosas sencillas no vamos a incluir el cultivo. De todo modo, no tengo modelo de cultivo para árboles de coco.
 
+Aquí está un imagen general de los insectos involucrados (3 en total). Tenemos solamente una plaga, y dos parasitoides
+se atacan a varias etapas de su ciclo de vida.
+
 .. image:: /_estático/imágenes/ejemplo_red.png
    :alt: Red agroecológica de Opisina arenosella
    :align: center
