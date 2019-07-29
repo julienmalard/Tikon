@@ -3,7 +3,7 @@ Construir una red
 En este ejemplo vamos a construir nuestra propria red trófica de un sistema de coco en Sri Lanka. Para guardar las
 cosas sencillas no vamos a incluir el cultivo. De todo modo, no tengo modelo de cultivo para árboles de coco.
 
-.. image:: _estático/imágenes/ejemplo red.png
+.. image:: _estático/imágenes/ejemplo_red.png
    :alt: Red agroecológica de Opisina arenosella
    :align: center
 
