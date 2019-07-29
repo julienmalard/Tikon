@@ -1,4 +1,4 @@
-.. image:: _estático/logos/Logo_Tikon.png
+.. image:: _estático/imágenes/logos/Logo_Tikon.png
    :width: 250px
    :alt: Logo de Tiko'n
    :align: center
