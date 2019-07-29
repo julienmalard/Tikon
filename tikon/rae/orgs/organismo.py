@@ -5,6 +5,10 @@ from .ecs import EcsOrgs
 
 
 class Organismo(Coso):
+    """
+    Un organismo es la clase pariente para cualquier especie en una red agroecológica.
+    """
+
     def __init__(símismo, nombre):
         super().__init__(nombre, ecs=EcsOrgs)
 
