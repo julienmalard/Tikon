@@ -22,16 +22,45 @@ Metamórfosis completa
 Tiko'n lleva la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamCompleta` para representar a insectos con ciclos de vida
 completos (de huevo a adulto, pasando por una pupa).
 
+.. code-block::python
+   from tikon.rae.orgs.insectos import MetamCompleta
+
+   mosca = MetamCompleta('mosca')
+
 Metamórfosis incompleta
 -----------------------
 Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con la clase
 :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`.
+
+.. code-block::python
+   from tikon.rae.orgs.insectos import MetamIncompleta
+
+   mosca = MetamIncompleta('mosca')
+
+   # Se puede crear insectos que pasan directamente del huevo al adulto
+   araña = MetamIncompleta('araña', njuvenil=0)
+
+Todos insectos de tipos :class:`~tikon.rae.orgs.insectos.ins.Sencillo`,
+:class:`~tikon.rae.orgs.insectos.ins.MetamCompleta` o :class:`~tikon.rae.orgs.insectos.ins.MetamIncompleta`
+pueden ser depredadores:
+
+
+.. code-block::python
+   araña.secome(mosca)
 
 Parasitoides
 ------------
 Parasitoides, aunque técnicamente por su mayor parte insectos con metamórfosis completa, se representan por su
 propia clase (:class:`~tikon.rae.orgs.insectos.paras.Parasitoide`) porque se debe tomar en cuenta el hecho de que su
 fase juvenil se desarrolla adentro de su huésped.
+
+
+.. code-block::python
+   from tikon.rae.orgs.insectos import Parasitoide
+
+   avispa = Parasitoide('avispa')
+
+   avispa.parasita(mosca, etps_entra='juvenil', etp_emerg='pupa')
 
 Esfécidos
 ---------
@@ -41,11 +70,22 @@ lo cual puede se interior o exterior. Se deben representar de manera distinta
 la presa se quita del ecosistema al momento del acto de parasitismo y no al momento de la emergencia de la avispa
 adulta.
 
+
+.. code-block::python
+   from tikon.rae.orgs.insectos import Esfécido
+
+   esfécido = Esfécido('esfécido')
+
+   esfécido.captura(araña, etps_presa='adulto')
+
+
 Cambiar ecuaciones
 ------------------
 Puedes modificar las ecuaciones empleadas para un insecto en particular.
 
-Cambiar etapas
---------------
-Si quieres cambiar la estructura de las etapas de un insecto, también puedes implementar una clase para un nuevo tipo de
-insecto (ver :ref:`nuevos-insectos`).
+.. code-block::python
+   from tikon.rae.orgs.insectos import Esfécido
+
+   araña.activar_ec(categ='Edad', subcateg='Ecuación', ec='Días grados')
+
+   esfécido.captura(araña, etps_presa='adulto')

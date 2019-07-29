@@ -1,8 +1,8 @@
 Ecuaciones
 ==========
 
-.. automodule:: tikon.ecs.ÁrbolEcs
+.. autoclass:: tikon.ecs.ÁrbolEcs
    :members:
 
-.. automodule:: tikon.ecs.dists.Dist
+.. autoclass:: tikon.ecs.dists.Dist
    :members:
