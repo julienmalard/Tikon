@@ -1,4 +1,5 @@
 from tikon.rae.orgs.insectos.ins import Insecto
+from tikon.rae.orgs.organismo import Etapa
 
 
 class Parasitoide(Insecto):
@@ -47,6 +48,25 @@ class Parasitoide(Insecto):
         )
 
     def parasita(símismo, huésped, etps_entra, etp_emerg, etp_símismo='adulto', etp_recip=None):
+        """
+        Indica la relación de parasitismo.
+
+        Parameters
+        ----------
+        huésped: Insecto
+            El huésped.
+        etps_entra: Etapa or str or list
+            Etapas del huésped que pueden ser parasitadas.
+        etp_emerg: Etapa or str
+            La etapa de la cual emerge el parasitoide adulto.
+        etp_símismo: Etapa or str
+           La etapa del parasitoide que efectua el parasitismo.
+        etp_recip: Etapa or str
+           La etapa del parasitoide que emerge del huésped. Si no se especifica, será la primera etapa después
+           de la fase juvenil.
+
+        """
+
         if etp_recip is None:
             etp_recip = 'pupa' if símismo.pupa else 'adulto'
         super().parasita(
@@ -89,7 +109,27 @@ class Esfécido(Insecto):
         )
 
     def captura(símismo, presa, etps_presa=None):
+        """
+        Establece la relación entre un Esfécido y sus presas.
+
+        Parameters
+        ----------
+        presa: Insecto
+            La presa.
+        etps_presa: Etapa or str or list
+            La(s) etapa(s) de la presa que pueden ser víctimas.
+        """
         símismo.secome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')
 
     def nocaptura(símismo, presa, etps_presa=None):
+        """
+        Borra una relación entre un Esfécido y una presas.
+
+        Parameters
+        ----------
+        presa: Insecto
+            La presa.
+        etps_presa: Etapa or str or list
+            La(s) etapa(s) de la presa que ya no pueden ser víctimas.
+        """
         símismo.nosecome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')

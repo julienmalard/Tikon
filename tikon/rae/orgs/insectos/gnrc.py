@@ -96,15 +96,16 @@ class MetamIncompleta(Insecto):
                 Movimiento={}
             )
 
-        tipo_ec['juvenil'] = dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Kovai'},
-            Muertes={'Ecuación': 'Constante'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Nada'},
-            Movimiento={}
-        )
+        if njuvenil:
+            tipo_ec['juvenil'] = dict(
+                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
+                Depredación={'Ecuación': 'Kovai'},
+                Muertes={'Ecuación': 'Constante'},
+                Edad={'Ecuación': 'Días'},
+                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
+                Reproducción={'Prob': 'Nada'},
+                Movimiento={}
+            )
 
         if adulto:
             tipo_ec['adulto'] = dict(

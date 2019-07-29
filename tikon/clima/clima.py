@@ -12,7 +12,7 @@ class Clima(Módulo):
     def __init__(símismo, fuentes=None, escenario=8.5):
         símismo.fuentes = fuentes
         símismo.escenario = escenario
-        símismo.datos = None  # type: کوائف
+        símismo.datos = None  # type: کوائف or None
 
         super().__init__()
 

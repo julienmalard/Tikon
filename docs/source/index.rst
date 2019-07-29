@@ -8,13 +8,13 @@
 
 .. image:: https://travis-ci.org/julienmalard/Tikon.svg?branch=master
    :target: https://travis-ci.org/julienmalard/Tikon
-.. image:: (https://coveralls.io/repos/github/julienmalard/Tikon/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/julienmalard/Tikon/badge.svg?branch=master
    :target: https://coveralls.io/github/julienmalard/Tikon?branch=master
 .. image:: https://readthedocs.org/projects/tikon/badge/?version=latest
    :target: (https://tikon.readthedocs.io/es/latest/?badge=latest
 
 .. image:: https://www.codefactor.io/repository/github/julienmalard/tikon/badge
-   :target: (https://www.codefactor.io/repository/github/julienmalard/tikon
+   :target: https://www.codefactor.io/repository/github/julienmalard/tikon
 .. image:: https://api.codeclimate.com/v1/badges/855ebb601a34ec094956/maintainability
    :target: https://codeclimate.com/github/julienmalard/Tikon/maintainability
 
@@ -92,10 +92,4 @@ Contenido
    :maxdepth: 2
    :caption: Referencia
 
-   ref/red
-   ref/insecto
-   ref/clima
-   ref/cultivo
-   ref/manejo
-   ref/general
-   ref/resultados
+   ref/ipa

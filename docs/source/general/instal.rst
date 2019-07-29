@@ -1,8 +1,8 @@
 Instalación
 ===========
 
-Es muy fácil instalar Tiko'n. Primero necesitarás `Python 3.6+ <(https://www.python.org/downloads)>`_.
-Después, puedes instalar Tiko'n en la terminal con:
+Es muy fácil instalar Tiko'n. Primero necesitarás la versión más recién de `Python
+<(https://www.python.org/downloads)>`_. Después, puedes instalar Tiko'n en la terminal con:
 
    :command:`pip install tikon`
 
