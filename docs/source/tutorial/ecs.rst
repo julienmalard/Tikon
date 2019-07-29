@@ -6,6 +6,3 @@ Ecuaciones
 
 Especificar ecuaciones
 ----------------------
-
-Nuevas ecuaciones
------------------

@@ -9,3 +9,6 @@ Condiciones
 
 Acciones
 --------
+
+Uso en modelos
+--------------
