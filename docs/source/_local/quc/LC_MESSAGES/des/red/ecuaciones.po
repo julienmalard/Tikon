@@ -1,0 +1,30 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Language-Team: K'iche' (https://www.transifex.com/qatikon/teams/70660/quc/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: quc\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/des/red/ecuaciones.rst:2
+msgid "Ecuaciones y categorías"
+msgstr ""
+
+#: ../../source/des/red/ecuaciones.rst:5
+msgid "Nuevas ecuaciones"
+msgstr ""
+
+#: ../../source/des/red/ecuaciones.rst:8
+msgid "Nuevas categorías"
+msgstr ""

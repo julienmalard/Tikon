@@ -1,0 +1,125 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Language-Team: Persian (https://www.transifex.com/qatikon/teams/70660/fa/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: ../../source/tutorial/insectos.rst:2
+msgid "Insectos"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:3
+msgid ""
+"Tiko'n implementa una gran variedad de ciclos de vida de insectos a través "
+"de subclases especiales de :class:`~tikon.rae.orgs.insectos.ins.Insecto`."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:7
+msgid ""
+"Tiko'n toma una vista *ecológica* de lo que es un insecto. Es decir, si come"
+" como un insecto y se come como un insecto, entonces *es* un insecto por lo "
+"que le importa a Tiko'n."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:10
+msgid ""
+"Así que no te sorprendes al ver arañas y gusanos en las listas de insecto. "
+"Sé que entomólogicamente es una herecía, pero programáticamente es la mejor "
+"solución."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:13
+msgid ""
+"Cada insecto viene con sus etapas (huevo, larva, etc.) y las ecuaciones "
+"correspondientes ya especificadas."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:16
+msgid "Sencillo"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:17
+msgid ""
+"El tipo de insecto más sencillo posible. Por lo tanto es también "
+"generalmente inútil, pruebas teoréticas a parte. Solamente lleva una forma "
+"adulta, y se implementa con la clase "
+":class:`~tikon.rae.orgs.insectos.ins.Sencillo`."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:21
+msgid "Metamórfosis completa"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:22
+msgid ""
+"Tiko'n lleva la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamCompleta` "
+"para representar a insectos con ciclos de vida completos (de huevo a adulto,"
+" pasando por una pupa)."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:31
+msgid "Metamórfosis incompleta"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:32
+msgid ""
+"Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con"
+" la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:43
+msgid ""
+"Todos insectos de tipos :class:`~tikon.rae.orgs.insectos.ins.Sencillo`, "
+":class:`~tikon.rae.orgs.insectos.ins.MetamCompleta` o "
+":class:`~tikon.rae.orgs.insectos.ins.MetamIncompleta` pueden ser "
+"depredadores:"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:52
+msgid "Parasitoides"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:53
+msgid ""
+"Parasitoides, aunque técnicamente por su mayor parte insectos con "
+"metamórfosis completa, se representan por su propia clase "
+"(:class:`~tikon.rae.orgs.insectos.paras.Parasitoide`) porque se debe tomar "
+"en cuenta el hecho de que su fase juvenil se desarrolla adentro de su "
+"huésped."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:66
+msgid "Esfécidos"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:67
+msgid ""
+"Esfécidos son avispas similares a parasitoides pero que paralizan e "
+"inactivan su presa al momento del parasitismo, lo cual puede se interior o "
+"exterior. Se deben representar de manera distinta "
+"(:class:`~tikon.rae.orgs.insectos.paras.Esfécido`) a paridoides "
+"convencionales, porque la presa se quita del ecosistema al momento del acto "
+"de parasitismo y no al momento de la emergencia de la avispa adulta."
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:83
+msgid "Cambiar ecuaciones"
+msgstr ""
+
+#: ../../source/tutorial/insectos.rst:84
+msgid ""
+"Puedes modificar las ecuaciones empleadas para un insecto en particular."
+msgstr ""
