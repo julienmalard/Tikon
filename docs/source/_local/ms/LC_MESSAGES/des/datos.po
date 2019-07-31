@@ -1,0 +1,57 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-15 16:52+0000\n"
+"Language-Team: Malay (https://www.transifex.com/qatikon/teams/70660/ms/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ms\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../../source/des/datos.rst:2
+msgid "Contribuir datos"
+msgstr ""
+
+#: ../../source/des/datos.rst:3
+msgid ""
+"Un modelo no es mejor que los datos que lo alimentan. Lo más compartimos "
+"nuestros datos, lo mejor se volverá el programa para todas las usuarias."
+msgstr ""
+
+#: ../../source/des/datos.rst:7
+msgid "Contribuir observaciones"
+msgstr ""
+
+#: ../../source/des/datos.rst:8
+msgid "Puedes contribuir bases de datos de observaciones de campo."
+msgstr ""
+
+#: ../../source/des/datos.rst:23
+msgid "Contribuir calibraciones"
+msgstr ""
+
+#: ../../source/des/datos.rst:24
+msgid ""
+"Ver :ref:`guardar_y_cargar` para instrucciones sobre cómo guardar tus "
+"calibraciones en Tiko'n."
+msgstr ""
+
+#: ../../source/des/datos.rst:27
+msgid "Cómo compartir"
+msgstr ""
+
+#: ../../source/des/datos.rst:28
+msgid ""
+"La manera la más fácil de compartir los datos es de clonar una versión local"
+" de Tiko'n. Después, puedes hacer un `commit` y compartir tus datos y "
+"calibraciones en GitHub con el resto de la comunidad."
+msgstr ""

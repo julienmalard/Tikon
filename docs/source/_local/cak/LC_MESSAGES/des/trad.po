@@ -1,0 +1,54 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Language-Team: Kaqchikel (https://www.transifex.com/qatikon/teams/70660/cak/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: cak\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/des/trad.rst:2
+msgid "Traducciones"
+msgstr ""
+
+#: ../../source/des/trad.rst:3
+msgid ""
+"Tiko'n es un proyecto abierto y beneficia de se lo más accesible posible. "
+"Puedes ayudar a traducir los varios componentes de Tiko'n en tu idioma aquí."
+" Necesitarás crear una cuenta gratis en `Transifex "
+"<https://www.transifex.com>`_ primero."
+msgstr ""
+
+#: ../../source/des/trad.rst:7
+msgid ""
+"`Documentación <https://www.transifex.com/qatikon/tikon/dashboard>`_ (lo que"
+" estás leyendo ahora)"
+msgstr ""
+
+#: ../../source/des/trad.rst:8
+msgid ""
+"`Programa <https://www.transifex.com/qatikon/codigo_tikon/dashboard>`_ "
+"(mensajes de error, etc.)"
+msgstr ""
+
+#: ../../source/des/trad.rst:9
+msgid ""
+"`Interfaz <https://www.transifex.com/qatikon/tunuy_tikon/dashboard>`_ (para "
+"un día futuro)"
+msgstr ""
+
+#: ../../source/des/trad.rst:13
+msgid ""
+"Si no aparece tu idioma favorito en la lista, por favor haz una demanda de "
+"activación de idioma en los enlaces arriba."
+msgstr ""

@@ -1,0 +1,65 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../source/ref/ipa/red/ecs.rst:2
+msgid "Ecuaciones"
+msgstr "Ecuaciones"
+
+#: ../../source/ref/ipa/red/ecs.rst:5
+msgid "Crecimiento"
+msgstr "Crecimiento"
+
+#: ../../source/ref/ipa/red/ecs.rst:8
+msgid "Ecuación"
+msgstr "Ecuación"
+
+#: ../../source/ref/ipa/red/ecs.rst:25
+msgid "Modificaciones"
+msgstr "Modificaciones"
+
+#: ../../source/ref/ipa/red/ecs.rst:33
+msgid "Depredación"
+msgstr "Depredación"
+
+#: ../../source/ref/ipa/red/ecs.rst:68
+msgid "Edad"
+msgstr "Edad"
+
+#: ../../source/ref/ipa/red/ecs.rst:88
+msgid "Mortalidad"
+msgstr "Mortalidad"
+
+#: ../../source/ref/ipa/red/ecs.rst:102
+msgid "Reproducción"
+msgstr "Reproducción"
+
+#: ../../source/ref/ipa/red/ecs.rst:128
+msgid "Transiciones"
+msgstr "Transiciones"
+
+#: ../../source/ref/ipa/red/ecs.rst:131
+msgid "Probabilidad"
+msgstr "Probabilidad"
+
+#: ../../source/ref/ipa/red/ecs.rst:148
+msgid "Multiplicación"
+msgstr "Multiplicación"
+
+#: ../../source/ref/ipa/red/ecs.rst:153
+msgid "Estocasticidad"
+msgstr "Estocasticidad"
