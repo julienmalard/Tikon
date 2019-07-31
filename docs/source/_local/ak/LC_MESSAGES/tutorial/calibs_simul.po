@@ -1,0 +1,140 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Language-Team: Akan (https://www.transifex.com/qatikon/teams/70660/ak/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ak\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+
+#: ../../source/tutorial/calibs_simul.rst:4
+msgid "Calibraciones y simulaciones"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:5
+msgid ""
+"En Tiko'n, una *calibración* se refiere a un conjunto de valores para los "
+"parámetros de un modelo, todos calibrados en conjunto. Una *simulación* se "
+"refiere a cualquier ejecución del modelo. Por ejemplo, calibrar un modelo "
+"generalmente requiere la ejecución de una cantidad importante de "
+"simulaciones."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:9
+msgid ""
+"Por lo tanto, cada *simulación* normal se corre con una especificación de "
+"cuales `calibraciones` tomar en cuenta para establecer los valores de sus "
+"parámetros."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:13
+msgid "Comportamiento automático"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:14
+msgid ""
+"Si no se especifican calibraciones para una corrida, Tiko'n tomará una "
+"decisión razonable para ti."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:16
+msgid ""
+"Si es una corrida de **simulación**, se tomará cada calibración disponible, "
+"y se ignorarán *a prioris* especificados"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:17
+msgid ""
+"Si es una corrida de **calibración**, se tomarán primero los *a prioris* "
+"especificados, y, para los parámetros sin aprioris, se generarán "
+"distribuciones a base de las calibraciones ya existentes."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:20
+msgid "Calibraciones específicas"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:21
+msgid ""
+"Si quieres cambiar el comportamiento automático, puedes especificar cuáles "
+"calibraciones existantes quieres incluir en la corrida."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:25
+msgid "Opciones avanzadas"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:26
+msgid ""
+"Puedes cambiar el comportamiento automático por pasar un objeto "
+":class:`~tikon.estruc.simulador.EspecCalibsCorrida` a la función de "
+"simulación :func:`~tikon.estruc.simulador.Simulador.simular` del "
+":class:`~tikon.estruc.simulador.Simulador` (e igualmente a las que la llaman"
+" indirectamente, como :func:`~tikon.estruc.simulador.Simulador.calibrar` y "
+":func:`~tikon.estruc.simulador.Simulador.sensib`). "
+":class:`~tikon.estruc.simulador.EspecCalibsCorrida` toma opciones para "
+"especificar el uso de *a prioris*, de correspondencia entre parámetros, y de"
+" herencia de interacciones."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:35
+msgid "A prioris"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:36
+msgid ""
+"Puedes especificar si se deberían emplear distribuciones *a prioris* para "
+"los parámetros donde han sido especificados. En este caso, se ignorarán "
+"todas otras calibraciones disponibles para los parámetros con *a prioris* "
+"disponibles."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:40
+msgid "Correspondencia"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:41
+msgid ""
+"Cuando se calibra un modelo con varios parámetros, no solamente importan los"
+" valores estimados de los parámetros sino también las interacciones entre "
+"los parámetros sí mismos. Es decir, en la calibración no se busca el valor "
+"óptimo de cada parámetro individualmente sino un conjunto de valores para "
+"todos los parámetros que da buenos resultados. Por eso es importante, tanto "
+"como sea posible, guardar las correlaciones entre los valores de los "
+"parámetros calibrados y Tiko'n hará su posible para únicamente tomar valores"
+" de calibraciones que están disponibles para todos los parámetros necesarios"
+" a la simulación."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:48
+msgid "Si quieres desactivar esta funcionalidad, puedes indicarlo así:"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:54
+msgid "Heredar interacciones"
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:55
+msgid ""
+"Parámetros en Tiko'n pueden tener interacciones con otros objetos, por "
+"ejemplo, en el caso de un parámetro de eficacidad de depredación que también"
+" se ve influido por la identidad de la presa. La opción automática es que "
+"cada parámetro, si le faltan calibraciones, puede heredar las calibraciones "
+"o *a prioris* del nivel de interacción subyacente."
+msgstr ""
+
+#: ../../source/tutorial/calibs_simul.rst:61
+msgid ""
+"Ver :doc:`/tutorial/ecs` para una explicación de niveles en árboles de "
+"ecuaciones."
+msgstr ""

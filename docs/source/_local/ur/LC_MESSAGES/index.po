@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: 2017-01-13 17:14+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,27 +23,27 @@ msgstr ""
 
 #: ../../source/index.rst:59 ../../source/index.rst:59
 msgid "General"
-msgstr ""
+msgstr "عام"
 
-#: ../../source/index.rst:69 ../../source/index.rst:69
+#: ../../source/index.rst:68 ../../source/index.rst:68
 msgid "Tutorial"
-msgstr ""
+msgstr "مسق"
 
-#: ../../source/index.rst:82 ../../source/index.rst:82
+#: ../../source/index.rst:81 ../../source/index.rst:81
 msgid "Desarrollo"
-msgstr ""
+msgstr "تصدیق"
 
-#: ../../source/index.rst:91 ../../source/index.rst:91
+#: ../../source/index.rst:90 ../../source/index.rst:90
 msgid "Referencia"
-msgstr ""
+msgstr "ھوالہ"
 
 #: ../../source/index.rst:7
 msgid "¡Bienvenidoas a la documentación de Tiko'n!"
-msgstr ""
+msgstr "تیکون کی دستاویزات پر خوش آمادید! "
 
 #: ../../source/index.rst:22
 msgid "¿Qué es Tiko'n?"
-msgstr ""
+msgstr "تیکون کیا ہیے؟َ"
 
 #: ../../source/index.rst:23
 msgid ""
@@ -49,7 +53,7 @@ msgstr ""
 
 #: ../../source/index.rst:27
 msgid "¿Qué es un modelo de redes tróficas?"
-msgstr ""
+msgstr "خوراکی جال کا نمونہ کا کیا معنی؟"
 
 #: ../../source/index.rst:28
 msgid ""
@@ -63,7 +67,7 @@ msgstr ""
 
 #: ../../source/index.rst:34
 msgid "¿Por qué utilizar Tiko'n?"
-msgstr ""
+msgstr "میں کیوں تیکون کا استعمال کروں؟"
 
 #: ../../source/index.rst:35
 msgid ""
@@ -73,7 +77,7 @@ msgstr ""
 
 #: ../../source/index.rst:37
 msgid "Multitud de parámetros (15+ por insecto)"
-msgstr ""
+msgstr "بہت زیادہ متاغیرات (ہر کیڑا کو ۱۵ سے زیادہ)"
 
 #: ../../source/index.rst:38
 msgid "Inestabilidad matemática (dificultando predicciones fiables)"
@@ -140,7 +144,7 @@ msgstr ""
 
 #: ../../source/index.rst:54
 msgid "Y, por supuesto, gráficos bonitos"
-msgstr ""
+msgstr "اور، بلکل، خوبصورت تصویریں"
 
 #: ../../source/index.rst:57
 msgid "Contenido"
