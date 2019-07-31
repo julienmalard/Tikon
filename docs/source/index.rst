@@ -60,7 +60,6 @@ Contenido
    :maxdepth: 2
    :caption: General
 
-   general/intro
    general/instal
    general/estruc
    general/pubs
@@ -70,10 +69,10 @@ Contenido
    :maxdepth: 2
    :caption: Tutorial
 
-   tutorial/constr
+   tutorial/intro
+   tutorial/manejo
    tutorial/insectos
    tutorial/cultivos
-   tutorial/manejo
    tutorial/aprioris
    tutorial/ecs
    tutorial/clima
