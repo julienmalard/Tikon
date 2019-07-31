@@ -1,5 +1,5 @@
-Construir una red
-=================
+Introducción
+============
 En este ejemplo vamos a construir nuestra propria red trófica de un sistema de coco en Sri Lanka. Para guardar las
 cosas sencillas no vamos a incluir el cultivo. De todo modo, no tengo modelo de cultivo para árboles de coco.
 
@@ -46,6 +46,8 @@ para cada experimento.
    Es **muy importante** establecer buenos *a prioris* para calibraciones. Las limitaciones de algoritmos existentes
    de calibración de estos tipos de modelos hacen primordial la especificación de *a prioris* razonables y bastante
    precisos para todos los parámetros del modelo.
+
+   Nota para estudiantes: Mejorar estos algoritmos podría ser buena idea de tesis. :)
 
 En este caso ya especificamos nuestros a prioris en un documento separado así que los vamos a cargar directamente.
 

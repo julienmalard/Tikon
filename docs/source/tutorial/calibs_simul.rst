@@ -2,11 +2,11 @@
 
 Calibraciones y simulaciones
 ============================
-En Tiko'n, una `calibración` se refiere a un conjunto de valores para los parámetros de un modelo, todos calibrados
-en conjunto. Una `simulación` se refiere a cualquier ejecución del modelo. Por ejemplo, calibrar un modelo generalmente
+En Tiko'n, una *calibración* se refiere a un conjunto de valores para los parámetros de un modelo, todos calibrados
+en conjunto. Una *simulación* se refiere a cualquier ejecución del modelo. Por ejemplo, calibrar un modelo generalmente
 requiere la ejecución de una cantidad importante de simulaciones.
 
-Por lo tanto, cada `simulación` normal se corre con una especificación de cuales `calibraciones` tomar en cuenta
+Por lo tanto, cada *simulación* normal se corre con una especificación de cuales `calibraciones` tomar en cuenta
 para establecer los valores de sus parámetros.
 
 Comportamiento automático
