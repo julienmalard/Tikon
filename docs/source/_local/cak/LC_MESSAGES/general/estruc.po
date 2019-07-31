@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: 2019-07-04 04:04+0000\n"
 "Language-Team: Kaqchikel (https://www.transifex.com/qatikon/teams/70660/cak/)\n"
 "MIME-Version: 1.0\n"
@@ -24,29 +24,102 @@ msgstr ""
 #: ../../source/general/estruc.rst:3
 msgid ""
 "La modelización agroecológica es un tema un poco más complicado que otros "
-"tipos de modelos, en"
+"tipos de modelos por causa de su complejidad y comportamiento dinámico. La "
+"estructura de Tiko'n toma en cuenta estos desafíos por su inclusión de "
+"repeticiones estocásticas, incertidumbre paramétrica, y filosofía modular y "
+"flexible."
 msgstr ""
 
-#: ../../source/general/estruc.rst:6
+#: ../../source/general/estruc.rst:7
+msgid "Aquí sigue una breve introducción a los términos específicos a Tiko'n."
+msgstr ""
+
+#: ../../source/general/estruc.rst:10
 msgid "Simulador"
 msgstr ""
 
-#: ../../source/general/estruc.rst:9
+#: ../../source/general/estruc.rst:11
+msgid ""
+"Un :class:`~tikon.estruc.simulador.Simulador` es la unidad fundamental de un"
+" modelo en Tiko'n. Contiene varios :class:`~tikon.estruc.módulo.Módulo`s que"
+" interactuan entre sí mismos. Todas simulaciones y calibraciones se efectuan"
+" a través de un :class:`~tikon.estruc.simulador.Simulador`."
+msgstr ""
+
+#: ../../source/general/estruc.rst:16
 msgid "Módulos"
 msgstr ""
 
-#: ../../source/general/estruc.rst:12
+#: ../../source/general/estruc.rst:17
+msgid ""
+"Cada :class:`~tikon.estruc.módulo.Módulo` en Tiko'n representa una parte del"
+" agroecosistema. Por ejemplo, existen módulos para la red agroecológica, "
+"para el clima, para el cultivo y para el manejo humano. Los módulos pueden "
+"intercambiar valores de variables en el transcurso de una simulación."
+msgstr ""
+
+#: ../../source/general/estruc.rst:22
 msgid "Experimentos"
 msgstr ""
 
-#: ../../source/general/estruc.rst:15
+#: ../../source/general/estruc.rst:23
+msgid ""
+"Un :class:`~tikon.exper.exper.Exper` representa un experimento, o sea, una "
+"combinación de decisiones de observaciones (reales o hipotéticas) para una "
+"simulación. Aun simulaciones sin datos observados implementan un experimento"
+" vacío automáticamente."
+msgstr ""
+
+#: ../../source/general/estruc.rst:28
 msgid "Simulaciones"
 msgstr ""
 
-#: ../../source/general/estruc.rst:18
+#: ../../source/general/estruc.rst:29
+msgid ""
+"Se efectuan simulaciones por llamar "
+":func:`~tikon.estruc.simulador.Simulador.simular` con especificaciones de "
+"escala temporal, repeticiones paramétricas y estocásticas, y experimento. "
+"Adentro de cada simulación, el modelo se va a "
+":func:`~tikon.estruc.simulador.Simulador.iniciar`, "
+":func:`~tikon.estruc.simulador.Simulador.correr`, y finalmente "
+":func:`~tikon.estruc.simulador.Simulador.cerrar`."
+msgstr ""
+
+#: ../../source/general/estruc.rst:35
+msgid "Resultados"
+msgstr ""
+
+#: ../../source/general/estruc.rst:36
+msgid ""
+"Los resultados de simulación tienen su propia clase "
+"(:class:`~tikon.result.res.ResultadosSimul`), la cual incluye los resultados"
+" (:class:`~tikon.result.res.ResultadosMódulo`) de cada módulo del simulador,"
+" los cuales en torno contienen los resultados "
+"(:class:`~tikon.result.res.Resultado`) de cada variable del módulo. "
+"Resultados se pueden :func:`~tikon.result.res.ResultadosSimul.validar` y "
+"también :func:`~tikon.result.res.ResultadosSimul.graficar`."
+msgstr ""
+
+#: ../../source/general/estruc.rst:43
 msgid "Parámetros"
 msgstr ""
 
-#: ../../source/general/estruc.rst:21
+#: ../../source/general/estruc.rst:44
+msgid ""
+"Por supuesto, todo modelo necesita parámetros. En Tiko'n, los parámetros se "
+"implementan por :class:`~tikon.ecs.árb_mód.Parám`, y cada parámetro puede "
+"tener varias calibraciones conteniendo distintas distribuciones de valores "
+"(:class:`~tikon.ecs.dists.Dist`)."
+msgstr ""
+
+#: ../../source/general/estruc.rst:50
 msgid "Ecuaciones"
+msgstr ""
+
+#: ../../source/general/estruc.rst:51
+msgid ""
+"El módulo :class:`~tikon.rae.red_ae.RedAE` implementa ecuaciones "
+"(:class:`~tikon.ecs.árb_mód.Ecuación`) para representar cada fase del ciclo "
+"de vida de los insectos en la red. Las ecuaciones se pueden por supuesto "
+"modificar, agregar, o desactivar según sus necesidades."
 msgstr ""

@@ -1,0 +1,160 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-29 13:15+0000\n"
+"Language-Team: Hindi (https://www.transifex.com/qatikon/teams/70660/hi/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: hi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/ref/ipa/insecto.rst:2
+msgid "Insectos"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/ins.pydocstring
+#: of tikon.rae.orgs.insectos.ins.Insecto:1
+msgid "La clase pariente para cada tipo de insecto."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/gnrc.pydocstring
+#: of tikon.rae.orgs.insectos.gnrc.MetamCompleta:1
+msgid "Esta clase representa insectos que tienen una metamórfosis completa."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/gnrc.pydocstring
+#: of tikon.rae.orgs.insectos.gnrc.MetamIncompleta:1
+msgid "Esta clase representa insectos que tienen una metamórfosis incompleta."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/gnrc.pydocstring
+#: of tikon.rae.orgs.insectos.gnrc.Sencillo:1
+msgid ""
+"Esta clase representa insectos con ciclos de vida sencillos (para cuales "
+"sólo se incluye la etapa adulta en el modelo)."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido:1
+msgid ""
+"Los esfécidos son una familia de avispas que ponen sus huevos en los cuerpos"
+" (vivos) de sus presas. Al contrario de parasitoides típicos, estos "
+"paralizan y quitan su presa de la planta. Por lo mismo, se debe considerar "
+"su papel ecológico de manera distinta. (Se considera como depredación con "
+"reproducción basada en el éxito de la depredación)."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.captura:1
+msgid "Establece la relación entre un Esfécido y sus presas."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.captura:5
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.nocaptura:5
+msgid "presa: Insecto"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.captura:6
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.nocaptura:6
+msgid "La presa."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.captura:7
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.nocaptura:7
+msgid "etps_presa: Etapa or str or list"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.captura:8
+msgid "La(s) etapa(s) de la presa que pueden ser víctimas."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.nocaptura:1
+msgid "Borra una relación entre un Esfécido y una presas."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Esfécido.nocaptura:8
+msgid "La(s) etapa(s) de la presa que ya no pueden ser víctimas."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide:1
+msgid ""
+"Parasitoides son una clase muy especial de insecto, porque sus larvas crecen"
+" adentro de los cuerpos de otros organismos. Después de mucho dolor de "
+"cabeza, decidimos (decidí) implementarlos así."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:1
+msgid "Indica la relación de parasitismo."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:5
+msgid "huésped: Insecto"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:6
+msgid "El huésped."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:7
+msgid "etps_entra: Etapa or str or list"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:8
+msgid "Etapas del huésped que pueden ser parasitadas."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:9
+msgid "etp_emerg: Etapa or str"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:10
+msgid "La etapa de la cual emerge el parasitoide adulto."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:11
+msgid "etp_símismo: Etapa or str"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:12
+msgid "La etapa del parasitoide que efectua el parasitismo."
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:14
+msgid "etp_recip: Etapa or str"
+msgstr ""
+
+#: ../../../../../../virtualenv/python3.6.7/lib/python3.6/site-packages/tikon/rae/orgs/insectos/paras.pydocstring
+#: of tikon.rae.orgs.insectos.paras.Parasitoide.parasita:14
+msgid ""
+"La etapa del parasitoide que emerge del huésped. Si no se especifica, será "
+"la primera etapa después de la fase juvenil."
+msgstr ""
