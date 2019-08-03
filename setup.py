@@ -23,8 +23,9 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.6',
     ],
+    include_package_data=True,
     package_data={
         # Incluir estos documentos de los paquetes:
-        '': ['*.csv', 'versión.txt', '*.json'],
+        '': ['*.csv', 'versión.txt', '*.json', '*.txt'],
     },
 )

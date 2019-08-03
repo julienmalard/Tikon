@@ -1,6 +1,6 @@
 Traducciones
 ============
-Tiko'n es un proyecto abierto y beneficia de se lo más accesible posible. Puedes ayudar a traducir los varios
+Tiko'n es un proyecto abierto y beneficia de ser lo más accesible posible. Puedes ayudar a traducir los varios
 componentes de Tiko'n en tu idioma aquí. Necesitarás crear una cuenta gratis en
 `Transifex <https://www.transifex.com>`_ primero.
 

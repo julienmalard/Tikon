@@ -8,6 +8,7 @@ Contribuir observaciones
 Puedes contribuir bases de datos de observaciones de campo.
 
 .. code-block:: python
+
    from tikon.ejemplos.datos import guardar_datos
 
    guardar_datos(
