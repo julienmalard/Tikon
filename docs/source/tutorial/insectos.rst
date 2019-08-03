@@ -23,6 +23,7 @@ Tiko'n lleva la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamCompleta` para 
 completos (de huevo a adulto, pasando por una pupa).
 
 .. code-block::python
+
    from tikon.rae.orgs.insectos import MetamCompleta
 
    mosca = MetamCompleta('mosca')
@@ -33,6 +34,7 @@ Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con la 
 :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`.
 
 .. code-block::python
+
    from tikon.rae.orgs.insectos import MetamIncompleta
 
    mosca = MetamIncompleta('mosca')
@@ -46,6 +48,7 @@ pueden ser depredadores:
 
 
 .. code-block::python
+
    araña.secome(mosca)
 
 Parasitoides
@@ -56,6 +59,7 @@ fase juvenil se desarrolla adentro de su huésped.
 
 
 .. code-block::python
+
    from tikon.rae.orgs.insectos import Parasitoide
 
    avispa = Parasitoide('avispa')
@@ -72,6 +76,7 @@ adulta.
 
 
 .. code-block::python
+
    from tikon.rae.orgs.insectos import Esfécido
 
    esfécido = Esfécido('esfécido')
@@ -84,6 +89,7 @@ Cambiar ecuaciones
 Puedes modificar las ecuaciones empleadas para un insecto en particular.
 
 .. code-block::python
+
    from tikon.rae.orgs.insectos import Esfécido
 
    araña.activar_ec(categ='Edad', subcateg='Ecuación', ec='Días grados')

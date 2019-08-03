@@ -39,6 +39,9 @@ para la lista completa de clases disponibles).
 
 A prioris
 ---------
+Un *a priori* es una distribución probable del valor de un parámetro que especificas antes de correr una calibración.
+Ayuda el algoritmo de calibración a encontrar el mejor valor del parámetro.
+
 Aquí vamos a cargar las distribuciones a prioris para los parámetros de la red. Los tienes que especificar manualmente
 para cada experimento.
 
