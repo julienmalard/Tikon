@@ -9,7 +9,7 @@ Aquí sigue una breve introducción a los términos específicos a Tiko'n.
 Simulador
 ---------
 Un :class:`~tikon.estruc.simulador.Simulador` es la unidad fundamental de un modelo en Tiko'n. Contiene
-varios :class:`~tikon.estruc.módulo.Módulo`s que interactuan entre sí mismos.
+varios módulos (:class:`~tikon.estruc.módulo.Módulo`) que interactuan entre sí mismos.
 Todas simulaciones y calibraciones se efectuan a través de un :class:`~tikon.estruc.simulador.Simulador`.
 
 Módulos

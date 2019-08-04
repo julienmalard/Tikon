@@ -1,5 +1,5 @@
-Conexión con cultivos
----------------------
+Cultivos
+--------
 
 .. note::
    Las funcionalidades de cultivos quedan en desarrollo.
