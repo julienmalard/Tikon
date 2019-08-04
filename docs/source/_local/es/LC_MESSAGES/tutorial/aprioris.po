@@ -1,0 +1,107 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../source/tutorial/aprioris.rst:2
+msgid "A prioris"
+msgstr "A prioris"
+
+#: ../../source/tutorial/aprioris.rst:3
+msgid ""
+"Distribuciones *a priori* especifican rangos probables para los parámetros "
+"de un modelo. Se pueden especificar por el usuario y después se tomarán en "
+"consideración para corridas de simulaciones y calibraciones."
+msgstr ""
+"Distribuciones *a priori* especifican rangos probables para los parámetros "
+"de un modelo. Se pueden especificar por el usuario y después se tomarán en "
+"consideración para corridas de simulaciones y calibraciones."
+
+#: ../../source/tutorial/aprioris.rst:6
+msgid ""
+"Existen dos maneras de especificar una distribución a priori: por densidad y"
+" por forma analítica."
+msgstr ""
+"Existen dos maneras de especificar una distribución a priori: por densidad y"
+" por forma analítica."
+
+#: ../../source/tutorial/aprioris.rst:10
+msgid ""
+"Distribuciones *a priori* solamente se toman en cuenta automáticamente para "
+"corridas de calibraciones. Ver :ref:`espec-calibs` para más detalles."
+msgstr ""
+"Distribuciones *a priori* solamente se toman en cuenta automáticamente para "
+"corridas de calibraciones. Ver :ref:`espec-calibs` para más detalles."
+
+#: ../../source/tutorial/aprioris.rst:14
+msgid "Densidad"
+msgstr "Densidad"
+
+#: ../../source/tutorial/aprioris.rst:15
+msgid ""
+"Se puede especificar *a prioris* por un rango de dos valores y el nivel de "
+"confianza que el valor verdadero se encuentre efectivamente en el rango. "
+"Tiko'n generará automáticamente una distribución que corresponde a la "
+"especificación, y eso, tomando también en cuenta los límites teoréticos del "
+"parámetro."
+msgstr ""
+"Se puede especificar *a prioris* por un rango de dos valores y el nivel de "
+"confianza que el valor verdadero se encuentre efectivamente en el rango. "
+"Tiko'n generará automáticamente una distribución que corresponde a la "
+"especificación, y eso, tomando también en cuenta los límites teoréticos del "
+"parámetro."
+
+#: ../../source/tutorial/aprioris.rst:20
+msgid "Analíticas"
+msgstr "Analíticas"
+
+#: ../../source/tutorial/aprioris.rst:21
+msgid ""
+"También se puede especificar un *a priori* directamente por su forma "
+"analítica."
+msgstr ""
+"También se puede especificar un *a priori* directamente por su forma "
+"analítica."
+
+#: ../../source/tutorial/aprioris.rst:24
+msgid "Uso en modelos"
+msgstr "Uso en modelos"
+
+#: ../../source/tutorial/aprioris.rst:28
+msgid "Interacciones"
+msgstr "Interacciones"
+
+#: ../../source/tutorial/aprioris.rst:29
+msgid ""
+"En el caso de parámetros con interacciones, los a prioris especificados se "
+"aplicarán a la raíz del árbol de interacciones del parámetro. Igualmente "
+"puedes especificar un nivel de interacción al cual aplicar el *a priori*."
+msgstr ""
+"En el caso de parámetros con interacciones, los a prioris especificados se "
+"aplicarán a la raíz del árbol de interacciones del parámetro. Igualmente "
+"puedes especificar un nivel de interacción al cual aplicar el *a priori*."
+
+#: ../../source/tutorial/aprioris.rst:35
+msgid ""
+"Ver :doc:`/tutorial/ecs` para una explicación de niveles en árboles de "
+"ecuaciones, y :ref:`heredar-interacciones` para una descripción de cómo "
+"desactivar la propagación de *a prioris* a través los niveles de "
+"interacción."
+msgstr ""
+"Ver :doc:`/tutorial/ecs` para una explicación de niveles en árboles de "
+"ecuaciones, y :ref:`heredar-interacciones` para una descripción de cómo "
+"desactivar la propagación de *a prioris* a través los niveles de "
+"interacción."

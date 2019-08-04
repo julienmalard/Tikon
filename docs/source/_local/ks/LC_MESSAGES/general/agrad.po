@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: 2019-07-04 04:04+0000\n"
 "Language-Team: Kashmiri (https://www.transifex.com/qatikon/teams/70660/ks/)\n"
 "MIME-Version: 1.0\n"
@@ -53,4 +53,32 @@ msgstr ""
 
 #: ../../source/general/agrad.rst:17
 msgid "Tiko'n se desarrolla en colaboración con las instituciones siguientes:"
+msgstr ""
+
+#: ../../source/general/agrad.rst:36
+msgid "Financiamiento"
+msgstr ""
+
+#: ../../source/general/agrad.rst:37
+msgid ""
+"Los organismos siguientes contribuyeron apoyo financiero a uno o más de los "
+"autores del código mientras trabajaban en el desarrollo de Tiko'n:"
+msgstr ""
+
+#: ../../source/general/agrad.rst:40
+msgid ""
+"`Conseil de recherches en sciences naturelles et en génie du Canada (CRSNG) "
+"<https://www.nserc-crsng.gc.ca>`_"
+msgstr ""
+
+#: ../../source/general/agrad.rst:41
+msgid ""
+"`Centre de recherches pour le développement international du Canada (CRDI) "
+"<https://www.idrc.ca/fr>`_"
+msgstr ""
+
+#: ../../source/general/agrad.rst:42
+msgid ""
+"`Fonds de recherche Nature et technologies du Québec (Canada) (FQRNT) "
+"<http://www.frqnt.gouv.qc.ca/accueil>`_"
 msgstr ""
