@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,15 +20,15 @@ msgstr ""
 msgid "General"
 msgstr "General"
 
-#: ../../source/index.rst:69 ../../source/index.rst:69
+#: ../../source/index.rst:68 ../../source/index.rst:68
 msgid "Tutorial"
 msgstr "Tutorial"
 
-#: ../../source/index.rst:82 ../../source/index.rst:82
+#: ../../source/index.rst:81 ../../source/index.rst:81
 msgid "Desarrollo"
 msgstr "Desarrollo"
 
-#: ../../source/index.rst:91 ../../source/index.rst:91
+#: ../../source/index.rst:90 ../../source/index.rst:90
 msgid "Referencia"
 msgstr "Referencia"
 

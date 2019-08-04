@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: 2017-01-13 17:14+0000\n"
 "Language-Team: Panjabi (Punjabi) (https://www.transifex.com/qatikon/teams/70660/pa/)\n"
 "MIME-Version: 1.0\n"
@@ -21,15 +21,15 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: ../../source/index.rst:69 ../../source/index.rst:69
+#: ../../source/index.rst:68 ../../source/index.rst:68
 msgid "Tutorial"
 msgstr ""
 
-#: ../../source/index.rst:82 ../../source/index.rst:82
+#: ../../source/index.rst:81 ../../source/index.rst:81
 msgid "Desarrollo"
 msgstr ""
 
-#: ../../source/index.rst:91 ../../source/index.rst:91
+#: ../../source/index.rst:90 ../../source/index.rst:90
 msgid "Referencia"
 msgstr ""
 

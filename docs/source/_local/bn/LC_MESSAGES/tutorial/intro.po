@@ -1,0 +1,266 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-31 15:21+0000\n"
+"Language-Team: Bengali (https://www.transifex.com/qatikon/teams/70660/bn/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: bn\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/tutorial/intro.rst:2
+msgid "Introducción"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:3
+msgid ""
+"En este ejemplo vamos a construir nuestra propria red trófica de un sistema "
+"de coco en Sri Lanka. Para guardar las cosas sencillas no vamos a incluir el"
+" cultivo. De todo modo, no tengo modelo de cultivo para árboles de coco."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:6
+msgid ""
+"Aquí está un imagen general de los insectos involucrados (3 en total). "
+"Tenemos solamente una plaga, y dos parasitoides se atacan a varias etapas de"
+" su ciclo de vida."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:14
+msgid "Especificar insectos"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:15
+msgid ""
+"Primero especificaremos nuestros insectos presentes, una oruga y dos "
+"parasitoides (ver :doc:`insectos` para la lista completa de clases "
+"disponibles)."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:18
+msgid ""
+"from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide\n"
+"from tikon.rae.red_ae import RedAE\n"
+"\n"
+"# Mariposas tienen metamórfosis completa\n"
+"Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)\n"
+"\n"
+"# 2 tipos de parasitoides\n"
+"Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)\n"
+"Paras_pupa = Parasitoide('Parasitoide pupa')\n"
+"\n"
+"# El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta\n"
+"Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')\n"
+"\n"
+"# El parasitoide de pupas parasita y emerge de la pupa\n"
+"Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')\n"
+"\n"
+"# Juntamos todo en una red\n"
+"red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:41
+msgid "A prioris"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:42
+msgid ""
+"Aquí vamos a cargar las distribuciones a prioris para los parámetros de la "
+"red. Los tienes que especificar manualmente para cada experimento."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:46
+msgid ""
+"Es **muy importante** establecer buenos *a prioris* para calibraciones. Las "
+"limitaciones de algoritmos existentes de calibración de estos tipos de "
+"modelos hacen primordial la especificación de *a prioris* razonables y "
+"bastante precisos para todos los parámetros del modelo."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:50
+msgid ""
+"Nota para estudiantes: Mejorar estos algoritmos podría ser buena idea de "
+"tesis. :)"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:52
+msgid ""
+"En este caso ya especificamos nuestros a prioris en un documento separado "
+"así que los vamos a cargar directamente."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:54
+msgid ""
+"from tikon.ejemplos.opisina_arenosella.a_prioris import a_prioris\n"
+"red.espec_aprioris(a_prioris)"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:61
+msgid "El experimento"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:62
+msgid ""
+"Aquí se conecta la red con observaciones de campo a través de un experimento"
+" (:class:`~tikon.exper.exper.Exper`)."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:64
+msgid ""
+"from tikon.ejemplos.datos import obt_datos, obt_ref\n"
+"from tikon.exper.exper import Exper\n"
+"from tikon.rae.red_ae.obs import ObsPobs\n"
+"\n"
+"# Datos de observaciones\n"
+"datos = obt_datos('Perera et al 1988/Oarenosella_A.csv')\n"
+"\n"
+"# También se puede visualisar la referencia para los datos\n"
+"print(obt_ref('Perera et al 1988/Oarenosella_A.csv'))\n"
+"\n"
+"# Se trata de observaciones de poblaciones (y no de otro variable, como depredación).\n"
+"pobs = ObsPobs.de_csv(\n"
+"    datos,\n"
+"    col_tiempo='Día',\n"
+"    corresp={\n"
+"        'Estado 1': Oarenosella['juvenil_1'],\n"
+"        'Estado 2': Oarenosella['juvenil_2'],\n"
+"        'Estado 3': Oarenosella['juvenil_3'],\n"
+"        'Estado 4': Oarenosella['juvenil_4'],\n"
+"        'Estado 5': Oarenosella['juvenil_5'],\n"
+"        'Pupa': Oarenosella['pupa'],\n"
+"        'Para_larva_abs': Paras_larvas['juvenil'],\n"
+"        'Para_pupa_abs': Paras_pupa['juvenil']\n"
+"    },\n"
+"    factor=655757.1429 / 500  # para convertir a individuos por ha\n"
+")\n"
+"\n"
+"exper_A = Exper('Sitio A', pobs)"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:97
+msgid "Calibración"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:98
+msgid ""
+"Ahora vamos a calibrar nuestro modelo. Primero creamos un "
+":class:`~tikon.estruc.simulador.Simulador` para poder correr simulaciones y "
+"calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
+"módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:102
+msgid ""
+"from tikon.estruc.simulador import Simulador\n"
+"\n"
+"simul = Simulador(red)\n"
+"\n"
+"simul.calibrar('Sitio A', exper=exper_A)"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:111
+msgid "Validación"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:112
+msgid ""
+"En este ejemplo vamos a hacer trampa y validar con los mismos datos de "
+"calibración. Primero hacemos una simulación normal, y despues vamos a "
+":func:`~tikon.result.res.ResultadosSimul.validar` los resultados. También "
+"los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:116
+msgid ""
+"Las observaciones especificadas arriba quedaron vinculadas en los resultados"
+" y por eso se tomarán en cuenta en la validación y en los gráficos."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:119
+msgid ""
+"res = simul.simular(exper=exper_A)\n"
+"\n"
+"from pprint import pprint\n"
+"pprint(res.validar())\n"
+"\n"
+"res.graficar('gráficos Sitio A')"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:131
+msgid "Guardar y cargar"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:132
+msgid ""
+"Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
+"futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
+" cuyas poblaciones no se observaron en el experimento, así que guardaremos "
+"la calibración del experimento también."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:136
+msgid ""
+"simul.guardar_calib('calibs Sitio A')\n"
+"exper_A.guardar_calib('calibs Sitio A')"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:142
+msgid ""
+"Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
+"pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
+"Python:"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:145
+msgid ""
+"red.cargar_calib('calibs Sitio A')\n"
+"exper_A.cargar_calib('calibs Sitio A')\n"
+"\n"
+"red.simular(exper=exper_A)"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:152
+msgid ""
+"Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
+"después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
+"quieres, también lo puedes compartir en GitHub con el resto de la comunidad "
+"de Tiko'n."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:155
+msgid ""
+"from tikon.ejemplos.calibs import guardar_calib\n"
+"\n"
+"guardar_calib(\n"
+"    [red, exper_A],\n"
+"    'Opisina arenosella, Perera et al. 1988',\n"
+"    autor='Yo :)'\n"
+"    correo='julien.malard@mail.mcgill.ca',\n"
+"    detalles='Calibración con Sitio A'\n"
+")"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:167
+msgid "Después se podrá acceder con:"
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:169
+msgid ""
+"from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
+"\n"
+"dir_ = 'Opisina arenosella, Perera et al. 1988'\n"
+"red.cargar_calib(obt_calib(dir_)\n"
+"exper_A.cargar_calib(dir_)\n"
+"\n"
+"# Visualizar la información de la calibración\n"
+"print(obt_ref(dir_))"
+msgstr ""

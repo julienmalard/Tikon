@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Language-Team: Tamil (https://www.transifex.com/qatikon/teams/70660/ta/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ta\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/tutorial/manejo.rst:2
+msgid "Manejo"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:3
+msgid ""
+"En Tiko'n, *manejo* se refiere a acciones que toman humanos para modificar "
+"el sistema agrícola."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:6
+msgid "Reglas"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:7
+msgid ""
+"Una **regla** () tiene dos componentes: una **condición** () y una o más "
+"**acciones** (). Cuando se cumple la condición, entonces se ejecutará la "
+"acción."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:11
+msgid "Condiciones"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:12
+msgid ""
+"Las condiciones pueden ser según el tiempo o según el valor de un variable "
+"particular."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:15
+msgid "Temporales"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:18
+msgid "Variables"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:22
+msgid ""
+"Las condiciones basades en valores de variables se evaluan **separadamente**"
+" para cada repetición estocástica y paramétrica del modelo."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:26
+msgid "Combinadas"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:27
+msgid ""
+"Igualmente puedes combinar varias condiciones con "
+":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:30
+msgid "Acciones"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:34
+msgid "Uso en modelos"
+msgstr ""

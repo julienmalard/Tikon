@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-04 04:04+0000\n"
+"POT-Creation-Date: 2019-07-31 17:22+0000\n"
 "PO-Revision-Date: 2017-01-13 17:14+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Hindi (https://www.transifex.com/qatikon/teams/70660/hi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,37 +23,39 @@ msgstr ""
 
 #: ../../source/index.rst:59 ../../source/index.rst:59
 msgid "General"
-msgstr ""
+msgstr "सामान्य"
 
-#: ../../source/index.rst:69 ../../source/index.rst:69
+#: ../../source/index.rst:68 ../../source/index.rst:68
 msgid "Tutorial"
-msgstr ""
+msgstr "सीखना"
 
-#: ../../source/index.rst:82 ../../source/index.rst:82
+#: ../../source/index.rst:81 ../../source/index.rst:81
 msgid "Desarrollo"
-msgstr ""
+msgstr "विकास"
 
-#: ../../source/index.rst:91 ../../source/index.rst:91
+#: ../../source/index.rst:90 ../../source/index.rst:90
 msgid "Referencia"
-msgstr ""
+msgstr "संदर्भ"
 
 #: ../../source/index.rst:7
 msgid "¡Bienvenidoas a la documentación de Tiko'n!"
-msgstr ""
+msgstr "तिकोन की दस्तावेज़ात पर आपका स्वागत हो।"
 
 #: ../../source/index.rst:22
 msgid "¿Qué es Tiko'n?"
-msgstr ""
+msgstr "तिकोन है क्या।"
 
 #: ../../source/index.rst:23
 msgid ""
 "Tiko'n es un programa para desarrollar modelos de redes tróficas "
 "agroecológicas de manera sencilla, reproducible y divertida."
 msgstr ""
+"तिकोन एक संगणक कार्यक्रम है जिस से आसान, पुनरुत्पादनीय और मज़ेदार तरह से "
+"खाद्य जाल के प्रतिरूप की विकास होती है।"
 
 #: ../../source/index.rst:27
 msgid "¿Qué es un modelo de redes tróficas?"
-msgstr ""
+msgstr "खाद्य जाल की प्रतिरूप क्या हैं फ़िर।"
 
 #: ../../source/index.rst:28
 msgid ""
@@ -63,21 +69,23 @@ msgstr ""
 
 #: ../../source/index.rst:34
 msgid "¿Por qué utilizar Tiko'n?"
-msgstr ""
+msgstr "तिकोन का प्रयोग क्यों करें।"
 
 #: ../../source/index.rst:35
 msgid ""
 "Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3"
 " insectos) presentan problemas como"
 msgstr ""
+"खाद्य जाल के प्रतिरूप करने बहुत मुश्किल हो सकता है। सरल जाल में (कहें ३ ही "
+"कीड़े के) भी निम्नलिखित कठिनाइयाँ आएँगी-"
 
 #: ../../source/index.rst:37
 msgid "Multitud de parámetros (15+ por insecto)"
-msgstr ""
+msgstr "बहुत परिवर्तनशील (हर कीड़े को १५ से ज़्यादा)"
 
 #: ../../source/index.rst:38
 msgid "Inestabilidad matemática (dificultando predicciones fiables)"
-msgstr ""
+msgstr "परिरूप की गणितीय अस्थिरता (विश्वसनीय पूर्वानुमान पाने मे कठिनाइयाँ)"
 
 #: ../../source/index.rst:39
 msgid ""
@@ -87,11 +95,11 @@ msgstr ""
 
 #: ../../source/index.rst:40
 msgid "Muy alta incertidumbre en los valores verdaderos de los parámetros"
-msgstr ""
+msgstr "परिवर्तनशील की असली मूल्य में ऊंची अनिश्चितता"
 
 #: ../../source/index.rst:41
 msgid "Pocos datos para calibración y validación"
-msgstr ""
+msgstr "अंशशोधन और विधिमान्यकरण के आँकड़ों की कमी"
 
 #: ../../source/index.rst:42
 msgid ""
@@ -140,8 +148,8 @@ msgstr ""
 
 #: ../../source/index.rst:54
 msgid "Y, por supuesto, gráficos bonitos"
-msgstr ""
+msgstr "और, बिलकुल, सुंदर रेखा-चित्र"
 
 #: ../../source/index.rst:57
 msgid "Contenido"
-msgstr ""
+msgstr "समाग्री"
