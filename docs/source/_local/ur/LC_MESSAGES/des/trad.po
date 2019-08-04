@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,11 +23,11 @@ msgstr ""
 
 #: ../../source/des/trad.rst:2
 msgid "Traducciones"
-msgstr ""
+msgstr "ترجمہ"
 
 #: ../../source/des/trad.rst:3
 msgid ""
-"Tiko'n es un proyecto abierto y beneficia de se lo más accesible posible. "
+"Tiko'n es un proyecto abierto y beneficia de ser lo más accesible posible. "
 "Puedes ayudar a traducir los varios componentes de Tiko'n en tu idioma aquí."
 " Necesitarás crear una cuenta gratis en `Transifex "
 "<https://www.transifex.com>`_ primero."
@@ -34,6 +38,8 @@ msgid ""
 "`Documentación <https://www.transifex.com/qatikon/tikon/dashboard>`_ (lo que"
 " estás leyendo ahora)"
 msgstr ""
+"`دستاویزات <https://www.transifex.com/qatikon/tikon/dashboard>`_ (آپ جو ابھی"
+" پڈھ رہی ہیں)"
 
 #: ../../source/des/trad.rst:8
 msgid ""
@@ -52,3 +58,5 @@ msgid ""
 "Si no aparece tu idioma favorito en la lista, por favor haz una demanda de "
 "activación de idioma en los enlaces arriba."
 msgstr ""
+"اگر آپکی پسندگی زبان اس فہرست میں دستیاب نہیں، براے کرام مذکورہ بالا رابطے "
+"میں اسکی شمولیت کا عرض کر دیجئے۔"
