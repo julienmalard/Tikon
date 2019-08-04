@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-04 04:04+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,45 +23,51 @@ msgstr ""
 
 #: ../../source/general/agrad.rst:2
 msgid "Agradecimientos"
-msgstr ""
+msgstr "شکریہ"
 
 #: ../../source/general/agrad.rst:3
 msgid ""
 "Tiko'n es un proyecto de fuente abierta. Las personas e instituciones "
 "siguientes hicieron posible su desarrollo."
 msgstr ""
+"تیکون ازاد مصدر کا ہیے۔  درج ذیل انسان اور اداروں کی وجے سے ہی اسکی ترقی "
+"ممکن ہوی۔"
 
 #: ../../source/general/agrad.rst:6
 msgid "Autores del código"
-msgstr ""
+msgstr "مصنف"
 
 #: ../../source/general/agrad.rst:7 ../../source/general/agrad.rst:13
 msgid ""
 "Julien Malard (`Sitio internet "
 "<https://www.researchgate.net/profile/Julien_Malard>`_)"
 msgstr ""
+"ژولیئں ملاغ (`Sitio internet "
+"<https://www.researchgate.net/profile/Julien_Malard>`_)"
 
 #: ../../source/general/agrad.rst:8
 msgid ""
 "Marcela Rojas (`Sitio internet "
 "<https://www.researchgate.net/profile/Marcela_Rojas5>`_)"
 msgstr ""
+"مارسیلا روحاس (`Sitio internet "
+"<https://www.researchgate.net/profile/Marcela_Rojas5>`_)"
 
 #: ../../source/general/agrad.rst:12
 msgid "Traductores"
-msgstr ""
+msgstr "ترجمہ"
 
 #: ../../source/general/agrad.rst:16
 msgid "Instituciones afiliadas"
-msgstr ""
+msgstr "الحاق شدہ ادارے"
 
 #: ../../source/general/agrad.rst:17
 msgid "Tiko'n se desarrolla en colaboración con las instituciones siguientes:"
-msgstr ""
+msgstr "تیکوں کی ترقی درج ذیل اداروں کے ساتھ ہو رہی ہیے:"
 
 #: ../../source/general/agrad.rst:36
 msgid "Financiamiento"
-msgstr ""
+msgstr "مالیات"
 
 #: ../../source/general/agrad.rst:37
 msgid ""
@@ -70,15 +80,21 @@ msgid ""
 "`Conseil de recherches en sciences naturelles et en génie du Canada (CRSNG) "
 "<https://www.nserc-crsng.gc.ca>`_"
 msgstr ""
+"`Conseil de recherches en sciences naturelles et en génie du Canada (CRSNG) "
+"<https://www.nserc-crsng.gc.ca>`_"
 
 #: ../../source/general/agrad.rst:41
 msgid ""
 "`Centre de recherches pour le développement international du Canada (CRDI) "
 "<https://www.idrc.ca/fr>`_"
 msgstr ""
+"`Centre de recherches pour le développement international du Canada (CRDI) "
+"<https://www.idrc.ca/fr>`_"
 
 #: ../../source/general/agrad.rst:42
 msgid ""
 "`Fonds de recherche Nature et technologies du Québec (Canada) (FQRNT) "
 "<http://www.frqnt.gouv.qc.ca/accueil>`_"
 msgstr ""
+"`Fonds de recherche Nature et technologies du Québec (Canada) (FQRNT) "
+"<http://www.frqnt.gouv.qc.ca/accueil>`_"
