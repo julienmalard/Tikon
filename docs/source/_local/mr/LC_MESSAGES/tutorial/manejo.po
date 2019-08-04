@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 04:41+0000\n"
+"POT-Creation-Date: 2019-08-04 06:55+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
 "Language-Team: Marathi (https://www.transifex.com/qatikon/teams/70660/mr/)\n"
 "MIME-Version: 1.0\n"
@@ -29,30 +29,38 @@ msgstr ""
 
 #: ../../source/tutorial/manejo.rst:5
 msgid ""
-"Aquí daremos un ejemplo de cómo predecir el impacto de biocontrol en el "
-"modelo de *Opisina arenosella* que ya desarrollamos."
+"Aquí vamos a predecir el impacto de biocontrol con el modelo de *Opisina "
+"arenosella* que ya desarrollamos."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:8
+msgid "Cómo funciona"
 msgstr ""
 
 #: ../../source/tutorial/manejo.rst:9
 msgid ""
-"Una **regla** () tiene dos componentes: una **condición** () y una o más "
-"**acciones** (). Cuando se cumple la condición, entonces se ejecutará la "
-"acción."
+"Una **regla** (:class:`~tikon.manejo.manejo.Regla`) tiene dos componentes: "
+"una **condición** (:class:`~tikon.manejo.conds.Condición`) y una o más "
+"**acciones** (:class:`~tikon.manejo.acciones.Acción`). Cuando se cumple la "
+"condición, Tiko'n ejecutará el acción. ¡Sencillo!"
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:12
+#: ../../source/tutorial/manejo.rst:13
 msgid ""
-"Las condiciones pueden ser según el tiempo o según el valor de un variable "
-"particular. Igualmente puedes combinar varias condiciones con "
-":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
+"Las condiciones pueden ser según el tiempo "
+"(:class:`~tikon.manejo.conds.CondTiempo` y "
+":class:`~tikon.manejo.conds.CondCada`) o según el valor de un variable "
+"particular (:class:`~tikon.manejo.conds.CondVariable`). Igualmente puedes "
+"combinar varias condiciones con :class:`~tikon.manejo.conds.CondY` y "
+":class:`~tikon.manejo.conds.CondO`."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:16
+#: ../../source/tutorial/manejo.rst:19
 msgid ""
 "Las condiciones basades en valores de variables se evaluan **separadamente**"
 " para cada repetición estocástica y paramétrica del modelo."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:20
+#: ../../source/tutorial/manejo.rst:23
 msgid "Biocontrol"
 msgstr ""
