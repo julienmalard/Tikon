@@ -181,8 +181,8 @@ Después se podrá acceder con:
    from tikon.ejemplos.calibs import obt_calib, obt_ref
 
    dir_ = 'Opisina arenosella, Perera et al. 1988'
-   red.cargar_calib(obt_calib(dir_)
-   exper_A.cargar_calib(dir_)
+   red.cargar_calib(obt_calib(dir_))
+   exper_A.cargar_calib(obt_calib(dir_))
 
    # Visualizar la información de la calibración
    print(obt_ref(dir_))
