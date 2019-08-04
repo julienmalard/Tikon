@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 04:41+0000\n"
+"POT-Creation-Date: 2019-08-04 06:55+0000\n"
 "PO-Revision-Date: 2019-07-31 15:21+0000\n"
 "Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
@@ -107,6 +107,9 @@ msgid ""
 "especificas antes de correr una calibración. Ayuda el algoritmo de "
 "calibración a encontrar el mejor valor del parámetro."
 msgstr ""
+"ایک *بنفسیہ* ایک تفسیم احتمال ہیے جو تنظیم کے پہلے سے ہی متغیرات کی ممکنہ "
+"قیمت کی وضاحت کر دیتا ہیے۔ متغیر کے سحی قیمت کی تلاش میں تنظیمی الخوارزم کی "
+"مدد کرتا ہیے۔"
 
 #: ../../source/tutorial/intro.rst:45
 msgid ""
@@ -234,7 +237,7 @@ msgid ""
 "calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
 "módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
 msgstr ""
-"اب ہم اپنے نمونے کی تنظیم کریں گے۔ پہلہ ایک نقلیوالا "
+"اب ہم اپنے نمونے کی تنظیم کریں گے۔ پہلہ ایک نمونہ "
 "(:class:`~tikon.estruc.simulador.Simulador`) بنائں گے جس سے تنظیم اور نقلیاں"
 " کی جا سکتی ہیں۔ ہمہارے مثال میں نقلیوالا میں صرف ایک حصہ ہیے (جال)، پر چاہے"
 " تو موسم، انتظام اور فصل بھی جوڑے جا سکتے ہیں۔"
@@ -264,12 +267,19 @@ msgid ""
 ":func:`~tikon.result.res.ResultadosSimul.validar` los resultados. También "
 "los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`."
 msgstr ""
+"اس مثال میں ہم تھوڑا دھوکے دیں گے اور تنظیم اور تصدیق دونوں کے لئے ایک ہی "
+"کوائف کا استعمال کریں گے۔ پہلے ہم ایک عام نقلی کریں گے، اور بعاد میں اپنے "
+"نتائج کی تصدیق (:func:`~tikon.result.res.ResultadosSimul.validar`) کریں گے۔ "
+"انکے تصویر بھی بنا سکیں گے "
+"(:func:`~tikon.result.res.ResultadosSimul.graficar`)۔"
 
 #: ../../source/tutorial/intro.rst:119
 msgid ""
 "Las observaciones especificadas arriba quedaron vinculadas en los resultados"
 " y por eso se tomarán en cuenta en la validación y en los gráficos."
 msgstr ""
+"اوپر وصاحت کی گئی مشاہدات نتائج کے ساتھ جوڑی رہتی ہیں۔ اسی لئے تصدیق اور "
+"تصویروں میں بھی شامل ہوں گی۔"
 
 #: ../../source/tutorial/intro.rst:122
 msgid ""
@@ -287,19 +297,28 @@ msgstr ""
 "\n"
 "نتیجہ.graficar('تصویریں جگہ ا')"
 
-#: ../../source/tutorial/intro.rst:134
+#: ../../source/tutorial/intro.rst:131
+msgid ""
+"Tiko'n generará un gráfico para cada insecto de la red, con su población "
+"predicha, los márgenes de incertidumbre y las observaciones, si hay."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:141
 msgid "Guardar y cargar"
 msgstr "تحفوظ کرنا اور کھولنا"
 
-#: ../../source/tutorial/intro.rst:135
+#: ../../source/tutorial/intro.rst:142
 msgid ""
 "Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
 "futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
 " cuyas poblaciones no se observaron en el experimento, así que guardaremos "
 "la calibración del experimento también."
 msgstr ""
+"تنظیم کے نتائج کی تحفوظ کریں گے تکہ اگے زیادہ جلدی ہو جائیں۔ تیکوں خودکار "
+"تریقہ سے ان ابتدائی آبادیوں کی تنظیم بھی کر دیتا ہیے جن کے کوائف تجربہ کے "
+"مشاہدات میں نہ ہو۔ اسی لئے ہم تجربہ کی تنظیم کی تحفوظ بھی کریں گے۔"
 
-#: ../../source/tutorial/intro.rst:139
+#: ../../source/tutorial/intro.rst:146
 msgid ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
@@ -307,14 +326,16 @@ msgstr ""
 "نقلی.guardar_calib('تنظیم جگہ ا')\n"
 "تجربہ_ا.guardar_calib('تنظیم جگہ ا')"
 
-#: ../../source/tutorial/intro.rst:145
+#: ../../source/tutorial/intro.rst:152
 msgid ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
 "Python:"
 msgstr ""
+"بعاد میں تنظیم کو کھولکے اور کام کر سکتے ہیے۔ تیکون کے دوسرے صارفوں کے ساتھ "
+"بانٹ کی جا سکتی ہیں بھی۔ مثال کے تور پر، پایتھون دبارہ کھولنے کے بعاد:"
 
-#: ../../source/tutorial/intro.rst:148
+#: ../../source/tutorial/intro.rst:155
 msgid ""
 "red.cargar_calib('calibs Sitio A')\n"
 "exper_A.cargar_calib('calibs Sitio A')\n"
@@ -326,15 +347,18 @@ msgstr ""
 "\n"
 "جال.simular(exper=تجربہ_ا)"
 
-#: ../../source/tutorial/intro.rst:155
+#: ../../source/tutorial/intro.rst:162
 msgid ""
 "Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
 "después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
 "quieres, también lo puedes compartir en GitHub con el resto de la comunidad "
 "de Tiko'n."
 msgstr ""
+"ٓپکی تنظیم کے تحفوظ کیتون کے اندر بھہ کی جا سکتی ہیے تکہ باکی باکی صارفوں کے"
+" لئے بھی دستیاب ہو جائں۔ چاہئے تو انہیں گٹھب پر بانٹ سکتے ہیں تکہ تیکون کے "
+"سارے صارفوں کو دستیاب میلیں۔"
 
-#: ../../source/tutorial/intro.rst:158
+#: ../../source/tutorial/intro.rst:165
 msgid ""
 "from tikon.ejemplos.calibs import guardar_calib\n"
 "\n"
@@ -346,9 +370,9 @@ msgid ""
 "    detalles='Calibración con Sitio A'\n"
 ")"
 msgstr ""
-"from tikon.ejemplos.calibs import تنذیم_محفوظ\n"
+"from tikon.ejemplos.calibs import تنظیم_محفوظ\n"
 "\n"
-"تنذیم_محفوظ(\n"
+"تنظیم_محفوظ(\n"
 "    [جال, تجربہ_ا],\n"
 "    'Opisina arenosella, Perera et al. 1988',\n"
 "    autor='میں :)'\n"
@@ -356,11 +380,11 @@ msgstr ""
 "    detalles='جگہ ا کے ساتھ تنظیم'\n"
 ")"
 
-#: ../../source/tutorial/intro.rst:170
+#: ../../source/tutorial/intro.rst:177
 msgid "Después se podrá acceder con:"
 msgstr "اسکے بعاد انہیں ایسا پا سکتے ہیں:"
 
-#: ../../source/tutorial/intro.rst:172
+#: ../../source/tutorial/intro.rst:179
 msgid ""
 "from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
 "\n"
