@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,11 +28,15 @@ msgstr ""
 "En Tiko'n, *manejo* se refiere a acciones que toman humanos para modificar "
 "el sistema agrícola."
 
-#: ../../source/tutorial/manejo.rst:6
-msgid "Reglas"
-msgstr "Reglas"
+#: ../../source/tutorial/manejo.rst:5
+msgid ""
+"Aquí daremos un ejemplo de cómo predecir el impacto de biocontrol en el "
+"modelo de *Opisina arenosella* que ya desarrollamos."
+msgstr ""
+"Aquí daremos un ejemplo de cómo predecir el impacto de biocontrol en el "
+"modelo de *Opisina arenosella* que ya desarrollamos."
 
-#: ../../source/tutorial/manejo.rst:7
+#: ../../source/tutorial/manejo.rst:9
 msgid ""
 "Una **regla** () tiene dos componentes: una **condición** () y una o más "
 "**acciones** (). Cuando se cumple la condición, entonces se ejecutará la "
@@ -41,28 +45,18 @@ msgstr ""
 "Una **regla** () tiene dos componentes: una **condición** () y una o más "
 "**acciones** (). Cuando se cumple la condición, entonces se ejecutará la "
 "acción."
-
-#: ../../source/tutorial/manejo.rst:11
-msgid "Condiciones"
-msgstr "Condiciones"
 
 #: ../../source/tutorial/manejo.rst:12
 msgid ""
 "Las condiciones pueden ser según el tiempo o según el valor de un variable "
-"particular."
+"particular. Igualmente puedes combinar varias condiciones con "
+":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
 msgstr ""
 "Las condiciones pueden ser según el tiempo o según el valor de un variable "
-"particular."
+"particular. Igualmente puedes combinar varias condiciones con "
+":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
 
-#: ../../source/tutorial/manejo.rst:15
-msgid "Temporales"
-msgstr "Temporales"
-
-#: ../../source/tutorial/manejo.rst:18
-msgid "Variables"
-msgstr "Variables"
-
-#: ../../source/tutorial/manejo.rst:22
+#: ../../source/tutorial/manejo.rst:16
 msgid ""
 "Las condiciones basades en valores de variables se evaluan **separadamente**"
 " para cada repetición estocástica y paramétrica del modelo."
@@ -70,22 +64,6 @@ msgstr ""
 "Las condiciones basades en valores de variables se evaluan **separadamente**"
 " para cada repetición estocástica y paramétrica del modelo."
 
-#: ../../source/tutorial/manejo.rst:26
-msgid "Combinadas"
-msgstr "Combinadas"
-
-#: ../../source/tutorial/manejo.rst:27
-msgid ""
-"Igualmente puedes combinar varias condiciones con "
-":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
-msgstr ""
-"Igualmente puedes combinar varias condiciones con "
-":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
-
-#: ../../source/tutorial/manejo.rst:30
-msgid "Acciones"
-msgstr "Acciones"
-
-#: ../../source/tutorial/manejo.rst:34
-msgid "Uso en modelos"
-msgstr "Uso en modelos"
+#: ../../source/tutorial/manejo.rst:20
+msgid "Biocontrol"
+msgstr "Biocontrol"

@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-31 15:21+0000\n"
 "Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #: ../../source/tutorial/intro.rst:2
 msgid "Introducción"
-msgstr "ابتدای"
+msgstr "ابتدائیہ"
 
 #: ../../source/tutorial/intro.rst:3
 msgid ""
@@ -31,6 +31,9 @@ msgid ""
 "de coco en Sri Lanka. Para guardar las cosas sencillas no vamos a incluir el"
 " cultivo. De todo modo, no tengo modelo de cultivo para árboles de coco."
 msgstr ""
+"اس مثال میں ہم اپنا خوراکی جال خود بنائں گے۔ یہ جال سری لانکا میں ناریئل کے "
+"کھیت سے ہیے۔ اسمیں فصل نہیں جوڑا دیں گے تاکے ہمہارہ کام آسان رہے۔ اس کے "
+"علاوا، میرے پاس ناریئل کا نمونہ نہیں ہیے۔"
 
 #: ../../source/tutorial/intro.rst:6
 msgid ""
@@ -38,10 +41,12 @@ msgid ""
 "Tenemos solamente una plaga, y dos parasitoides se atacan a varias etapas de"
 " su ciclo de vida."
 msgstr ""
+"یہاں سارے شامل ہونے والے کیڑوں (کل ملاکر ۳) دیکھ سکتے ہیں۔ ایک ہی دشمان کیڑا"
+" ہیے، اور دو پرجیوی جو اس کی زیندگی کی مختلف مرحلے پر حملہ کرتے ہیں۔"
 
 #: ../../source/tutorial/intro.rst:14
 msgid "Especificar insectos"
-msgstr ""
+msgstr "کیڑوں کی وضاحت"
 
 #: ../../source/tutorial/intro.rst:15
 msgid ""
@@ -49,6 +54,8 @@ msgid ""
 "parasitoides (ver :doc:`insectos` para la lista completa de clases "
 "disponibles)."
 msgstr ""
+"ہم پہلے اپنے کیڑون کی وضاحت کریں گے، ایک تتلی اور دو پرجیویاں (کیڑوں کی "
+"دستیاب قسم کی مکمل فہرست دیکھنے کے لئے :doc:`insectos` دیکھنا)۔"
 
 #: ../../source/tutorial/intro.rst:18
 msgid ""
@@ -71,6 +78,24 @@ msgid ""
 "# Juntamos todo en una red\n"
 "red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])"
 msgstr ""
+"from tikon.rae.orgs.insectos import MetamCompleta as زندکی_مکمل, Parasitoide as پرجیوی\n"
+"from tikon.rae.red_ae import RedAE as جال\n"
+"\n"
+"# تتلیاں کی زندگیاں مکمل کی ہیں\n"
+"او_ارینوسیلا = زندکی_مکمل('او۔ ارینوسیلا', njuvenil=5)\n"
+"\n"
+"# پرجویوں کی ۲ قسم\n"
+"پرکیوی_لاروا = پرجیوی('پرجیوی لاروا', pupa=True)\n"
+"پرجیوی_پوپا = پرجیوی('پرجیوی پوپا')\n"
+"\n"
+"# پرجیوی او۔ ارینوسیلا کے ۳، ۴، اور ۵ مرحلے میں داخل کرتا ہیے اور ۵ کے باد ابھارتا ہیے۔\n"
+"پرکیوی_لاروا.parasita(او_ارینوسیلا, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')\n"
+"\n"
+"# پوپا کی پرجیوی کے داخلا اور خروج پوپا سے ہی ہوتے ہیں۔\n"
+"پرجیوی_پوپا.parasita(او_ارینوسیلا, 'pupa', etp_emerg='pupa')\n"
+"\n"
+"# سب ایک جال میں جوڑا دتے ہیں۔\n"
+"میری_جال = جال([او_ارینوسیلا, پرکیوی_لاروا, پرجیوی_پوپا])"
 
 #: ../../source/tutorial/intro.rst:41
 msgid "A prioris"
@@ -78,47 +103,67 @@ msgstr "بنفسیہ"
 
 #: ../../source/tutorial/intro.rst:42
 msgid ""
+"Un *a priori* es una distribución probable del valor de un parámetro que "
+"especificas antes de correr una calibración. Ayuda el algoritmo de "
+"calibración a encontrar el mejor valor del parámetro."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:45
+msgid ""
 "Aquí vamos a cargar las distribuciones a prioris para los parámetros de la "
 "red. Los tienes que especificar manualmente para cada experimento."
 msgstr ""
+"یہاں ہم اپنے جال کی متغیرات کے بنفیسہ تفسیم احتمال جوڑا دیں گے۔ ہر تجربہ کے "
+"لئے انکے وضاحت دستی تور پر کرنی ہیے۔"
 
-#: ../../source/tutorial/intro.rst:46
+#: ../../source/tutorial/intro.rst:49
 msgid ""
 "Es **muy importante** establecer buenos *a prioris* para calibraciones. Las "
 "limitaciones de algoritmos existentes de calibración de estos tipos de "
 "modelos hacen primordial la especificación de *a prioris* razonables y "
 "bastante precisos para todos los parámetros del modelo."
 msgstr ""
+"تنظیم کے لئے، اچھے *بنفسیہ* کی وضاحت **بہت ہی اہم ہیے**۔ آجکل کے تنظیمی "
+"الخوارزم نمونہ کے ہر ایک متغیر کے لئے معقول اور عین مطابق *بنفسیہ* کے بغیر "
+"اس ترف کے نمونے کی تنظیم نہیں کر پائے گا۔"
 
-#: ../../source/tutorial/intro.rst:50
+#: ../../source/tutorial/intro.rst:53
 msgid ""
 "Nota para estudiantes: Mejorar estos algoritmos podría ser buena idea de "
 "tesis. :)"
 msgstr ""
+"طالب علم کے لئے: مقالہ کے لئے بھہتر الخوارزم کی تلاش بہت اچھی مضموع ہو سکتی "
+"ہیے. :)"
 
-#: ../../source/tutorial/intro.rst:52
+#: ../../source/tutorial/intro.rst:55
 msgid ""
 "En este caso ya especificamos nuestros a prioris en un documento separado "
 "así que los vamos a cargar directamente."
 msgstr ""
+"یہاں ہمنے اپنے بنفسیہ کے وضاحت الگ مسل میں کر چکے ہیں، تو انہیں سیدھے کھولیں"
+" گے۔"
 
-#: ../../source/tutorial/intro.rst:54
+#: ../../source/tutorial/intro.rst:57
 msgid ""
 "from tikon.ejemplos.opisina_arenosella.a_prioris import a_prioris\n"
 "red.espec_aprioris(a_prioris)"
 msgstr ""
+"from tikon.ejemplos.opisina_arenosella.a_prioris import a_prioris as بنفسیہ\n"
+"جال.espec_aprioris(بنفسیہ)"
 
-#: ../../source/tutorial/intro.rst:61
+#: ../../source/tutorial/intro.rst:64
 msgid "El experimento"
-msgstr ""
+msgstr "تجربہ"
 
-#: ../../source/tutorial/intro.rst:62
+#: ../../source/tutorial/intro.rst:65
 msgid ""
 "Aquí se conecta la red con observaciones de campo a través de un experimento"
 " (:class:`~tikon.exper.exper.Exper`)."
 msgstr ""
+"ہیاں ایک تجربہ (:class:`~tikon.exper.exper.Exper`) کے ذریعے سے جال کو کھیت "
+"کی مشاہدات سے جوڑا دیں گے."
 
-#: ../../source/tutorial/intro.rst:64
+#: ../../source/tutorial/intro.rst:67
 msgid ""
 "from tikon.ejemplos.datos import obt_datos, obt_ref\n"
 "from tikon.exper.exper import Exper\n"
@@ -149,20 +194,52 @@ msgid ""
 "\n"
 "exper_A = Exper('Sitio A', pobs)"
 msgstr ""
+"from tikon.ejemplos.datos import obt_datos as کوائف_پانا, obt_ref as حوالہ_پانا\n"
+"from tikon.exper.exper import Exper as تجربہ\n"
+"from tikon.rae.red_ae.obs import ObsPobs as آبادی_مشاہدات\n"
+"\n"
+"# مشاہدات کے کوائف\n"
+"کوائف = کوائف_پانا('Perera et al 1988/Oarenosella_A.csv')\n"
+"\n"
+"# مشاہدات کی حوالہ بھی دیکھ سکتے ہیں\n"
+"print(حوالہ_پانا('Perera et al 1988/Oarenosella_A.csv'))\n"
+"\n"
+"# ہمہارے مشاہدات آبادی کے ہی ہیں، (اور دوسری متغیرات کے نہیں، جیسے کے شراک)\n"
+"آبادی = آبادی_مشاہدات.de_csv(\n"
+"    datos,\n"
+"    col_tiempo='Día',\n"
+"    corresp={\n"
+"        'Estado 1': او_ارینوسیلا['juvenil_1'],\n"
+"        'Estado 2': او_ارینوسیلا['juvenil_2'],\n"
+"        'Estado 3': او_ارینوسیلا['juvenil_3'],\n"
+"        'Estado 4': او_ارینوسیلا['juvenil_4'],\n"
+"        'Estado 5': او_ارینوسیلا['juvenil_5'],\n"
+"        'Pupa': او_ارینوسیلا['pupa'],\n"
+"        'Para_larva_abs': پرجیوی_لاروا['juvenil'],\n"
+"        'Para_pupa_abs': پرجیوی_پوپا['juvenil']\n"
+"    },\n"
+"    factor=655757.1429 / 500  # para convertir a individuos por ha\n"
+")\n"
+"\n"
+"تجربہ_ا = تجربہ('Sitio A', pobs)"
 
-#: ../../source/tutorial/intro.rst:97
+#: ../../source/tutorial/intro.rst:100
 msgid "Calibración"
-msgstr ""
+msgstr "تنظیم"
 
-#: ../../source/tutorial/intro.rst:98
+#: ../../source/tutorial/intro.rst:101
 msgid ""
 "Ahora vamos a calibrar nuestro modelo. Primero creamos un "
 ":class:`~tikon.estruc.simulador.Simulador` para poder correr simulaciones y "
 "calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
 "módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
 msgstr ""
+"اب ہم اپنے نمونے کی تنظیم کریں گے۔ پہلہ ایک نقلیوالا "
+"(:class:`~tikon.estruc.simulador.Simulador`) بنائں گے جس سے تنظیم اور نقلیاں"
+" کی جا سکتی ہیں۔ ہمہارے مثال میں نقلیوالا میں صرف ایک حصہ ہیے (جال)، پر چاہے"
+" تو موسم، انتظام اور فصل بھی جوڑے جا سکتے ہیں۔"
 
-#: ../../source/tutorial/intro.rst:102
+#: ../../source/tutorial/intro.rst:105
 msgid ""
 "from tikon.estruc.simulador import Simulador\n"
 "\n"
@@ -170,12 +247,17 @@ msgid ""
 "\n"
 "simul.calibrar('Sitio A', exper=exper_A)"
 msgstr ""
+"from tikon.estruc.simulador import Simulador as نقلیوالا\n"
+"\n"
+"نقلی = نقلیوالا(میری_جال)\n"
+"\n"
+"نقلی.calibrar('جگہ ا', exper=تجربہ_ا)"
 
-#: ../../source/tutorial/intro.rst:111
+#: ../../source/tutorial/intro.rst:114
 msgid "Validación"
 msgstr "تصدیق"
 
-#: ../../source/tutorial/intro.rst:112
+#: ../../source/tutorial/intro.rst:115
 msgid ""
 "En este ejemplo vamos a hacer trampa y validar con los mismos datos de "
 "calibración. Primero hacemos una simulación normal, y despues vamos a "
@@ -183,13 +265,13 @@ msgid ""
 "los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:116
+#: ../../source/tutorial/intro.rst:119
 msgid ""
 "Las observaciones especificadas arriba quedaron vinculadas en los resultados"
 " y por eso se tomarán en cuenta en la validación y en los gráficos."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:119
+#: ../../source/tutorial/intro.rst:122
 msgid ""
 "res = simul.simular(exper=exper_A)\n"
 "\n"
@@ -198,12 +280,18 @@ msgid ""
 "\n"
 "res.graficar('gráficos Sitio A')"
 msgstr ""
+"نتیجہ = نقلی.simular(exper=تجربہ_ا)\n"
+"\n"
+"from pprint import pprint\n"
+"pprint(نتیجہ.validar())\n"
+"\n"
+"نتیجہ.graficar('تصویریں جگہ ا')"
 
-#: ../../source/tutorial/intro.rst:131
+#: ../../source/tutorial/intro.rst:134
 msgid "Guardar y cargar"
-msgstr ""
+msgstr "تحفوظ کرنا اور کھولنا"
 
-#: ../../source/tutorial/intro.rst:132
+#: ../../source/tutorial/intro.rst:135
 msgid ""
 "Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
 "futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
@@ -211,28 +299,34 @@ msgid ""
 "la calibración del experimento también."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:136
+#: ../../source/tutorial/intro.rst:139
 msgid ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
 msgstr ""
+"نقلی.guardar_calib('تنظیم جگہ ا')\n"
+"تجربہ_ا.guardar_calib('تنظیم جگہ ا')"
 
-#: ../../source/tutorial/intro.rst:142
+#: ../../source/tutorial/intro.rst:145
 msgid ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
 "Python:"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:145
+#: ../../source/tutorial/intro.rst:148
 msgid ""
 "red.cargar_calib('calibs Sitio A')\n"
 "exper_A.cargar_calib('calibs Sitio A')\n"
 "\n"
 "red.simular(exper=exper_A)"
 msgstr ""
+"جال.cargar_calib('تنظیم جگہ ا')\n"
+"تجربہ_ا.cargar_calib('تنظیم جگہ ا')\n"
+"\n"
+"جال.simular(exper=تجربہ_ا)"
 
-#: ../../source/tutorial/intro.rst:152
+#: ../../source/tutorial/intro.rst:155
 msgid ""
 "Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
 "después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
@@ -240,7 +334,7 @@ msgid ""
 "de Tiko'n."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:155
+#: ../../source/tutorial/intro.rst:158
 msgid ""
 "from tikon.ejemplos.calibs import guardar_calib\n"
 "\n"
@@ -252,12 +346,21 @@ msgid ""
 "    detalles='Calibración con Sitio A'\n"
 ")"
 msgstr ""
+"from tikon.ejemplos.calibs import تنذیم_محفوظ\n"
+"\n"
+"تنذیم_محفوظ(\n"
+"    [جال, تجربہ_ا],\n"
+"    'Opisina arenosella, Perera et al. 1988',\n"
+"    autor='میں :)'\n"
+"    correo='julien.malard@mail.mcgill.ca',\n"
+"    detalles='جگہ ا کے ساتھ تنظیم'\n"
+")"
 
-#: ../../source/tutorial/intro.rst:167
+#: ../../source/tutorial/intro.rst:170
 msgid "Después se podrá acceder con:"
-msgstr ""
+msgstr "اسکے بعاد انہیں ایسا پا سکتے ہیں:"
 
-#: ../../source/tutorial/intro.rst:169
+#: ../../source/tutorial/intro.rst:172
 msgid ""
 "from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
 "\n"
@@ -268,3 +371,11 @@ msgid ""
 "# Visualizar la información de la calibración\n"
 "print(obt_ref(dir_))"
 msgstr ""
+"from tikon.ejemplos.calibs import obt_calib as تنظیم_پانا, obt_ref as حوالہ_پانا\n"
+"\n"
+"راستہ = 'Opisina arenosella, Perera et al. 1988'\n"
+"جال.cargar_calib(obt_calib(راستہ)\n"
+"تجربہ_ا.cargar_calib(راستہ)\n"
+"\n"
+"# تنظیم کی معالمات بھی دیکھ سکتے ہیں\n"
+"print(حوالہ_پانا(راستہ))"

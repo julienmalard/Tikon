@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,3 +19,27 @@ msgstr ""
 #: ../../source/ref/ipa/manejo.rst:2
 msgid "Manejo"
 msgstr "Manejo"
+
+#: ../../source/ref/ipa/manejo.rst:5
+msgid "Reglas"
+msgstr "Reglas"
+
+#: ../../source/ref/ipa/manejo.rst:9
+msgid "Condiciones"
+msgstr "Condiciones"
+
+#: ../../source/ref/ipa/manejo.rst:12
+msgid "Temporales"
+msgstr "Temporales"
+
+#: ../../source/ref/ipa/manejo.rst:15
+msgid "Variables"
+msgstr "Variables"
+
+#: ../../source/ref/ipa/manejo.rst:18
+msgid "Combinadas"
+msgstr "Combinadas"
+
+#: ../../source/ref/ipa/manejo.rst:22
+msgid "Acciones"
+msgstr "Acciones"
