@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 06:55+0000\n"
+"POT-Creation-Date: 2019-08-04 07:43+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
 "Language-Team: Assamese (https://www.transifex.com/qatikon/teams/70660/as/)\n"
 "MIME-Version: 1.0\n"
@@ -63,4 +63,64 @@ msgstr ""
 
 #: ../../source/tutorial/manejo.rst:23
 msgid "Biocontrol"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:24
+msgid "Primero cargamos el modelo y sus calibraciones."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:26
+msgid ""
+"from tikon.ejemplos.calibs import obt_calib\n"
+"from tikon.ejemplos.proyectos.opisina_arenosella import modelo as mod\n"
+"from tikon.estruc.simulador import Simulador\n"
+"\n"
+"dir_calibs = 'Opisina arenosella, Perera et al. 1988'\n"
+"\n"
+"mod.red.cargar_calib(obt_calib(dir_calibs))\n"
+"mod.exper_A.cargar_calib(obt_calib(dir_calibs))"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:37
+msgid "Ahora vamos a soltar parasitoides de *O. arenosella* cada 30 días."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:39
+msgid ""
+"from tikon.manejo.acciones import AgregarPob\n"
+"from tikon.manejo.conds import CondCada\n"
+"from tikon.manejo.manejo import Manejo, Regla\n"
+"\n"
+"acción = AgregarPob(mod.Paras_pupa['adulto'], 200000)\n"
+"cond = CondCada(30)\n"
+"manejo_dinámico = Manejo(Regla(cond, acción))\n"
+"\n"
+"simul = Simulador([mod.red, manejo_dinámico])\n"
+"res_tiempo = simul.simular(400, exper=mod.exper_A, n_rep_estoc=5)\n"
+"\n"
+"res_dinámicos.graficar('mis resultados aquí/temporales')"
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:55
+msgid ""
+"También podemos hacer control biológico más inteligente, y solamente soltar "
+"parasitoides cuando la población de *O. arenosella* sube demasiado. En este "
+"ejemplo soltamos 200000 parasitoides adultos por hectárea cada vez que "
+"tenemos una población de pupas de *O. arenosella* superior a 200000. "
+"Igualmente esperamos 30 días después de una aplicación de parasitoides antes"
+" de poder considerar una nueva aplicación."
+msgstr ""
+
+#: ../../source/tutorial/manejo.rst:60
+msgid ""
+"from tikon.manejo.conds import CondPoblación, SuperiorOIgual\n"
+"\n"
+"acción = AgregarPob(mod.Paras_pupa['adulto'], 200000)\n"
+"cond = CondPoblación(mod.Oarenosella['pupa'], SuperiorOIgual(200000), espera=30)\n"
+"manejo_dinámico = Manejo(Regla(cond, acción))\n"
+"\n"
+"simul = Simulador([mod.red, manejo_dinámico])\n"
+"res_dinámicos = simul.simular(400, exper=mod.exper_A, n_rep_estoc=5)\n"
+"\n"
+"res_dinámicos.graficar('mis resultados aquí/dinámicos')"
 msgstr ""
