@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 04:41+0000\n"
+"POT-Creation-Date: 2019-08-04 07:43+0000\n"
 "PO-Revision-Date: 2019-07-31 15:21+0000\n"
 "Language-Team: Chinese (Taiwan) (https://www.transifex.com/qatikon/teams/70660/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -202,11 +202,17 @@ msgid ""
 "res.graficar('gráficos Sitio A')"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:134
+#: ../../source/tutorial/intro.rst:131
+msgid ""
+"Tiko'n generará un gráfico para cada insecto de la red, con su población "
+"predicha, los márgenes de incertidumbre y las observaciones, si hay."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:141
 msgid "Guardar y cargar"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:135
+#: ../../source/tutorial/intro.rst:142
 msgid ""
 "Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
 "futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
@@ -214,20 +220,20 @@ msgid ""
 "la calibración del experimento también."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:139
+#: ../../source/tutorial/intro.rst:146
 msgid ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:145
+#: ../../source/tutorial/intro.rst:152
 msgid ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
 "Python:"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:148
+#: ../../source/tutorial/intro.rst:155
 msgid ""
 "red.cargar_calib('calibs Sitio A')\n"
 "exper_A.cargar_calib('calibs Sitio A')\n"
@@ -235,7 +241,7 @@ msgid ""
 "red.simular(exper=exper_A)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:155
+#: ../../source/tutorial/intro.rst:162
 msgid ""
 "Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
 "después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
@@ -243,7 +249,7 @@ msgid ""
 "de Tiko'n."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:158
+#: ../../source/tutorial/intro.rst:165
 msgid ""
 "from tikon.ejemplos.calibs import guardar_calib\n"
 "\n"
@@ -256,17 +262,17 @@ msgid ""
 ")"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:170
+#: ../../source/tutorial/intro.rst:177
 msgid "Después se podrá acceder con:"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:172
+#: ../../source/tutorial/intro.rst:179
 msgid ""
 "from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
 "\n"
 "dir_ = 'Opisina arenosella, Perera et al. 1988'\n"
-"red.cargar_calib(obt_calib(dir_)\n"
-"exper_A.cargar_calib(dir_)\n"
+"red.cargar_calib(obt_calib(dir_))\n"
+"exper_A.cargar_calib(obt_calib(dir_))\n"
 "\n"
 "# Visualizar la información de la calibración\n"
 "print(obt_ref(dir_))"
