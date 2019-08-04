@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
 "Language-Team: Assamese (https://www.transifex.com/qatikon/teams/70660/as/)\n"
 "MIME-Version: 1.0\n"
@@ -27,55 +27,32 @@ msgid ""
 "el sistema agrícola."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:6
-msgid "Reglas"
+#: ../../source/tutorial/manejo.rst:5
+msgid ""
+"Aquí daremos un ejemplo de cómo predecir el impacto de biocontrol en el "
+"modelo de *Opisina arenosella* que ya desarrollamos."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:7
+#: ../../source/tutorial/manejo.rst:9
 msgid ""
 "Una **regla** () tiene dos componentes: una **condición** () y una o más "
 "**acciones** (). Cuando se cumple la condición, entonces se ejecutará la "
 "acción."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:11
-msgid "Condiciones"
-msgstr ""
-
 #: ../../source/tutorial/manejo.rst:12
 msgid ""
 "Las condiciones pueden ser según el tiempo o según el valor de un variable "
-"particular."
+"particular. Igualmente puedes combinar varias condiciones con "
+":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:15
-msgid "Temporales"
-msgstr ""
-
-#: ../../source/tutorial/manejo.rst:18
-msgid "Variables"
-msgstr ""
-
-#: ../../source/tutorial/manejo.rst:22
+#: ../../source/tutorial/manejo.rst:16
 msgid ""
 "Las condiciones basades en valores de variables se evaluan **separadamente**"
 " para cada repetición estocástica y paramétrica del modelo."
 msgstr ""
 
-#: ../../source/tutorial/manejo.rst:26
-msgid "Combinadas"
-msgstr ""
-
-#: ../../source/tutorial/manejo.rst:27
-msgid ""
-"Igualmente puedes combinar varias condiciones con "
-":class:`tikon.manejo.conds.CondY` y :class:`tikon.manejo.conds.CondO`."
-msgstr ""
-
-#: ../../source/tutorial/manejo.rst:30
-msgid "Acciones"
-msgstr ""
-
-#: ../../source/tutorial/manejo.rst:34
-msgid "Uso en modelos"
+#: ../../source/tutorial/manejo.rst:20
+msgid "Biocontrol"
 msgstr ""

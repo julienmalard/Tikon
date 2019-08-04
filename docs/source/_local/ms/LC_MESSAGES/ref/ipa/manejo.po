@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-29 13:15+0000\n"
 "Language-Team: Malay (https://www.transifex.com/qatikon/teams/70660/ms/)\n"
 "MIME-Version: 1.0\n"
@@ -19,4 +19,28 @@ msgstr ""
 
 #: ../../source/ref/ipa/manejo.rst:2
 msgid "Manejo"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:5
+msgid "Reglas"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:9
+msgid "Condiciones"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:12
+msgid "Temporales"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:15
+msgid "Variables"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:18
+msgid "Combinadas"
+msgstr ""
+
+#: ../../source/ref/ipa/manejo.rst:22
+msgid "Acciones"
 msgstr ""
