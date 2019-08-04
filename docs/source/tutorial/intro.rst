@@ -128,6 +128,13 @@ en la validación y en los gráficos.
 
    res.graficar('gráficos Sitio A')
 
+Tiko'n generará un gráfico para cada insecto de la red, con su población predicha, los márgenes de incertidumbre
+y las observaciones, si hay.
+
+.. image:: /_estático/imágenes/ejemplo_egr.png
+   :alt: Ejemplo de egreso gráfico del modelo.
+   :align: center
+
 .. _guardar_y_cargar:
 
 Guardar y cargar
