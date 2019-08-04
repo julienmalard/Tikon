@@ -44,12 +44,12 @@ Ahora vamos a soltar parasitoides de *O. arenosella* cada 30 días.
 
    acción = AgregarPob(mod.Paras_pupa['adulto'], 200000)
    cond = CondCada(30)
-   manejo_dinámico = Manejo(Regla(cond, acción))
+   manejo_tiempo = Manejo(Regla(cond, acción))
 
-   simul = Simulador([mod.red, manejo_dinámico])
+   simul = Simulador([mod.red, manejo_tiempo])
    res_tiempo = simul.simular(400, exper=mod.exper_A, n_rep_estoc=5)
 
-   res_dinámicos.graficar('mis resultados aquí/temporales')
+   res_tiempo.graficar('mis resultados aquí/temporales')
 
 
 También podemos hacer control biológico más inteligente, y solamente soltar parasitoides cuando la población
