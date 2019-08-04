@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 04:41+0000\n"
+"POT-Creation-Date: 2019-08-04 06:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -294,11 +294,19 @@ msgstr ""
 "\n"
 "res.graficar('gráficos Sitio A')"
 
-#: ../../source/tutorial/intro.rst:134
+#: ../../source/tutorial/intro.rst:131
+msgid ""
+"Tiko'n generará un gráfico para cada insecto de la red, con su población "
+"predicha, los márgenes de incertidumbre y las observaciones, si hay."
+msgstr ""
+"Tiko'n generará un gráfico para cada insecto de la red, con su población "
+"predicha, los márgenes de incertidumbre y las observaciones, si hay."
+
+#: ../../source/tutorial/intro.rst:141
 msgid "Guardar y cargar"
 msgstr "Guardar y cargar"
 
-#: ../../source/tutorial/intro.rst:135
+#: ../../source/tutorial/intro.rst:142
 msgid ""
 "Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
 "futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
@@ -310,7 +318,7 @@ msgstr ""
 " cuyas poblaciones no se observaron en el experimento, así que guardaremos "
 "la calibración del experimento también."
 
-#: ../../source/tutorial/intro.rst:139
+#: ../../source/tutorial/intro.rst:146
 msgid ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
@@ -318,7 +326,7 @@ msgstr ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
 
-#: ../../source/tutorial/intro.rst:145
+#: ../../source/tutorial/intro.rst:152
 msgid ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
@@ -327,21 +335,21 @@ msgstr ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
 "Python:"
-
-#: ../../source/tutorial/intro.rst:148
-msgid ""
-"red.cargar_calib('calibs Sitio A')\n"
-"exper_A.cargar_calib('calibs Sitio A')\n"
-"\n"
-"red.simular(exper=exper_A)"
-msgstr ""
-"red.cargar_calib('calibs Sitio A')\n"
-"exper_A.cargar_calib('calibs Sitio A')\n"
-"\n"
-"red.simular(exper=exper_A)"
 
 #: ../../source/tutorial/intro.rst:155
 msgid ""
+"red.cargar_calib('calibs Sitio A')\n"
+"exper_A.cargar_calib('calibs Sitio A')\n"
+"\n"
+"red.simular(exper=exper_A)"
+msgstr ""
+"red.cargar_calib('calibs Sitio A')\n"
+"exper_A.cargar_calib('calibs Sitio A')\n"
+"\n"
+"red.simular(exper=exper_A)"
+
+#: ../../source/tutorial/intro.rst:162
+msgid ""
 "Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
 "después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
 "quieres, también lo puedes compartir en GitHub con el resto de la comunidad "
@@ -352,7 +360,7 @@ msgstr ""
 "quieres, también lo puedes compartir en GitHub con el resto de la comunidad "
 "de Tiko'n."
 
-#: ../../source/tutorial/intro.rst:158
+#: ../../source/tutorial/intro.rst:165
 msgid ""
 "from tikon.ejemplos.calibs import guardar_calib\n"
 "\n"
@@ -374,11 +382,11 @@ msgstr ""
 "    detalles='Calibración con Sitio A'\n"
 ")"
 
-#: ../../source/tutorial/intro.rst:170
+#: ../../source/tutorial/intro.rst:177
 msgid "Después se podrá acceder con:"
 msgstr "Después se podrá acceder con:"
 
-#: ../../source/tutorial/intro.rst:172
+#: ../../source/tutorial/intro.rst:179
 msgid ""
 "from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
 "\n"
