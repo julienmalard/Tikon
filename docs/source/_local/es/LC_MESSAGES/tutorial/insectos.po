@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,11 +86,11 @@ msgstr ""
 "para representar a insectos con ciclos de vida completos (de huevo a adulto,"
 " pasando por una pupa)."
 
-#: ../../source/tutorial/insectos.rst:31
+#: ../../source/tutorial/insectos.rst:32
 msgid "Metamórfosis incompleta"
 msgstr "Metamórfosis incompleta"
 
-#: ../../source/tutorial/insectos.rst:32
+#: ../../source/tutorial/insectos.rst:33
 msgid ""
 "Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con"
 " la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`."
@@ -98,7 +98,7 @@ msgstr ""
 "Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con"
 " la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`."
 
-#: ../../source/tutorial/insectos.rst:43
+#: ../../source/tutorial/insectos.rst:45
 msgid ""
 "Todos insectos de tipos :class:`~tikon.rae.orgs.insectos.ins.Sencillo`, "
 ":class:`~tikon.rae.orgs.insectos.ins.MetamCompleta` o "
@@ -110,11 +110,11 @@ msgstr ""
 ":class:`~tikon.rae.orgs.insectos.ins.MetamIncompleta` pueden ser "
 "depredadores:"
 
-#: ../../source/tutorial/insectos.rst:52
+#: ../../source/tutorial/insectos.rst:55
 msgid "Parasitoides"
 msgstr "Parasitoides"
 
-#: ../../source/tutorial/insectos.rst:53
+#: ../../source/tutorial/insectos.rst:56
 msgid ""
 "Parasitoides, aunque técnicamente por su mayor parte insectos con "
 "metamórfosis completa, se representan por su propia clase "
@@ -128,11 +128,11 @@ msgstr ""
 "en cuenta el hecho de que su fase juvenil se desarrolla adentro de su "
 "huésped."
 
-#: ../../source/tutorial/insectos.rst:66
+#: ../../source/tutorial/insectos.rst:70
 msgid "Esfécidos"
 msgstr "Esfécidos"
 
-#: ../../source/tutorial/insectos.rst:67
+#: ../../source/tutorial/insectos.rst:71
 msgid ""
 "Esfécidos son avispas similares a parasitoides pero que paralizan e "
 "inactivan su presa al momento del parasitismo, lo cual puede se interior o "
@@ -148,11 +148,11 @@ msgstr ""
 "convencionales, porque la presa se quita del ecosistema al momento del acto "
 "de parasitismo y no al momento de la emergencia de la avispa adulta."
 
-#: ../../source/tutorial/insectos.rst:83
+#: ../../source/tutorial/insectos.rst:88
 msgid "Cambiar ecuaciones"
 msgstr "Cambiar ecuaciones"
 
-#: ../../source/tutorial/insectos.rst:84
+#: ../../source/tutorial/insectos.rst:89
 msgid ""
 "Puedes modificar las ecuaciones empleadas para un insecto en particular."
 msgstr ""

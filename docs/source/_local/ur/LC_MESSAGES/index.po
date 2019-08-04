@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2017-01-13 17:14+0000\n"
 "Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
@@ -31,7 +31,7 @@ msgstr "مسق"
 
 #: ../../source/index.rst:81 ../../source/index.rst:81
 msgid "Desarrollo"
-msgstr "تصدیق"
+msgstr "ترقی"
 
 #: ../../source/index.rst:90 ../../source/index.rst:90
 msgid "Referencia"
@@ -50,6 +50,8 @@ msgid ""
 "Tiko'n es un programa para desarrollar modelos de redes tróficas "
 "agroecológicas de manera sencilla, reproducible y divertida."
 msgstr ""
+"تیکون ایک مصنوع لطیف ہیے جیس سے آسانی، تولیدی اور مزے دار طریقہ سے ماحولیاتی"
+" زراعی خوراکی جال کے نمونے بنا سکتے ہو۔"
 
 #: ../../source/index.rst:27
 msgid "¿Qué es un modelo de redes tróficas?"
@@ -64,6 +66,10 @@ msgid ""
 "benéficos, y hacia permite predecir cuáles serían los impacto de varias "
 "estrategias de manejo de plagas."
 msgstr ""
+"خوراکی جال کا نمونہ ایسا ایک نمونہ ہیے جو کھیت کے جیاتیات (جیسے کے کیڑے اور "
+"دوسرے مفصلی پایے) کے درمیان میں رابطہ کا نمائندگی کرتا ہیے۔ قدرتی جاتیاتی "
+"انتظام، موسم اور دوستی کیڑوں کے متابق سے دشمن کیڑوں کی مستقبل آبادی، اور "
+"مختلف کیڑوں کا انتظام کے حکمت عملی کے فائدہ بھی کی پیشن گوئی کرتا ہیے۔"
 
 #: ../../source/index.rst:34
 msgid "¿Por qué utilizar Tiko'n?"
@@ -74,6 +80,8 @@ msgid ""
 "Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3"
 " insectos) presentan problemas como"
 msgstr ""
+"خوراکی جال کے نمونوں بنانے بہت مشکل بات ہیے۔ سب سے آسان جال (صرف ۳ کیڑوں کے)"
+" بھی درج ذیل مشکل کے ساتھ آتے ہیے۔"
 
 #: ../../source/index.rst:37
 msgid "Multitud de parámetros (15+ por insecto)"
@@ -81,27 +89,31 @@ msgstr "بہت زیادہ متاغیرات (ہر کیڑا کو ۱۵ سے زیا�
 
 #: ../../source/index.rst:38
 msgid "Inestabilidad matemática (dificultando predicciones fiables)"
-msgstr ""
+msgstr "ریاضی عدم استحکام (جس سے پیشن گوئی مشکل ھو جاتی ہیے)"
 
 #: ../../source/index.rst:39
 msgid ""
 "Multitud de posibilidades de ecuaciones en la literatura para cada fase de "
 "vida (reproducción, edad, transiciones, muertes, depredación)"
 msgstr ""
+"ادب میں ہر زندگی کا مرحلہ (تولید، عمر، منتقلی، موت، شکار) کا مساوات کے لئے "
+"مختلف امکانات"
 
 #: ../../source/index.rst:40
 msgid "Muy alta incertidumbre en los valores verdaderos de los parámetros"
-msgstr ""
+msgstr "متغیرات کے قیمت میں انچی غیر یقینی۔"
 
 #: ../../source/index.rst:41
 msgid "Pocos datos para calibración y validación"
-msgstr ""
+msgstr "تنظیم اور تصدیق کے لئے کوائف کی کمی"
 
 #: ../../source/index.rst:42
 msgid ""
 "Requerimiento de conocimientos informáticos avanzados para conectar con "
 "modelos de cultivos externos o con predicciones de cambios climáticos"
 msgstr ""
+"بیرونی فصل کے نمونوں اور آبو ہوا تبدیلیوں کی پیشن گوئی کی جوڑای کے لئے اعلی "
+"درجے کے تاخمینہ کاری علم کی ضرورت"
 
 #: ../../source/index.rst:44
 msgid ""
@@ -110,6 +122,9 @@ msgid ""
 " dándote el nivel de control que quieres sobre los detalles de tu modelo, "
 "nada menos, nada más."
 msgstr ""
+"تو اگر آپ خوراکی جال کے نمونوں بنانے چاہتی ہیں پر ان سارے مشکلات سے ڈرتی "
+"ہیں، پھر تیکوں آپکے لئے ہی ہیے! تیکوں سارے مذکورہ بالا نقطے میں مدد کریگا، "
+"اور ہمیشہ آپکو اپنے نمونے کی تفصیل پر اتنے ہی اختیار دیگا جتنے آپ چاہتی ہیں۔"
 
 #: ../../source/index.rst:48
 msgid ""
@@ -117,30 +132,33 @@ msgid ""
 "disponibles en la literatura, con selección automática de ecuaciones para "
 "principiantes"
 msgstr ""
+"ادب میںکی اکثریت دستیابی خوراکی جال کے مساوات تیکون میں بھی دستیاب ہیں، اور "
+"ان کی خودکار انتخاب بھی کی جاتی ہیے"
 
 #: ../../source/index.rst:49
 msgid "Posibilidad de agregar tus propias ecuaciones si quieres"
-msgstr ""
+msgstr "خودی لیکھی ہوی مساوات جوڑانے کی موقع"
 
 #: ../../source/index.rst:50
 msgid ""
 "Conexión automática con bases de datos y con predicciones y observaciones "
 "climáticas"
 msgstr ""
+"اعدادوشمار کی ذرائع اور آبو ہوا کے پیشن گوئی اور مشاہدات کے ساتھ جوڑای"
 
 #: ../../source/index.rst:51
 msgid ""
 "Manejo automático de parametros y de cálculos de poblaciones y de "
 "depredación"
-msgstr ""
+msgstr "آبادی اور شکار کے حصاب اور متغیرات کی خودکار انتظام"
 
 #: ../../source/index.rst:52
 msgid "Funcionalidades integradas para calibración y validación de modelos"
-msgstr ""
+msgstr "نمونوں کی تنظیم اور تصدیق کے لئے مربوط فعالیت"
 
 #: ../../source/index.rst:53
 msgid "Formato estandardizado para guardar y compartir modelos calibrados"
-msgstr ""
+msgstr "تنظیم کی چکی نمونوں کی محفوظ اور بانٹنے کے لئے معیاری وضع"
 
 #: ../../source/index.rst:54
 msgid "Y, por supuesto, gráficos bonitos"
@@ -148,4 +166,4 @@ msgstr "اور، بلکل، خوبصورت تصویریں"
 
 #: ../../source/index.rst:57
 msgid "Contenido"
-msgstr ""
+msgstr "مشمولات"

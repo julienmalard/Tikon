@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-04 04:04+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,7 +23,7 @@ msgstr ""
 
 #: ../../source/general/instal.rst:2
 msgid "Instalación"
-msgstr ""
+msgstr "تنصیب"
 
 #: ../../source/general/instal.rst:4
 msgid ""
@@ -27,21 +31,25 @@ msgid ""
 "`Python <(https://www.python.org/downloads)>`_. Después, puedes instalar "
 "Tiko'n en la terminal con:"
 msgstr ""
+"تیکون کی تنصیب بہت آسان ہیے۔ پہلہ، آپکو `پایتھون "
+"<(https://www.python.org/downloads)>`_ کی سب سے تازہ ترين تبدیلی چاہئے۔ بعاد"
+" میں، خط فرمان سے تنصیب ایسا کر سکتے ہیں:"
 
 #: ../../source/general/instal.rst:7
 msgid ":command:`pip install tikon`"
-msgstr ""
+msgstr ":command:`pip install tikon`"
 
 #: ../../source/general/instal.rst:9
 msgid ""
 "Si quieres la versión más recién (en desarrollo), puedes obtenerla de GitHub"
 " directamente con:"
-msgstr ""
+msgstr "اگر آپکو سب سے تازہ ترين تیکون چاہئے، اسکو گٹھب سے سیدھے پا سکتے ہیں:"
 
 #: ../../source/general/instal.rst:11
 msgid ""
 ":command:`pip install git+git://github.com/julienmalard/tikon.git@master`"
 msgstr ""
+":command:`pip install git+git://github.com/julienmalard/tikon.git@master`"
 
 #: ../../source/general/instal.rst:15
 msgid ""
@@ -53,3 +61,9 @@ msgid ""
 "obscuras, ``SciPy``, un paquete requerido por Tiko'n, no funciona en Windows"
 " sin éste."
 msgstr ""
+"اگر آپ وینڈوس کا استعمال کر رہی ہیں، ہو سکتا ہیے کے ``Visual C++ المدعومة`` "
+"کی تنصیب  `یہاں سے <https://support.microsoft.com/ar-ae/help/2977003/the-"
+"latest-supported-visual-c-downloads>`_ کر پڈیں. اگر آپکے پاس ۳۲ بیٹ کا "
+"**پایتھون** ہیے (وینڈوس نہیں)، ``…x86.exe`` والا تبدیل چاہیے اور اگر آپکا "
+"پایتھون ۶۴ بیٹ کا ہیے پھر ``…x64.exe`` لینا۔ عجیب وجہ سے، ``SciPy``، جسکی "
+"ضروری تیکون کو پڑتا ہیے، اسکے بغیر وینڈوس پر چلیگا نہیں۔"
