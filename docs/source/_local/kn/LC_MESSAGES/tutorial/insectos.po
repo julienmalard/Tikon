@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
 "Language-Team: Kannada (https://www.transifex.com/qatikon/teams/70660/kn/)\n"
 "MIME-Version: 1.0\n"
@@ -70,17 +70,17 @@ msgid ""
 " pasando por una pupa)."
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:31
+#: ../../source/tutorial/insectos.rst:32
 msgid "Metamórfosis incompleta"
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:32
+#: ../../source/tutorial/insectos.rst:33
 msgid ""
 "Insectos con ciclos de vida incompletos (sin pupa) se pueden representar con"
 " la clase :class:`~tikon.rae.orgs.insectos.gnrc.MetamIncompleta`."
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:43
+#: ../../source/tutorial/insectos.rst:45
 msgid ""
 "Todos insectos de tipos :class:`~tikon.rae.orgs.insectos.ins.Sencillo`, "
 ":class:`~tikon.rae.orgs.insectos.ins.MetamCompleta` o "
@@ -88,11 +88,11 @@ msgid ""
 "depredadores:"
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:52
+#: ../../source/tutorial/insectos.rst:55
 msgid "Parasitoides"
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:53
+#: ../../source/tutorial/insectos.rst:56
 msgid ""
 "Parasitoides, aunque técnicamente por su mayor parte insectos con "
 "metamórfosis completa, se representan por su propia clase "
@@ -101,11 +101,11 @@ msgid ""
 "huésped."
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:66
+#: ../../source/tutorial/insectos.rst:70
 msgid "Esfécidos"
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:67
+#: ../../source/tutorial/insectos.rst:71
 msgid ""
 "Esfécidos son avispas similares a parasitoides pero que paralizan e "
 "inactivan su presa al momento del parasitismo, lo cual puede se interior o "
@@ -115,11 +115,11 @@ msgid ""
 "de parasitismo y no al momento de la emergencia de la avispa adulta."
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:83
+#: ../../source/tutorial/insectos.rst:88
 msgid "Cambiar ecuaciones"
 msgstr ""
 
-#: ../../source/tutorial/insectos.rst:84
+#: ../../source/tutorial/insectos.rst:89
 msgid ""
 "Puedes modificar las ecuaciones empleadas para un insecto en particular."
 msgstr ""

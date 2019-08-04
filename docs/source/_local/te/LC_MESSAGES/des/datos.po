@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-15 16:52+0000\n"
 "Language-Team: Telugu (https://www.transifex.com/qatikon/teams/70660/te/)\n"
 "MIME-Version: 1.0\n"
@@ -35,21 +35,35 @@ msgstr ""
 msgid "Puedes contribuir bases de datos de observaciones de campo."
 msgstr ""
 
-#: ../../source/des/datos.rst:23
-msgid "Contribuir calibraciones"
+#: ../../source/des/datos.rst:10
+msgid ""
+"from tikon.ejemplos.datos import guardar_datos\n"
+"\n"
+"guardar_datos(\n"
+"    'aquí/están/mis datos.csv',\n"
+"    nombre='Yo et al., 2019',\n"
+"    módulo='red',\n"
+"    variable='Pobs',\n"
+"    unidades='individuos por ha',\n"
+"    ref='ref/bibtex/aquí.txt'\n"
+")"
 msgstr ""
 
 #: ../../source/des/datos.rst:24
+msgid "Contribuir calibraciones"
+msgstr ""
+
+#: ../../source/des/datos.rst:25
 msgid ""
 "Ver :ref:`guardar_y_cargar` para instrucciones sobre cómo guardar tus "
 "calibraciones en Tiko'n."
 msgstr ""
 
-#: ../../source/des/datos.rst:27
+#: ../../source/des/datos.rst:28
 msgid "Cómo compartir"
 msgstr ""
 
-#: ../../source/des/datos.rst:28
+#: ../../source/des/datos.rst:29
 msgid ""
 "La manera la más fácil de compartir los datos es de clonar una versión local"
 " de Tiko'n. Después, puedes hacer un `commit` y compartir tus datos y "

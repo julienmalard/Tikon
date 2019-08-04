@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-31 17:22+0000\n"
+"POT-Creation-Date: 2019-08-04 04:41+0000\n"
 "PO-Revision-Date: 2019-07-31 15:21+0000\n"
 "Language-Team: Akan (https://www.transifex.com/qatikon/teams/70660/ak/)\n"
 "MIME-Version: 1.0\n"
@@ -74,11 +74,18 @@ msgstr ""
 
 #: ../../source/tutorial/intro.rst:42
 msgid ""
+"Un *a priori* es una distribución probable del valor de un parámetro que "
+"especificas antes de correr una calibración. Ayuda el algoritmo de "
+"calibración a encontrar el mejor valor del parámetro."
+msgstr ""
+
+#: ../../source/tutorial/intro.rst:45
+msgid ""
 "Aquí vamos a cargar las distribuciones a prioris para los parámetros de la "
 "red. Los tienes que especificar manualmente para cada experimento."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:46
+#: ../../source/tutorial/intro.rst:49
 msgid ""
 "Es **muy importante** establecer buenos *a prioris* para calibraciones. Las "
 "limitaciones de algoritmos existentes de calibración de estos tipos de "
@@ -86,35 +93,35 @@ msgid ""
 "bastante precisos para todos los parámetros del modelo."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:50
+#: ../../source/tutorial/intro.rst:53
 msgid ""
 "Nota para estudiantes: Mejorar estos algoritmos podría ser buena idea de "
 "tesis. :)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:52
+#: ../../source/tutorial/intro.rst:55
 msgid ""
 "En este caso ya especificamos nuestros a prioris en un documento separado "
 "así que los vamos a cargar directamente."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:54
+#: ../../source/tutorial/intro.rst:57
 msgid ""
 "from tikon.ejemplos.opisina_arenosella.a_prioris import a_prioris\n"
 "red.espec_aprioris(a_prioris)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:61
+#: ../../source/tutorial/intro.rst:64
 msgid "El experimento"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:62
+#: ../../source/tutorial/intro.rst:65
 msgid ""
 "Aquí se conecta la red con observaciones de campo a través de un experimento"
 " (:class:`~tikon.exper.exper.Exper`)."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:64
+#: ../../source/tutorial/intro.rst:67
 msgid ""
 "from tikon.ejemplos.datos import obt_datos, obt_ref\n"
 "from tikon.exper.exper import Exper\n"
@@ -146,11 +153,11 @@ msgid ""
 "exper_A = Exper('Sitio A', pobs)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:97
+#: ../../source/tutorial/intro.rst:100
 msgid "Calibración"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:98
+#: ../../source/tutorial/intro.rst:101
 msgid ""
 "Ahora vamos a calibrar nuestro modelo. Primero creamos un "
 ":class:`~tikon.estruc.simulador.Simulador` para poder correr simulaciones y "
@@ -158,7 +165,7 @@ msgid ""
 "módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:102
+#: ../../source/tutorial/intro.rst:105
 msgid ""
 "from tikon.estruc.simulador import Simulador\n"
 "\n"
@@ -167,11 +174,11 @@ msgid ""
 "simul.calibrar('Sitio A', exper=exper_A)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:111
+#: ../../source/tutorial/intro.rst:114
 msgid "Validación"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:112
+#: ../../source/tutorial/intro.rst:115
 msgid ""
 "En este ejemplo vamos a hacer trampa y validar con los mismos datos de "
 "calibración. Primero hacemos una simulación normal, y despues vamos a "
@@ -179,13 +186,13 @@ msgid ""
 "los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:116
+#: ../../source/tutorial/intro.rst:119
 msgid ""
 "Las observaciones especificadas arriba quedaron vinculadas en los resultados"
 " y por eso se tomarán en cuenta en la validación y en los gráficos."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:119
+#: ../../source/tutorial/intro.rst:122
 msgid ""
 "res = simul.simular(exper=exper_A)\n"
 "\n"
@@ -195,11 +202,11 @@ msgid ""
 "res.graficar('gráficos Sitio A')"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:131
+#: ../../source/tutorial/intro.rst:134
 msgid "Guardar y cargar"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:132
+#: ../../source/tutorial/intro.rst:135
 msgid ""
 "Vamos a guardar los resultados de la calibración para ahorar tiempo en el "
 "futuro. Tiko'n calibra automáticamente las poblaciones iniciales para etapas"
@@ -207,20 +214,20 @@ msgid ""
 "la calibración del experimento también."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:136
+#: ../../source/tutorial/intro.rst:139
 msgid ""
 "simul.guardar_calib('calibs Sitio A')\n"
 "exper_A.guardar_calib('calibs Sitio A')"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:142
+#: ../../source/tutorial/intro.rst:145
 msgid ""
 "Se pueden después cargar las calibraciones para más trabajo. Igualmente se "
 "pueden compartir entre usuarias de Tiko'n. Por ejemplo, en otra sesión de "
 "Python:"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:145
+#: ../../source/tutorial/intro.rst:148
 msgid ""
 "red.cargar_calib('calibs Sitio A')\n"
 "exper_A.cargar_calib('calibs Sitio A')\n"
@@ -228,7 +235,7 @@ msgid ""
 "red.simular(exper=exper_A)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:152
+#: ../../source/tutorial/intro.rst:155
 msgid ""
 "Igualmente puedes guardar tu calibración al directorio de Tiko'n. Será "
 "después disponible para todas los usuarios de tu instalación de Tiko'n. Si "
@@ -236,7 +243,7 @@ msgid ""
 "de Tiko'n."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:155
+#: ../../source/tutorial/intro.rst:158
 msgid ""
 "from tikon.ejemplos.calibs import guardar_calib\n"
 "\n"
@@ -249,11 +256,11 @@ msgid ""
 ")"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:167
+#: ../../source/tutorial/intro.rst:170
 msgid "Después se podrá acceder con:"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:169
+#: ../../source/tutorial/intro.rst:172
 msgid ""
 "from tikon.ejemplos.calibs import obt_calib, obt_ref\n"
 "\n"
