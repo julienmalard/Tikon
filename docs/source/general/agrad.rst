@@ -16,17 +16,17 @@ Instituciones afiliadas
 -----------------------
 Tiko'n se desarrolla en colaboración con las instituciones siguientes:
 
-.. image:: ../_estático/imágenes/logos/Logo_McGill_IGFS.jpg
+.. image:: /_estático/imágenes/logos/Logo_McGill_IGFS.jpg
    :width: 200
    :align: center
    :alt: Logo McGill
 
-.. image:: ../_estático/imágenes/logos/Logo_IARNA.jpg
+.. image:: /_estático/imágenes/logos/Logo_IARNA.jpg
    :width: 200
    :align: center
    :alt: Logo IARNA URL
 
-.. image:: ../_estático/imágenes/logos/Logo_TaVePa.jpg
+.. image:: /_estático/imágenes/logos/Logo_TaVePa.jpg
    :width: 200
    :align: center
    :alt: Logo TVP
