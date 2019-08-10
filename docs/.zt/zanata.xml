@@ -5,7 +5,7 @@
     <project-version>1.0</project-version>
     <project-type>gettext</project-type>
     <src-dir>build/locale</src-dir>
-    <trans-dir>source/locale</trans-dir>
+    <trans-dir>source/_local</trans-dir>
     <rules>
         <rule pattern="**/*.pot">{locale}/{path}/LC_MESSAGES/{filename}.po</rule>
     </rules>
