@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the Tiko'n package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Julien Malard <julien.malard@mail.mcgill.ca>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tiko'n 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-04 07:43+0000\n"
+"POT-Creation-Date: 2019-08-05 03:44+0000\n"
 "PO-Revision-Date: 2019-07-14 12:14+0000\n"
+"Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,4 +23,4 @@ msgstr ""
 
 #: ../../source/tutorial/clima.rst:2
 msgid "Con clima"
-msgstr ""
+msgstr "موسم"
