@@ -23,6 +23,10 @@
 Tiko'n es un programa para desarrollar modelos de redes tróficas agroecológicas de manera sencilla, reproducible y
 divertida.
 
+¿Por qué se llama Tiko'n?
+-------------------------
+*Tiko'n* quiere decir *cultivo* o *agricultura* en Kaqchikel.
+
 ¿Qué es un modelo de redes tróficas?
 ------------------------------------
 Un modelo de redes tróficas es un modelo que representa las interacciones entre organismos vivos en un campo agrícola
