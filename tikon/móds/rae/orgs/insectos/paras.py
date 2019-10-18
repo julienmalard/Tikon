@@ -1,5 +1,5 @@
-from tikon.rae.orgs.insectos.ins import Insecto
-from tikon.rae.orgs.organismo import Etapa
+from tikon.móds.rae import Insecto
+from tikon.móds.rae.orgs.organismo import Etapa
 
 
 class Parasitoide(Insecto):

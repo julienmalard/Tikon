@@ -1,11 +1,10 @@
 import os
 
 import numpy as np
-
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
 from tikon.exper.inic import MnjdrInicExper
-from tikon.rae.orgs.organismo import EtapaFantasma
+from tikon.móds.rae.orgs.organismo import EtapaFantasma
 
 
 class Exper(object):
@@ -20,9 +19,6 @@ class Exper(object):
 
     def f_inic(símismo):
         return símismo.obs.f_inic()
-
-    def obt_control(símismo, var):
-        return símismo.controles[var]
 
     def obt_inic(símismo, mód, var=None):
         try:
@@ -88,18 +84,30 @@ class Exper(object):
         símismo.inic.cargar_calib(archivo)
 
 
-_controles_auto = {  # para hacer: más bonito
+_controles_auto = {
     'parcelas': ['1'],
-    'superficies': np.array([1.])
+    'superficies': np.array([1.]),
+    'lat': np.array([11.0025]),
+    'lon': np.array([76.9656])
 }
 
 
 class MnjdrControlesExper(object):
     def __init__(símismo):
-        símismo.d_vals = _controles_auto
+        símismo._usuario = {}
+        símismo._auto = _controles_auto
+
+    def verif(símismo):
+        pass
+
+    def __setitem__(símismo, llave, valor):
+        símismo._usuario[llave] = valor
 
     def __getitem__(símismo, itema):
-        return símismo.d_vals[itema]
+        try:
+            return símismo._usuario[itema]
+        except KeyError:
+            return símismo._auto[itema]
 
 
 class MnjdrObsExper(object):

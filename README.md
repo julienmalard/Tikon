@@ -30,9 +30,9 @@ En más detalles, Tiko'n:
 
 ## Un ejemplo
 ```python
-from tikon.rae.red_ae import RedAE
-from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
-from tikon.estruc.simulador import Simulador
+from tikon.móds.rae import RedAE
+from tikon.móds.rae import MetamCompleta, Parasitoide
+from tikon.estruc.modelo import Simulador
 
 # Crear los insectos
 oruga = MetamCompleta('oruga', njuvenil=3)

@@ -155,7 +155,7 @@ class Resultado(Matriz):
 
 
 class ResultadosSimul(object):
-    def __init__(símismo, módulos, tiempo):
+    def __init__(símismo, módulos, exper, tiempo):
         símismo._resultados = {mód: mód.resultados for mód in módulos if mód.resultados}
         símismo.tiempo = tiempo
 
@@ -163,7 +163,7 @@ class ResultadosSimul(object):
         for r in símismo:
             r.reinic()
 
-    def actualizar_res(símismo):
+    def actualizar(símismo):
         for r in símismo:
             r.actualizar()
 
@@ -202,6 +202,10 @@ class ResultadosSimul(object):
     def __iter__(símismo):
         for r in símismo._resultados.values():
             yield r
+
+
+class ResultadosExper(object):
+    pass
 
 
 class ResultadosMódulo(object):
@@ -272,3 +276,7 @@ _funcs = {
     'verosimil_gaus': gaussianLikelihoodMeasErrorOut
 }
 
+
+class CombinadorEval(object):
+    def __init__(símismo, ):
+        pass

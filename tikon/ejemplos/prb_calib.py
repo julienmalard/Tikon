@@ -4,7 +4,7 @@ from multiprocessing import Pool as Reserva
 from pprint import pprint
 
 from tikon.ejemplos.prb import red, exper_A
-from tikon.estruc.simulador import Simulador
+from tikon.estruc.modelo import Simulador
 from tikon.utils import guardar_json
 
 simul = Simulador(red)

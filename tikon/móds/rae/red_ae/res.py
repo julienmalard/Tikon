@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.rae.orgs.organismo import EtapaFantasma
+from tikon.móds.rae.orgs.organismo import EtapaFantasma
 from tikon.result.res import Resultado
 
 

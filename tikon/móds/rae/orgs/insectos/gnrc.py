@@ -1,4 +1,4 @@
-from tikon.rae.orgs.insectos.ins import Insecto
+from tikon.móds.rae import Insecto
 
 
 class Sencillo(Insecto):

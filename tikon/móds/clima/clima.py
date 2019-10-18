@@ -23,18 +23,18 @@ class Clima(Módulo):
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
         if tiempo.fecha():
             t_inic, t_final = tiempo.fecha(), tiempo.fecha() + timedelta(days=tiempo._n_días)
-            símismo.datos = مقام().کوائف_پانا(t_inic, t_final)
+            símismo.datos = مقام().کوائف_پانا(t_inic, t_final).روزانہ()
 
     def incrementar(símismo):
         if símismo.datos:
-            diarios = símismo.datos.روزانہ()[símismo.tiempo.fecha()]
+            diarios = símismo.datos[símismo.tiempo.fecha()]
         # para hacer: aplicar diarios a Resultados
 
     def cerrar(símismo):
         pass
 
     def reqs_externos(símismo):
-        pass
+        return ['lat', 'lon', 'elev']
 
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
         if símismo.datos:

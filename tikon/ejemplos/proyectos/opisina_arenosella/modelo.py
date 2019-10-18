@@ -1,8 +1,8 @@
 from tikon.ejemplos.datos import obt_datos
 from tikon.exper.exper import Exper
-from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
-from tikon.rae.red_ae import RedAE
-from tikon.rae.red_ae.obs import ObsPobs
+from tikon.móds.rae import MetamCompleta, Parasitoide
+from tikon.móds.rae import RedAE
+from tikon.móds.rae import ObsPobs
 
 # Mariposas tienen metamórfosis completa
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)

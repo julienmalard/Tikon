@@ -13,10 +13,10 @@ from scipy.signal import savgol_filter
 
 from tikon.ejemplos import en_ejemplos
 from tikon.ejemplos.prb import red, Paras_pupa, exper_A, Paras_larvas, Oarenosella
-from tikon.estruc.simulador import Simulador
-from tikon.manejo.acciones import AgregarPob, MultPob
-from tikon.manejo.conds import CondTiempo, CondPoblación, SuperiorOIgual, CondCada, Inferior
-from tikon.manejo.manejo import Manejo, Regla
+from tikon.estruc.modelo import Simulador
+from tikon.móds.manejo.acciones import AgregarPob, MultPob
+from tikon.móds.manejo.conds import CondTiempo, CondPoblación, SuperiorOIgual, CondCada, Inferior
+from tikon.móds.manejo import Manejo, Regla
 from tikon.utils import guardar_json, leer_json
 
 red.cargar_calib(en_ejemplos('calibs Sitio A epm ens final/red'))

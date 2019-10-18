@@ -3,14 +3,14 @@ from pprint import pprint
 from تقدیر.ذرائع import سی_اس_وی as clima_csv
 
 from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
-from tikon.clima.clima import Clima
+from tikon.móds.clima.clima import Clima
 from tikon.ecs.aprioris import APrioriDens
-from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
+from tikon.estruc.modelo import Simulador, EspecCalibsCorrida
 from tikon.exper.exper import Exper
-from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
-from tikon.rae.orgs.plantas import Hojas
-from tikon.rae.red_ae import RedAE
-from tikon.rae.red_ae.obs import ObsPobs
+from tikon.móds.rae import MetamCompleta, Parasitoide
+from tikon.móds.rae.orgs.plantas import Hojas
+from tikon.móds.rae import RedAE
+from tikon.móds.rae import ObsPobs
 
 # Crear objeto planta
 Café = Hojas('Café')
