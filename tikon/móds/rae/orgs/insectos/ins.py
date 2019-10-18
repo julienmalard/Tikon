@@ -1,4 +1,4 @@
-from tikon.rae.orgs.organismo import Organismo, Etapa
+from tikon.móds.rae.orgs.organismo import Organismo, Etapa
 
 JUVENIL = 'juvenil'
 

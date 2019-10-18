@@ -4,7 +4,7 @@ import numpy as np
 
 from tikon.ecs.paráms import Inter
 from tikon.estruc.módulo import Módulo, DimsRes
-from tikon.rae.red_ae.res import ResultadoRed, ResultadoEdad, ResultadoDepred
+from tikon.móds.rae.red_ae.res import ResultadoRed, ResultadoEdad, ResultadoDepred
 from tikon.result.dims import Coord
 from tikon.result.res import ResultadosMódulo
 from .cohortes import Cohortes
@@ -33,10 +33,8 @@ class RedAE(Módulo):
         símismo._orgs[str(org)] = org
 
     def quitar_org(símismo, org):
-        if isinstance(org, Organismo):
-            org = str(org)
         try:
-            símismo._orgs.pop(org)
+            símismo._orgs.pop(str(org))
         except KeyError:
             raise KeyError('El organismo {org} no existía en esta red.'.format(org=org))
 

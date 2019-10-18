@@ -1,8 +1,8 @@
 import numpy as np
 
 from tikon.ecs.árb_mód import Parám
-from tikon.rae.orgs.ecs.depred._plntll_ec import EcuaciónDepred
-from tikon.rae.orgs.ecs.utils import probs_conj
+from tikon.móds.rae import EcuaciónDepred
+from tikon.móds.rae import probs_conj
 
 
 class PrAKovai(Parám):

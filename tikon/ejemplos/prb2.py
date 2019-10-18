@@ -3,9 +3,9 @@ from copy import deepcopy
 from pprint import pprint
 
 from tikon.ejemplos.prb import Oarenosella, red, exper_A
-from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
+from tikon.estruc.modelo import Simulador
 from tikon.exper import Exper
-from tikon.rae import ObsPobs
+from tikon.móds.rae import ObsPobs
 
 dir_base = os.path.split(__file__)[0]
 pobs = ObsPobs.de_csv(

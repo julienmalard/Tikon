@@ -1,5 +1,5 @@
 from tikon.ecs.árb_mód import Parám
-from tikon.rae.orgs.ecs._plntll_ec import EcuaciónOrg
+from tikon.móds.rae.orgs.ecs._plntll_ec import EcuaciónOrg
 
 
 class Sigma(Parám):

@@ -2,47 +2,40 @@ import os
 from copy import copy
 
 from tikon.calib import gen_calibrador
-from tikon.clima.clima import Clima
+from tikon.estruc.simul import Simulación
+from tikon.móds.clima.clima import Clima
 from tikon.ecs.dists import DistAnalítica
 from tikon.estruc.módulo import Módulo
 from tikon.estruc.tiempo import Tiempo
 from tikon.exper.exper import Exper
-from tikon.manejo.manejo import Manejo
+from tikon.móds.manejo import Manejo
 from tikon.result.res import ResultadosSimul
 from tikon.sensib import gen_anlzdr_sensib
 
 
-class Simulador(object):
+class Modelo(object):
 
     def __init__(símismo, módulos):
-        símismo._módulos = módulos
+        símismo.módulos = módulos
 
         # para hacer: combinar en un objeto
-        símismo.mnjdr_móds = None  # type: MnjdrMódulos
         símismo.exper = None  # type: Exper
-        símismo.tiempo = None  # type: Tiempo
         símismo.corrida = None  # type: ResultadosSimul
 
-    def simular(
-            símismo, días=None, f_inic=None, paso=1, exper=None, calibs=None, n_rep_estoc=30, n_rep_parám=30,
-            vars_interés=None
-    ):
+    def simular(símismo, t, exper=None, calibs=None, reps=400, vars_interés=None):
 
+        return Simulación(símismo.módulos, exper=exper, t=t, reps=reps).simular()
+        sim
         símismo.iniciar(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés)
         símismo.correr()
         símismo.cerrar()
 
         return símismo.corrida
 
-    def iniciar(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
-
-        símismo.iniciar_estruc(días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés)
-        símismo.iniciar_vals()
-
     def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés, llenar=True):
 
-        símismo.exper = exper or Exper()
-        símismo.mnjdr_móds = MnjdrMódulos(símismo._módulos, símismo.exper)
+        símismo.exper = exper
+        símismo.mnjdr_móds = MnjdrMódulos(símismo.módulos, símismo.exper)
 
         f_inic = f_inic or símismo.exper.f_inic()
         n_días = días or símismo.exper.n_días()
@@ -71,21 +64,6 @@ class Simulador(object):
         símismo.corrida = ResultadosSimul(símismo.mnjdr_móds, símismo.tiempo)
         for m in símismo.mnjdr_móds:
             m.iniciar_vals()
-
-    def correr(símismo):
-        while símismo.tiempo.avanzar():
-            símismo.incrementar()
-
-    def incrementar(símismo):
-        for m in símismo.mnjdr_móds:
-            m.incrementar()
-
-        símismo.corrida.actualizar_res()
-
-    def cerrar(símismo):
-        símismo.corrida.finalizar()
-        for m in símismo.mnjdr_móds:
-            m.cerrar()
 
     def sensib(
             símismo, días=None, f_inic=None, exper=None, n=10, método='sobol', calibs=None, paso=1, n_rep_estoc=30,
@@ -155,7 +133,7 @@ class MnjdrMódulos(object):
         return símismo[str(mód)].poner_valor(var, valor=val, rel=rel, índs=índs)
 
     def obt_val_control(símismo, var):
-        return símismo.exper.obt_control(var)
+        return símismo.exper.controles[var]
 
     def paráms(símismo, paráms):
         # para hacer: reorganizar
