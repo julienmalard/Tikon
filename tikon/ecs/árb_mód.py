@@ -12,25 +12,23 @@ class PlantillaRamaEc(object):
     _eje_cosos = NotImplemented
     req_todas_ramas = False
 
-    def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
-        if ecs is None:
-            ecs = [coso.ecs for coso in cosos]
+    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
 
         símismo.cosos = cosos
-        símismo.í_cosos = í_cosos or np.arange(len(cosos))
-        símismo.mód = mód
+        símismo.í_cosos = í_cosos
+        símismo.sim = sim
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
             ramas_ecs = [ec[rm.nombre] for ec in ecs]
             activos = [
-                (i, rm_ec) for i, rm_ec in enumerate(ramas_ecs) if rm_ec.verificar_activa(mód)
+                (i, rm_ec) for i, rm_ec in enumerate(ramas_ecs) if rm_ec.verificar_activa(sim)
             ]
             activos = list(zip(*activos))
             if activos:
                 í_cosos_rm, ecs_rm = activos
                 cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
-                símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, mód, n_rep, ecs=ecs_rm)
+                símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, sim, n_rep, ecs=ecs_rm)
 
     def vals_paráms(símismo):
         return [pr for rm in símismo for pr in rm.vals_paráms()]
@@ -52,32 +50,32 @@ class PlantillaRamaEc(object):
         return símismo.obt_val_mód(símismo._nombre_res, filtrar=filtrar)
 
     def obt_val_mód(símismo, var, filtrar=True):
-        res = símismo.mód.obt_res(var)
+        res = símismo.sim.obt_res(var)
 
         índs = {símismo._eje_cosos: símismo.cosos} if filtrar else None
 
         return res.obt_valor(índs)
 
     def poner_val_res(símismo, val, rel=False, índs=None):
-        res = símismo.mód.obt_res(símismo._nombre_res)
+        res = símismo.sim.obt_res(símismo._nombre_res)
         res.poner_valor(val, rel=rel, índs=índs)
         # para hacer: ¡filtrar!
 
     def poner_val_mód(símismo, var, val, rel=False, filtrar=True):
-        res = símismo.mód.obt_res(var)
+        res = símismo.sim.obt_res(var)
         res.poner_valor(val, rel=rel, índs={símismo._eje_cosos: símismo.cosos} if filtrar else None)
 
     def í_eje(símismo, var, eje):
-        return símismo.mód.obt_res(var).í_eje(eje)
+        return símismo.sim.obt_res(var).í_eje(eje)
 
     def í_eje_res(símismo, eje):
         return símismo.í_eje(símismo._nombre_res, eje=eje)
 
     def obt_val_extern(símismo, var, mód=None):
-        return símismo.mód.obt_val_extern(var, mód)
+        return símismo.sim.obt_val_extern(var, mód)
 
     def obt_val_control(símismo, var):
-        return símismo.mód.obt_val_control(var)
+        return símismo.sim.obt_val_control(var)
 
     @classmethod
     def para_coso(cls, coso):
@@ -101,6 +99,9 @@ class PlantillaRamaEc(object):
 
 class ÁrbolEcs(PlantillaRamaEc):
     _cls_en_coso = ÁrbolEcsCoso
+
+    def __init__(símismo, cosos, sim, n_rep):
+        super().__init__(cosos, sim, n_rep, í_cosos=np.arange(len(cosos)), ecs=[coso.ecs for coso in cosos])
 
     def cosos_en_categ(símismo, categ):
         if categ in símismo:
@@ -129,8 +130,8 @@ class SubcategEc(PlantillaRamaEc):
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
 
-    def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
-        super().__init__(cosos, í_cosos, mód, n_rep, ecs=ecs)
+    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
+        super().__init__(cosos, sim, n_rep, í_cosos, ecs=ecs)
         símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_rep)
 
     def act_vals(símismo):
@@ -162,13 +163,13 @@ class Parám(PlantillaRamaEc):
     inter = None
     cls_ramas = []
 
-    def __init__(símismo, cosos, í_cosos, mód, n_rep, ecs=None):
+    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
         símismo._prms_cosos = ecs
-        super().__init__(cosos, í_cosos, mód, n_rep, ecs=ecs)
+        super().__init__(cosos, sim, n_rep, í_cosos, ecs=ecs)
 
     def obt_inter(símismo, coso):
         if símismo.inter is not None:
-            return símismo.mód.inter(coso=coso, tipo=símismo.inter)
+            return símismo.sim.inter(coso=coso, tipo=símismo.inter)
 
     def gen_matr_parám(símismo, n_rep):
         l_prms = []

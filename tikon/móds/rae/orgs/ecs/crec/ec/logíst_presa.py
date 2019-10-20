@@ -24,7 +24,7 @@ class LogístPresa(EcuaciónCrec):
         pobs_presas = símismo.pobs_etps(filtrar=False)
         pobs = símismo.pobs_etps()
 
-        eje_etapa = símismo.í_eje('Pobs', 'etapa')
+        eje_etapa = símismo.í_eje(POBS, ETAPA)
         k = np.nansum(
             np.multiply(pobs_presas[tuple([slice(None)] * eje_etapa + [np.newaxis])], símismo.cf['K'])
             , axis=-1

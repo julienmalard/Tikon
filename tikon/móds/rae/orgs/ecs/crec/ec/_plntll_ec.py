@@ -2,7 +2,7 @@ from ..._plntll_ec import EcuaciónOrg
 
 
 class EcuaciónCrec(EcuaciónOrg):
-    _nombre_res = 'Crecimiento'
+    _nombre_res = CREC
 
     def crec_etps(símismo):
         return símismo.obt_res()

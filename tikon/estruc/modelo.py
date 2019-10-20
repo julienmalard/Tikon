@@ -86,25 +86,28 @@ class Modelo(object):
         return anlzdr.analizar(símismo.corrida, ops=ops_anlz)
 
     def calibrar(
-            símismo, nombre, días=None, f_inic=None, exper=None, n_iter=300, método='epm', f=None, calibs=None,
+            símismo, nombre, exper, n_iter=300, método='epm', f=None, calibs=None,
             paráms=None,
-            paso=1, n_rep_estoc=30, n_rep_parám=1
+            n_rep_estoc=30, n_rep_parám=1
     ):
 
+        sim = Simulación()
         def func():
-            símismo.iniciar_vals()
-            símismo.correr()
-            return símismo.corrida.procesar_calib(f)
+            sim.iniciar_vals()
+            sim.correr()
+            return sim.res.procesar_calib(f)
 
         calibs_calib = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
-
         calibs_inic = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
+
+        sim.iniciar_estruc()
+
         símismo.iniciar_estruc(
             días=días, f_inic=f_inic, paso=paso, exper=exper, calibs=calibs_inic, n_rep_estoc=n_rep_estoc,
             n_rep_parám=n_rep_parám, vars_interés=None, llenar=False
         )
 
-        clbrd = gen_calibrador(método, func, símismo.mnjdr_móds.paráms(paráms), calibs_calib)
+        clbrd = gen_calibrcador(método, func, símismo.mnjdr_móds.paráms(paráms), calibs_calib)
         clbrd.calibrar(n_iter=n_iter, nombre=nombre)
 
     def guardar_calib(símismo, directorio=''):

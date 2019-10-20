@@ -17,4 +17,4 @@ class Constante(EcuaciónOrg):
 
     def eval(símismo, paso):
         cf = símismo.cf
-        return cf['a'] * símismo.obt_val_mód('Pobs') * paso
+        return cf['a'] * símismo.obt_val_mód(POBS) * paso

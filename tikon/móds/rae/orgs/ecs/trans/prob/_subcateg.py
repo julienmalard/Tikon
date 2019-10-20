@@ -12,8 +12,8 @@ class ProbTrans(SubcategEc):
     nombre = 'Prob'
     cls_ramas = [EcuaciónVacía, Cauchy, Constante, Gamma, Logística, Normal]
     auto = Normal
-    _nombre_res = 'Transiciones'
-    _eje_cosos = 'etapa'
+    _nombre_res = TRANS
+    _eje_cosos = ETAPA
 
     def postproc(símismo, paso):
         trans = símismo.obt_res(filtrar=False)
@@ -22,11 +22,11 @@ class ProbTrans(SubcategEc):
         np.floor(trans, out=trans)
 
         # Quitar los organismos que transicionaron
-        símismo.poner_val_mód('Pobs', -trans, rel=True, filtrar=True)
+        símismo.poner_val_mód(POBS, -trans, rel=True, filtrar=True)
         símismo.poner_val_res(trans)
 
     def _imprimir(símismo):
-        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps],
-              np.sum(símismo.mód.cohortes._pobs, axis=0))
-        print(símismo.obt_val_mód('Pobs', filtrar=False)[..., símismo.mód.cohortes.í_etps] - np.sum(
-            símismo.mód.cohortes._pobs, axis=0))
+        print(símismo.obt_val_mód(POBS, filtrar=False)[..., símismo.sim.cohortes.í_etps],
+              np.sum(símismo.sim.cohortes._pobs, axis=0))
+        print(símismo.obt_val_mód(POBS, filtrar=False)[..., símismo.sim.cohortes.í_etps] - np.sum(
+            símismo.sim.cohortes._pobs, axis=0))

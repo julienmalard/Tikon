@@ -17,7 +17,10 @@ setup(
     author_email='julien.malard@mail.mcgill.ca',
     description='Modelos de redes agroecológicas',
     long_description=leer('README.md'),
-    install_requires=['numpy', 'matplotlib', 'scipy', 'SALib', 'spotpy', 'chardet', 'pandas', 'taqdir', 'bibtexparser'],
+    install_requires=[
+        'numpy', 'matplotlib', 'scipy', 'SALib', 'spotpy', 'chardet', 'pandas', 'taqdir', 'bibtexparser',
+        'shapely', 'ennikkai', 'xarray'
+    ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3 :: Only',

@@ -22,8 +22,8 @@ class LogístDepred(EcuaciónCrec):
         crec_etps = símismo.crec_etps()
         pobs_etps = símismo.pobs_etps()
 
-        res_depred = símismo.í_eje(eje='presa', res='Depred')
-        depred = símismo.obt_val_mód('Depred', índs={'etapa': símismo.í_cosos})  # La depredación por estas etapas
+        res_depred = símismo.í_eje(eje='presa', res=DEPR)
+        depred = símismo.obt_val_mód(DEPR, índs={ETAPA: símismo.í_cosos})  # La depredación por estas etapas
         eje_presa = res_depred.í_eje('presa')
 
         k = np.nansum(np.multiply(depred, símismo.cf['K']), axis=eje_presa)  # Calcular la capacidad de carga

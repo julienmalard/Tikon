@@ -1,14 +1,11 @@
 from tikon.ecs import ÁrbolEcs
-from tikon.result.dims import Coord, Dims
+from tikon.result.coords import Coord, Dims
 
 
 class Módulo(object):
     nombre = NotImplemented
 
     def __init__(símismo):
-        símismo.resultados = None
-        símismo.tiempo = None
-        símismo.mnjdr_móds = None
         símismo._ecs_simul = None  # type: ÁrbolEcs
 
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
@@ -19,9 +16,6 @@ class Módulo(object):
             n_rep_estoc=n_rep_estoc, n_rep_parám=n_rep_parám, vars_interés=vars_interés
         )
 
-    def obt_res(símismo, var):
-        return símismo.resultados[var]
-
     def obt_valor(símismo, var, índs=None):
         return símismo.obt_res(var).obt_valor(índs=índs)
 
@@ -31,27 +25,14 @@ class Módulo(object):
     def obt_val_extern(símismo, var, mód):
         return símismo.mnjdr_móds.obt_valor(var, mód)
 
-    def obt_val_control(símismo, var):
-        return símismo.mnjdr_móds.obt_val_control(var)
-
     def act_coefs(símismo):
         if símismo._ecs_simul is not None:
             símismo._ecs_simul.act_vals()
-
-    def iniciar_vals(símismo):
-        if símismo.resultados:  # para hacer: más elegante
-            símismo.resultados.reinic()
 
     def paráms(símismo):
         if símismo._ecs_simul is not None:
             return símismo._ecs_simul.vals_paráms()
         return []
-
-    def incrementar(símismo):
-        raise NotImplementedError
-
-    def cerrar(símismo):
-        raise NotImplementedError
 
     def reqs_externos(símismo):
         raise NotImplementedError
@@ -59,14 +40,14 @@ class Módulo(object):
     def inter(símismo, coso, tipo):
         raise NotImplementedError
 
-    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
+    def gen_simul(símismo, simul_exper):
         raise NotImplementedError
 
     def guardar_calib(símismo, directorio=''):
         pass  # para hacer: genérico
 
     def cargar_calib(símismo, directorio=''):
-        pass # para hacer: genérico
+        pass  # para hacer: genérico
 
     def __str__(símismo):
         return símismo.nombre

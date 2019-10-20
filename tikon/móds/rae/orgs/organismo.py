@@ -86,22 +86,21 @@ class Organismo(Coso):
 
         return etapas
 
-    def etapas(símismo, fantasmas=False):
+    def etapas(símismo):
         etapas = símismo._etapas
 
         fants = []
-        if fantasmas:
-            for r_p in símismo._rels_paras:
-                huésped = r_p.huésped
-                etps_en_hués = range(min(huésped.índice(r_p.etps_entra)), huésped.índice(r_p.etp_emerg) + 1)
+        for r_p in símismo._rels_paras:
+            huésped = r_p.huésped
+            etps_en_hués = range(min(huésped.índice(r_p.etps_entra)), huésped.índice(r_p.etp_emerg) + 1)
 
-                fant = None
-                for í_etp in reversed(etps_en_hués):
-                    fant = EtapaFantasma(
-                        símismo, etp=símismo._etapas[0], org_hués=r_p.huésped, etp_hués=huésped[í_etp],
-                        sig=fant or r_p.etp_recip
-                    )
-                    fants.append(fant)
+            fant = None
+            for í_etp in reversed(etps_en_hués):
+                fant = EtapaFantasma(
+                    símismo, etp=símismo._etapas[0], org_hués=r_p.huésped, etp_hués=huésped[í_etp],
+                    sig=fant or r_p.etp_recip
+                )
+                fants.append(fant)
 
         return etapas + fants
 
@@ -169,7 +168,7 @@ class Etapa(Coso):
         return símismo.org.huéspedes(símismo)
 
     def con_cohortes(símismo):
-        return símismo.categ_activa('Edad', mód=símismo)
+        return símismo.categ_activa(EDAD, mód=símismo)
 
     def siguiente(símismo):
         índice = símismo.org.índice(símismo)
@@ -197,7 +196,7 @@ class EtapaFantasma(Etapa):
         if isinstance(símismo.sig, EtapaFantasma):
             categs_de_prs = []
         else:
-            categs_de_prs = ['Transiciones', 'Edad', 'Muertes']
+            categs_de_prs = [TRANS, EDAD, MRTE]
         categs_de_hués = [str(ctg) for ctg in símismo.ecs if str(ctg) not in categs_de_prs]
 
         for ctg in categs_de_hués:

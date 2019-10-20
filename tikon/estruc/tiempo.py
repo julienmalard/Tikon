@@ -3,15 +3,15 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
-
+from எண்ணிக்கை import உரைக்கு as உ
 
 class Tiempo(object):
-    def __init__(símismo, n_días, f_inic=None, paso=1):
+    def __init__(símismo, n_días, f_inic, paso=1):
         símismo._f_inic = _gen_fecha(f_inic)
         símismo._día = 0
         símismo.paso = paso
         símismo._n_días = n_días
-        símismo.eje = EjeTiempo(días=range(0, mat.ceil(n_días / paso) + 1, paso), f_inic=f_inic)
+        símismo.eje = pd.to_timedelta(símismo.días, unit='D') + pd.to_datetime(símismo.f_inic)
 
     def n_pasos(símismo):
         return len(símismo.eje)
@@ -65,23 +65,10 @@ class EjeTiempo(object):
         días = símismo.días
         return EjeTiempo(días=días[np.logical_and(días >= mín, días <= máx)], f_inic=símismo.f_inic)
 
-    def a_dic(símismo):
-        return {'días': símismo.días, 'f_inic': símismo.f_inic.strftime('%Y-%m-%d') if símismo.f_inic else None}
-
-    @classmethod
-    def de_dic(cls, dic):
-        return cls(días=dic['días'],
-                   f_inic=datetime.strptime(dic['f_inic'], '%Y-%m-%d').date() if dic['f_inic'] else None)
-
-    def __len__(símismo):
-        return len(símismo.días)
-
 
 def _gen_fecha(f):
-    if f is None:
-        return
-    elif isinstance(f, str):
-        return datetime.strptime(str, '%Y-%m-%d')
+    if isinstance(f, str):
+        return datetime.strptime('-'.join(உ(x, 'latin') for x in str.split('-/.')), '%Y-%m-%d')
     elif isinstance(f, date):
         return f
     elif isinstance(f, datetime):

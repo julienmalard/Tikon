@@ -4,9 +4,9 @@ from .._plntll_ec import EcuaciónOrg
 
 
 class EcuaciónDepred(EcuaciónOrg):
-    _nombre_res = 'Depredación'
+    _nombre_res = DEPR
 
-    def obt_dens_pobs(símismo, filtrar=True, eje_extra='etapa'):
+    def obt_dens_pobs(símismo, filtrar=True, eje_extra=ETAPA):
 
         pobs = símismo.pobs_etps(filtrar)
         superficies = símismo.obt_val_control('superficies')

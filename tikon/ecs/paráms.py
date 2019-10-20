@@ -136,7 +136,7 @@ class ValsParámCoso(object):
 
 
 class Inter(object):
-    def __init__(símismo, tmñ, índices):
+    def __init__(símismo, cosos,tmñ, índices):
         símismo.tmñ = tmñ
         símismo.índices = índices
 

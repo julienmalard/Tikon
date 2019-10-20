@@ -1,6 +1,8 @@
 import numpy as np
 
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
+from tikon.móds.rae.orgs.utils import REPR, ETAPA
+
 from .cauchy import Cauchy
 from .constante import Constante
 from .depred import Depred
@@ -15,8 +17,8 @@ class ProbRepr(SubcategEc):
     nombre = 'Prob'
     cls_ramas = [EcuaciónVacía, Constante, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
     auto = Constante
-    _nombre_res = 'Reproducción'
-    _eje_cosos = 'etapa'
+    _nombre_res = REPR
+    _eje_cosos = ETAPA
 
     def postproc(símismo, paso):
         # Agregar las reproducciones a las poblaciones
@@ -24,9 +26,9 @@ class ProbRepr(SubcategEc):
         np.round(reprod, out=reprod)
         símismo.poner_val_res(reprod)
 
-        símismo.mód.agregar_pobs(reprod, etapas=símismo.mód.etps_repr())
+        símismo.sim.agregar_pobs(reprod, etapas=símismo.sim.etps_repr)
 
 
 class EcsRepr(CategEc):
-    nombre = 'Reproducción'
+    nombre = REPR
     cls_ramas = [ProbRepr]
