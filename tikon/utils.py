@@ -6,6 +6,8 @@ import tempfile
 import numpy as np
 from chardet import UniversalDetector
 
+TIEMPO = 'tiempo'
+
 _dir_config = os.path.join(os.path.split(__file__)[0], 'config.json')
 try:
     with open(_dir_config, 'r', encoding='utf8') as d:

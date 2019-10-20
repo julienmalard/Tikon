@@ -1,60 +1,45 @@
-import os
-
 import numpy as np
-from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared, log_p
+import xarray as xr
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
-
+from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared, log_p
+from tikon.estruc.simul import PlantillaSimul
 from tikon.result.dibujar import graficar_pred
 from tikon.result.valid import reps_necesarias, validar_matr_pred
-from tikon.utils import guardar_json
-from ._matr import Matriz, MatrizTiempo
+from tikon.utils import TIEMPO
 
 
-class Resultado(Matriz):
-    def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
-        super().__init__(dims)
-        símismo.nombre = nombre
+class Resultado(PlantillaSimul):
+    def __init__(símismo, nombre, coords, t=None, obs=None):
+        símismo.datos_t = _gen_datos(coords, t=t)
+        símismo._datos = símismo.datos_t[{TIEMPO: 0}]
 
-        if tiempo:
-            símismo.matr_t = MatrizTiempo(dims, tiempo.eje)
-        else:
-            símismo.matr_t = None
+        super().__init__(nombre, subsimuls=[])
 
-        símismo.tiempo = tiempo  # para hacer: ¿combinar tiempo y matr_t?
-        símismo.obs = obs
-        símismo.inic = inic
+    @property
+    def datos(símismo):
+        return símismo._datos
 
-    def actualizar(símismo):
-        if símismo.matr_t:
-            símismo.matr_t.poner_valor(símismo._matr, índs={'días': [símismo.tiempo.día()]})
+    @datos.setter
+    def datos(símismo, val):
+        símismo._datos[:] = val
 
-    def reinic(símismo):
-        super().reinic()
+    def iniciar_estruc(símismo):
+        pass
 
-        if símismo.matr_t is not None:
-            símismo.matr_t.reinic()
+    def iniciar_vals(símismo):
+        símismo.datos_t[:] = 0
+        símismo.datos = símismo.datos_t[{TIEMPO: 0}]
 
-        if símismo.tiempo:
-            símismo.tiempo.reinic()
+    def incrementar(símismo, paso):
+        if símismo.t is not None:
+            símismo.datos = símismo.datos_t[{TIEMPO: símismo.t.i}]
+        super().incrementar(paso)
 
-        if símismo.obs:
-            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
+    def cerrar(símismo):
+        pass
 
-            dims_obs = símismo.obs.dims
-
-            # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
-            for índs in dims_obs.iter_índs(excluir='días'):
-                vals_inic = símismo.obs.obt_val_t(t_inic, índs=índs)
-
-                vals_inic[np.isnan(vals_inic)] = 0
-                símismo.poner_valor(vals=vals_inic, índs=índs)
-
-            símismo.actualizar()
-
-        if símismo.inic:
-            for val in símismo.inic:
-                símismo.poner_valor(vals=val.valor(), índs=val.índs)
-            símismo.actualizar()
+    def verificar_estado(símismo):
+        pass
 
     # para hacer: reorganizar las 4 funciones siguientes
     def validar(símismo):
@@ -79,7 +64,7 @@ class Resultado(Matriz):
                 dic[l_llaves[-1]] = validar_matr_pred(vals_res, vals_obs)
             return d_valid
 
-    def procesar_calib(símismo, f=None):
+    def procesar_calib(símismo, proc):
         if símismo._validable():
             f = f or 'ens'
             if isinstance(f, str):
@@ -103,11 +88,6 @@ class Resultado(Matriz):
                 pesos.append(np.sum(np.isfinite(vals_obs)))
             return np.average(l_proc, weights=pesos), np.sum(pesos)
         return 0, 0
-
-    def obt_valor_t(símismo, t, índs=None):
-        if símismo.matr_t is None:
-            raise ValueError('Resultados no temporales no pueden dar datos temporales.')
-        return símismo.matr_t.obt_val_t(t, índs=índs)
 
     def graficar(símismo, directorio=''):
         if símismo.matr_t:
@@ -137,8 +117,49 @@ class Resultado(Matriz):
             frac_incert=frac_incert, confianza=confianza
         )
 
-    def finalizar(símismo):
-        pass
+    def a_dic(símismo):
+        return símismo.datos_t.to_dict()
+
+
+def _gen_datos(coords, t=None):
+    coords = {TIEMPO: t.eje() if t is not None else [0], **coords}
+    return xr.DataArray(data=0, coords=coords, dims=list(coords))
+
+
+class Resultado0(Matriz):
+    def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
+        super().__init__(dims)
+        símismo.nombre = nombre
+
+        if tiempo:
+            símismo.matr_t = MatrizTiempo(dims, tiempo.eje)
+        else:
+            símismo.matr_t = None
+
+        símismo.obs = obs
+        símismo.inic = inic
+
+    def reinic(símismo):
+        super().reinic()
+
+        if símismo.obs:
+            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
+
+            dims_obs = símismo.obs.dims
+
+            # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
+            for índs in dims_obs.iter_índs(excluir='días'):
+                vals_inic = símismo.obs.obt_val_t(t_inic, índs=índs)
+
+                vals_inic[np.isnan(vals_inic)] = 0
+                símismo.poner_valor(vals=vals_inic, índs=índs)
+
+            símismo.actualizar()
+
+        if símismo.inic:
+            for val in símismo.inic:
+                símismo.poner_valor(vals=val.valor(), índs=val.índs)
+            símismo.actualizar()
 
     def a_dic(símismo):
         if símismo.matr_t is not None:
@@ -149,112 +170,6 @@ class Resultado(Matriz):
 
     def _validable(símismo):
         return símismo.matr_t is not None and símismo.obs is not None
-
-    def __str__(símismo):
-        return símismo.nombre
-
-
-class ResultadosSimul(object):
-    def __init__(símismo, módulos, exper, tiempo):
-        símismo._resultados = {mód: mód.resultados for mód in módulos if mód.resultados}
-        símismo.tiempo = tiempo
-
-    def reinic(símismo):
-        for r in símismo:
-            r.reinic()
-
-    def actualizar(símismo):
-        for r in símismo:
-            r.actualizar()
-
-    def finalizar(símismo):
-        for r in símismo:
-            r.finalizar()
-
-    def procesar_calib(símismo, f):
-        vals, pesos = zip(*[r.procesar_calib(f) for r in símismo])
-        return np.average(vals, weights=pesos)
-
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return {str(nmbr): mód.reps_necesarias(frac_incert, confianza) for nmbr, mód in símismo._resultados.items()}
-
-    def validar(símismo):
-        valid = {str(mód): res.validar() for mód, res in símismo._resultados.items()}
-        return {ll: v for ll, v in valid.items() if v}
-
-    def graficar(símismo, directorio=''):
-        for mód, res in símismo._resultados.items():
-            res.graficar(directorio=os.path.join(directorio, str(mód)))
-
-    def a_dic(símismo):
-        return {str(mód): res.a_dic() for mód, res in símismo._resultados.items()}
-
-    def guardar(símismo, arch):
-        guardar_json(símismo.a_dic(), archivo=arch)
-
-    def verificar_estado(símismo):
-        for res in símismo:
-            res.verificar_estado()
-
-    def __getitem__(símismo, itema):
-        return símismo._resultados[next(mód for mód in símismo._resultados if str(mód) == str(itema))]
-
-    def __iter__(símismo):
-        for r in símismo._resultados.values():
-            yield r
-
-
-class ResultadosExper(object):
-    pass
-
-
-class ResultadosMódulo(object):
-    def __init__(símismo, resultados):
-        símismo._resultados = {str(res): res for res in resultados}
-
-    def reinic(símismo):
-        for r in símismo:
-            r.reinic()
-
-    def actualizar(símismo):
-        for r in símismo:
-            r.actualizar()
-
-    def finalizar(símismo):
-        for r in símismo:
-            r.finalizar()
-
-    def verificar_estado(símismo):
-        pass
-
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return {nmbr: res.reps_necesarias(frac_incert, confianza) for nmbr, res in símismo._resultados.items()}
-
-    def validar(símismo):
-        valid = {nmb: res.validar() for nmb, res in símismo._resultados.items()}
-        return {ll: v for ll, v in valid.items() if v}
-
-    def procesar_calib(símismo, f):
-        vals, pesos = zip(*[r.procesar_calib(f) for r in símismo])
-        return np.average(vals, weights=pesos), np.sum(pesos)
-
-    def graficar(símismo, directorio):
-        for nmb, res in símismo._resultados.items():
-            res.graficar(directorio=os.path.join(directorio, nmb))
-
-    def a_dic(símismo):
-        return [res.a_dic() for nmb, res in símismo._resultados.items()]
-
-    @classmethod
-    def de_dic(cls, l):
-        return cls([Resultado.de_dic(d) for d in l])
-
-    def __getitem__(símismo, itema):
-        return símismo._resultados[str(itema)]
-
-    def __iter__(símismo):
-        for r in símismo._resultados.values():
-            yield r
 
 
 def _ens_dens(o, s):

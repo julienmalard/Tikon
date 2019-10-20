@@ -12,7 +12,7 @@ class A(Parám):
 class Linear(EcuaciónOrg):
     nombre = 'Linear'
     cls_ramas = [A]
-    _nombre_res = 'Transiciones'
+    _nombre_res = TRANS
 
     def eval(símismo, paso):
         trans = símismo.obt_res(filtrar=True)

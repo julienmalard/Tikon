@@ -11,8 +11,8 @@ class EcMuerte(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [EcuaciónVacía, Constante, LogNormTemp, AsimptóticoHumedad, SigmoidalTemperatura]
     auto = Constante
-    _nombre_res = 'Muertes'
-    _eje_cosos = 'etapa'
+    _nombre_res = MRTE
+    _eje_cosos = ETAPA
 
     def postproc(símismo, paso):
         muertes = símismo.obt_res(filtrar=False)
@@ -22,9 +22,9 @@ class EcMuerte(SubcategEc):
 class EcsMuerte(CategEc):
     nombre = 'Muertes'
     cls_ramas = [EcMuerte]
-    _nombre_res = 'Muertes'
-    _eje_cosos = 'etapa'
+    _nombre_res = MRTE
+    _eje_cosos = ETAPA
 
     def postproc(símismo, paso):
         muertes = símismo.obt_res(filtrar=False)
-        símismo.mód.quitar_pobs(muertes, etapas=símismo.cosos)
+        símismo.sim.quitar_pobs(muertes, etapas=símismo.cosos)

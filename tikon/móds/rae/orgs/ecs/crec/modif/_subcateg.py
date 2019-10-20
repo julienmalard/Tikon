@@ -6,5 +6,5 @@ from .ninguna import Ninguna
 class ModifCrec(SubcategEc):
     nombre = 'Modif'
     cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
-    _nombre_res = 'Crecimiento'
-    _eje_cosos = 'etapa'
+    _nombre_res = CREC
+    _eje_cosos = ETAPA

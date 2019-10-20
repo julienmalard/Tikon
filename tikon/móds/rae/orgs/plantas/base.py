@@ -1,3 +1,5 @@
+from tikon.móds.rae.orgs.utils import CREC
+
 from ..organismo import Organismo
 
 
@@ -64,12 +66,12 @@ class Planta(Organismo):
         if etapas is None:
             etapas = símismo.etapas()
 
-        símismo.activar_ec('Crecimiento', 'Modif', 'Nada', etapas=etapas)
-        símismo.activar_ec('Crecimiento', 'Ecuación', 'Constante', etapas=etapas)
+        símismo.activar_ec(CREC, 'Modif', 'Nada', etapas=etapas)
+        símismo.activar_ec(CREC, 'Ecuación', 'Constante', etapas=etapas)
 
         for etp in etapas:
             símismo.espec_apriori_etp(
-                etapa=etp, apriori=apriori, categ='Crecimiento', subcateg='Ecuación', ec='Constante', prm='n',
+                etapa=etp, apriori=apriori, categ=CREC, subcateg='Ecuación', ec='Constante', prm='n',
             )
 
 

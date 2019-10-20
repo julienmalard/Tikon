@@ -17,7 +17,7 @@ class Constante(EcuaciónTrans):
 
     def eval(símismo, paso):
         cf = símismo.cf
-        pobs = símismo.obt_val_mód('Pobs')
+        pobs = símismo.obt_val_mód(POBS)
 
         # Tomamos el paso en cuenta según las reglas de probabilidades conjuntas:
         # p(x sucede n veces) = (1 - (1- p(x))^n)

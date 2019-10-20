@@ -10,5 +10,5 @@ class EcuaciónCrec(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [EcuaciónVacía, Expon, Logíst, LogístPresa, LogístDepred, Constante]
     auto = EcuaciónVacía
-    _nombre_res = 'Crecimiento'
-    _eje_cosos = 'etapa'
+    _nombre_res = CREC
+    _eje_cosos = ETAPA

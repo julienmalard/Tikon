@@ -36,3 +36,9 @@ class MultPob(Acción):
         pobs = mnjdr.obt_valor(mód='red', var='Pobs', índs={'etapa': símismo.etapa})
         cambio = np.where(reps, pobs * (símismo.valor - 1), 0)
         mnjdr['red'].ajustar_pobs(pobs=cambio, etapas=símismo.etapa)
+
+class Sembrar():
+    pass
+
+class Irigar():
+    pass
