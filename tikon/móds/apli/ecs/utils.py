@@ -1,0 +1,1 @@
+ECS_DECOMP = 'Decomposición'
