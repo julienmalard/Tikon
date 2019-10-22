@@ -1,77 +1,59 @@
-import math as mat
 from datetime import date, datetime, timedelta
 
-import numpy as np
 import pandas as pd
+
 from எண்ணிக்கை import உரைக்கு as உ
 
-class Tiempo(object):
-    def __init__(símismo, n_días, f_inic, paso=1):
-        símismo._f_inic = _gen_fecha(f_inic)
-        símismo._día = 0
-        símismo.paso = paso
-        símismo._n_días = n_días
-        símismo.eje = pd.to_timedelta(símismo.días, unit='D') + pd.to_datetime(símismo.f_inic)
 
-    def n_pasos(símismo):
-        return len(símismo.eje)
+class Tiempo(object):
+    def __init__(símismo, f_inic, f_final, paso=1):
+        f_inic = _gen_fecha(f_inic)
+        f_final = _gen_fecha(f_final)
+
+        símismo.paso = paso
+        símismo._n_pasos = (f_final - f_inic).days // paso
+
+        símismo.eje = pd.date_range(f_inic, end=f_final, freq=str(símismo.paso) + 'D')
+        símismo._i = 0
 
     def avanzar(símismo):
-        símismo._día += símismo.paso
-        return símismo._día <= símismo._n_días
+        for día in símismo.eje:
+            símismo._i += 1
+            yield día
 
     def fecha(símismo):
-        if símismo._f_inic is not None:
-            return símismo._f_inic + timedelta(days=símismo._día)
+        return símismo.eje[símismo._i]
 
-    def día(símismo):
-        return símismo._día
-
-    def índices(símismo, t):
-        return símismo.eje.índices(t)
+    def n_día(símismo):
+        return símismo._i * símismo.paso
 
     def reinic(símismo):
-        símismo._día = 0
+        símismo._i = 0
 
     def __len__(símismo):
         return len(símismo.eje)
 
 
-class EjeTiempo(object):
-    def __init__(símismo, días, f_inic=None):
-        if not isinstance(días, np.ndarray):
-            días = np.array(días)
-        símismo.días = días
-        símismo.f_inic = f_inic
-
-    def índices(símismo, t):
-        if símismo.f_inic is t.f_inic is None:
-            dif = 0
-        else:
-            dif = (t.f_inic - símismo.f_inic).days
-        return t.días - dif
-
-    def vec(símismo):
-        if símismo.f_inic:
-            return pd.to_timedelta(símismo.días, unit='D') + pd.to_datetime(símismo.f_inic)
-        else:
-            return np.array(símismo.días)
-
-    def cortar(símismo, eje):
-        índs_eje = símismo.índices(eje)
-        máx = índs_eje.max()
-        mín = índs_eje.min()
-
-        días = símismo.días
-        return EjeTiempo(días=días[np.logical_and(días >= mín, días <= máx)], f_inic=símismo.f_inic)
+def gen_tiempo(t):
+    if isinstance(t, Tiempo):
+        return t
+    elif isinstance(t, int):
+        f_inic = date.today()
+        return Tiempo(f_inic=f_inic, f_final=f_inic + timedelta(days=t))
+    elif isinstance(t, str):
+        return Tiempo(f_inic=t, f_final=_gen_fecha(t) + timedelta(days=30))
+    else:
+        raise TypeError()
 
 
 def _gen_fecha(f):
-    if isinstance(f, str):
-        return datetime.strptime('-'.join(உ(x, 'latin') for x in str.split('-/.')), '%Y-%m-%d')
-    elif isinstance(f, date):
+    if isinstance(f, pd.Timestamp):
         return f
-    elif isinstance(f, datetime):
-        return f.date()
-    else:
-        raise TypeError(type(f))
+    if isinstance(f, str):
+        return pd.Timestamp(datetime.strptime('-'.join(உ(x, 'latin') for x in str.split('-/.')), '%Y-%m-%d').date())
+    if isinstance(f, date):
+        return pd.Timestamp(f)
+    if isinstance(f, datetime):
+        return pd.Timestamp(f.date())
+
+    raise TypeError(type(f))
