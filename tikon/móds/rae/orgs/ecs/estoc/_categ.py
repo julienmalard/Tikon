@@ -8,9 +8,8 @@ from .normal import Normal
 
 class DistEstoc(SubcategEc):
     nombre = 'Dist'
-    cls_ramas = [EcuaciónVacía, Normal]
-    auto = Normal
-    _eje_cosos = ETAPA
+    cls_ramas = [Normal, EcuaciónVacía]
+    _eje_cosos = EJE_ETAPA
     _nombre_res = ESTOC
 
 
@@ -18,7 +17,7 @@ class EcsEstoc(CategEc):
     nombre = ESTOC
     cls_ramas = [DistEstoc]
     _nombre_res = ESTOC
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
         estoc = símismo.obt_res(filtrar=False)

@@ -14,7 +14,7 @@ class Linear(EcuaciónOrg):
     cls_ramas = [A]
     _nombre_res = TRANS
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         trans = símismo.obt_res(filtrar=True)
         trans *= símismo.cf['a']
         return np.round(trans)

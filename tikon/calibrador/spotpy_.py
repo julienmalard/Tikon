@@ -5,7 +5,7 @@ from warnings import warn as avisar
 import numpy as np
 import pandas as pd
 import spotpy as spt
-from tikon.calibrador.calibrador import Calibrador
+from tikon.calibrador.calib import Calibrador
 
 
 class CalibSpotPy(Calibrador):

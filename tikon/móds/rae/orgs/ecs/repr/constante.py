@@ -15,6 +15,6 @@ class Constante(EcuaciónOrg):
     nombre = 'Constante'
     cls_ramas = [A]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         return cf['a'] * símismo.obt_val_mód(POBS) * paso

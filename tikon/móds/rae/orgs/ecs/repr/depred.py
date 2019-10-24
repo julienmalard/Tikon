@@ -15,6 +15,6 @@ class Depred(Ecuación):
     nombre = 'Depred'
     cls_ramas = [N]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         return np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1)

@@ -41,7 +41,7 @@ class TipoIDP(EcuaciónDepred):
     nombre = 'Tipo I_Dependiente presa'
     cls_ramas = [ATipoI]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         dens = símismo.obt_val_mód('Dens')
         return np.multiply(dens, cf['a'])
@@ -67,7 +67,7 @@ class TipoIIDP(EcuaciónDepred):
     nombre = 'Tipo I_Dependiente presa'
     cls_ramas = [ATipoII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         dens = símismo.obt_val_mód('Dens')
         return np.multiply(dens, cf['a'] / (dens + cf['b']))
@@ -93,7 +93,7 @@ class TipoIIIDP(EcuaciónDepred):
     nombre = 'Tipo III_Dependiente presa'
     cls_ramas = [ATipoIII, BTipoIII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         dens = símismo.obt_val_mód('Dens')
         return np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']))

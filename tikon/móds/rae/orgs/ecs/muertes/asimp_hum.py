@@ -20,6 +20,6 @@ class AsimptóticoHumedad(Ecuación):
     nombre = 'Asimptótico Humedad'
     cls_ramas = [A, B]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         sobrevivencia = np.maximum(0, np.subtract(1, np.exp(-cf['a'] * (mnjdr_móds['clima.humedad'] - cf['b']))))
         return np.multiply(pob_etp, (1 - sobrevivencia))

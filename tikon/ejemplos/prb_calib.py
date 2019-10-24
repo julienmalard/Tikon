@@ -37,8 +37,8 @@ def _calibrar(*args):
     if borrar or not os.path.isdir(arch_calib):
         print(f'Calibrando {nombre}')
         s.calibrar(nombre, n_iter=1000, exper=exp, método=m, f=f)
-        s.guardar_calib(arch_calib)
-        exp.guardar_calib(arch_calib)
+        s.guardar_calibs(arch_calib)
+        exp.guardar_calibs(arch_calib)
 
         print(f'Validando {nombre}')
         res = s.simular(exper=exp)

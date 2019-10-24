@@ -28,7 +28,7 @@ class FuncBrièreTemperatura(EcuaciónOrg):
     nombre = 'Brière Temperatura'
     cls_ramas = [PrTDevMínBT, PrTLetalBT]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

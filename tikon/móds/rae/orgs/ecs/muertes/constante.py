@@ -16,6 +16,6 @@ class Constante(EcuaciónMuertes):
     nombre = 'Constante'
     cls_ramas = [Q]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         pobs = símismo.obt_val_mód(POBS)
         return np.multiply(pobs, símismo.cf['q'])

@@ -8,12 +8,12 @@ class EcuaciónTransCoh(EcuaciónConCohorte):
     def _prms_scipy(símismo):
         raise NotImplementedError
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         return símismo.trans_cohortes(símismo.cambio_edad(), símismo.dist, quitar=True)
 
 
 class EcuaciónTrans(EcuaciónOrg):
     _nombre_res = TRANS
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         raise NotImplementedError

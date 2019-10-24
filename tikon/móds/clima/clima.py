@@ -16,9 +16,6 @@ class Clima(Módulo):
 
         super().__init__()
 
-    def inter(símismo, coso, tipo):
-        pass
-
     def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
         super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
         if tiempo.fecha():
@@ -33,8 +30,9 @@ class Clima(Módulo):
     def cerrar(símismo):
         pass
 
-    def reqs_externos(símismo):
-        return ['lat', 'lon', 'elev']
+    def requísitos(símismo, controles=False):
+        if controles:
+            return ['lat', 'lon', 'elev']
 
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
         if símismo.datos:

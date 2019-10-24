@@ -10,3 +10,4 @@ bibtexparser
 shapely
 ennikkai
 xarray
+seaborn

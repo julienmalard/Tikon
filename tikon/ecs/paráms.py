@@ -27,7 +27,7 @@ class PlantillaMatrsParáms(object):
     def act_vals(símismo):
         if isinstance(símismo._sub_matrs, ValsParámCoso):
             símismo._sub_matrs.act_vals()
-            símismo._matr[:] = símismo._sub_matrs.val()
+            símismo._matr[:] = símismo._sub_matrs.val
         else:
             if isinstance(símismo._sub_matrs, list):
                 itr = enumerate(símismo._sub_matrs)
@@ -85,6 +85,14 @@ class ValsParámCoso(object):
         símismo._inter = inter
         símismo._val = np.zeros(tmñ)
 
+    @property
+    def val(símismo):
+        return símismo._val
+
+    @val.setter
+    def val(símismo, val):
+        símismo._val[:] = val
+
     def dists_disp(símismo, heredar):
         return símismo._prm.dists_disp(símismo._inter, heredar)
 
@@ -92,26 +100,24 @@ class ValsParámCoso(object):
         return símismo._prm.calib_base()
 
     def llenar_de_base(símismo):
-        val = símismo.dist_base().obt_vals(símismo._tmñ)
-        símismo.poner_val(val)
+        símismo.val = símismo.dist_base().obt_vals(símismo._tmñ)
 
     def apriori(símismo):
         return símismo._prm.a_priori(símismo._inter)
 
     def llenar_de_apriori(símismo):
-        val = símismo.apriori().obt_vals(símismo._tmñ)
-        símismo.poner_val(val)
+        símismo.val = símismo.apriori().obt_vals(símismo._tmñ)
 
     def llenar_de_dists(símismo, dists):
         val = []
 
-        for d, n in dists.items():
+        for d, n in dists:
             if isinstance(n, (int, np.integer)):
                 val.append(d.obt_vals(n))
             else:
                 val.append(d.obt_vals_índ(n))
 
-        símismo.poner_val(np.ravel(val))
+        símismo.val = np.ravel(val)
 
     def act_vals(símismo):
         pass
@@ -122,12 +128,6 @@ class ValsParámCoso(object):
     def tmñ(símismo):
         return símismo._tmñ
 
-    def val(símismo):
-        return símismo._val
-
-    def poner_val(símismo, val):
-        símismo._val[:] = val
-
     def guardar_calib(símismo, dist, nombre):
         símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
 
@@ -136,13 +136,12 @@ class ValsParámCoso(object):
 
 
 class Inter(object):
-    def __init__(símismo, cosos,tmñ, índices):
-        símismo.tmñ = tmñ
-        símismo.índices = índices
+    def __init__(símismo, itemas):
+        símismo.itemas = itemas
 
     def __iter__(símismo):
-        for índs in símismo.índices.items():
-            yield índs
+        for i in símismo.itemas:
+            yield i
 
 
 def _tmñ(grupo):

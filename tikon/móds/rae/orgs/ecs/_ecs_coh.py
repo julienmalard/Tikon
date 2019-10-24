@@ -6,8 +6,8 @@ from ._plntll_ec import EcuaciónOrg
 class EcuaciónConCohorte(EcuaciónOrg):
     _cls_dist = NotImplemented
 
-    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
-        super().__init__(cosos, sim, n_rep, í_cosos, ecs)
+    def __init__(símismo, cosos, sim, n_reps, í_cosos, ecs):
+        super().__init__(cosos, sim, n_reps, í_cosos, ecs)
 
         símismo.dist = None  # type: estad.rv_continuous
 
@@ -24,5 +24,5 @@ class EcuaciónConCohorte(EcuaciónOrg):
     def _prms_scipy(símismo):
         raise NotImplementedError
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         raise NotImplementedError

@@ -20,7 +20,7 @@ class Manejo(Módulo):
     def cerrar(símismo):
         pass
 
-    def reqs_externos(símismo):
+    def requísitos(símismo, controles):
         pass
 
     def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):

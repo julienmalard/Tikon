@@ -30,7 +30,7 @@ class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
     nombre = 'Brière No Linear Temperatura'
     cls_ramas = [PrTDevMínBNLT, PrTLetalBNLT, PrMBNLT]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

@@ -19,12 +19,12 @@ class LogístPresa(EcuaciónCrec):
     nombre = 'Logístico Presa'
     cls_ramas = [K]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         crec_etps = símismo.crec_etps()
         pobs_presas = símismo.pobs_etps(filtrar=False)
         pobs = símismo.pobs_etps()
 
-        eje_etapa = símismo.í_eje(POBS, ETAPA)
+        eje_etapa = símismo.í_eje(POBS, EJE_ETAPA)
         k = np.nansum(
             np.multiply(pobs_presas[tuple([slice(None)] * eje_etapa + [np.newaxis])], símismo.cf['K'])
             , axis=-1

@@ -1,0 +1,168 @@
+import os
+
+import numpy as np
+from tikon.ecs.paráms import Inter
+from tikon.estruc.módulo import Módulo
+from tikon.estruc.simul import SimulMódulo
+from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
+from tikon.móds.rae.red.res.cohortes import ResCohortes
+from tikon.móds.rae.red.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA
+
+from .. import Organismo
+from ..orgs.ecs import EcsOrgs
+from ..orgs.organismo import EtapaFantasma
+from ..red.res import res as res_red
+
+
+class RedAE(Módulo):
+    nombre = 'red'
+
+    def __init__(símismo, orgs=None):
+        super().__init__()
+
+        orgs = orgs or []
+        if isinstance(orgs, Organismo):
+            orgs = [orgs]
+
+        símismo.orgs = {str(o_): o_ for o_ in orgs}
+
+    def añadir_org(símismo, org):
+        símismo.orgs[str(org)] = org
+
+    def quitar_org(símismo, org):
+        try:
+            símismo.orgs.pop(str(org))
+        except KeyError:
+            raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
+
+    def requísitos(símismo, controles=False):
+        return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
+
+    @property
+    def etapas(símismo):
+        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo.orgs)]
+
+    def gen_simul(símismo, simul_exper, vars_interés, ecs):
+        return SimulRed(simul_exper=simul_exper, etapas=símismo.etapas, ecs=ecs, vars_interés=vars_interés)
+
+    def gen_ecs(símismo, n_reps):
+        return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
+
+    def guardar_calibs(símismo, directorio=''):
+        for org in símismo:
+            org.guardar_calibs(directorio)
+
+    def __getitem__(símismo, itema):
+        return símismo.orgs[itema]
+
+    def __iter__(símismo):
+        for org in símismo.orgs:
+            yield org
+
+    def cargar_calib(símismo, directorio=''):
+        # para hacer: genérico
+        if os.path.split(directorio)[1] != símismo.nombre:
+            directorio = os.path.join(directorio, símismo.nombre)
+
+        for org in símismo:
+            org.cargar_calib(directorio)
+
+
+class SimulRed(SimulMódulo):
+    resultados = [
+        res_red.ResPobs, res_red.ResEdad, res_red.ResCrec, res_red.ResDepred, res_red.ResRepr,
+        res_red.ResMuerte, res_red.ResTrans, res_red.ResMov, res_red.ResEstoc, ResCohortes
+    ]
+
+    def __init__(símismo, simul_exper, etapas, ecs, vars_interés):
+
+        símismo.etapas = etapas
+
+        símismo.etps_repr = [
+            etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, símismo)
+        ]
+        símismo.etps_trans = [
+            [(etp, etp.siguiente()) for etp in etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()]
+        ]
+
+        super().__init__(
+            nombre=RedAE.nombre, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés
+        )
+
+    def inter(símismo, coso, tipo):
+        if isinstance(tipo, str):
+            tipo = [tipo]
+
+        etps_inter = set()
+        for tp in tipo:
+            if tp == 'presa':
+                etps_inter.update(símismo.presas(coso))
+            elif tp == 'huésped':
+                etps_inter.update(símismo.huéspedes(coso))
+            else:
+                raise ValueError(tipo)
+        inter = [[str(etp.org), str(etp)] for etp in etps_inter]
+        if len(inter):
+            return Inter(inter)
+
+    def presas(símismo, etp):
+        presas = [pr for pr in etp.presas() if pr in símismo]
+
+        # Incluir los fantasmas de las presas
+        fants_presas = [etp for etp in símismo.etapas if isinstance(etp, EtapaFantasma) and etp.etp_hués in presas]
+
+        return presas + fants_presas
+
+    def huéspedes(símismo, etp):
+        return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
+
+    def etp_fant(símismo, huésped, parasitoide):
+        return next(
+            etp for etp in símismo.etapas if
+            isinstance(etp, EtapaFantasma) and etp.etp_hués == huésped and etp.org == parasitoide
+        )
+
+    def iniciar(símismo):
+        super().iniciar()
+
+        símismo[RES_COHORTES].agregar(símismo[RES_POBS].valores())
+
+    def cerrar(símismo):
+        pass
+
+    def poner_valor(símismo, var, val, rel=False):
+        if var == RES_POBS:
+            cambio = val if rel else val - símismo[RES_POBS].datos
+            símismo[RES_COHORTES].ajustar(cambio)
+        else:
+            raise ValueError('No se puede cambiar el valor de "{}" durante una simulación.'.format(var))
+
+        super().poner_valor(var, val, rel)
+
+    def obt_valor(símismo, var):
+        if var == 'Dens':
+            pobs = super().obt_valor(RES_POBS)
+            superficies = símismo.simul_exper.exper.controles('superficies')
+            return pobs / superficies
+
+        return super().obt_valor(var)
+
+    def verificar_estado(símismo):
+        super().verificar_estado()
+
+        mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
+        pobs = símismo[RES_POBS].datos
+
+        if np.any(np.not_equal(pobs.astype(int), pobs)):
+            raise ValueError('Población fraccional.\n{mnsg}'.format(mnsg=mnsg))
+
+        if símismo[RES_COHORTES].datos.values.size:
+            pobs_coh = símismo[RES_COHORTES].datos['pobs']
+            if pobs_coh.min() < 0:
+                raise ValueError('Población de cohorte inferior a 0.\n{mnsg}'.format(mnsg=mnsg))
+            if np.any(np.not_equal(pobs_coh.astype(int), pobs_coh)):
+                raise ValueError('Población de cohorte fraccional.\n{mnsg}'.format(mnsg=mnsg))
+            if np.any(np.isnan(pobs_coh)):
+                raise ValueError('Población de cohorte "nan".\n{mnsg}'.format(mnsg=mnsg))
+            if np.any(np.not_equal(pobs_coh.sum(dim=EJE_COH), pobs)):
+                raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))

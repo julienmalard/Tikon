@@ -46,33 +46,6 @@ def validar_matr_pred(matr_predic, vector_obs):
     return {'r2': r2, 'rcnep': rcnep, 'ens': ens, 'ekg': ekg, 'r2_prcntl': r2_percentiles, 'rcnep_prcntl': rcnep_prcntl}
 
 
-def _r2(y_obs, y_pred):
-    """
-    Calcula el coeficiente de determinación (R2) entre las predicciones de un modelo y los valores observados.
-
-    Parameters
-    ----------
-    y_obs: np.ndarray
-        Valores observados.
-    y_pred: np.ndarray
-        Valores predichos. (y_sombrero)
-
-    Returns
-    -------
-    float:
-        El coeficiente de determinación, R2.
-    """
-
-    prom_y = np.mean(y_obs)
-    sc_rs = np.sum(np.subtract(y_obs, y_pred) ** 2)
-    sc_reg = np.sum(np.subtract(y_pred, prom_y) ** 2)
-    sc_t = sc_rs + sc_reg
-
-    r2 = 1 - np.divide(sc_rs, sc_t)
-
-    return r2
-
-
 # para hacer: limpiar
 def reps_necesarias(matr, eje_parám, eje_estoc, frac_incert, confianza):
     n_parám = matr.shape[eje_parám]
@@ -150,3 +123,7 @@ def opt_dens(obs, sim):
 
 def _rcnep(y_obs, y_pred):
     return np.divide(np.sqrt(np.square(y_pred - y_obs).mean()), np.mean(y_obs))
+
+
+class ProcesadorValid(object):
+    def __init__(símismo, f_valid, ):

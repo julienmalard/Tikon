@@ -26,4 +26,4 @@ class APrioriDist(APriori):
         líms = proc_líms(líms)
         líms_compat(líms, símismo._líms_dist)
 
-        return símismo._dist
+        return DistAnalítica(símismo._dist)

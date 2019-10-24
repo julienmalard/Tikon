@@ -7,5 +7,5 @@ class EcuaciónCrec(EcuaciónOrg):
     def crec_etps(símismo):
         return símismo.obt_res()
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         raise NotImplementedError

@@ -10,6 +10,6 @@ class Ninguna(Ecuación):
     nombre = 'Ninguna'
     cls_ramas = [R]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         # Sin modificación a r.
         return símismo.cf['r'] * paso

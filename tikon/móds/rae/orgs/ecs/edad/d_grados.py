@@ -20,7 +20,7 @@ class FuncDíasGrados(EcuaciónOrg):
     nombre = 'Días grados'
     cls_ramas = [PrMínDG, PrMáxDG]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

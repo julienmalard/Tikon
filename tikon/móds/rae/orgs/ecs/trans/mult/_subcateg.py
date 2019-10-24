@@ -9,6 +9,5 @@ class MultTrans(SubcategEc):
 
     nombre = 'Mult'
     cls_ramas = [EcuaciónVacía, Linear]
-    auto = EcuaciónVacía
     _nombre_res = TRANS
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA

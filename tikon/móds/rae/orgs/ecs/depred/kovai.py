@@ -35,7 +35,7 @@ class Kovai(EcuaciónDepred):
     nombre = 'Kovai'
     cls_ramas = [PrAKovai, PrBKovai]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens = símismo.obt_dens_pobs(filtrar=False)
         cf = símismo.cf
 

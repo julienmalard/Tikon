@@ -10,10 +10,9 @@ from .normal import Normal
 
 class ProbTrans(SubcategEc):
     nombre = 'Prob'
-    cls_ramas = [EcuaciónVacía, Cauchy, Constante, Gamma, Logística, Normal]
-    auto = Normal
+    cls_ramas = [Normal, EcuaciónVacía, Cauchy, Constante, Gamma, Logística]
     _nombre_res = TRANS
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
         trans = símismo.obt_res(filtrar=False)

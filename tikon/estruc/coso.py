@@ -26,13 +26,15 @@ class Coso(object):
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
 
+    def verificar(símismo):
+        símismo.ecs.verificar()
+
+    def _ecs_a_json(símismo):
+        return símismo.ecs.a_dic()
+
     def guardar_calib(símismo, directorio=''):
         arch = os.path.join(directorio, símismo.nombre + '.json')
         guardar_json(símismo._ecs_a_json(), arch)
-
-    def _ecs_a_json(símismo):
-        # para hacer: no debería ser necesario llenar jsonificar() aquí
-        return jsonificar(símismo.ecs.a_dic())
 
     def borrar_calib(símismo, nombre):
         símismo.ecs.borrar_calib(nombre)

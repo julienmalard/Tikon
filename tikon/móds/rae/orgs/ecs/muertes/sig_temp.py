@@ -15,6 +15,6 @@ class SigmoidalTemperatura(Ecuación):
     nombre = 'Sigmoidal Temperatura'
     cls_ramas = [A, B]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         sobrevivencia = 1 / (1 + np.exp((mnjdr_móds['clima.temp_máx'] - cf['a']) / cf['b']))
         return np.multiply(pob_etp, (1 - sobrevivencia))
