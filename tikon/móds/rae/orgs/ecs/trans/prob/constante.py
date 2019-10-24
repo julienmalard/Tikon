@@ -15,7 +15,7 @@ class Constante(EcuaciónTrans):
     exponencial.
     """
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         pobs = símismo.obt_val_mód(POBS)
 

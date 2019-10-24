@@ -9,10 +9,9 @@ from .sig_temp import SigmoidalTemperatura
 
 class EcMuerte(SubcategEc):
     nombre = 'Ecuación'
-    cls_ramas = [EcuaciónVacía, Constante, LogNormTemp, AsimptóticoHumedad, SigmoidalTemperatura]
-    auto = Constante
+    cls_ramas = [Constante, EcuaciónVacía, LogNormTemp, AsimptóticoHumedad, SigmoidalTemperatura]
     _nombre_res = MRTE
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
         muertes = símismo.obt_res(filtrar=False)
@@ -23,7 +22,7 @@ class EcsMuerte(CategEc):
     nombre = 'Muertes'
     cls_ramas = [EcMuerte]
     _nombre_res = MRTE
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
         muertes = símismo.obt_res(filtrar=False)

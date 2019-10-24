@@ -1,4 +1,5 @@
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
+
 from .brr_no_lín_temp import FuncBrièreNoLinearTemperatura
 from .brr_temp import FuncBrièreTemperatura
 from .d_grados import FuncDíasGrados
@@ -9,12 +10,12 @@ from .logan_temp import FuncLoganTemperatura
 class EcuaciónEdad(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [
-        EcuaciónVacía,
-        FuncDías, FuncDíasGrados, FuncBrièreTemperatura, FuncLoganTemperatura, FuncBrièreNoLinearTemperatura
+        FuncDías,
+        FuncDíasGrados, FuncBrièreTemperatura, FuncLoganTemperatura, FuncBrièreNoLinearTemperatura,
+        EcuaciónVacía
     ]
-    auto = FuncDías
     _nombre_res = EDAD
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
 
 class EcsEdad(CategEc):

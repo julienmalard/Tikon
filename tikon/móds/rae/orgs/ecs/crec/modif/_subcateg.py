@@ -7,4 +7,4 @@ class ModifCrec(SubcategEc):
     nombre = 'Modif'
     cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
     _nombre_res = CREC
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA

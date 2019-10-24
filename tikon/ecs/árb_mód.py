@@ -12,11 +12,10 @@ class PlantillaRamaEc(object):
     _eje_cosos = NotImplemented
     req_todas_ramas = False
 
-    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
+    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
 
         símismo.cosos = cosos
         símismo.í_cosos = í_cosos
-        símismo.sim = sim
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
@@ -28,18 +27,21 @@ class PlantillaRamaEc(object):
             if activos:
                 í_cosos_rm, ecs_rm = activos
                 cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
-                símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, sim, n_rep, ecs=ecs_rm)
+                símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, n_reps, ecs=ecs_rm)
 
     def vals_paráms(símismo):
-        return [pr for rm in símismo for pr in rm.vals_paráms()]
+        return {pr for rm in símismo for pr in rm.vals_paráms()}
 
-    def eval(símismo, paso):
+    def requísitos(símismo, controles=False):
+        return {req for rm in símismo for req in rm.requísitos()}
+
+    def eval(símismo, paso, sim):
         for rm in símismo:
-            rm.eval(paso)
+            rm.eval(paso, sim=sim)
 
-        símismo.postproc(paso)
+        símismo.postproc(paso, sim=sim)
 
-    def postproc(símismo, paso):
+    def postproc(símismo, paso, sim):
         pass
 
     def act_vals(símismo):
@@ -100,8 +102,8 @@ class PlantillaRamaEc(object):
 class ÁrbolEcs(PlantillaRamaEc):
     _cls_en_coso = ÁrbolEcsCoso
 
-    def __init__(símismo, cosos, sim, n_rep):
-        super().__init__(cosos, sim, n_rep, í_cosos=np.arange(len(cosos)), ecs=[coso.ecs for coso in cosos])
+    def __init__(símismo, cosos, n_reps):
+        super().__init__(cosos, n_reps, í_cosos=np.arange(len(cosos)), ecs=[coso.ecs for coso in cosos])
 
     def cosos_en_categ(símismo, categ):
         if categ in símismo:
@@ -116,23 +118,22 @@ class CategEc(PlantillaRamaEc):
 
 class SubcategEc(PlantillaRamaEc):
     _cls_en_coso = SubcategEcCoso
-    auto = None
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         for ec in símismo._ramas.values():
             res = ec.eval(paso)
             if res is not None:
                 símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.cosos})
 
-        símismo.postproc(paso)
+        símismo.postproc(paso, sim=sim)
 
 
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
 
-    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
-        super().__init__(cosos, sim, n_rep, í_cosos, ecs=ecs)
-        símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_rep)
+    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
+        super().__init__(cosos, n_reps, í_cosos, ecs=ecs)
+        símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_reps)
 
     def act_vals(símismo):
         símismo.cf.act_vals()
@@ -140,19 +141,22 @@ class Ecuación(PlantillaRamaEc):
     def vals_paráms(símismo):
         return símismo.cf.vals_paráms()
 
+    def requísitos(símismo, controles=False):
+        pass
+
     @classmethod
     def inter(símismo):
         return {tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
                 for prm in símismo.cls_ramas if prm.inter is not None}
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         raise NotImplementedError
 
 
 class EcuaciónVacía(Ecuación):
     nombre = 'Nada'
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         pass
 
 
@@ -163,9 +167,9 @@ class Parám(PlantillaRamaEc):
     inter = None
     cls_ramas = []
 
-    def __init__(símismo, cosos, sim, n_rep, í_cosos, ecs):
+    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
         símismo._prms_cosos = ecs
-        super().__init__(cosos, sim, n_rep, í_cosos, ecs=ecs)
+        super().__init__(cosos, n_reps, í_cosos, ecs=ecs)
 
     def obt_inter(símismo, coso):
         if símismo.inter is not None:

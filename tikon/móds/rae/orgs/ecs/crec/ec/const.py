@@ -15,6 +15,6 @@ class Constante(EcuaciónCrec):
     nombre = 'Constante'
     cls_ramas = [N]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         nueva_pob = símismo.cf['n']
         return nueva_pob - símismo.pobs_etps()

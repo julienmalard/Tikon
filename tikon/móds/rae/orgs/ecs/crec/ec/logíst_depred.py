@@ -17,13 +17,13 @@ class LogístDepred(EcuaciónCrec):
     nombre = 'Logístico Depredación'
     cls_ramas = [K]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         #
         crec_etps = símismo.crec_etps()
         pobs_etps = símismo.pobs_etps()
 
         res_depred = símismo.í_eje(eje='presa', res=DEPR)
-        depred = símismo.obt_val_mód(DEPR, índs={ETAPA: símismo.í_cosos})  # La depredación por estas etapas
+        depred = símismo.obt_val_mód(DEPR, índs={EJE_ETAPA: símismo.í_cosos})  # La depredación por estas etapas
         eje_presa = res_depred.í_eje('presa')
 
         k = np.nansum(np.multiply(depred, símismo.cf['K']), axis=eje_presa)  # Calcular la capacidad de carga

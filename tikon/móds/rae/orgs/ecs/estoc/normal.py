@@ -14,5 +14,5 @@ class Normal(EcuaciónOrg):
     nombre = 'Normal'
     cls_ramas = [Sigma]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         return símismo.cf['sigma'] * paso

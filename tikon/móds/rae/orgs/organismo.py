@@ -1,6 +1,8 @@
 from typing import List
 
 from tikon.estruc.coso import Coso
+from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
+
 from .ecs import EcsOrgs
 
 
@@ -86,40 +88,25 @@ class Organismo(Coso):
 
         return etapas
 
-    def etapas(símismo):
-        etapas = símismo._etapas
+    def etapas(símismo, fantasmas_de=None):
 
-        fants = []
-        for r_p in símismo._rels_paras:
-            huésped = r_p.huésped
-            etps_en_hués = range(min(huésped.índice(r_p.etps_entra)), huésped.índice(r_p.etp_emerg) + 1)
+        if fantasmas_de:
+            etps_fant = [f for r_p in símismo._rels_paras for f in r_p.fantasmas if f.org_hués in fantasmas_de]
+        else:
+            etps_fant = []
 
-            fant = None
-            for í_etp in reversed(etps_en_hués):
-                fant = EtapaFantasma(
-                    símismo, etp=símismo._etapas[0], org_hués=r_p.huésped, etp_hués=huésped[í_etp],
-                    sig=fant or r_p.etp_recip
-                )
-                fants.append(fant)
-
-        return etapas + fants
+        return símismo._etapas + etps_fant
 
     def índice(símismo, etp):
-        if isinstance(etp, list):
-            return [símismo.índice(e) for e in etp]
         if isinstance(etp, str):
             etp = símismo[etp]
         return símismo._etapas.index(etp)
 
     def presas(símismo, etp=None):
-        if etp is None:
-            return [rel.etp_presa for rel in símismo._rels_presas]
-        return [rel.etp_presa for rel in símismo._rels_presas if rel.etp_depred == etp]
+        return [rel.etp_presa for rel in símismo._rels_presas if (etp is None or rel.etp_depred == etp)]
 
     def huéspedes(símismo, etp=None):
-        if etp is None:
-            return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra]
-        return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if rel.etp_depred == etp]
+        return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if (etp is None or rel.etp_depred == etp)]
 
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
@@ -135,25 +122,19 @@ class Organismo(Coso):
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
             return símismo._etapas[itema]
-        if isinstance(itema, Etapa):
-            itema = itema.nombre
-        else:
-            itema = str(itema)
         try:
             return next(e for e in símismo._etapas if e.nombre == itema)
         except StopIteration:
-            raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=str(símismo)))
+            raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=símismo))
 
     def __iter__(símismo):
         for etp in símismo._etapas:
             yield etp
 
     def __contains__(símismo, itema):
-        # para hacer: más elegante, y coordinar con __getitem__()
-        return any(str(itema) == e.nombre for e in símismo._etapas)
-
-    def __len__(símismo):
-        return len(símismo._etapas)
+        if isinstance(itema, str):
+            return any(str(itema) == e.nombre for e in símismo.etapas())
+        return any(itema is e for e in símismo.etapas())
 
 
 class Etapa(Coso):
@@ -168,12 +149,18 @@ class Etapa(Coso):
         return símismo.org.huéspedes(símismo)
 
     def con_cohortes(símismo):
-        return símismo.categ_activa(EDAD, mód=símismo)
+        return símismo.categ_activa(ECS_EDAD, mód=símismo)
 
     def siguiente(símismo):
         índice = símismo.org.índice(símismo)
         if índice < (len(símismo.org) - 1):
             return símismo.org[índice + 1]
+
+    def requísitos(símismo, controles=False):
+        return símismo.ecs.requísitos(controles)
+
+    def __add__(símismo, otro):
+        return SumaEtapas([símismo, otro])
 
     def __str__(símismo):
         return str(símismo.org) + ' ' + símismo.nombre
@@ -196,7 +183,7 @@ class EtapaFantasma(Etapa):
         if isinstance(símismo.sig, EtapaFantasma):
             categs_de_prs = []
         else:
-            categs_de_prs = [TRANS, EDAD, MRTE]
+            categs_de_prs = [ECS_TRANS, ECS_EDAD, ECS_MRTE]
         categs_de_hués = [str(ctg) for ctg in símismo.ecs if str(ctg) not in categs_de_prs]
 
         for ctg in categs_de_hués:
@@ -223,3 +210,27 @@ class RelaciónParas(object):
         símismo.etp_depred = etp_depred
         símismo.etp_emerg = etp_emerg
         símismo.etp_recip = etp_recip
+
+        símismo.fantasmas = []
+        etps_en_hués = range(min(huésped.índice(etps_entra)), huésped.índice(etp_emerg) + 1)
+
+        for í_etp in reversed(etps_en_hués):
+            símismo.fantasmas.append(EtapaFantasma(
+                etp_depred.org, etp=etp_depred.org[0], org_hués=huésped, etp_hués=huésped[í_etp],
+                sig=símismo.fantasmas[-1] if símismo.fantasmas else etp_recip
+            ))
+
+
+class SumaEtapas(object):
+    def __init__(símismo, etapas):
+        símismo.etapas = etapas
+
+    def __add__(símismo, otro):
+        if isinstance(otro, Etapa):
+            return SumaEtapas([otro, *símismo.etapas])
+        else:
+            return SumaEtapas(*list(otro), *símismo.etapas)
+
+    def __iter__(símismo):
+        for etp in símismo.etapas:
+            yield etp

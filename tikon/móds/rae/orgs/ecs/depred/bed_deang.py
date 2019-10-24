@@ -36,7 +36,7 @@ class BedDeAng(EcuaciónDepred):
     nombre = 'Beddington-DeAngelis'
     cls_ramas = [A, B, C]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
 
         dens_depred = dens[:, :, :, í_etps]  # La población de esta etapa

@@ -15,6 +15,6 @@ class Logíst(EcuaciónCrec):
     nombre = 'Logístico'
     cls_ramas = [K]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         pobs_etps = símismo.pobs_etps()
         return símismo.crec_etps() * pobs_etps * (1 - pobs_etps / símismo.cf['K'])

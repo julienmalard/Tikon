@@ -1,123 +1,21 @@
 import numpy as np
 import xarray as xr
-from tikon.móds.rae.orgs.organismo import EtapaFantasma
-from tikon.móds.rae.orgs.utils import COHORT, POBS, DEPR, ESTOC, MOV, REPR, TRANS, MRTE, EDAD, CREC, ETAPA
-from tikon.result.res import Resultado
-
-
-class ResultadoRed(Resultado):
-    ejes_etps = [ETAPA]
-
-    def cerrar(símismo):
-        if símismo.matr_t:
-            ejes_etps = [eje for eje in símismo.ejes().items() if eje[0] in símismo.ejes_etps]
-            for nmb, eje in ejes_etps:
-                etps = eje.índs
-                fantasmas = [e for e in etps if isinstance(e, EtapaFantasma)]
-                for etp in fantasmas:
-                    val = símismo.matr_t.obt_valor(índs={nmb: etp})
-
-                    # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
-                    if etp.etp_espejo in eje:  # para hacer: arreglar para ecuaciones no activadas en etapas espejos
-                        fants_espejo = [f for f in fantasmas if f.etp_espejo == etp.etp_espejo]
-                        rel = etp is not fants_espejo[0]
-                        símismo.matr_t.poner_valor(val, rel=rel, índs={nmb: etp.etp_espejo})
-
-                    # Agregamos etapas fantasmas a las etapas originales de los huéspedes
-                    if etp.etp_hués in eje:
-                        símismo.matr_t.poner_valor(val, rel=True, índs={nmb: etp.etp_hués})
-
-    def reinic(símismo):
-        super().reinic()
-
-        np.round(símismo._matr, out=símismo._matr)
-
-        etps = símismo.ejes()[ETAPA].índs
-
-        fantasmas = [e for e in etps if isinstance(e, EtapaFantasma)]
-
-        def buscar_fants(e):
-            return [f for f in fantasmas if f.etp_espejo is e]
-
-        etps_espejo = [(e, buscar_fants(e)) for e in etps if buscar_fants(e)]
-
-        def obt_val(e):
-            return símismo.obt_valor({ETAPA: e})
-
-        # para hacer: reorganizar si etps_espejo se convierten en grupos de etapas
-        for f in fantasmas:
-            val_f = obt_val(f)
-            símismo.poner_valor(-val_f, rel=True, índs={ETAPA: f.etp_hués})
-
-        for esp, fants in etps_espejo:
-            val_eps = obt_val(esp)
-            fants_disp = np.array([obt_val(f.etp_hués) for f in fants])
-            aloc = val_eps / np.sum(fants_disp, axis=0) * fants_disp
-            # resto = np.sum(aloc - np.floor(aloc), axis=0).astype(int)  # para hacer: no necesario si poblaciones frac
-            aloc = np.floor(aloc)
-            for a, f in zip(aloc, fants):
-                símismo.poner_valor(a, rel=True, índs={ETAPA: f})
-                símismo.poner_valor(-a, rel=True, índs={ETAPA: f.etp_hués})
-
-        símismo.actualizar()
-
-
-class ResPobs(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=POBS, coords=coords)
-
-
-class ResDepred(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=DEPR, coords=coords)
-
-    ejes_etps = [ETAPA, 'víctima']
-
-
-class ResEdad(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=EDAD, coords=coords)
-
-    def finalizar(símismo):
-        pass
-
-
-class ResCrec(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=CREC, coords=coords)
-
-
-class ResRepr(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=REPR, coords=coords)
-
-
-class ResMuerte(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=MRTE, coords=coords)
-
-
-class ResTrans(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=TRANS, coords=coords)
-
-
-class ResMov(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=MOV, coords=coords)
-
-
-class ResEstoc(ResultadoRed):
-    def __init__(símismo, coords):
-        super().__init__(nombre=ESTOC, coords=coords)
+from tikon.móds.rae.red.res.res import ResultadoRed
+from tikon.móds.rae.red.utils import EJE_COH, EJE_ETAPA, RES_COHORTES
 
 
 class ResCohortes(ResultadoRed):
     n_coh = 10
+    nombre = RES_COHORTES
 
-    def __init__(símismo, coords):
-        coords = {'coh': range(símismo.n_coh), 'comp': ['pobs', 'edad'], **coords}
-        super().__init__(nombre=COHORT, coords=coords)
+    def __init__(símismo, sim, coords):
+        coords = {
+            EJE_ETAPA: [etp for etp in sim.etapas if etp.con_cohortes()],
+            EJE_COH: range(símismo.n_coh),
+            'comp': ['pobs', 'edad'],
+            **coords
+        }
+        super().__init__(sim=sim, coords=coords)
 
         símismo.pobs = símismo.datos.loc[{'comp': 'pobs'}]
         símismo.edad = símismo.datos.loc[{'comp': 'edad'}]
@@ -129,7 +27,7 @@ class ResCohortes(ResultadoRed):
         # Limpiar edades de cohortes
         símismo.edad[símismo.pobs == 0] = 0
 
-        índ = {ETAPA: nuevos[ETAPA]}
+        índ = {EJE_ETAPA: nuevos[EJE_ETAPA]}
 
         # Las edades y las poblaciones actuales de las etapas
         pobs = símismo.pobs.loc[índ]
@@ -169,7 +67,7 @@ class ResCohortes(ResultadoRed):
 
     def quitar(símismo, para_quitar, recips=None):
 
-        índ = {ETAPA: para_quitar[ETAPA]}
+        índ = {EJE_ETAPA: para_quitar[EJE_ETAPA]}
 
         pobs = símismo.pobs[índ]
         edades = símismo.edad[índ]
@@ -220,7 +118,7 @@ class ResCohortes(ResultadoRed):
     def trans(símismo, cambio_edad, dist, quitar=True):
 
         # Las edades y las poblaciones actuales de las etapas que transicionan.
-        índ = {ETAPA: cambio_edad[ETAPA]}
+        índ = {EJE_ETAPA: cambio_edad[EJE_ETAPA]}
         edades = símismo.edad.loc[índ]
         pobs = símismo.pobs.loc[índ]
 

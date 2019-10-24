@@ -30,7 +30,7 @@ class TipoIHasselVarley(EcuaciónDepred):
     nombre = 'Tipo I_Hassell-Varley'
     cls_ramas = [ATipoI, MTipoI]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'])
@@ -63,7 +63,7 @@ class TipoIIHasselVarley(EcuaciónDepred):
     nombre = 'Tipo I_Hassell-Varley'
     cls_ramas = [ATipoII, BTipoII, MTipoII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))
@@ -96,7 +96,7 @@ class TipoIIIHasselVarley(EcuaciónDepred):
     nombre = 'Tipo I_Hassell-Varley'
     cls_ramas = [ATipoIII, BTipoIII, MTipoIII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
         return np.multiply(dens / dens_depred ** cf['m'], cf['a'] / (dens / dens_depred ** cf['m'] + cf['b']))

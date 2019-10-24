@@ -72,18 +72,18 @@ calibs = EspecCalibsCorrida(aprioris=True)
 
 sim = Simulador([Red_café, ClimaElEncanto])
 res = sim.simular(exper=El_Encanto, calibs=calibs, n_rep_estoc=10, n_rep_parám=10)
-print('Valid antes de calib')
+print('Valid antes de calibrador')
 pprint(res.validar())
-res.graficar('antes calib')
+res.graficar('antes calibrador')
 
 sensib = sim.sensib(exper=El_Encanto, n=10)
-sensib.graficar('sensib antes calib')
+sensib.graficar('sensib antes calibrador')
 
 sim.calibrar('El Encanto', exper=El_Encanto)
 
 res_después = sim.simular(exper=El_Encanto, n_rep_estoc=10, n_rep_parám=10)
 pprint(res_después.validar())
-res_después.graficar('después calib')
+res_después.graficar('después calibrador')
 
 sensib = sim.sensib(exper=El_Encanto, n=10)
-sensib.graficar('sensib después calib')
+sensib.graficar('sensib después calibrador')

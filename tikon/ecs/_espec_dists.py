@@ -360,7 +360,7 @@ _dists = {
 }
 
 
-def valid_nombre(nombre):
+def _valid_nombre(nombre):
     try:
         return next(nmbr for nmbr in _dists if nmbr.lower() == nombre.lower())
     except StopIteration:
@@ -370,22 +370,40 @@ def valid_nombre(nombre):
         )
 
 
-def obt_scipy(nombre, paráms):
-    nombre = valid_nombre(nombre)
-    d_dist = _dists[nombre]
+def _obt_dic_dist(nombre):
+    nombre = _valid_nombre(nombre)
+    return _dists[nombre]
 
-    for arg, arg_sp in {'ubic': 'loc', 'escl': 'scale'}.items():
-        try:
-            paráms[arg_sp] = paráms.pop(arg)
-        except KeyError:
-            pass
 
-    return d_dist['scipy'](**paráms)
+def clase_scipy(nombre):
+    return _obt_dic_dist(nombre)['scipy']
 
 
 def líms_dist(nombre):
-    nombre = valid_nombre(nombre)
-    return _dists[nombre]
+    return _obt_dic_dist(nombre)['límites']
+
+
+def prms_dist(nombre):
+    return _obt_dic_dist(nombre)['paráms']
+
+
+def obt_scipy(nombre, paráms):
+    cls_dist = clase_scipy(nombre)
+
+    if isinstance(paráms, dict):
+        for arg, arg_sp in {'ubic': 'loc', 'escl': 'scale'}.items():
+            try:
+                paráms[arg_sp] = paráms.pop(arg)
+            except KeyError:
+                pass
+
+        return cls_dist(**paráms)
+    else:
+        return cls_dist(*paráms[0], **paráms[1])
+
+
+def obt_prms_obj_scipy(dist_sp):
+    return [dist_sp.args, dist_sp.kwds]
 
 
 def obt_nombre(dist_sp):

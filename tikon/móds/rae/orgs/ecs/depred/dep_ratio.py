@@ -18,7 +18,7 @@ class TipoIDR(EcuaciónDepred):
     nombre = 'Tipo I_Dependiente ratio'
     cls_ramas = [ATipoI]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens = símismo.obt_val_mód('Dens')
         return np.multiply(dens / símismo.dens_depred(), símismo.cf['a'])
 
@@ -42,7 +42,7 @@ class TipoIIDR(EcuaciónDepred):
     nombre = 'Tipo II_Dependiente ratio'
     cls_ramas = [ATipoII, BTipoII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         cf = símismo.cf
         dens_depred = símismo.dens_depred()
         return np.multiply(dens / dens_depred, cf['a'] / (dens / dens_depred + cf['b']))
@@ -67,7 +67,7 @@ class TipoIIIDR(EcuaciónDepred):
     nombre = 'Tipo III_Dependiente ratio'
     cls_ramas = [ATipoIII, BTipoIII]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         dens_depred = símismo.dens_depred()
         cf = símismo.cf
 

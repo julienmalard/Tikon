@@ -14,3 +14,6 @@ class EcsOrgs(ÁrbolEcs):
 
     # ¡Este órden queda muy importante!
     cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
+
+    def verificar(símismo):
+        pass  # para hacer

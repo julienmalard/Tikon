@@ -60,9 +60,9 @@ if __name__ == '__main__':
     # calibs = EspecCalibsCorrida(aprioris=True)
     # res = simul.simular(días=None, exper=exper_A, n_rep_parám=30, n_rep_estoc=30, calibs=calibs, vars_interés=True)
     # pprint(res.validar())
-    # res.graficar('antes calib')
+    # res.graficar('antes calibrador')
     simul.calibrar('Sitio A', método=método, f=f, exper=exper_A)
-    simul.guardar_calib(f'calibs Sitio A {método} {f}_{post}')
+    simul.guardar_calibs(f'calibs Sitio A {método} {f}_{post}')
     exper_A.guardar_calib(f'calibs Sitio A {método} {f}_{post}')
 
     res2 = simul.simular(exper=exper_A, vars_interés=True)

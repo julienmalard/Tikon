@@ -7,5 +7,5 @@ class FuncDías(EcuaciónOrg):
     """
     nombre = 'Días'
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         return paso

@@ -87,10 +87,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
     def __init__(símismo, cls_pariente, ramas, coso):
         super().__init__(cls_pariente, ramas, coso)
 
-        if cls_pariente.auto is not None:
-            símismo._activada = next(ec for ec in símismo if ec.cls_pariente is cls_pariente.auto)
-        else:
-            símismo._activada = ramas[0]
+        símismo._activada = ramas[0]
 
         símismo._activada.activada = True
 

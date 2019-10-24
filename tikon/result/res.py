@@ -1,19 +1,30 @@
+from itertools import product
+
 import numpy as np
 import xarray as xr
-from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
-from spotpy.objectivefunctions import nashsutcliffe, rmse, agreementindex, kge, rrmse, rsquared, log_p
 from tikon.estruc.simul import PlantillaSimul
 from tikon.result.dibujar import graficar_pred
-from tikon.result.valid import reps_necesarias, validar_matr_pred
-from tikon.utils import TIEMPO
+from tikon.result.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
+from tikon.result.valid import reps_necesarias
 
 
 class Resultado(PlantillaSimul):
-    def __init__(símismo, nombre, coords, t=None, obs=None):
-        símismo.datos_t = _gen_datos(coords, t=t)
-        símismo._datos = símismo.datos_t[{TIEMPO: 0}]
+    líms = None
 
-        super().__init__(nombre, subsimuls=[])
+    def __init__(símismo, sim, coords, vars_interés):
+        símismo.sim = sim
+        símismo.obs = sim.simul_exper.exper.obt_obs(símismo.nombre)
+
+        símismo.t = sim.simul_exper.t if _res_temporal(símismo.nombre, sim.nombre, símismo.obs, vars_interés) else None
+
+        símismo.datos_t = _gen_datos(coords, t=símismo.t)
+        símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]  # Crear enlace dinámico entre resultados diarios y temporales
+
+        super().__init__(símismo.nombre, subsimuls=[])
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
     @property
     def datos(símismo):
@@ -23,118 +34,118 @@ class Resultado(PlantillaSimul):
     def datos(símismo, val):
         símismo._datos[:] = val
 
-    def iniciar_estruc(símismo):
-        pass
-
-    def iniciar_vals(símismo):
+    def iniciar(símismo):
         símismo.datos_t[:] = 0
-        símismo.datos = símismo.datos_t[{TIEMPO: 0}]
+        símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]
 
-    def incrementar(símismo, paso):
+    def incrementar(símismo, paso, f):
         if símismo.t is not None:
-            símismo.datos = símismo.datos_t[{TIEMPO: símismo.t.i}]
-        super().incrementar(paso)
+            símismo._datos = símismo.datos_t[{EJE_TIEMPO: símismo.t.i}]
+        super().incrementar(paso, f)
 
     def cerrar(símismo):
         pass
 
     def verificar_estado(símismo):
-        pass
+        if símismo.líms:
+            mín, máx = símismo.líms
 
-    # para hacer: reorganizar las 4 funciones siguientes
-    def validar(símismo):
-        if símismo._validable():
+            if np.any(símismo.datos < mín) or np.any(símismo.datos > máx):
+                raise ValueError(
+                    '{res}: Valor de afuera de los límites {líms}'.format(res=símismo, líms=repr(símismo.líms))
+                )
+            if np.any(np.isnan(símismo.datos)):
+                raise ValueError('{res}: Valor no numérico (p. ej., división por 0)'.format(res=símismo))
+
+    def validar(símismo, proc):
+        if símismo.obs is not None:
+            obs_corresp = símismo.obs.interp_like(símismo.datos_t)
+
+            l_proc = []
+            pesos = []
             d_valid = {}
-            eje_tiempo = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje)
-            for índs in símismo.obs.iter_índs(excluir='días'):
-                matr_t = símismo.matr_t
-                ejes_orig = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
+            for índs in símismo.iter_índs(símismo.obs, excluir=EJE_TIEMPO):
 
-                vals_res = símismo.obt_valor_t(eje_tiempo, índs=índs)
-                vals_res = np.moveaxis(vals_res, ejes_orig, [0, 1, 2])
-                vals_res = vals_res.reshape(vals_res.shape[:3])
-                vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_tiempo.días})
+                l_llaves = list(str(ll) for ll in índs.values())
 
                 dic = d_valid
-                l_llaves = list(str(ll) for ll in índs.values())
                 for ll in l_llaves[:-1]:
                     if ll not in dic:
                         dic[ll] = {}
-                        dic = dic[ll]
-                dic[l_llaves[-1]] = validar_matr_pred(vals_res, vals_obs)
+                    dic = dic[ll]
+
+                dic[l_llaves[-1]] = proc.f_vals(símismo.datos_t.loc[índs], obs_corresp.loc[índs])
+
             return d_valid
 
     def procesar_calib(símismo, proc):
-        if símismo._validable():
-            f = f or 'ens'
-            if isinstance(f, str):
-                f = _funcs[f]
+
+        if símismo.obs is not None:
+            obs_corresp = símismo.obs.interp_like(símismo.datos_t)
+
             l_proc = []
             pesos = []
-            eje_tiempo = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje)
-            for índs in símismo.obs.iter_índs(excluir='días'):
-                matr_t = símismo.matr_t
-                ejes_orig = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
+            for índs in símismo.iter_índs(símismo.obs, excluir=EJE_TIEMPO):
+                obs_índs = obs_corresp.loc[índs]
 
-                vals_res = símismo.obt_valor_t(eje_tiempo, índs=índs)
-                vals_res = np.moveaxis(vals_res, ejes_orig, [0, 1, 2])
-                vals_res = vals_res.reshape(vals_res.shape[:3])
-                vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_tiempo.días})
+                l_proc.append(proc.f_vals(obs_índs, símismo.datos_t.loc[índs]))
+                pesos.append(proc.f_pesos(obs_índs))
 
-                # l_proc.append(dens_con_pred(vals_obs, vals_res))
+            return proc.f_vals(l_proc, pesos=pesos), proc.f_pesos(pesos)
 
-                # para hacer: formalizar opciones de algoritmo especificados por el usuario
-                l_proc.append(f(vals_obs, vals_res))
-                pesos.append(np.sum(np.isfinite(vals_obs)))
-            return np.average(l_proc, weights=pesos), np.sum(pesos)
         return 0, 0
 
     def graficar(símismo, directorio=''):
-        if símismo.matr_t:
-            matr_t = símismo.matr_t
-            for índs in matr_t.iter_índs(excluir=['días', 'estoc', 'parám']):
-                ord_ejes = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
-
-                vals_res = símismo.obt_valor_t(símismo.tiempo.eje.vec(), índs=índs)
-                vals_res = np.moveaxis(vals_res, ord_ejes, [0, 1, 2])
-                try:
-                    eje_obs = símismo.obs.eje_tiempo.cortar(símismo.tiempo.eje).vec()
-                    vals_obs = símismo.obs.obt_valor({**índs, 'días': eje_obs})
-                except (ValueError, AttributeError):  # para hacer: más elegante
-                    vals_obs = eje_obs = None
-
+        if símismo.datos_t.t is not None:
+            for índs in símismo.iter_índs(símismo.datos_t, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
                 título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
 
+                obs_índs = símismo.obs.loc[índs] if símismo.obs is not None else None
                 graficar_pred(
                     título, directorio,
-                    vals_res, t_pred=símismo.tiempo.eje.vec(), t_obs=eje_obs, vector_obs=vals_obs,
+                    predic=símismo.datos_t.loc[índs], obs=obs_índs
                 )
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        matr = símismo.matr_t or símismo
-        return reps_necesarias(
-            matr.obt_valor(), eje_parám=matr.í_eje('parám'), eje_estoc=matr.í_eje('estoc'),
-            frac_incert=frac_incert, confianza=confianza
-        )
+        return reps_necesarias(símismo.datos_t, frac_incert=frac_incert, confianza=confianza)
 
     def a_dic(símismo):
-        return símismo.datos_t.to_dict()
+        if símismo.t is not None:
+            return {
+                'obs': símismo.obs.a_dic() if símismo.obs else None,
+                'preds': símismo.datos_t.to_dict(),
+            }
+
+    @staticmethod
+    def iter_índs(datos, excluir=None):
+        excluir = excluir or []
+        if isinstance(excluir, str):
+            excluir = [excluir]
+
+        for índs in product(*[datos[dim].values for dim in datos.dims if dim not in excluir]):
+            yield dict(zip(datos.dims, índs))
+
+    def __str__(símismo):
+        return símismo.nombre
 
 
-def _gen_datos(coords, t=None):
-    coords = {TIEMPO: t.eje() if t is not None else [0], **coords}
+def _res_temporal(nombre, nombre_sim, obs, vars_interés):
+    if isinstance(vars_interés, bool):
+        return vars_interés
+
+    if vars_interés is None:
+        return obs is not None
+
+    return nombre_sim in vars_interés or nombre_sim + '.' + nombre in vars_interés
+
+
+def _gen_datos(coords, t):
+    coords = {EJE_TIEMPO: t.eje() if t is not None else [0], **coords}
     return xr.DataArray(data=0, coords=coords, dims=list(coords))
 
 
 class Resultado0(Matriz):
     def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
-        super().__init__(dims)
-        símismo.nombre = nombre
-
-        if tiempo:
-            símismo.matr_t = MatrizTiempo(dims, tiempo.eje)
-        else:
-            símismo.matr_t = None
 
         símismo.obs = obs
         símismo.inic = inic
@@ -161,37 +172,3 @@ class Resultado0(Matriz):
                 símismo.poner_valor(vals=val.valor(), índs=val.índs)
             símismo.actualizar()
 
-    def a_dic(símismo):
-        if símismo.matr_t is not None:
-            return {
-                'obs': símismo.obs.a_dic() if símismo.obs else None,
-                'preds': símismo.matr_t.a_dic(),
-            }
-
-    def _validable(símismo):
-        return símismo.matr_t is not None and símismo.obs is not None
-
-
-def _ens_dens(o, s):
-    prom_obs = np.nanmean(o)
-    num = np.nansum((o - s) ** 2, axis=0)
-    denom = np.nansum((o - prom_obs) ** 2, axis=0)
-    return np.mean(1 - (num / denom))
-
-
-_funcs = {
-    'ens': lambda o, s: nashsutcliffe(o, np.mean(s, axis=(1, 2))),
-    'rcep': lambda o, s: -rmse(o, np.mean(s, axis=(1, 2))),
-    'corresp': lambda o, s: agreementindex(o, np.mean(s, axis=(1, 2))),
-    'ekg': lambda o, s: kge(o, np.mean(s, axis=(1, 2))),
-    'r2': lambda o, s: rsquared(o, np.mean(s, axis=(1, 2))),
-    'rcnep': lambda o, s: -rrmse(o, np.mean(s, axis=(1, 2))),
-    'log p': lambda o, s: log_p(o, np.mean(s, axis=(1, 2))),
-    'dens': _ens_dens,
-    'verosimil_gaus': gaussianLikelihoodMeasErrorOut
-}
-
-
-class CombinadorEval(object):
-    def __init__(símismo, ):
-        pass

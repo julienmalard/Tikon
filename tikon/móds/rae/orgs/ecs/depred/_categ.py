@@ -2,7 +2,8 @@ import numpy as np
 
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
 from tikon.móds.rae import probs_conj
-from tikon.móds.rae.orgs.utils import DEPR
+from tikon.móds.rae.orgs.utils import DEPR, POBS
+from tikon.móds.rae.red_ae.utils import EJE_ETAPA
 
 from .bed_deang import BedDeAng
 from .dep_presa import TipoIDP, TipoIIDP, TipoIIIDP
@@ -14,24 +15,23 @@ from .kovai import Kovai
 class EcDepred(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [
-        EcuaciónVacía,
+        Kovai, EcuaciónVacía,
         TipoIDP, TipoIIDP, TipoIIIDP,
         TipoIDR, TipoIIDR, TipoIIIDR,
         TipoIHasselVarley, TipoIIHasselVarley, TipoIIIHasselVarley,
-        BedDeAng, Kovai
+        BedDeAng
     ]
-    auto = Kovai
     _nombre_res = DEPR
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
 
 class EcsDepred(CategEc):
     nombre = DEPR
     cls_ramas = [EcDepred]
     _nombre_res = DEPR
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
-    def postproc(símismo, paso):
+    def postproc(símismo, paso, f):
         depred = símismo.obt_res(filtrar=False)
 
         # Reemplazar valores NaN con 0.
@@ -51,7 +51,7 @@ class EcsDepred(CategEc):
         np.multiply(depred, np.multiply(pobs, paso)[..., np.newaxis], out=depred)  # para hacer: rebanar mejor
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        eje_depredador = símismo.í_eje_res(ETAPA)
+        eje_depredador = símismo.í_eje_res(EJE_ETAPA)
         probs_conj(depred, pesos=1, máx=símismo.obt_val_mód(POBS, filtrar=False), eje=eje_depredador)
 
         depred[np.isnan(depred)] = 0
@@ -79,7 +79,7 @@ class EcsDepred(CategEc):
             í_prs = símismo.cosos.index(prs)
             for hués in l_hués:
                 í_hués = símismo.sim.info_etps.índice(hués)
-                etp_fant = símismo.sim.info_etps.etp_fant(hués, prs.org)
+                etp_fant = símismo.sim.etp_fant(hués, prs.org)
                 pob_parasitada = depr_parás[..., í_prs, [í_hués]]  # para hacer: rebanar mejor
 
                 símismo.sim.cohortes.quitar(pob_parasitada, etapas=[hués], recips=([etp_fant], [hués]))

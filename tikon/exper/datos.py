@@ -1,7 +1,62 @@
+import pandas as pd
 from tikon.ecs.dists import Dist
 from tikon.ecs.paráms import ValsParámCoso
 from tikon.ecs.árb_mód import Parám
+from tikon.result.utils import EJE_TIEMPO
 from tikon.utils import guardar_json, leer_json
+
+
+class PlantillaDatosVals(object):
+
+    def __init__(símismo):
+        símismo._datos = {}
+
+    def fechas(símismo):
+        f_inic = f_final = None
+        for dato in símismo._datos.values():
+            fechas = dato.fechas()
+            if fechas:
+                otra_inic, otra_final = fechas
+                f_inic = min(otra_inic, f_inic)
+                f_final = max(otra_final, f_final)
+
+        return f_inic, f_final
+
+
+class DatosExper(PlantillaDatosVals):
+
+    def agregar_obs(símismo, obs):
+        if isinstance(obs, list):
+            for ob in obs:
+                símismo.agregar_obs(ob)
+        else:
+            if obs.mód not in símismo._datos:
+                símismo._datos[obs.mód] = DatosMód()
+
+            símismo._datos[obs.mód].agregar_obs(obs)
+
+
+class DatosMód(PlantillaDatosVals):
+
+    def agregar_obs(símismo, obs):
+        if obs.var not in símismo._datos:
+            símismo._datos[obs.var] = DatosVar()
+        símismo._datos[obs.var].agregar_obs(obs)
+
+
+class DatosVar(object):
+    def __init__(símismo):
+        símismo._obs = None
+        símismo._prms = []
+
+    def agregar_obs(símismo, obs):
+        símismo._obs = obs
+
+    def agregar_prm(símismo, prm):
+
+    def fechas(símismo):
+        if símismo._obs:
+            return símismo._obs.fechas()
 
 
 class MnjdrInicExper(object):
@@ -140,8 +195,6 @@ class MnjdrInicVar(object):
             for ll, v in val.items():
                 dist = Dist.gen_dist(v['val'])
                 obj_val.prm_base.agregar_calib(ll, dist)
-
-
 
     def __iter__(símismo):
         for v in símismo.vals:

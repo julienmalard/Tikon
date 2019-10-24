@@ -1,7 +1,8 @@
 import numpy as np
 
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
-from tikon.móds.rae.orgs.utils import REPR, ETAPA
+from tikon.móds.rae.orgs.utils import REPR
+from tikon.móds.rae.red_ae.utils import EJE_ETAPA
 
 from .cauchy import Cauchy
 from .constante import Constante
@@ -15,10 +16,9 @@ from .triang import Triang
 
 class ProbRepr(SubcategEc):
     nombre = 'Prob'
-    cls_ramas = [EcuaciónVacía, Constante, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
-    auto = Constante
+    cls_ramas = [Constante, EcuaciónVacía, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
     _nombre_res = REPR
-    _eje_cosos = ETAPA
+    _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
         # Agregar las reproducciones a las poblaciones

@@ -1,5 +1,14 @@
 import numpy as np
 
+ECS_EDAD = 'Edad'
+ECS_CREC = 'Crecimiento'
+ECS_DEPR = 'Depredación'
+ECS_REPR = 'Reproducción'
+ECS_MRTE = 'Muerte'
+ECS_TRANS = 'Transición'
+ECS_MOV = 'Movimiento'
+ECS_ESTOC = 'Estoc'
+
 
 def probs_conj(matr, eje, pesos=1, máx=1):
     """

@@ -29,7 +29,7 @@ class FuncLoganTemperatura(EcuaciónOrg):
     nombre = 'Logan Temperatura'
     cls_ramas = [PrDeltaLT, PrTLetalLT]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         mnjdr_móds = símismo.mnjdr_móds
         cf = símismo.cf
 

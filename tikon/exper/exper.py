@@ -3,22 +3,35 @@ import os
 import numpy as np
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
-from tikon.exper.inic import MnjdrInicExper
-from tikon.móds.rae.orgs.organismo import EtapaFantasma
+from tikon.estruc.tiempo import Tiempo, gen_tiempo
+
+from .control import ControlesExper
+from .datos import MnjdrInicExper, DatosExper
 
 
 class Exper(object):
     def __init__(símismo, nombre, obs=None):
         símismo.nombre = nombre
+        símismo.datos = DatosExper()
+        símismo.controles = ControlesExper()
+
+        símismo.datos.agregar_obs(obs)
+
+    def gen_t(símismo, t):
+        if t is None:
+            f_inic, f_final = símismo.datos.fechas()
+            if not f_inic or not f_final:
+                raise ValueError('Debes especificar fecha inicial y final para simulaciones sin observaciones.')
+
+            return Tiempo(f_inic=f_inic, f_final=f_final)
+
+        return gen_tiempo(t)
+
+
+class Exper(object):
+    def __init__(símismo, obs=None):
         símismo.obs = MnjdrObsExper(obs)
-        símismo.controles = MnjdrControlesExper()
         símismo.inic = MnjdrInicExper()
-
-    def n_días(símismo):
-        return símismo.obs.n_días(símismo.f_inic())
-
-    def f_inic(símismo):
-        return símismo.obs.f_inic()
 
     def obt_inic(símismo, mód, var=None):
         try:
@@ -45,7 +58,7 @@ class Exper(object):
         except KeyError:
             return []
 
-        etps = [e for e in red.info_etps.etapas if not isinstance(e, EtapaFantasma)]
+        etps = red.etapas()
         # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
         obs = símismo.obtener_obs(red, 'Pobs')
         for etp in etps:
@@ -84,32 +97,6 @@ class Exper(object):
         símismo.inic.cargar_calib(archivo)
 
 
-_controles_auto = {
-    'parcelas': ['1'],
-    'superficies': np.array([1.]),
-    'lat': np.array([11.0025]),
-    'lon': np.array([76.9656])
-}
-
-
-class MnjdrControlesExper(object):
-    def __init__(símismo):
-        símismo._usuario = {}
-        símismo._auto = _controles_auto
-
-    def verif(símismo):
-        pass
-
-    def __setitem__(símismo, llave, valor):
-        símismo._usuario[llave] = valor
-
-    def __getitem__(símismo, itema):
-        try:
-            return símismo._usuario[itema]
-        except KeyError:
-            return símismo._auto[itema]
-
-
 class MnjdrObsExper(object):
     def __init__(símismo, obs=None):
         símismo._obs = {}
@@ -117,9 +104,6 @@ class MnjdrObsExper(object):
             símismo.agregar_obs(obs)
 
     def agregar_obs(símismo, obs):
-        if isinstance(obs, list):
-            for ob in obs:
-                símismo.agregar_obs(ob)
 
         mód = str(obs.mód)
         if mód not in símismo._obs:

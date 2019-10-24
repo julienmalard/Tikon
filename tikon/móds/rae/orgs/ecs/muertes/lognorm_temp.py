@@ -26,6 +26,6 @@ class LogNormTemp(Ecuación):
     nombre = 'Log Normal Temperatura'
     cls_ramas = [T, P]
 
-    def eval(símismo, paso):
+    def eval(símismo, paso, sim):
         sobrevivencia = np.exp(-0.5 * (np.log(mnjdr_móds['clima.temp_máx'] / cf['t']) / cf['p']) ** 2)
         return np.multiply(pob_etp, (1 - sobrevivencia))
