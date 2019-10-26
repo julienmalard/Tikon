@@ -40,7 +40,7 @@ class LogNormTemp(EcuaciónOrg):
     """
 
     nombre = 'Log Normal Temperatura'
-    cls_ramas = [T, Rho]
+    cls_ramas = [T, Rho, K]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
