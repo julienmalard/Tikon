@@ -20,50 +20,35 @@ class ResCohortes(ResultadoRed):
         símismo.pobs = símismo.datos.loc[{'comp': 'pobs'}]
         símismo.edad = símismo.datos.loc[{'comp': 'edad'}]
 
-        símismo._eje_coh = símismo.datos.dims.index('coh')
-
     def agregar(símismo, nuevos, edad=0):
 
         # Limpiar edades de cohortes
-        símismo.edad[símismo.pobs == 0] = 0
+        símismo.edad[:] = símismo.edad.where(símismo.pobs == 0, 0)
 
         índ = {EJE_ETAPA: nuevos[EJE_ETAPA]}
 
-        # Las edades y las poblaciones actuales de las etapas
-        pobs = símismo.pobs.loc[índ]
-        edades = símismo.edad.loc[índ]
+        # Las edades actuales de las etapas
+        datos = símismo.datos.loc[índ]
+        edades = datos['edad']
 
-        eje_coh = símismo._eje_coh
+        # Los cohortes que tienen la diferencia mínima con las nuevas edades.
+        # Si hay más que un cohorte con la diferencia mínima, tomará el primero.
+        dif_edades = (edades - edad).abs()
+        datos_dif_mín = datos[{EJE_COH: dif_edades.argmin(EJE_COH)}].drop(EJE_COH)
 
-        # Los índices de los días cuyos cohortes tienen la edad mínima. Si hay más que un día (cohorte) con la
-        # edad mínima, tomará el primero.
-        í_cohs = np.expand_dims(np.argmin(edades, axis=eje_coh), axis=eje_coh)
-
-        # Las edades de los cohortes con las edades mínimas.
-        eds_mín = np.take_along_axis(edades, í_cohs, axis=eje_coh)
-
-        # Las poblaciones que corresponden a estas edades mínimas.
-        pobs_coresp = np.take_along_axis(pobs, í_cohs, axis=eje_coh)
-
-        # Dónde no hay población existente, reinicializamos la edad.
-        eds_mín = np.where(pobs_coresp == 0, [0], eds_mín)
+        eds_mín = datos_dif_mín.loc[{'comp': 'edad'}]
+        pobs_coresp = datos_dif_mín.loc[{'comp': 'pobs'}]
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
         # cohorte si hay que combinarlo con un cohorte existente).
-        peso_ed_ya = np.divide(pobs_coresp, np.add(nuevos, pobs_coresp))
-        peso_ed_ya[np.isnan(peso_ed_ya)] = 0
+        peso_ed_ya = (pobs_coresp / (nuevos + pobs_coresp)).fillna(0)
 
         # Los edades promedios. Si no había necesidad de combinar cohortes, será la población del nuevo cohorte.
-        eds_prom = np.add(np.multiply(eds_mín, peso_ed_ya), np.multiply(edad, np.subtract(1, peso_ed_ya)))
+        eds_prom = eds_mín * peso_ed_ya + edad * (1 - peso_ed_ya)
 
-        # Guardar las edades actualizadas en los índices apropiados
-        np.put_along_axis(edades, í_cohs, eds_prom, axis=eje_coh)
-
-        # Guardar las poblaciones actualizadas en los índices apropiados
-        np.put_along_axis(pobs, í_cohs, nuevos + pobs_coresp, axis=eje_coh)
-
-        símismo.pobs.loc[índ] = pobs
-        símismo.edad.loc[índ] = edades
+        # Guardar las poblaciones y edades actualizadas en los índices apropiados
+        símismo.pobs.loc[índ] = nuevos + pobs_coresp
+        símismo.edad.loc[índ] = eds_prom
 
     def quitar(símismo, para_quitar, recips=None):
 
@@ -72,37 +57,26 @@ class ResCohortes(ResultadoRed):
         pobs = símismo.pobs[índ]
         edades = símismo.edad[índ]
 
-        eje_coh = símismo._eje_coh
+        totales_pobs = pobs.sum(dim=EJE_COH)
+        quitar = (pobs * (para_quitar / totales_pobs)).floor()
+        quitar = quitar.fillna(0)
 
-        totales_pobs = pobs.sum(dim='coh')
-        quitar = np.floor(np.divide(para_quitar, totales_pobs) * pobs)
-        quitar[np.isnan(quitar)] = 0
+        pobs = pobs - quitar
+        para_quitar = para_quitar - quitar.sum(dim=EJE_COH)
 
-        # para hacer: combinar quitar y quitar2
-        np.subtract(pobs, quitar, out=pobs)
+        cum_presente = (pobs > 0).cumsum(dim=EJE_COH)
+        quitar_res = xr.where((pobs > 0) & (cum_presente <= para_quitar), 1, 0)
 
-        para_quitar = np.subtract(para_quitar, quitar.sum(axis=eje_coh))
-
-        cum_presente = np.cumsum(np.greater(pobs, 0), axis=eje_coh)
-        quitar_2 = np.where(
-            np.logical_and(np.greater(pobs, 0), np.less_equal(cum_presente, para_quitar)),
-            1,
-            0
-        )
-
-        símismo.pobs.loc[índ] = np.subtract(pobs, quitar_2)
+        símismo.pobs.loc[índ] = pobs - quitar_res
 
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
-            np.add(quitar_2, quitar, out=quitar)
+            quitar += quitar_res
+            quitar[EJE_ETAPA] = recips
 
             # Para cada cohorte...
-            for í_coh in range(pobs.shape[eje_coh]):
-                # Las edades de las etapas que se quitaron
-                eds = edades[í_coh, ...]  # para hacer: rebanar mejor
-
-                # Cambiar el orden de las etapas para los cohortes recipientes
-                símismo.agregar(quitar[í_coh], edad=eds, etapas=recips[0])
+            for í_coh in range(símismo.n_coh):
+                símismo.agregar(quitar[{EJE_COH: í_coh}], edad=edades[{EJE_COH: í_coh}])
 
     def ajustar(símismo, cambio):
         # Detectar dónde el cambio es positivo y dónde es negativo
@@ -118,21 +92,18 @@ class ResCohortes(ResultadoRed):
     def trans(símismo, cambio_edad, dist, quitar=True):
 
         # Las edades y las poblaciones actuales de las etapas que transicionan.
-        índ = {EJE_ETAPA: cambio_edad[EJE_ETAPA]}
+        índ = cambio_edad.coords
         edades = símismo.edad.loc[índ]
         pobs = símismo.pobs.loc[índ]
 
-        # Calcualar la probabilidad de transición.
+        # Calcular la probabilidad de transición. Cambiamos a numpy temporalmente
         dens_cum_eds = dist.cdf(edades)
-        probs = np.divide(
-            np.subtract(dist.cdf(edades + cambio_edad), dens_cum_eds),
-            np.subtract(1, dens_cum_eds)
-        )
+        probs = (dist.cdf(edades + cambio_edad) - dens_cum_eds) / (1 - dens_cum_eds)
 
         probs[np.isnan(probs)] = 1
 
-        # Calcular el número que transicionan.
-        n_cambian = np.round(np.multiply(pobs, probs))
+        # Calcular el número que transicionan. Ya estamos con xarray de nuevo.
+        n_cambian = (pobs * probs).round()
 
         # Aplicar el cambio de edad.
         símismo.edad.loc[índ] += cambio_edad
@@ -141,5 +112,5 @@ class ResCohortes(ResultadoRed):
         if quitar:
             símismo.pobs.loc[índ] -= n_cambian
 
-        # Agregar las transiciones a la matriz de egresos.
-        return n_cambian.sum(dim='coh')
+        # Devolver el total de transiciones por etapa
+        return n_cambian.sum(dim=EJE_COH)
