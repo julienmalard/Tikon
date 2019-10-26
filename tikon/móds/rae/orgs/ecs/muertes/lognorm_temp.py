@@ -1,31 +1,55 @@
-import numpy as np
+import xarray as xr
 
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
 
 class T(Parám):
     nombre = 't'
-    líms = (None, None)
-
-
-class P(Parám):
-    nombre = 'p'
     líms = (0, None)
+    unids = 'C'
 
 
-class LogNormTemp(Ecuación):
+class Rho(Parám):
+    nombre = 'rho'
+    líms = (0, None)
+    unids = None
+
+
+class K(Parám):
+    nombre = 'k'
+    líms = (0, 1)
+    unids = None
+
+
+class LogNormTemp(EcuaciónOrg):
     """
-    Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en:
+    Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en [1]_.
 
-    Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
-      Podisus maculiventris (Hemiptera: Pentatomidae): implications for mass rearing and biological
-      control. Journal of Pest Science 87(2): 331-340.
+    .. math::
+       f(x) = k*e^(-0.5*(ln(T/T_m)/\rho)^2)
+
+    Donde `k` es la sobrevivencia máxima a la temperatura optimal `T_m`.
+
+    References
+    ----------
+    .. [1] Sunghoon Baek, Youngsoo Son, Yong-Lak Park. 2014. Temperature-dependent development and survival of
+       Podisus maculiventris (Hemiptera: Pentatomidae): implications for mass rearing and biological
+       control. Journal of Pest Science 87(2): 331-340.
 
     """
 
     nombre = 'Log Normal Temperatura'
-    cls_ramas = [T, P]
+    cls_ramas = [T, Rho]
 
     def eval(símismo, paso, sim):
-        sobrevivencia = np.exp(-0.5 * (np.log(mnjdr_móds['clima.temp_máx'] / cf['t']) / cf['p']) ** 2)
-        return np.multiply(pob_etp, (1 - sobrevivencia))
+        cf = símismo.cf
+
+        t_máx = símismo.obt_val_extern(sim, 'clima.temp_máx')
+        sobrevivencia = cf['k'] * xr.ufuncs.exp(-0.5 * (xr.ufuncs.log(t_máx / cf['t']) / cf['rho']) ** 2)
+
+        return 1 - sobrevivencia
+
+    def requísitos(símismo, controles=False):
+        if not controles:
+            return ['clima.temp_máx']
