@@ -1,35 +1,28 @@
-import numpy as np
-
-from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
-from tikon.móds.rae.orgs.utils import ESTOC
+from tikon.ecs.árb_mód import EcuaciónVacía
+from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
+from tikon.móds.rae.orgs.ecs.utils import ECS_ESTOC
+from tikon.móds.rae.red.utils import RES_ESTOC
 
 from .normal import Normal
 
 
-class DistEstoc(SubcategEc):
+class DistEstoc(SubcategEcOrg):
     nombre = 'Dist'
     cls_ramas = [Normal, EcuaciónVacía]
-    _eje_cosos = EJE_ETAPA
-    _nombre_res = ESTOC
+    _nombre_res = RES_ESTOC
 
 
-class EcsEstoc(CategEc):
-    nombre = ESTOC
+class EcsEstoc(CategEcOrg):
+    nombre = ECS_ESTOC
     cls_ramas = [DistEstoc]
-    _nombre_res = ESTOC
-    _eje_cosos = EJE_ETAPA
+    _nombre_res = RES_ESTOC
 
-    def postproc(símismo, paso):
-        estoc = símismo.obt_res(filtrar=False)
-        pobs = símismo.obt_val_mód(POBS, filtrar=True)
+    def postproc(símismo, paso, sim):
+        estoc = símismo.obt_val_res(sim)
+        pobs = símismo.pobs(sim)
 
-        np.multiply(pobs, estoc, out=estoc)
-        np.maximum(1, estoc, out=estoc)
-        estoc = np.random.normal(0, estoc)
-        estoc = np.round(estoc)
+        # Verificar que no quitemos más que existen
+        estoc = estoc.where(-estoc < pobs, -pobs)
 
-        # Verificar que no quitamos más que existen
-        estoc = np.where(-estoc > pobs, -pobs, estoc)
-
-        símismo.poner_val_res(estoc)
-        símismo.sim.ajustar_pobs(estoc)
+        símismo.poner_val_res(sim, estoc)
+        símismo.poner_pobs(sim, estoc, rel=True)
