@@ -1,4 +1,4 @@
-from .._plntll_ec import EcuaciónOrg
+from .._plntll import EcuaciónOrg
 
 
 class FuncDías(EcuaciónOrg):
