@@ -168,6 +168,11 @@ class SimulMódulo(PlantillaSimul):
     resultados = []
 
     def __init__(símismo, nombre, simul_exper, ecs, vars_interés):
+        if '.' in nombre:
+            raise ValueError(
+                'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=nombre)
+            )
+
         símismo.simul_exper = simul_exper
         símismo.ecs = ecs
 
