@@ -89,7 +89,7 @@ class ResCohortes(ResultadoRed):
         # ...y quitar los negativos.
         símismo.quitar(negativos)
 
-    def trans(símismo, cambio_edad, dist, quitar=True):
+    def trans(símismo, cambio_edad, dist):
 
         # Las edades y las poblaciones actuales de las etapas que transicionan.
         índ = cambio_edad.coords
@@ -108,9 +108,22 @@ class ResCohortes(ResultadoRed):
         # Aplicar el cambio de edad.
         símismo.edad.loc[índ] += cambio_edad
 
-        # Si hay que quitar las etapas que transicionario, hacerlo aquí.
-        if quitar:
-            símismo.pobs.loc[índ] -= n_cambian
+        # Quitar las etapas que transicionario.
+        símismo.pobs.loc[índ] -= n_cambian
 
         # Devolver el total de transiciones por etapa
         return n_cambian.sum(dim=EJE_COH)
+
+    def dens_dif(símismo, cambio_edad, dist):
+
+        # Las edades y las poblaciones actuales de las etapas de interés.
+        índ = cambio_edad.coords
+        edades = símismo.edad.loc[índ]
+        pobs = símismo.pobs.loc[índ]
+
+        # Calcular la densidad de probabilidad. Cambiamos a numpy temporalmente
+        dens_cum_eds = dist.cdf(edades)
+        dens_con_cambio = dist.cdf(edades + cambio_edad)
+        dens = dens_con_cambio - dens_cum_eds
+
+        return (pobs * dens).sum(dim=EJE_COH)  # Devolver en formato xarray
