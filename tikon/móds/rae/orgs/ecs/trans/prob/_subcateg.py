@@ -15,7 +15,7 @@ class ProbTrans(SubcategEc):
     _eje_cosos = EJE_ETAPA
 
     def postproc(símismo, paso):
-        trans = símismo.obt_res(filtrar=False)
+        trans = símismo.obt_val_res(filtrar=False)
 
         # Redondear las transiciones calculadas
         np.floor(trans, out=trans)
