@@ -28,4 +28,4 @@ class Cauchy(EcuaciónReprCoh):
 
     def _prms_scipy(símismo):
         cf = símismo.cf
-        dict(loc=cf['u'], scale=cf['f'])
+        return dict(loc=cf['u'], scale=cf['f'])

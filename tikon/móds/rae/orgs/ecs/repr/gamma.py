@@ -34,4 +34,4 @@ class Gamma(EcuaciónReprCoh):
 
     def _prms_scipy(símismo):
         cf = símismo.cf
-        dict(a=cf['a'], loc=cf['u'], scale=cf['f'])
+        return dict(a=cf['a'], loc=cf['u'], scale=cf['f'])
