@@ -1,21 +1,20 @@
-from tikon.ecs.árb_mód import CategEc
-from tikon.móds.rae.orgs.utils import REPR, EDAD, POBS
+from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
+from tikon.móds.rae.red.utils import EJE_ETAPA, RES_TRANS
 
 from .mult import MultTrans
 from .prob import ProbTrans
 
 
-class EcsTrans(CategEc):
+class EcsTrans(CategEcOrg):
     nombre = 'Transiciones'
     cls_ramas = [ProbTrans, MultTrans]
-    _nombre_res = REPR
-    _eje_cosos = EJE_ETAPA
+    _nombre_res = RES_TRANS
 
-    def postproc(símismo, paso):
+    def postproc(símismo, paso, sim):
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
-        trans_de, trans_a = zip(*símismo.sim.etps_trans)
+        trans_de, trans_a = zip(*sim.etps_trans)
 
-        # para hacer: limpiar
-        trans = símismo.sim.obt_res(TRANS).obt_valor(índs={símismo._eje_cosos: trans_de})
+        trans = sim.obt_val_res(sim).loc[{EJE_ETAPA: trans_de}]
+        trans[EJE_ETAPA] = trans_a
 
-        símismo.sim.agregar_pobs(trans, etapas=trans_a)
+        símismo.ajust_pobs(sim, trans)

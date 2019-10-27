@@ -1,20 +1,20 @@
-import numpy as np
-
 from tikon.ecs.árb_mód import Parám
-from ..._plntll_ec import EcuaciónOrg
+from tikon.móds.rae.red.utils import RES_TRANS
+
+from ..._plntll import EcuaciónOrg
 
 
 class A(Parám):
     nombre = 'a'
     líms = (0, None)
+    unids = None
 
 
 class Linear(EcuaciónOrg):
     nombre = 'Linear'
     cls_ramas = [A]
-    _nombre_res = TRANS
+    _nombre_res = RES_TRANS
 
     def eval(símismo, paso, sim):
-        trans = símismo.obt_res(filtrar=True)
-        trans *= símismo.cf['a']
-        return np.round(trans)
+        trans = símismo.obt_val_res(sim)
+        return (símismo.cf['a'] * trans).round()
