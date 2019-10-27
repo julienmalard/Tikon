@@ -1,15 +1,20 @@
-import numpy as np
-
 from .._ecs_coh import EcuaciónConCohorte
 
 
-class EcuaciónRepr(EcuaciónConCohorte):
+class EcuaciónReprCoh(EcuaciónConCohorte):
+
+    def eval(símismo, paso, sim):
+        dens_repr = símismo.dens_dif(sim, símismo.cambio_edad(sim), símismo.dist)
+        pobs = símismo.pobs(sim)  # Paso ya se tomó en cuenta con cambio edad
+        return símismo.cf['n'] * dens_repr * pobs
 
     def _prms_scipy(símismo):
         raise NotImplementedError
 
-    def eval(símismo, paso, sim):
-        # para hacer: ¿algo raro aquí?
-        repr_de_etapa = símismo.trans_cohortes(símismo.cambio_edad(), símismo.dist, quitar=False)
+    @property
+    def _cls_dist(símismo):
+        raise NotImplementedError
 
-        return np.multiply(símismo.cf['n'], repr_de_etapa)
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
