@@ -1,22 +1,31 @@
-import numpy as np
+from tikon.móds.rae.red.utils import RES_DEPR
 
-from .._plntll_ec import EcuaciónOrg
+from .._plntll import EcuaciónOrg
 
 
 class EcuaciónDepred(EcuaciónOrg):
-    _nombre_res = DEPR
+    _nombre_res = RES_DEPR
 
-    def obt_dens_pobs(símismo, filtrar=True, eje_extra=EJE_ETAPA):
-
-        pobs = símismo.pobs_etps(filtrar)
-        superficies = símismo.obt_val_control('superficies')
-        dens = pobs / superficies.reshape((*superficies.shape, *[1] * (len(pobs.shape) - 1)))  # para hacer: smplfcr
-
-        if eje_extra is None:
-            return dens
-        else:
-            eje = símismo.í_eje_res(eje_extra)
-            return dens[tuple([slice(None)] * eje + [np.newaxis])]
+    def dens_pobs(símismo, sim, filtrar=True):
+        pobs = símismo.pobs(filtrar)
+        superficies = sim.obt_val_control('superficies')
+        return pobs / superficies
 
     def eval(símismo, paso, sim):
+        """
+        Debe devolver la depredación en unidades de presas consumidas por depredador por hectárea.
+
+        El libro [1]_ es una buena referencia para muchas de las ecuaciones incluidas aquí, tanto como
+        [2]_.
+
+        References
+        ----------
+        .. [1] "A primer of Ecology"
+        .. [2] Abrams PA, Ginzburg LR. 2000. The nature of predation: prey dependent, ratio dependent or neither?
+           Trends Ecol Evol 15(8):337-341.
+        """
+        raise NotImplementedError
+
+    @property
+    def nombre(símismo):
         raise NotImplementedError

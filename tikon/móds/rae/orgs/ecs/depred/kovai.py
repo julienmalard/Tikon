@@ -1,8 +1,9 @@
-import numpy as np
-
+import xarray as xr
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae import EcuaciónDepred
-from tikon.móds.rae import probs_conj
+from tikon.móds.rae.orgs.ecs.utils import probs_conj
+from tikon.móds.rae.red.utils import EJE_VÍCTIMA
+
+from ._plntll_ec import EcuaciónDepred
 
 
 class PrAKovai(Parám):
@@ -22,35 +23,36 @@ class PrBKovai(Parám):
 class Kovai(EcuaciónDepred):
     """
     Depredación de respuesta funcional de asíntota doble (ecuación Kovai).
-    # y = a*u*(1 - e^(-P/(a*u*D))); u = (1 - e^(-P / b))
-    y = a*(1 - e^(-P*u/(a*D))); u = (1 - e^(-P / b))
 
-      a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
-        depredadores no compiten entre sí mismos)
+    .. math::
+       f(P, D) = a*u*(1 - e^(-P/(a*u*D))); u = (1 - e^(-P / b))
 
-      b es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
-        competition entre ellos, los depredadores consumirán a * (1 - 1 / e) ≈ 0.63 * a presas por depredador.
+    - f(P, D) es el consumo de presas por depredador por día (ajustamos por el paso después)
+    - P es la densidad de presas
+    - D es la densidad de depredadores
+    - a es el máximo de consumo de presa por depredador (cuando las presas son abundantes y los
+      depredadores no compiten entre sí mismos)
+    - b es la densidad de presas a la cuál, donde hay suficientemente pocos depredadores para causar
+      competition entre ellos, los depredadores consumirán :math:`a * (1 - 1 / e) ≈ 0.63 * a` presas por depredador.
 
     """
     nombre = 'Kovai'
     cls_ramas = [PrAKovai, PrBKovai]
 
     def eval(símismo, paso, sim):
-        dens = símismo.obt_dens_pobs(filtrar=False)
+        dens = símismo.dens_pobs(sim, filtrar=False)
         cf = símismo.cf
 
-        #
-        dens_depred = símismo.obt_dens_pobs(eje_extra='víctima')  # La población de esta etapa (depredador)
+        # La población de esta etapa (depredador)
+        dens_depred = símismo.dens_pobs(sim)
 
-        u = 1 - np.exp(-dens / cf['b'])
+        u = 1 - xr.ufuncs.exp(-dens / cf['b'])
 
-        ratio = dens / dens_depred
-        ratio[np.isinf(ratio)] = 0
+        ratio = (dens / dens_depred).fillna(0)
 
-        depred_etp = cf['a'] * (1 - np.exp(-ratio * u / cf['a']))
+        depred_etp = cf['a'] * u * (1 - xr.ufuncs.exp(-ratio / (cf['a'] * u)))
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
-        eje_presas = símismo.í_eje_res('víctima')
-        probs_conj(depred_etp, pesos=cf['a'], máx=1, eje=eje_presas)
+        depred_etp = probs_conj(depred_etp, dim=EJE_VÍCTIMA, pesos=cf['a'], máx=1)
 
         return depred_etp
