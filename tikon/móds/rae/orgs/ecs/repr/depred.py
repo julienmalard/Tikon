@@ -1,14 +1,15 @@
-import numpy as np
-
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+from tikon.móds.rae.red.utils import RES_DEPR, EJE_VÍCTIMA
 
 
 class N(Parám):
     nombre = 'n'
     líms = (0, 1)
+    unids = None
 
 
-class Depred(Ecuación):
+class Depred(EcuaciónOrg):
     """
     Reproducciones en función de la depredación (útil para avispas esfécidas)
     """
@@ -17,4 +18,6 @@ class Depred(Ecuación):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        return np.sum(np.multiply(cf['n'], depred[..., í_etps, :]), axis=-1)
+        depred = símismo.obt_val_mód(sim, RES_DEPR)
+        pobs = símismo.pobs(sim)  # Paso ya se tomó en cuenta con depredaciones
+        return (cf['n'] * depred).sum(dim=EJE_VÍCTIMA) * pobs

@@ -1,8 +1,7 @@
-import numpy as np
-
-from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
-from tikon.móds.rae.orgs.utils import REPR
-from tikon.móds.rae.red_ae.utils import EJE_ETAPA
+from tikon.ecs.árb_mód import EcuaciónVacía
+from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg, CategEcOrg
+from tikon.móds.rae.orgs.ecs.utils import ECS_REPR
+from tikon.móds.rae.red.utils import RES_REPR, EJE_ETAPA
 
 from .cauchy import Cauchy
 from .constante import Constante
@@ -14,21 +13,20 @@ from .t import T
 from .triang import Triang
 
 
-class ProbRepr(SubcategEc):
+class ProbRepr(SubcategEcOrg):
     nombre = 'Prob'
     cls_ramas = [Constante, EcuaciónVacía, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
-    _nombre_res = REPR
-    _eje_cosos = EJE_ETAPA
-
-    def postproc(símismo, paso):
-        # Agregar las reproducciones a las poblaciones
-        reprod = símismo.obt_res(filtrar=False)
-        np.round(reprod, out=reprod)
-        símismo.poner_val_res(reprod)
-
-        símismo.sim.agregar_pobs(reprod, etapas=símismo.sim.etps_repr)
+    _nombre_res = RES_REPR
 
 
-class EcsRepr(CategEc):
-    nombre = REPR
+class EcsRepr(CategEcOrg):
+    nombre = ECS_REPR
     cls_ramas = [ProbRepr]
+
+    def postproc(símismo, paso, sim):
+        # Agregar las reproducciones a las poblaciones
+        reprod = símismo.obt_val_res(sim).round()
+        reprod[EJE_ETAPA] = sim.etps_repr
+        símismo.poner_val_res(sim, reprod)
+
+        símismo.ajust_pobs(sim, reprod)

@@ -1,10 +1,11 @@
 from tikon.ecs.árb_mód import Parám
-from .._plntll_ec import EcuaciónOrg
+from .._plntll import EcuaciónOrg
 
 
 class A(Parám):
     nombre = 'a'
     líms = (0, None)
+    unids = None
 
 
 class Constante(EcuaciónOrg):
@@ -17,4 +18,4 @@ class Constante(EcuaciónOrg):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        return cf['a'] * símismo.obt_val_mód(POBS) * paso
+        return cf['a'] * símismo.pobs(sim) * paso
