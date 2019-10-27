@@ -1,14 +1,13 @@
-import os
-
 import numpy as np
+import xarray as xr
 from tikon.ecs.paráms import Inter
 from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
+from tikon.móds.rae.orgs.insectos import Parasitoide
 from tikon.móds.rae.red.res.cohortes import ResCohortes
-from tikon.móds.rae.red.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA
+from tikon.móds.rae.red.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA
 
-from .. import Organismo
 from ..orgs.ecs import EcsOrgs
 from ..orgs.organismo import EtapaFantasma
 from ..red.res import res as res_red
@@ -18,54 +17,29 @@ class RedAE(Módulo):
     nombre = 'red'
 
     def __init__(símismo, orgs=None):
-        super().__init__()
+        super().__init__(cosos=orgs)
 
-        orgs = orgs or []
-        if isinstance(orgs, Organismo):
-            orgs = [orgs]
-
-        símismo.orgs = {str(o_): o_ for o_ in orgs}
+    @property
+    def etapas(símismo):
+        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo._cosos)]
 
     def añadir_org(símismo, org):
-        símismo.orgs[str(org)] = org
+        símismo._cosos[str(org)] = org
 
     def quitar_org(símismo, org):
         try:
-            símismo.orgs.pop(str(org))
+            símismo._cosos.pop(str(org))
         except KeyError:
             raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
 
     def requísitos(símismo, controles=False):
         return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
 
-    @property
-    def etapas(símismo):
-        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo.orgs)]
-
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         return SimulRed(simul_exper=simul_exper, etapas=símismo.etapas, ecs=ecs, vars_interés=vars_interés)
 
     def gen_ecs(símismo, n_reps):
         return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
-
-    def guardar_calibs(símismo, directorio=''):
-        for org in símismo:
-            org.guardar_calibs(directorio)
-
-    def __getitem__(símismo, itema):
-        return símismo.orgs[itema]
-
-    def __iter__(símismo):
-        for org in símismo.orgs:
-            yield org
-
-    def cargar_calib(símismo, directorio=''):
-        # para hacer: genérico
-        if os.path.split(directorio)[1] != símismo.nombre:
-            directorio = os.path.join(directorio, símismo.nombre)
-
-        for org in símismo:
-            org.cargar_calib(directorio)
 
 
 class SimulRed(SimulMódulo):
@@ -78,16 +52,31 @@ class SimulRed(SimulMódulo):
 
         símismo.etapas = etapas
 
+        símismo.víctimas = set(pr for etp in símismo.etapas for pr in etp.presas()).union(
+            set(h for etp in símismo.etapas for h in símismo.huéspedes(etp))
+        )
+
         símismo.etps_repr = [
             etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, símismo)
         ]
-        símismo.etps_trans = [
-            [(etp, etp.siguiente()) for etp in etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()]
+        símismo.recip_trans = [
+            (etp, etp.siguiente()) for etp in etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()
         ]
 
-        super().__init__(
-            nombre=RedAE.nombre, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés
+        símismo.parás_hués = [
+            (etp, símismo.huéspedes(etp), símismo.fantasmas(etp))
+            for etp in símismo.etapas if isinstance(etp.org, Parasitoide)
+        ]
+
+        # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
+        # depredación
+        símismo.máscara_parás = xr.DataArray(
+            False, coords={EJE_ETAPA: símismo.etapas, EJE_VÍCTIMA: símismo.víctimas}
         )
+        for parás, hués_fants in símismo.parás_hués:
+            símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
+
+        super().__init__(nombre=RedAE.nombre, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):
@@ -114,13 +103,11 @@ class SimulRed(SimulMódulo):
         return presas + fants_presas
 
     def huéspedes(símismo, etp):
+        """Huéspedes que pueden ser directamente infectados por parasitoide `etp`."""
         return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
 
-    def etp_fant(símismo, huésped, parasitoide):
-        return next(
-            etp for etp in símismo.etapas if
-            isinstance(etp, EtapaFantasma) and etp.etp_hués == huésped and etp.org == parasitoide
-        )
+    def fantasmas(símismo, etp):
+        return [pr for pr in etp.org.fantasmas() if pr in símismo.etapas]
 
     def iniciar(símismo):
         super().iniciar()
@@ -138,14 +125,6 @@ class SimulRed(SimulMódulo):
             raise ValueError('No se puede cambiar el valor de "{}" durante una simulación.'.format(var))
 
         super().poner_valor(var, val, rel)
-
-    def obt_valor(símismo, var):
-        if var == 'Dens':
-            pobs = super().obt_valor(RES_POBS)
-            superficies = símismo.simul_exper.exper.controles('superficies')
-            return pobs / superficies
-
-        return super().obt_valor(var)
 
     def verificar_estado(símismo):
         super().verificar_estado()
