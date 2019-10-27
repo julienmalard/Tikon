@@ -106,7 +106,21 @@ class Organismo(Coso):
         return [rel.etp_presa for rel in símismo._rels_presas if (etp is None or rel.etp_depred == etp)]
 
     def huéspedes(símismo, etp=None):
+        """
+        Devuelve etapas huéspedes víctimas directas de parasitismo.
+
+        Parameters
+        ----------
+        etp
+
+        Returns
+        -------
+
+        """
         return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if (etp is None or rel.etp_depred == etp)]
+
+    def fantasmas(símismo):
+        return [rel.fantasmas[í] for rel in símismo._rels_paras for í in range(len(rel.etps_entra))]
 
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
@@ -155,9 +169,6 @@ class Etapa(Coso):
         índice = símismo.org.índice(símismo)
         if índice < (len(símismo.org) - 1):
             return símismo.org[índice + 1]
-
-    def requísitos(símismo, controles=False):
-        return símismo.ecs.requísitos(controles)
 
     def __add__(símismo, otro):
         return SumaEtapas([símismo, otro])
