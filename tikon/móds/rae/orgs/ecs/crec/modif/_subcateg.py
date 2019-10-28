@@ -1,10 +1,12 @@
 from tikon.ecs.árb_mód import SubcategEc, EcuaciónVacía
+from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg
+from tikon.móds.rae.red.utils import RES_CREC
+
 from .lognorm_temp import LogNormTemp
 from .ninguna import Ninguna
 
 
-class ModifCrec(SubcategEc):
+class ModifCrec(SubcategEcOrg):
     nombre = 'Modif'
     cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
-    _nombre_res = CREC
-    _eje_cosos = EJE_ETAPA
+    _nombre_res = RES_CREC

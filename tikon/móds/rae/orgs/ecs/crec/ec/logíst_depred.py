@@ -1,6 +1,7 @@
-import numpy as np
-
+import xarray as xr
 from tikon.ecs.árb_mód import Parám
+from tikon.móds.rae.red.utils import EJE_VÍCTIMA, RES_DEPR
+
 from ._plntll_ec import EcuaciónCrec
 
 
@@ -8,6 +9,7 @@ class K(Parám):
     nombre = 'K'
     líms = (0, None)
     inter = 'presa'
+    unids = 'individual'
 
 
 class LogístDepred(EcuaciónCrec):
@@ -18,16 +20,10 @@ class LogístDepred(EcuaciónCrec):
     cls_ramas = [K]
 
     def eval(símismo, paso, sim):
-        #
-        crec_etps = símismo.crec_etps()
-        pobs_etps = símismo.pobs_etps()
+        crec_etps = símismo.obt_val_res(sim)
+        pobs_etps = símismo.pobs(sim)
 
-        res_depred = símismo.í_eje(eje='presa', res=DEPR)
-        depred = símismo.obt_val_mód(DEPR, índs={EJE_ETAPA: símismo.í_cosos})  # La depredación por estas etapas
-        eje_presa = res_depred.í_eje('presa')
+        depred = símismo.obt_val_mód(sim, var=RES_DEPR)  # La depredación por estas etapas
 
-        k = np.nansum(np.multiply(depred, símismo.cf['K']), axis=eje_presa)  # Calcular la capacidad de carga
-        crec_etps = np.multiply(crec_etps, pobs_etps * (1 - pobs_etps / k))  # Ecuación logística sencilla
-
-        # Evitar péridadas de poblaciones superiores a la población.
-        return np.maximum(crec_etps, -pobs_etps)
+        k = (depred * símismo.cf['K']).sum(dim=EJE_VÍCTIMA)  # Calcular la capacidad de carga
+        return crec_etps * (pobs_etps * (1 - pobs_etps / k))  # Ecuación logística sencilla

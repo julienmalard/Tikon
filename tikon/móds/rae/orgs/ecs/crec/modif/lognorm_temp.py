@@ -1,19 +1,21 @@
-import numpy as np
-
-from tikon.ecs.árb_mód import Ecuación, Parám
+import xarray as xr
+from tikon.ecs.árb_mód import Parám
+from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
 
 class T(Parám):
     nombre = 't'
     líms = (0, None)
+    unids = 'C'
 
 
 class P(Parám):
     nombre = 'p'
     líms = (0, None)
+    unids = None
 
 
-class LogNormTemp(Ecuación):
+class LogNormTemp(EcuaciónOrg):
     nombre = 'Log Normal Temperatura'
     cls_ramas = [T, P]
 
@@ -22,10 +24,7 @@ class LogNormTemp(Ecuación):
         temp_máx = sim.obt_val_extern('clima.temp_máx')
         cf = símismo.cf
 
-        return np.multiply(
-            cf['r'] * paso,
-            np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2)
-        )
+        return cf['r'] * paso * xr.ufuncs.exp(-0.5 * (xr.ufuncs.log(temp_máx / cf['t']) / cf['p']) ** 2)
 
     def requísitos(símismo, controles=False):
         if not controles:

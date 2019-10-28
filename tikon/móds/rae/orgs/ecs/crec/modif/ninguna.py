@@ -1,12 +1,14 @@
-from tikon.ecs.árb_mód import Ecuación, Parám
+from tikon.ecs.árb_mód import Parám
+from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
 
 class R(Parám):
     nombre = 'r'
     líms = (0, None)
+    unids = None
 
 
-class Ninguna(Ecuación):
+class Ninguna(EcuaciónOrg):
     nombre = 'Ninguna'
     cls_ramas = [R]
 

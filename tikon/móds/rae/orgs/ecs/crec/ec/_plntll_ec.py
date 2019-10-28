@@ -1,11 +1,10 @@
-from ..._plntll_ec import EcuaciónOrg
+from tikon.móds.rae.orgs.ecs.utils import ECS_CREC
+
+from ..._plntll import EcuaciónOrg
 
 
 class EcuaciónCrec(EcuaciónOrg):
-    _nombre_res = CREC
-
-    def crec_etps(símismo):
-        return símismo.obt_res()
+    _nombre_res = ECS_CREC
 
     def eval(símismo, paso, sim):
         raise NotImplementedError
