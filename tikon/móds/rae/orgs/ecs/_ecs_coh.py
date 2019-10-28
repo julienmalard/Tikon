@@ -1,25 +1,37 @@
-import scipy.stats as estad
+from tikon.móds.rae.red.utils import RES_EDAD
 
-from ._plntll_ec import EcuaciónOrg
+from ._plntll import EcuaciónOrg
 
 
 class EcuaciónConCohorte(EcuaciónOrg):
-    _cls_dist = NotImplemented
 
-    def __init__(símismo, cosos, sim, n_reps, í_cosos, ecs):
-        super().__init__(cosos, sim, n_reps, í_cosos, ecs)
+    def __init__(símismo, cosos, n_reps, ecs):
+        super().__init__(cosos, n_reps, ecs)
 
-        símismo.dist = None  # type: estad.rv_continuous
+        símismo.dist = None
 
     def act_vals(símismo):
         super().act_vals()
         símismo.dist = símismo._cls_dist(**símismo._prms_scipy())
 
-    def cambio_edad(símismo):
-        return símismo.obt_val_mód(EDAD)
+    def cambio_edad(símismo, sim):
+        return símismo.obt_val_mód(sim, RES_EDAD)
 
-    def trans_cohortes(símismo, cambio_edad, dist, quitar=True):
-        return símismo.sim.cohortes.trans(cambio_edad, dist, etapas=símismo.cosos, quitar=quitar)
+    @staticmethod
+    def trans_cohortes(sim, cambio_edad, dist):
+        return sim.cohortes.trans(cambio_edad, dist)
+
+    @staticmethod
+    def dens_dif(sim, cambio_edad, dist):
+        return sim.cohortes.dens_dif(cambio_edad, dist=dist)
+
+    @property
+    def _cls_dist(símismo):
+        raise NotImplementedError
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
     def _prms_scipy(símismo):
         raise NotImplementedError
