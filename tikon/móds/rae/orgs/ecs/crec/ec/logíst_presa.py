@@ -1,6 +1,5 @@
-import numpy as np
-
 from tikon.ecs.árb_mód import Parám
+
 from ._plntll_ec import EcuaciónCrec
 
 
@@ -8,6 +7,7 @@ class K(Parám):
     nombre = 'K'
     líms = (0, None)
     inter = 'presa'
+    unids = 'individual'
 
 
 class LogístPresa(EcuaciónCrec):
@@ -20,14 +20,10 @@ class LogístPresa(EcuaciónCrec):
     cls_ramas = [K]
 
     def eval(símismo, paso, sim):
-        crec_etps = símismo.crec_etps()
-        pobs_presas = símismo.pobs_etps(filtrar=False)
-        pobs = símismo.pobs_etps()
+        crec_etps = símismo.obt_val_res(sim)
+        pobs_presas = símismo.pobs(sim, filtrar=False)
+        pobs = símismo.pobs(sim)
 
-        eje_etapa = símismo.í_eje(POBS, EJE_ETAPA)
-        k = np.nansum(
-            np.multiply(pobs_presas[tuple([slice(None)] * eje_etapa + [np.newaxis])], símismo.cf['K'])
-            , axis=-1
-        )  # Calcular la capacidad de carga
+        k = (pobs_presas * símismo.cf['K']).sum(dim=['víctima'])  # Calcular la capacidad de carga
 
-        return np.multiply(crec_etps, pobs * (1 - pobs / k))  # Ecuación logística sencilla
+        return crec_etps * pobs * (1 - pobs / k)  # Ecuación logística sencilla
