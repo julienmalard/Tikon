@@ -19,6 +19,6 @@ class EcsDescomp(CategEc):
     _nombre_res = RES_DECOMP
 
     def postproc(símismo, paso, sim):
-        decomp = símismo.obt_res(filtrar=False)  # para hacer: filtara=False debería ser automático para CategEc
+        decomp = símismo.obt_val_res(sim)
 
-        símismo.poner_val_mód(RES_CONC, -decomp, rel=True)
+        símismo.poner_val_mód(sim, RES_CONC, -decomp, rel=True)

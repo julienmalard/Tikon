@@ -5,13 +5,9 @@ from tikon.result.res import Resultado
 
 class ResDecomp(Resultado):
     líms = (0, np.nan)
-
-    def __init__(símismo, coords, t):
-        super().__init__(RES_DECOMP, coords=coords, t=t)
+    nombre = RES_DECOMP
 
 
 class ResConcentración(Resultado):
     líms = (0, np.nan)
-
-    def __init__(símismo, coords, t):
-        super().__init__(RES_CONC, coords=coords, t=t)
+    nombre = RES_CONC

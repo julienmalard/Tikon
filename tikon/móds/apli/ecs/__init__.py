@@ -2,7 +2,7 @@ from tikon.ecs import ÁrbolEcs
 from .decomp import EcsDecomp
 
 
-class EcsProductos(ÁrbolEcs):
+class EcsProducto(ÁrbolEcs):
     nombre = 'producto'
 
     # ¡Este órden queda muy importante!

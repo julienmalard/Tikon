@@ -12,6 +12,6 @@ class EcuaciónDecomp(SubcategEc):
     _eje_cosos = EJE_PRODUCTO
 
 
-class EcsEdad(CategEc):
+class EcsDecomp(CategEc):
     nombre = ECS_DECOMP
     cls_ramas = [EcuaciónDecomp]
