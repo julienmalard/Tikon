@@ -1,4 +1,5 @@
-from tikon.móds.rae import Insecto
+from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
+from tikon.móds.rae.orgs.insectos.ins import Insecto
 
 
 class Sencillo(Insecto):
@@ -8,14 +9,14 @@ class Sencillo(Insecto):
     """
 
     def __init__(símismo, nombre):
-        tipo_ec = dict(
-            Crecimiento={'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
-            Depredación={'Ecuación': 'Kovai'},
-            Muertes={'Ecuación': 'Nada'},
-            Edad={'Ecuación': 'Nada'},
-            Transiciones={'Prob': 'Nada', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Nada'}
-        )
+        tipo_ec = {
+            ECS_CREC: {'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
+            ECS_DEPR: {'Ecuación': 'Kovai'},
+            ECS_MRTE: {'Ecuación': 'Nada'},
+            ECS_EDAD: {'Ecuación': 'Nada'},
+            ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
+            ECS_REPR: {'Prob': 'Nada'}
+        }
 
         super().__init__(
             nombre=nombre, huevo=False, njuvenil=0, pupa=False, adulto=True,
@@ -32,42 +33,44 @@ class MetamCompleta(Insecto):
 
         tipo_ec = {}
         if huevo:
-            tipo_ec['huevo'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Nada'},
-                Muertes={'Ecuación': 'Constante'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Nada'},
-            )
+            tipo_ec['huevo'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Nada'},
+                ECS_MRTE: {'Ecuación': 'Constante'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+            }
 
-        tipo_ec['juvenil'] = dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Kovai'},
-            Muertes={'Ecuación': 'Constante'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Nada'},
-        )
+        tipo_ec['juvenil'] = {
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_DEPR: {'Ecuación': 'Kovai'},
+            ECS_MRTE: {'Ecuación': 'Constante'},
+            ECS_EDAD: {'Ecuación': 'Días'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_REPR: {'Prob': 'Nada'}
+        }
 
-        tipo_ec['pupa'] = dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Nada'},
-            Muertes={'Ecuación': 'Constante'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Nada'},
-        )
+        tipo_ec['pupa'] = {
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_DEPR: {'Ecuación': 'Nada'},
+            ECS_MRTE: {'Ecuación': 'Constante'},
+            ECS_EDAD: {'Ecuación': 'Días'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_REPR: {'Prob': 'Nada'},
+            ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+        }
 
         if adulto:
-            tipo_ec['adulto'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Kovai'},
-                Muertes={'Ecuación': 'Nada'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Normal'},
-            )
+            tipo_ec['adulto'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Kovai'},
+                ECS_MRTE: {'Ecuación': 'Nada'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Normal'},
+            }
         else:
             tipo_ec['pupa']['Reproducción']['Prob'] = 'Constante'
 
@@ -86,37 +89,37 @@ class MetamIncompleta(Insecto):
 
         tipo_ec = {}
         if huevo:
-            tipo_ec['huevo'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Nada'},
-                Muertes={'Ecuación': 'Constante'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Nada'},
-                Movimiento={}
-            )
+            tipo_ec['huevo'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Nada'},
+                ECS_MRTE: {'Ecuación': 'Constante'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+            }
 
         if njuvenil:
-            tipo_ec['juvenil'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Kovai'},
-                Muertes={'Ecuación': 'Constante'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Nada'},
-                Movimiento={}
-            )
+            tipo_ec['juvenil'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Kovai'},
+                ECS_MRTE: {'Ecuación': 'Constante'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {}
+            }
 
         if adulto:
-            tipo_ec['adulto'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Kovai'},
-                Muertes={'Ecuación': 'Nada'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Normal'},
-                Movimiento={}
-            )
+            tipo_ec['adulto'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Kovai'},
+                ECS_MRTE: {'Ecuación': 'Nada'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Normal'},
+                ECS_MOV: {}
+            }
         else:
             tipo_ec['juvenil']['Reproducción']['Prob'] = 'Constante'
 
