@@ -1,4 +1,5 @@
-from tikon.móds.rae import Insecto
+from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MRTE, ECS_MOV, ECS_REPR, ECS_TRANS
+from tikon.móds.rae.orgs.insectos.ins import Insecto
 from tikon.móds.rae.orgs.organismo import Etapa
 
 
@@ -8,40 +9,40 @@ class Parasitoide(Insecto):
     organismos. Después de mucho dolor de cabeza, decidimos (decidí) implementarlos así.
     """
 
-    ext = '.prs'
-
     def __init__(símismo, nombre, pupa=False):
         símismo.pupa = pupa
 
         tipo_ec = {}
         if pupa:
-            tipo_ec['pupa'] = dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Nada'},
-                Muertes={'Ecuación': 'Constante'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Nada'},
-                Movimiento={}
-            )
+            tipo_ec['pupa'] = {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Nada'},
+                ECS_MRTE: {'Ecuación': 'Constante'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+            }
 
-        tipo_ec['juvenil'] = dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Nada'},
-            Muertes={'Ecuación': 'Constante'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Linear'},
-            Reproducción={'Prob': 'Nada'},
-        )
+        tipo_ec['juvenil'] = {
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_DEPR: {'Ecuación': 'Nada'},
+            ECS_MRTE: {'Ecuación': 'Constante'},
+            ECS_EDAD: {'Ecuación': 'Días'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear'},
+            ECS_REPR: {'Prob': 'Nada'},
+            ECS_MOV: {}
+        }
 
-        tipo_ec['adulto'] = dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Kovai'},
-            Muertes={'Ecuación': 'Nada'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Nada'},
-        )
+        tipo_ec['adulto'] = {
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_DEPR: {'Ecuación': 'Kovai'},
+            ECS_MRTE: {'Ecuación': 'Nada'},
+            ECS_EDAD: {'Ecuación': 'Días'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_REPR: {'Prob': 'Nada'},
+            ECS_MOV: {}
+        }
 
         super().__init__(
             nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecs=tipo_ec
@@ -82,26 +83,24 @@ class Esfécido(Insecto):
     de la depredación).
     """
 
-    ext = '.esf'
-
     def __init__(símismo, nombre):
-        tipo_ec = {'adulto': dict(
-            Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-            Depredación={'Ecuación': 'Kovai'},
-            Muertes={'Ecuación': 'Nada'},
-            Edad={'Ecuación': 'Días'},
-            Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-            Reproducción={'Prob': 'Depredación'},
-        ),
+        tipo_ec = {'adulto': {
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_DEPR: {'Ecuación': 'Kovai'},
+            ECS_MRTE: {'Ecuación': 'Nada'},
+            ECS_EDAD: {'Ecuación': 'Días'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_REPR: {'Prob': 'Depredación'},
+        },
 
-            'juvenil': dict(
-                Crecimiento={'Modif': 'Nada', 'Ecuación': 'Nada'},
-                Depredación={'Ecuación': 'Kovai'},
-                Muertes={'Ecuación': 'Nada'},
-                Edad={'Ecuación': 'Días'},
-                Transiciones={'Prob': 'Normal', 'Mult': 'Nada'},
-                Reproducción={'Prob': 'Nsda'},
-            )
+            'juvenil': {
+                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Kovai'},
+                ECS_MRTE: {'Ecuación': 'Nada'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+            }
         }
 
         super().__init__(
