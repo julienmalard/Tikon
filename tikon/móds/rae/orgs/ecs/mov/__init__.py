@@ -1,1 +1,1 @@
-from .mov import EcsMov
+from ._categ import EcsMov
