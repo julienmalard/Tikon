@@ -22,7 +22,7 @@ class Módulo(object):
 
     def cargar_calib(símismo, directorio=''):
         for c in símismo:
-            símismo[c].cargar_calib(os.path.join(directorio, c.nombre))
+            símismo[c].cargar_calibs(os.path.join(directorio, c.nombre))
 
     @property
     def nombre(símismo):
