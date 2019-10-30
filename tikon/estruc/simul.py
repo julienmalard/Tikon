@@ -174,6 +174,7 @@ class SimulMódulo(PlantillaSimul):
             )
 
         símismo.simul_exper = simul_exper
+        símismo.exper = simul_exper.exper
         símismo.ecs = ecs
 
         coords_base = gen_coords_base(
