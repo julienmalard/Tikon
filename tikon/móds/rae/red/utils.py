@@ -1,6 +1,5 @@
 EJE_COH = 'coh'
 EJE_ETAPA = 'etapa'
-EJE_DEST = 'dest'
 EJE_VÍCTIMA = 'víctima'
 
 RES_POBS = 'Pobs'

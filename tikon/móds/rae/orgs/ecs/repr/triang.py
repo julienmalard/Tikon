@@ -15,23 +15,23 @@ class A(Parám):
     unids = None
 
 
-class U(Parám):
-    nombre = 'u'
+class B(Parám):
+    nombre = 'b'
     líms = (0, None)
     unids = None
 
 
-class F(Parám):
-    nombre = 'f'
+class C(Parám):
+    nombre = 'c'
     líms = (0, 1)
     unids = None
 
 
 class Triang(EcuaciónReprCoh):
     nombre = 'Triang'
-    cls_ramas = [N, A, U, F]
+    cls_ramas = [N, A, B, C]
     _cls_dist = estad.norm
 
     def _prms_scipy(símismo):
         cf = símismo.cf
-        return dict(c=cf['c'], loc=cf['u'], scale=cf['f'])
+        return dict(loc=cf['a'], scale=cf['b'], c=cf['c'])

@@ -32,9 +32,6 @@ class RedAE(Módulo):
         except KeyError:
             raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
 
-    def requísitos(símismo, controles=False):
-        return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
-
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         return SimulRed(simul_exper=simul_exper, etapas=símismo.etapas, ecs=ecs, vars_interés=vars_interés)
 
@@ -78,6 +75,9 @@ class SimulRed(SimulMódulo):
 
         super().__init__(nombre=RedAE.nombre, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
+    def requísitos(símismo, controles=False):
+        return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
+
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):
             tipo = [tipo]
@@ -92,7 +92,7 @@ class SimulRed(SimulMódulo):
                 raise ValueError(tipo)
         inter = [[str(etp.org), str(etp)] for etp in etps_inter]
         if len(inter):
-            return Inter(inter)
+            return Inter(inter, eje=EJE_VÍCTIMA)
 
     def presas(símismo, etp):
         presas = [pr for pr in etp.presas() if pr in símismo]
@@ -122,7 +122,7 @@ class SimulRed(SimulMódulo):
             cambio = val if rel else val - símismo[RES_POBS].datos
             símismo[RES_COHORTES].ajustar(cambio)
         else:
-            raise ValueError('No se puede cambiar el valor de "{}" durante una simulación.'.format(var))
+            raise ValueError('No se puede cambiar el valor de {} durante una simulación.'.format(var))
 
         super().poner_valor(var, val, rel)
 

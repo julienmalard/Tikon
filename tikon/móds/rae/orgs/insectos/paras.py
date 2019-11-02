@@ -24,6 +24,7 @@ class Parasitoide(Insecto):
                 ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
             }
 
+        # Crec, depred, repr y mov se copiarán del huésped
         tipo_ec['juvenil'] = {
             ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Nada'},
@@ -31,7 +32,7 @@ class Parasitoide(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear'},
             ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {}
+            ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
         }
 
         tipo_ec['adulto'] = {
@@ -41,7 +42,7 @@ class Parasitoide(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {}
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
         }
 
         super().__init__(
@@ -91,15 +92,18 @@ class Esfécido(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Depredación'},
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
         },
 
             'juvenil': {
                 ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
-                ECS_DEPR: {'Ecuación': 'Kovai'},
-                ECS_MRTE: {'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Nada'},  # La comida 3 tiempos está incluida
+                ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}  # Juveniles de esfécidos no se mueven
+
             }
         }
 

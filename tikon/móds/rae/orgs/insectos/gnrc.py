@@ -15,7 +15,8 @@ class Sencillo(Insecto):
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},
             ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
-            ECS_REPR: {'Prob': 'Nada'}
+            ECS_REPR: {'Prob': 'Nada'},
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
         }
 
         super().__init__(
@@ -49,7 +50,8 @@ class MetamCompleta(Insecto):
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
-            ECS_REPR: {'Prob': 'Nada'}
+            ECS_REPR: {'Prob': 'Nada'},
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
         }
 
         tipo_ec['pupa'] = {
@@ -70,9 +72,10 @@ class MetamCompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
             }
         else:
-            tipo_ec['pupa']['Reproducción']['Prob'] = 'Constante'
+            tipo_ec['pupa'][ECS_REPR]['Prob'] = 'Normal'
 
         super().__init__(
             nombre=nombre, huevo=huevo, njuvenil=njuvenil, pupa=True, adulto=adulto,
@@ -107,7 +110,7 @@ class MetamIncompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
-                ECS_MOV: {}
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
             }
 
         if adulto:
@@ -118,7 +121,7 @@ class MetamIncompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
-                ECS_MOV: {}
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
             }
         else:
             tipo_ec['juvenil']['Reproducción']['Prob'] = 'Constante'
