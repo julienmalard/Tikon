@@ -5,17 +5,17 @@ from tikon.móds.rae.red.utils import EJE_COH, EJE_ETAPA, RES_COHORTES
 
 
 class ResCohortes(ResultadoRed):
-    n_coh = 10
     nombre = RES_COHORTES
 
-    def __init__(símismo, sim, coords):
+    def __init__(símismo, sim, coords, vars_interés):
+        símismo.n_coh = sim.exper.controles['n_cohortes']
         coords = {
             EJE_ETAPA: [etp for etp in sim.etapas if etp.con_cohortes()],
             EJE_COH: range(símismo.n_coh),
             'comp': ['pobs', 'edad'],
             **coords
         }
-        super().__init__(sim=sim, coords=coords)
+        super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
         símismo.pobs = símismo.datos.loc[{'comp': 'pobs'}]
         símismo.edad = símismo.datos.loc[{'comp': 'edad'}]
@@ -27,13 +27,14 @@ class ResCohortes(ResultadoRed):
 
         índ = {EJE_ETAPA: nuevos[EJE_ETAPA]}
 
-        # Las edades actuales de las etapas
+        # Las edades y poblaciones actuales de las etapas correspondientes
         datos = símismo.datos.loc[índ]
-        edades = datos['edad']
+        edades = datos.loc[{'comp': 'edad'}]
+        pobs = datos.loc[{'comp': 'pobs'}]
 
         # Los cohortes que tienen la diferencia mínima con las nuevas edades.
         # Si hay más que un cohorte con la diferencia mínima, tomará el primero.
-        dif_edades = (edades - edad).abs()
+        dif_edades = (edades - edad).abs().where(pobs > 0, 0)
         datos_dif_mín = datos[{EJE_COH: dif_edades.argmin(EJE_COH)}].drop(EJE_COH)
 
         eds_mín = datos_dif_mín.loc[{'comp': 'edad'}]

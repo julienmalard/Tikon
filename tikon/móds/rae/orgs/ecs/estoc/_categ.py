@@ -25,4 +25,4 @@ class EcsEstoc(CategEcOrg):
         estoc = estoc.where(-estoc < pobs, -pobs)
 
         símismo.poner_val_res(sim, estoc)
-        símismo.poner_pobs(sim, estoc, rel=True)
+        símismo.ajust_pobs(sim, estoc)

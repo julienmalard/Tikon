@@ -1,9 +1,9 @@
 import pandas as pd
 import xarray as xr
 from tikon.móds.rae.red.utils import EJE_ETAPA, RES_POBS, RES_CREC, RES_DEPR, RES_MOV, RES_MRTE, RES_REPR, RES_TRANS, \
-    EJE_VÍCTIMA, EJE_DEST
+    EJE_VÍCTIMA
 from tikon.result.obs import Obs
-from tikon.result.utils import EJE_PARC, EJE_TIEMPO
+from tikon.result.utils import EJE_PARC, EJE_TIEMPO, EJE_DEST
 
 from .red import RedAE
 
