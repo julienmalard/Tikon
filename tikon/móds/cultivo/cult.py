@@ -23,6 +23,7 @@ class SimulCultivo(SimulMódulo):
         símismo.simuls_parcelas = [prc.gen_simul() for prc in simul_exper.exper.parcelas]
         símismo.red = simul_exper[RedAE.nombre]
         símismo.etapas = [etp for etp in símismo.red.etapas if isinstance(etp, CultivoExterno)]
+        símismo.orgs = símismo.red.orgs
         símismo.superficies = simul_exper.exper.controles['superficies']
 
         super().__init__(Cultivo.nombre, simul_exper, ecs, vars_interés)
@@ -38,10 +39,9 @@ class SimulCultivo(SimulMódulo):
         símismo.mandar_biomasa()
 
     def aplicar_daño(símismo):
-
         depred = símismo.red.obt_valor(RES_DEPR)
 
-        # Daño total (todos herbívoros) por etapa de planta, por hectárea
+        # Daño total (de todos herbívoros) por etapa de planta, por m2
         daño = depred.loc[{EJE_VÍCTIMA: símismo.etapas}].sum(dim=EJE_ETAPA) / símismo.superficies
 
         for prc in símismo:
