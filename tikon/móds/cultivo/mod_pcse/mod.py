@@ -6,6 +6,8 @@ from tikon.móds.cultivo.extrn import SimulCultivoExterno, InstanciaSimulCultivo
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
 from tikon.móds.rae.red.utils import EJE_ETAPA
 
+from .meteo import ProveedorMeteoPCSEPandas
+
 
 class InstanciaPCSE(InstanciaSimulCultivo):
     _conv_vars = {
@@ -18,7 +20,11 @@ class InstanciaPCSE(InstanciaSimulCultivo):
     def __init__(símismo, sim, índs):
         super().__init__(sim=sim, vars_=[RES_HUMSUELO, RES_BIOMASA], índs=índs)
         símismo.f_inic_modelo = pd.Timestamp(símismo.modelo.agromanager.start_date)
-        símismo.modelo = símismo.sim.parcela.modelo(**símismo.sim.parcela.args)
+
+        clima = símismo.sim.sim.clima
+        símismo._proveedor_meteo = ProveedorMeteoPCSEPandas(clima.bd_total)
+
+        símismo.modelo = símismo._gen_modelo()
 
     @property
     def org(símismo):
@@ -32,8 +38,11 @@ class InstanciaPCSE(InstanciaSimulCultivo):
 
         return símismo.sim.obt_org(cultivo=cultivo, variedad=variedad)
 
+    def _gen_modelo(símismo):
+        return símismo.sim.parcelas.gen_modelo_pcse(símismo._proveedor_meteo)
+
     def iniciar(símismo):
-        símismo.modelo = símismo.sim.parcela.modelo(**símismo.sim.parcela.args)
+        símismo.modelo = símismo._gen_modelo()
         símismo.llenar_vals()
 
     def incrementar(símismo, paso, f):
@@ -95,12 +104,12 @@ class SimulPCSE(SimulCultivoExterno):
     def __init__(símismo, sim, parcelas):
         super().__init__(sim=sim, parcelas=parcelas)
 
-    def obt_etapa(símismo, cultivo, variedad=None):
+    def obt_org(símismo, cultivo, variedad=None):
         try:
             cultivo = símismo._trads_cultivos[cultivo.lower()]
         except KeyError:
             pass
-        super().obt_etapa(cultivo, variedad)
+        super().obt_org(cultivo, variedad)
 
     def requísitos(símismo, controles=False):
         if not controles:
