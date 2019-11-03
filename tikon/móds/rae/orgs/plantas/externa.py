@@ -55,7 +55,7 @@ class FrijolDeCarita(CultivoExterno):
 
 class Faba(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('faba', variedad=variedad)
+        super().__init__('haba', variedad=variedad)
 
 
 class Maní(CultivoExterno):
@@ -68,14 +68,14 @@ class Maíz(CultivoExterno):
         super().__init__('maíz', variedad=variedad)
 
 
-class Tomate(CultivoExterno):  # mungbean
+class Mungo(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('tomate', variedad=variedad)
+        super().__init__('mungo', variedad=variedad)
 
 
-class Tomate(CultivoExterno):  # pigeonpea
+class Guandú(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('tomate', variedad=variedad)
+        super().__init__('guandú', variedad=variedad)
 
 
 class Papa(CultivoExterno):
@@ -83,9 +83,9 @@ class Papa(CultivoExterno):
         super().__init__('papa', variedad=variedad)
 
 
-class Tomate(CultivoExterno):  # rapeseed
+class Raps(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('tomate', variedad=variedad)
+        super().__init__('raps', variedad=variedad)
 
 
 class Arroz(CultivoExterno):
@@ -103,9 +103,9 @@ class Soya(CultivoExterno):
         super().__init__('soya', variedad=variedad)
 
 
-class Remolacha(CultivoExterno):
+class RemolachaAzucarera(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('remolacha', variedad=variedad)
+        super().__init__('remolacha azucarera', variedad=variedad)
 
 
 class Caña(CultivoExterno):
@@ -118,14 +118,14 @@ class Girasol(CultivoExterno):
         super().__init__('girasol', variedad=variedad)
 
 
-class PapaDulce(CultivoExterno):
+class Batata(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('papa dulce', variedad=variedad)
+        super().__init__('batata', variedad=variedad)
 
 
-class Tobaco(CultivoExterno):
+class Tabaco(CultivoExterno):
     def __init__(símismo, variedad=None):
-        super().__init__('tobaco', variedad=variedad)
+        super().__init__('tabaco', variedad=variedad)
 
 
 class Trigo(CultivoExterno):
