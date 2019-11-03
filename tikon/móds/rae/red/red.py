@@ -23,6 +23,10 @@ class RedAE(Módulo):
     def etapas(símismo):
         return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo._cosos)]
 
+    @property
+    def orgs(símismo):
+        return [símismo[org] for org in símismo]
+
     def añadir_org(símismo, org):
         símismo._cosos[str(org)] = org
 
@@ -33,7 +37,7 @@ class RedAE(Módulo):
             raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulRed(simul_exper=simul_exper, etapas=símismo.etapas, ecs=ecs, vars_interés=vars_interés)
+        return SimulRed(simul_exper=simul_exper, mód=símismo, ecs=ecs, vars_interés=vars_interés)
 
     def gen_ecs(símismo, n_reps):
         return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
@@ -45,9 +49,10 @@ class SimulRed(SimulMódulo):
         res_red.ResMuerte, res_red.ResTrans, res_red.ResMov, res_red.ResEstoc, ResCohortes
     ]
 
-    def __init__(símismo, simul_exper, etapas, ecs, vars_interés):
+    def __init__(símismo, simul_exper, mód, ecs, vars_interés):
 
-        símismo.etapas = etapas
+        símismo.etapas = mód.etapas
+        símismo.orgs = mód.orgs
 
         símismo.víctimas = set(pr for etp in símismo.etapas for pr in etp.presas()).union(
             set(h for etp in símismo.etapas for h in símismo.huéspedes(etp))
@@ -57,7 +62,7 @@ class SimulRed(SimulMódulo):
             etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, símismo)
         ]
         símismo.recip_trans = [
-            (etp, etp.siguiente()) for etp in etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()
+            (etp, etp.siguiente()) for etp in símismo.etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()
         ]
 
         símismo.parás_hués = [
