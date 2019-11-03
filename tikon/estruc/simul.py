@@ -131,32 +131,31 @@ class SimulExper(PlantillaSimul):
 
     def verificar_reqs(símismo):
 
-        for mód in símismo:
-            for req in mód.requísitos():
+        for sim_mód in símismo:
+            for req in sim_mód.requísitos():
                 mód_req, var_req = req.split('.')
                 try:
                     otro_mód = símismo[mód_req]
                 except KeyError:
                     raise ValueError(
-                        'Módulo {otro} requerido por módulo {mód} no existe.'.format(otro=mód_req, mód=mód)
+                        'Módulo {otro} requerido por módulo {mód} no existe.'.format(otro=mód_req, mód=sim_mód)
                     )
                 if var_req not in otro_mód.variables:
                     raise ValueError(
                         'Variable {var} de módulo {otro} requerido por módulo {mód} no existe.'.format(
-                            var=var_req, otro=otro_mód, mód=mód
+                            var=var_req, otro=otro_mód, mód=sim_mód
                         )
                     )
-            for req in mód.requísitos(controles=True):
+            for req in sim_mód.requísitos(controles=True):
                 if req not in símismo.exper.controles:
                     raise ValueError(
                         'Falta requísito {req} de módulo {mód} en experimento {exp}'.format(
-                            req=req, mód=mód, exp=símismo.exper
+                            req=req, mód=sim_mód, exp=símismo.exper
                         )
                     )
 
     def iniciar(símismo):
         símismo.t.reinic()
-
         super().iniciar()
 
     def correr(símismo):
@@ -202,3 +201,6 @@ class SimulMódulo(PlantillaSimul):
 
     def inter(símismo, coso, tipo):
         pass
+
+    def requísitos(símismo, controles=False):
+        raise NotImplementedError
