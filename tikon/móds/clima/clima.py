@@ -1,9 +1,9 @@
-from datetime import timedelta
-
-from tikon.estruc.módulo import Módulo, DimsRes
-from tikon.result.res import Resultado, ResultadosMódulo
+import xarray as xr
+from tikon.estruc.módulo import Módulo
+from tikon.estruc.simul import SimulMódulo
+from tikon.result.utils import EJE_TIEMPO, EJE_PARC, EJE_COORD
+# noinspection PyUnresolvedReferences
 from تقدیر.مقام import مقام
-from تقدیر.کوائف import کوائف
 
 
 class Clima(Módulo):
@@ -12,46 +12,48 @@ class Clima(Módulo):
     def __init__(símismo, fuentes=None, escenario=8.5):
         símismo.fuentes = fuentes
         símismo.escenario = escenario
-        símismo.datos = None  # type: کوائف or None
 
         super().__init__()
 
-    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
-        super().iniciar_estruc(tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés)
-        if tiempo.fecha():
-            t_inic, t_final = tiempo.fecha(), tiempo.fecha() + timedelta(days=tiempo._n_días)
-            símismo.datos = مقام().کوائف_پانا(t_inic, t_final).روزانہ()
+    def gen_simul(símismo, simul_exper, vars_interés, ecs):
+        return SimulClima(símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
 
-    def incrementar(símismo):
-        if símismo.datos:
-            diarios = símismo.datos[símismo.tiempo.fecha()]
-        # para hacer: aplicar diarios a Resultados
 
-    def cerrar(símismo):
-        pass
+class SimulClima(SimulMódulo):
+    resultados = []
+
+    def __init__(símismo, mód, simul_exper, ecs, vars_interés):
+        centroides = símismo.simul_exper.exper.controles['centroides']
+        elev = símismo.simul_exper.exper.obt_control('elevación')
+        parcelas = símismo.simul_exper.exper.obt_control('parcelas')
+        eje_t = símismo.simul_exper.t.eje
+        t_inic, t_final = eje_t[0], eje_t[-1]
+
+        variables = {vr for fnt in mód.fuentes for vr in fnt}
+        d_datos = {
+            prc: مقام(centroides.loc[{EJE_PARC: prc, EJE_COORD: 'lat'}],
+                      centroides.loc[{EJE_PARC: prc, EJE_COORD: 'lon'}],
+                      elev.loc[{EJE_PARC: prc}]
+                      ).کوائف_پانا(
+                سے=t_inic, تک=t_final, ذرائع=mód.fuentes, خاکے=mód.escenario
+            ).روزانہ().loc[{EJE_TIEMPO: eje_t}]
+            for prc in parcelas
+        }
+        símismo.datos = xr.Dataset({
+            res: xr.DataArray(
+                [d_datos[prc][res] for prc in parcelas],
+                coords={EJE_PARC: parcelas, EJE_TIEMPO: eje_t},
+                dims=[EJE_PARC, EJE_TIEMPO]
+            ) for res in variables
+        })
+
+        super().__init__(Clima.nombre, simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def requísitos(símismo, controles=False):
         if controles:
-            return ['lat', 'lon', 'elev']
+            return ['centroides', 'elevación']
 
-    def _gen_resultados(símismo, n_rep_estoc, n_rep_parám, vars_interés):
-        if símismo.datos:
-            vars_clima = símismo.datos.متاغیرات()
-            parc = símismo.obt_val_control('parcelas')
-
-            # para hacer: generalizar para todos módulos
-            dims_base = DimsRes(n_estoc=n_rep_estoc, n_parám=n_rep_parám, parc=parc)
-
-            if vars_interés is None:
-                temporales = []
-            elif vars_interés is True:
-                temporales = vars_clima
-            else:
-                temporales = vars_interés
-
-            return ResultadosMódulo([
-                Resultado(
-                    vr, dims_base,
-                    tiempo=símismo.tiempo if vr in temporales else None,
-                ) for vr in vars_clima
-            ])
+    def incrementar(símismo, paso, f):
+        diarios = símismo.datos.loc[{EJE_TIEMPO: f}]
+        for res in símismo:
+            símismo[res].loc[{EJE_TIEMPO: f}] = diarios[str(res)]
