@@ -1,4 +1,10 @@
 import numpy as np
+import pandas as pd
+import xarray as xr
+from tikon.móds.rae import Organismo
+from tikon.móds.rae.orgs.organismo import SumaEtapas, Etapa
+from tikon.móds.rae.red import RedAE
+from tikon.móds.rae.red.utils import EJE_ETAPA, RES_POBS
 
 
 class SuperiorOIgual(object):
@@ -79,64 +85,71 @@ class Cada(object):
 
 class Condición(object):
 
-    def __call__(símismo, mnjdr, tiempo):
+    def __call__(símismo, sim, paso, f):
         raise NotImplementedError
 
 
-class CondTiempo(Condición):
+class CondFecha(Condición):
+    def __init__(símismo, umbral, prueba=Igual):
+        símismo.umbral = pd.Timestamp(umbral)
+        símismo.prueba = prueba(umbral)
 
+    def __call__(símismo, sim, paso, f):
+        return símismo.prueba(f)
+
+
+class CondDía(Condición):
     def __init__(símismo, umbral, prueba=Igual):
         símismo.umbral = umbral
         símismo.prueba = prueba(umbral)
 
-    def __call__(símismo, mnjdr, tiempo):
-        if isinstance(símismo.umbral, int):
-            t = tiempo.día()
-        else:
-            t = tiempo.fecha()  # para hacer: umbrales entre
-
-        return símismo.prueba(t)
+    def __call__(símismo, sim, paso, f):
+        n_día = sim.simul_exper.t.n_día
+        return símismo.prueba(n_día)
 
 
-class CondCada(Condición):
+class CondCada(CondDía):
     def __init__(símismo, cada):
-        símismo.cada = cada
-        símismo.prueba = Cada(símismo.cada)
-
-    def __call__(símismo, mnjdr, tiempo):
-        return símismo.prueba(tiempo.día())
+        super().__init__(umbral=cada, prueba=Cada)
 
 
 class CondVariable(Condición):
-    def __init__(símismo, mód, var, prueba, espera=14, índs=None):
+    def __init__(símismo, mód, var, prueba, espera, f=xr.DataArray.sum, coords=None):
         símismo.mód = mód
         símismo.var = var
         símismo.prueba = prueba
-        símismo.índs = [índs] if isinstance(índs, dict) else índs
+        símismo.f = f
+        símismo.coords = coords or {}
         símismo.espera = espera
         símismo.mem = None
 
-    def __call__(símismo, mnjdr, tiempo):
-        val_var = np.sum([mnjdr.obt_valor(var=símismo.var, mód=símismo.mód, índs=í) for í in símismo.índs], axis=0)
+    def __call__(símismo, sim, paso, f):
+        val_var = f(sim[símismo.mód].obt_valor(símismo.var).loc[símismo.coords], dim=list(símismo.coords))
         cond_verdad = símismo.prueba(val_var)
 
         if símismo.mem is None:
-            símismo.mem = np.zeros_like(cond_verdad, dtype=int)
-        listo = np.logical_or(np.greater_equal(símismo.mem, símismo.espera), np.equal(símismo.mem, 0))
+            símismo.mem = xr.full_like(cond_verdad, 0, dtype='int')
+        listos = np.logical_or(np.greater_equal(símismo.mem, símismo.espera), np.equal(símismo.mem, 0))
 
-        final = np.logical_and(listo, cond_verdad)
-        símismo.mem[símismo.mem != 0] += 1
+        final = np.logical_and(listos, cond_verdad)
+        símismo.mem = símismo.mem.where(símismo.mem == 0, símismo.mem + 1)
         símismo.mem[final] = 1
 
         return final
 
 
 class CondPoblación(CondVariable):
-    def __init__(símismo, etapa, prueba, espera=14):
-        etapas = [etapa] if not isinstance(etapa, list) else etapa
+    def __init__(símismo, etapas, prueba, f=xr.DataArray.sum, espera=14):
+        etapas = [etapas] if isinstance(etapas, (Etapa, SumaEtapas, Organismo)) else etapas
+        etapas_final = []
+        for etp in etapas:
+            if isinstance(etp, Etapa):
+                etapas_final.append(etp)
+            else:
+                etapas_final += [e for e in etp]
+
         super().__init__(
-            mód='red', var='Pobs', índs=[{'etapa': e} for e in etapas],
-            prueba=prueba, espera=espera
+            mód=RedAE.nombre, var=RES_POBS, prueba=prueba, espera=espera, f=f, coords={EJE_ETAPA: etapas}
         )
 
 
@@ -144,13 +157,13 @@ class CondY(Condición):
     def __init__(símismo, conds):
         símismo.conds = conds
 
-    def __call__(símismo, mnjdr, tiempo):
-        return np.logical_and.reduce([c(mnjdr, tiempo) for c in símismo.conds])
+    def __call__(símismo, sim, paso, f):
+        return np.logical_and.reduce([c(sim, paso, f) for c in símismo.conds])
 
 
 class CondO(Condición):
     def __init__(símismo, conds):
         símismo.conds = conds
 
-    def __call__(símismo, mnjdr, tiempo):
-        return np.logical_or.reduce([c(mnjdr, tiempo) for c in símismo.conds])
+    def __call__(símismo, sim, paso, f):
+        return np.logical_or.reduce([c(sim, paso, f) for c in símismo.conds])
