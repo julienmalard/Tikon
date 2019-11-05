@@ -1,6 +1,7 @@
 import unittest
 
 from tikon.estruc import Exper, Parcela, GrupoParcelas
+from tikon.result.utils import EJE_PARC
 
 
 class PruebaExperParc(unittest.TestCase):
@@ -20,3 +21,9 @@ class PruebaExperParc(unittest.TestCase):
         exp = Exper('mi experimento', parcelas=[Parcela('una'), GrupoParcelas([Parcela('y'), Parcela('otra')])])
         símismo.assertEqual(len(exp.parcelas), 3)
 
+    def test_controles(símismo):
+        exp = Exper('mi experimento', parcelas=[Parcela('una'), Parcela('otra')])
+        símismo.assertListEqual(exp.controles['parcelas'], ['una', 'otra'])
+        for cntrl in ['superficies', 'elevaciones', 'centroides', 'distancias']:
+            with símismo.subTest(cntrl):
+                símismo.assertListEqual(exp.controles[cntrl][EJE_PARC].values.tolist(), ['una', 'otra'])
