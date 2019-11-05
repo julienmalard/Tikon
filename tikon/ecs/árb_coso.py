@@ -133,7 +133,7 @@ class ParámCoso(PlantillaRamaEcCoso):
         super().__init__(cls_pariente, ramas=[], coso=coso)
 
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
-        símismo._a_priori = MnjdrDists()
+        símismo._apriori = MnjdrDists()
 
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
@@ -155,10 +155,10 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def espec_a_priori(símismo, apriori, inter=None):
         dist = apriori.dist(símismo.líms)
-        símismo._a_priori.actualizar(dist=dist, índs=inter)
+        símismo._apriori.actualizar(dist=dist, índs=inter)
 
-    def a_priori(símismo, inter=None):
-        return símismo._a_priori.obt_val(inter)
+    def apriori(símismo, inter=None):
+        return símismo._apriori.obt_val(inter)
 
     def calib_base(símismo):
         return DistAnalítica.de_líms(símismo.líms)
