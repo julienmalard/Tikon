@@ -12,11 +12,12 @@ class ControlesExper(object):
 
         símismo._usuario.update(_controles_parc(parcelas))
 
-    def verif(símismo):
-        pass
-
     def __setitem__(símismo, llave, valor):
-        símismo._usuario[llave] = valor
+        if valor is not None:
+            símismo._usuario[llave] = valor
+        else:
+            if llave in símismo._usuario:
+                símismo._usuario.pop(llave)
 
     def __getitem__(símismo, itema):
         try:
