@@ -19,7 +19,7 @@ setup(
     long_description=leer('README.md'),
     install_requires=[
         'numpy', 'matplotlib', 'scipy', 'SALib', 'spotpy', 'chardet', 'pandas', 'taqdir', 'bibtexparser',
-        'shapely', 'ennikkai', 'xarray', 'seaborn', 'pyproj', 'geopy', 'pcse', 'tradssat'
+        'shapely', 'ennikkai', 'xarray', 'seaborn', 'pyproj', 'geopy', 'pcse', 'tradssat', 'pyshp'
     ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
