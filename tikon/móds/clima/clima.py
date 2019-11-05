@@ -1,6 +1,7 @@
 import xarray as xr
 from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
+from tikon.móds.clima.res import ResultadoClima
 from tikon.result.utils import EJE_TIEMPO, EJE_PARC, EJE_COORD
 # noinspection PyUnresolvedReferences
 from تقدیر.مقام import مقام
@@ -20,12 +21,10 @@ class Clima(Módulo):
 
 
 class SimulClima(SimulMódulo):
-    resultados = []
-
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         centroides = símismo.simul_exper.exper.controles['centroides']
-        elev = símismo.simul_exper.exper.obt_control('elevación')
-        parcelas = símismo.simul_exper.exper.obt_control('parcelas')
+        elev = símismo.simul_exper.exper.controles['elevación']
+        parcelas = símismo.simul_exper.exper.controles['parcelas']
         eje_t = símismo.simul_exper.t.eje
         t_inic, t_final = eje_t[0], eje_t[-1]
 
@@ -40,7 +39,7 @@ class SimulClima(SimulMódulo):
             for prc in parcelas
         }
         símismo.datos = xr.Dataset({
-            res: xr.DataArray(
+            _vr_taqdir_a_tikon(res): xr.DataArray(
                 [d_datos[prc][res] for prc in parcelas],
                 coords={EJE_PARC: parcelas, EJE_TIEMPO: eje_t},
                 dims=[EJE_PARC, EJE_TIEMPO]
@@ -48,6 +47,10 @@ class SimulClima(SimulMódulo):
         })
 
         super().__init__(Clima.nombre, simul_exper, ecs=ecs, vars_interés=vars_interés)
+
+    @property
+    def resultados(símismo):
+        return [type(str(var), (ResultadoClima,), {"new_method": lambda self: ...}) for var in símismo.datos]
 
     def requísitos(símismo, controles=False):
         if controles:
@@ -57,3 +60,18 @@ class SimulClima(SimulMódulo):
         diarios = símismo.datos.loc[{EJE_TIEMPO: f}]
         for res in símismo:
             símismo[res].loc[{EJE_TIEMPO: f}] = diarios[str(res)]
+
+
+def _vr_taqdir_a_tikon(vr):
+    if vr in _conv_vars_taqdir:
+        return _conv_vars_taqdir[vr]
+    return vr
+
+
+_conv_vars_taqdir = {
+    'بارش': 'precip',
+    'شمسی_تابکاری': 'rad_solar',
+    'درجہ_حرارت_زیادہ': 'temp_máx',
+    'درجہ_حرارت_کم': 'temp_mín',
+    'درجہ_حرارت_اوسط': 'temp_prom',
+}
