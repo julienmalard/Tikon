@@ -5,7 +5,8 @@ from tikon.móds.rae.orgs.plantas import Planta
 
 class CultivoExterno(Planta):
 
-    def __init__(símismo, nombre, variedad=None):
+    def __init__(símismo, nombre=None, variedad=None):
+        nombre = nombre or símismo.cultivo
         base = {
             ECS_CREC: {'Modif': 'Ninguna', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Nada'},
@@ -22,112 +23,160 @@ class CultivoExterno(Planta):
             variedad=variedad, tipo_ecs=tipo_ecs
         )
 
+    @property
+    def cultivo(símismo):
+        raise NotImplementedError
+
 
 class Tomate(CultivoExterno):
+    cultivo = 'tomate'
+
     def __init__(símismo, variedad=None):
-        super().__init__('tomate', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Cebada(CultivoExterno):
+    cultivo = 'cebada'
+
     def __init__(símismo, variedad=None):
-        super().__init__('cebada', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Mandioca(CultivoExterno):
+    cultivo = 'mandioca'
+
     def __init__(símismo, variedad=None):
-        super().__init__('mandioca', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Garbanzo(CultivoExterno):
+    cultivo = 'garbanzo'
+
     def __init__(símismo, variedad=None):
-        super().__init__('garbanzo', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Algodón(CultivoExterno):
+    cultivo = 'algodón'
+
     def __init__(símismo, variedad=None):
-        super().__init__('algodón', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class FrijolDeCarita(CultivoExterno):
+    cultivo = 'frijol de carita'
+
     def __init__(símismo, variedad=None):
-        super().__init__('frijol de carita', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Faba(CultivoExterno):
+    cultivo = 'haba'
+
     def __init__(símismo, variedad=None):
-        super().__init__('haba', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Maní(CultivoExterno):
+    cultivo = 'maní'
+
     def __init__(símismo, variedad=None):
-        super().__init__('maní', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Maíz(CultivoExterno):
+    cultivo = 'maíz'
+
     def __init__(símismo, variedad=None):
-        super().__init__('maíz', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Mungo(CultivoExterno):
+    cultivo = 'mungo'
+
     def __init__(símismo, variedad=None):
-        super().__init__('mungo', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Guandú(CultivoExterno):
+    cultivo = 'guandú'
+
     def __init__(símismo, variedad=None):
-        super().__init__('guandú', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Papa(CultivoExterno):
+    cultivo = 'papa'
+
     def __init__(símismo, variedad=None):
-        super().__init__('papa', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Raps(CultivoExterno):
+    cultivo = 'raps'
+
     def __init__(símismo, variedad=None):
-        super().__init__('raps', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Arroz(CultivoExterno):
+    cultivo = 'arroz'
+
     def __init__(símismo, variedad=None):
-        super().__init__('arroz', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Sorgo(CultivoExterno):
+    cultivo = 'sorgo'
+
     def __init__(símismo, variedad=None):
-        super().__init__('sorgo', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Soya(CultivoExterno):
+    cultivo = 'soya'
+
     def __init__(símismo, variedad=None):
-        super().__init__('soya', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class RemolachaAzucarera(CultivoExterno):
+    cultivo = 'remolacha azucarera'
+
     def __init__(símismo, variedad=None):
-        super().__init__('remolacha azucarera', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Caña(CultivoExterno):
+    cultivo = 'caña'
+
     def __init__(símismo, variedad=None):
-        super().__init__('caña', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Girasol(CultivoExterno):
+    cultivo = 'girasol'
+
     def __init__(símismo, variedad=None):
-        super().__init__('girasol', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Batata(CultivoExterno):
+    cultivo = 'batata'
+
     def __init__(símismo, variedad=None):
-        super().__init__('batata', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Tabaco(CultivoExterno):
+    cultivo = 'tabaco'
+
     def __init__(símismo, variedad=None):
-        super().__init__('tabaco', variedad=variedad)
+        super().__init__(variedad=variedad)
 
 
 class Trigo(CultivoExterno):
+    cultivo = 'trigo'
+
     def __init__(símismo, variedad=None):
-        super().__init__('trigo', variedad=variedad)
+        super().__init__(variedad=variedad)
