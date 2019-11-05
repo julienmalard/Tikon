@@ -11,3 +11,7 @@ shapely
 ennikkai
 xarray
 seaborn
+pyproj
+geopy
+pcse
+tradssat
