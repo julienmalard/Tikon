@@ -58,6 +58,12 @@ class PlantillaRamaEc(object):
         sim.poner_valor(var, val, rel=rel)
 
     @staticmethod
+    def poner_val_extern(sim, var, val, mód=None, rel=False):
+        if not mód:
+            mód, var = var.split('.')
+        return sim.simul_exper[mód].poner_valor(var, val, rel=rel)
+
+    @staticmethod
     def obt_val_extern(sim, var, mód=None):
         if not mód:
             mód, var = var.split('.')
