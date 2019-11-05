@@ -28,9 +28,6 @@ class Módulo(object):
     def nombre(símismo):
         raise NotImplementedError
 
-    def requísitos(símismo, controles=False):
-        raise NotImplementedError
-
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         raise NotImplementedError
 

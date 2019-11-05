@@ -2,10 +2,8 @@ import os
 
 from tikon.calibrador.spotpy_ import EVM
 from tikon.estruc.calibs import _gen_espec_calibs
-from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import Simulación
-from tikon.exper.exper import Exper
-from tikon.móds.clima.clima import Clima
+from tikon.móds.cultivo.cult import Cultivo
 from tikon.móds.manejo import Manejo
 from tikon.sensib import gen_anlzdr_sensib
 
@@ -14,9 +12,6 @@ class Modelo(object):
 
     def __init__(símismo, módulos):
         símismo.módulos = {str(m): m for m in módulos}
-        for neces in [Clima, Manejo]:
-            if neces.nombre not in símismo.módulos:
-                símismo.módulos[neces.nombre] = neces()
 
     def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
 

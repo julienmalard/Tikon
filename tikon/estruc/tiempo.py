@@ -17,13 +17,15 @@ class Tiempo(object):
         símismo._i = 0
 
     def avanzar(símismo):
-        for día in símismo.eje:
+        for f in símismo.eje:
             símismo._i += 1
-            yield día
+            yield f
 
+    @property
     def fecha(símismo):
         return símismo.eje[símismo._i]
 
+    @property
     def n_día(símismo):
         return símismo._i * símismo.paso
 
