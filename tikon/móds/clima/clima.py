@@ -50,7 +50,12 @@ class SimulClima(SimulMódulo):
 
     @property
     def resultados(símismo):
-        return [type(str(var), (ResultadoClima,), {"new_method": lambda self: ...}) for var in símismo.datos]
+        l_res = []
+        for var in símismo.datos:
+            cls_res = type(var, (ResultadoClima,))
+            cls_res.nombre = var
+            l_res.append(cls_res)
+        return l_res
 
     def requísitos(símismo, controles=False):
         if controles:
