@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 from tikon.ecs.árb_mód import Parám
 
 from ._plntll_ec import EcuaciónDepred
@@ -92,5 +92,5 @@ class TipoIIIDR(EcuaciónDepred):
 
         dens = símismo.dens_pobs(sim, filtrar=False)
         dens_depred = símismo.dens_pobs(sim)
-        ratio_2 = xr.ufuncs.square(dens / dens_depred)
+        ratio_2 = np.square(dens / dens_depred)
         return ratio_2 * cf['a'] / (ratio_2 + cf['b'])

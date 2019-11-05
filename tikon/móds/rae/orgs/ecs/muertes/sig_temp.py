@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
@@ -26,7 +26,7 @@ class SigmoidalTemperatura(EcuaciónOrg):
     def eval(símismo, paso, sim):
         cf = símismo.cf
         temp_máx = símismo.obt_val_extern(sim, 'clima.temp_máx')
-        sobrevivencia = 1 / (1 + xr.ufuncs.exp((temp_máx - cf['a']) / cf['b']))
+        sobrevivencia = 1 / (1 + np.exp((temp_máx - cf['a']) / cf['b']))
         return 1 - sobrevivencia
 
     def requísitos(símismo, controles=False):

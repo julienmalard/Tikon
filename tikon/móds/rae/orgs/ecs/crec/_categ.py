@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_CREC
 from tikon.móds.rae.red.utils import RES_CREC
@@ -18,7 +18,7 @@ class EcsCrec(CategEcOrg):
         pobs = símismo.pobs(sim)
 
         # Evitar pérdidas de poblaciones superiores a la población.
-        crec = xr.ufuncs.maximum(crec, -pobs)
+        crec = np.maximum(crec, -pobs)
 
         símismo.poner_val_res(sim, val=crec)
         símismo.ajust_pobs(sim, pobs=crec)

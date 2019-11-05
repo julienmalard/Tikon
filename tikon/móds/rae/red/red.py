@@ -37,7 +37,7 @@ class RedAE(Módulo):
             raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulRed(simul_exper=simul_exper, mód=símismo, ecs=ecs, vars_interés=vars_interés)
+        return SimulRed(mód=símismo, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def gen_ecs(símismo, n_reps):
         return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
@@ -49,7 +49,7 @@ class SimulRed(SimulMódulo):
         res_red.ResMuerte, res_red.ResTrans, res_red.ResMov, res_red.ResEstoc, ResCohortes
     ]
 
-    def __init__(símismo, simul_exper, mód, ecs, vars_interés):
+    def __init__(símismo, mód, simul_exper, ecs, vars_interés):
 
         símismo.etapas = mód.etapas
         símismo.orgs = mód.orgs
@@ -78,7 +78,7 @@ class SimulRed(SimulMódulo):
         for parás, hués_fants in símismo.parás_hués:
             símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
 
-        super().__init__(nombre=RedAE.nombre, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
+        super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def requísitos(símismo, controles=False):
         return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
@@ -115,12 +115,7 @@ class SimulRed(SimulMódulo):
         return [pr for pr in etp.org.fantasmas() if pr in símismo.etapas]
 
     def iniciar(símismo):
-        super().iniciar()
-
         símismo[RES_COHORTES].agregar(símismo[RES_POBS].valores())
-
-    def cerrar(símismo):
-        pass
 
     def poner_valor(símismo, var, val, rel=False):
         if var == RES_POBS:

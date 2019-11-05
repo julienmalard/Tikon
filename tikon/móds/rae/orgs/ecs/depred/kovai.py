@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.utils import probs_conj
 from tikon.móds.rae.red.utils import EJE_VÍCTIMA
@@ -46,11 +46,11 @@ class Kovai(EcuaciónDepred):
         # La población de esta etapa (depredador)
         dens_depred = símismo.dens_pobs(sim)
 
-        u = 1 - xr.ufuncs.exp(-dens / cf['b'])
+        u = 1 - np.exp(-dens / cf['b'])
 
         ratio = (dens / dens_depred).fillna(0)
 
-        depred_etp = cf['a'] * u * (1 - xr.ufuncs.exp(-ratio / (cf['a'] * u)))
+        depred_etp = cf['a'] * u * (1 - np.exp(-ratio / (cf['a'] * u)))
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
         depred_etp = probs_conj(depred_etp, dim=EJE_VÍCTIMA, pesos=cf['a'], máx=1)

@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_DEPR, probs_conj
@@ -54,7 +54,7 @@ class EcsDepred(CategEcOrg):
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
         depred = probs_conj(depred, pesos=1, máx=símismo.pobs(sim, filtrar=False), dim=EJE_ETAPA)
 
-        depred = xr.ufuncs.floor(depred.fillna(0))
+        depred = np.floor(depred.fillna(0))
 
         # Guardar la depredación final
         símismo.poner_val_res(sim, depred)
