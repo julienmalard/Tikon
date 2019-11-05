@@ -3,6 +3,7 @@ import pandas as pd
 from pcse.base import WeatherDataProvider, WeatherDataContainer
 from pcse.db import NASAPowerWeatherDataProvider
 from pcse.util import reference_ET
+from tikon.result.utils import EJE_TIEMPO
 
 
 class ProveedorMeteoPCSEPandas(NASAPowerWeatherDataProvider):
@@ -31,7 +32,7 @@ class ProveedorMeteoPCSEPandas(NASAPowerWeatherDataProvider):
         for var, conv in símismo._convs:
             bd_pandas[var] *= conv
 
-        for f in bd_pandas['fecha']:
+        for f in bd_pandas[EJE_TIEMPO]:
             día = pd.to_datetime(f)
             fila = {"DAY": día, **{vr: bd_pandas[vr].loc[{'fecha': f}] for vr in bd_pandas.colnames}}
 
