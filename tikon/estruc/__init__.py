@@ -1,3 +1,4 @@
+from .control import ControlesExper
 from .exper import Exper
 from .modelo import Modelo
 from .módulo import Módulo
