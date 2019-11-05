@@ -1,9 +1,7 @@
-import os
 from functools import partial
 
 import numpy as np
 import pyproj
-import shapefile
 import xarray as xr
 from geopy.distance import distance
 from shapely.geometry import Polygon
@@ -12,24 +10,18 @@ from tikon.result.utils import EJE_PARC, EJE_DEST, EJE_COORD
 
 
 class Parcela(object):
-    def __init__(símismo, nombre, geom):
+    def __init__(símismo, nombre, geom=None):
         símismo.nombre = nombre
 
         símismo.geom = geom or GeomParcela()
+
+    def __str__(símismo):
+        return símismo.nombre
 
 
 class GrupoParcelas(object):
     def __init__(símismo, parcelas):
         símismo.parcelas = parcelas
-
-
-class ParcelaShp(Parcela):
-    def __init__(símismo, archivo, nombre=None):
-        nombre = nombre or os.path.splitext(os.path.split(archivo)[1])[0]
-        coords = shapefile.Reader(archivo).shapeRecords()[0].shape.__geo_interface__['geometry']
-        polígono = Polygon(coords)
-        geom = GeomParcela(centroide=polígono.centroid, superficie=_área_de_polígono(polígono), coords=coords)
-        super().__init__(nombre, geom=geom)
 
 
 class GeomParcela(object):
@@ -62,12 +54,17 @@ class GeomParcela(object):
 def _controles_parc(parcelas):
     nombres = [prc.nombre for prc in parcelas]
 
-    superficies = xr.DataArray([prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC])
-    elevs = xr.DataArray([prc.geom.elevación for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC])
+    superficies = xr.DataArray(
+        [prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'ha'}
+    )
+    elevs = xr.DataArray(
+        [prc.geom.elevación for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'm'}
+    )
     cntrds = xr.DataArray(
         [prc.geom.centroide for prc in parcelas],
         coords={EJE_PARC: nombres, EJE_COORD: ['lat', 'lon']},
-        dims=[EJE_PARC, EJE_COORD]
+        dims=[EJE_PARC, EJE_COORD],
+        attrs={'unids': 'grados'}
     )
     distancias = xr.apply_ufunc(_dstn, cntrds, cntrds.rename({EJE_PARC: EJE_DEST}), input_core_dims=[[EJE_COORD]] * 2)
 
@@ -95,4 +92,4 @@ def _área_de_polígono(polígono):
         )
     )
 
-    return transform(proj, polígono).area
+    return transform(proj, polígono).area / 10000
