@@ -27,6 +27,7 @@ class ParcelasCultivoExterno(object):
 
 
 class SimulCultivoExterno(object):
+    _trads_cultivos = {}
 
     def __init__(símismo, sim, parcelas):
         símismo.sim = sim
@@ -46,6 +47,10 @@ class SimulCultivoExterno(object):
         raise NotImplementedError
 
     def obt_org(símismo, cultivo, variedad=None):
+        cultivo = cultivo.lower()
+        if cultivo in símismo._trads_cultivos:
+            cultivo = símismo._trads_cultivos[cultivo]
+
         _cls_apropiada = símismo.parcelas.cls_cultivos[cultivo.lower()]
         if cultivo in símismo.parcelas.conv_cultivos:
             orgs_potenciales = símismo.parcelas.conv_cultivos[cultivo]

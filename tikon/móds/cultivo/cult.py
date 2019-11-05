@@ -1,5 +1,6 @@
 from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
+from tikon.móds.clima.clima import Clima
 from tikon.móds.cultivo.res import RES_BIOMASA
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.móds.rae.red import RedAE
@@ -19,14 +20,15 @@ class Cultivo(Módulo):
 class SimulCultivo(SimulMódulo):
     resultados = [res.ResBiomasa, res.ResHumedadSuelo]
 
-    def __init__(símismo, simul_exper, ecs, vars_interés):
+    def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         símismo.simuls_parcelas = [prc.gen_simul() for prc in simul_exper.exper.parcelas]
         símismo.red = simul_exper[RedAE.nombre]
+        símismo.clima = simul_exper[Clima.nombre]
         símismo.etapas = [etp for etp in símismo.red.etapas if isinstance(etp, CultivoExterno)]
         símismo.orgs = símismo.red.orgs
         símismo.superficies = simul_exper.exper.controles['superficies']
 
-        super().__init__(Cultivo.nombre, simul_exper, ecs, vars_interés)
+        super().__init__(mód=mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def iniciar(símismo):
         for s in símismo.simuls_parcelas:
