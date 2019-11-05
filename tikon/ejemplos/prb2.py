@@ -34,7 +34,7 @@ res = simul.simular(exper=copia_exper_B)
 pprint(res.validar())
 res.graficar('valid sitio B')
 
-red.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens final/red'))
+red.cargar_calibs(os.path.join(dir_base, 'calibs Sitio A epm ens final/red'))
 # exper_A.cargar_calib(os.path.join(dir_base, 'calibs Sitio A epm ens final'))
 
 simul.calibrar('calibrador inic sitio A', días=100, paráms=exper_A, exper=exper_A, n_rep_parám=30)

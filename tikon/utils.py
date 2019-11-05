@@ -7,26 +7,6 @@ import numpy as np
 from chardet import UniversalDetector
 
 
-_dir_config = os.path.join(os.path.split(__file__)[0], 'config.json')
-try:
-    with open(_dir_config, 'r', encoding='utf8') as d:
-        _config = json.load(d)
-except (FileNotFoundError, json.JSONDecodeError, PermissionError):
-    _config = {}
-
-
-def guardar_conf(conf, val):
-    _config[conf] = val
-    guardar_archivo(json.dumps(_config, ensure_ascii=False, sort_keys=True, indent=2), _dir_config)
-
-
-def obtener_conf(conf):
-    try:
-        return _config[conf]
-    except KeyError:
-        return
-
-
 def guardar_archivo(texto, archivo):
     with tempfile.NamedTemporaryFile('w', encoding='UTF-8', delete=False) as arch_temp:
         arch_temp.write(texto)
@@ -132,3 +112,11 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
     detector.close()  # Cerrar el detector
 
     return detector.result['encoding']  # Devolver el resultado
+
+
+def proc_líms(líms):
+    inf = np.inf
+
+    if líms is None:
+        return -inf, inf
+    return -inf if líms[0] is None else líms[0], inf if líms[1] is None else líms[1]

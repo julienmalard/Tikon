@@ -3,8 +3,6 @@ import os
 from tikon.calibrador.spotpy_ import EVM
 from tikon.estruc.calibs import _gen_espec_calibs
 from tikon.estruc.simul import Simulación
-from tikon.móds.cultivo.cult import Cultivo
-from tikon.móds.manejo import Manejo
 from tikon.sensib import gen_anlzdr_sensib
 
 

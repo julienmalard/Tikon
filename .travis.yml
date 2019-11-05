@@ -1,29 +1,29 @@
 language: python
 python:
-- '3.6'
+  - '3.6'
 os:
-- linux
+  - linux
 env:
   global:
-  - TX_BRANCH="master"
+    - TX_BRANCH="master"
 install:
-- pip install --upgrade pip setuptools wheel
-- pip install transifex-client sphinx sphinx-intl
-- pip install -r requísitos.txt
-- pip install coveralls codecov
-- python setup.py sdist bdist_wheel
-- pip install tikon --no-index --find-links=./dist
+  - pip install --upgrade pip setuptools wheel
+  - pip install transifex-client sphinx sphinx-intl
+  - pip install -r requísitos.txt
+  - pip install coveralls codecov
+  - python setup.py sdist bdist_wheel
+  - pip install tikon --no-index --find-links=./dist
 script:
-- cd pruebas
-- coverage run -m unittest
+  - cd pruebas
+  - coverage run -m unittest
 after_success:
-- coveralls --rcfile=.coveragerc
-- codecov
-- cd ..
-- cd docs
-- if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then sh .tx/tx.sh push; sh .tx/tx.sh pull;
-  fi
-- cd ..
+  - coveralls --rcfile=.coveragerc
+  - codecov
+  - cd ..
+  - cd docs
+  - if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then sh .tx/tx.sh push; sh .tx/tx.sh pull;
+    fi
+  - cd ..
 deploy:
   provider: pypi
   user: julien.malard

@@ -13,8 +13,8 @@ from tikon.móds.manejo.conds import CondTiempo
 from tikon.móds.manejo import Manejo, Regla
 from tikon.utils import leer_json, guardar_json
 
-red.cargar_calib(en_ejemplos('calibs Sitio A epm ens final/red'))
-exper_A.cargar_calib(en_ejemplos('calibs Sitio A epm ens final'))
+red.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final/red'))
+exper_A.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final'))
 
 t = 50
 días = 300

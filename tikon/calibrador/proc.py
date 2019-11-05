@@ -7,7 +7,7 @@ from tikon.result.utils import EJE_ESTOC, EJE_PARÁMS
 
 # Funciones pesos
 def n_existen(x):
-    return xr.ufuncs.isfinite(x).sum(dim='tiempo').values.item()
+    return np.isfinite(x).sum(dim='tiempo').values.item()
 
 
 # Funciones vals

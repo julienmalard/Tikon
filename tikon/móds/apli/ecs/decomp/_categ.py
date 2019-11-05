@@ -1,24 +1,24 @@
 from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
-from tikon.móds.apli.ecs.utils import ECS_descop
-from tikon.móds.apli.utils import EJE_PRODUCTO, RES_descop, RES_CONC
+from tikon.móds.apli.ecs.utils import ECS_DESCOMP
+from tikon.móds.apli.utils import EJE_PRODUCTO, RES_DESCOMP, RES_CONC
 
 from .exp_neg import DecaiExp
 
 
-class Ecdescop(SubcategEc):
+class EcDescomp(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [DecaiExp, EcuaciónVacía]
     _eje_cosos = EJE_PRODUCTO
-    _nombre_res = RES_descop
+    _nombre_res = RES_DESCOMP
 
 
 class EcsDescomp(CategEc):
-    nombre = ECS_descop
-    cls_ramas = [Ecdescop]
+    nombre = ECS_DESCOMP
+    cls_ramas = [EcDescomp]
     _eje_cosos = EJE_PRODUCTO
-    _nombre_res = RES_descop
+    _nombre_res = RES_DESCOMP
 
     def postproc(símismo, paso, sim):
-        descop = símismo.obt_val_res(sim)
+        descomp = símismo.obt_val_res(sim)
 
-        símismo.poner_val_mód(sim, RES_CONC, -descop, rel=True)
+        símismo.poner_val_mód(sim, RES_CONC, -descomp, rel=True)

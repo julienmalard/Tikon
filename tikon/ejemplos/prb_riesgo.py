@@ -19,8 +19,8 @@ from tikon.móds.manejo.conds import CondTiempo, CondPoblación, SuperiorOIgual,
 from tikon.móds.manejo import Manejo, Regla
 from tikon.utils import guardar_json, leer_json
 
-red.cargar_calib(en_ejemplos('calibs Sitio A epm ens final/red'))
-exper_A.cargar_calib(en_ejemplos('calibs Sitio A epm ens final'))
+red.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final/red'))
+exper_A.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final'))
 
 borrar = False
 umbral = 655757.1429 * 0.5
