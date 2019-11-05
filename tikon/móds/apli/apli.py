@@ -1,7 +1,7 @@
 from tikon.ecs.paráms import Inter
 from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
-from tikon.móds.apli.res import ResConcentración, ResDecomp, ResMortalidad
+from tikon.móds.apli.res import ResConcentración, Resdescop, ResMortalidad
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
 
@@ -21,7 +21,7 @@ class Aplicaciones(Módulo):
 
 
 class SimulAplicaciones(SimulMódulo):
-    resultados = [ResDecomp, ResConcentración, ResMortalidad]
+    resultados = [Resdescop, ResConcentración, ResMortalidad]
 
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
