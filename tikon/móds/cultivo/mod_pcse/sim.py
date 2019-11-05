@@ -5,6 +5,7 @@ import pandas as pd
 from tikon.móds.cultivo.extrn import SimulCultivoExterno, InstanciaSimulCultivo
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
 from tikon.móds.rae.red.utils import EJE_ETAPA
+from tikon.result.utils import EJE_COORD, EJE_PARC
 
 from .meteo import ProveedorMeteoPCSEPandas
 
@@ -21,8 +22,14 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         super().__init__(sim=sim, vars_=[RES_HUMSUELO, RES_BIOMASA], índs=índs)
         símismo.f_inic_modelo = pd.Timestamp(símismo.modelo.agromanager.start_date)
 
+        parc = str(sim.parcelas[0])
+        centr = símismo.sim.sim.simul_exper.controles['centroides'].loc[{EJE_PARC: parc}]
+        lat, lon = centr.loc[{EJE_COORD: 'lat'}], centr.loc[{EJE_COORD: 'lon'}]
+        elev = símismo.sim.sim.simul_exper.controles['elevaciones'].loc[{EJE_PARC: parc}]
+
         clima = símismo.sim.sim.clima
-        símismo._proveedor_meteo = ProveedorMeteoPCSEPandas(clima.bd_total)
+        bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop(EJE_PARC).to_dataframe()
+        símismo._proveedor_meteo = ProveedorMeteoPCSEPandas(bd_pandas, lat=lat, lon=lon, elev=elev)
 
         símismo.modelo = símismo._gen_modelo()
 
