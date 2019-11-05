@@ -1,4 +1,5 @@
 from tikon.ecs import ÁrbolEcs
+
 from .crec import EcsCrec
 from .depred import EcsDepred
 from .edad import EcsEdad

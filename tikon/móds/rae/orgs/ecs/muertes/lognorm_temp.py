@@ -1,4 +1,4 @@
-import xarray as xr
+import numpy as np
 
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
@@ -46,7 +46,7 @@ class LogNormTemp(EcuaciónOrg):
         cf = símismo.cf
 
         t_máx = símismo.obt_val_extern(sim, 'clima.temp_máx')
-        sobrevivencia = cf['k'] * xr.ufuncs.exp(-0.5 * (xr.ufuncs.log(t_máx / cf['t']) / cf['rho']) ** 2)
+        sobrevivencia = cf['k'] * np.exp(-0.5 * (np.log(t_máx / cf['t']) / cf['rho']) ** 2)
 
         return 1 - sobrevivencia
 

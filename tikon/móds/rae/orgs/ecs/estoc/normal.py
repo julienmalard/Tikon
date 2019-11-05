@@ -1,5 +1,4 @@
 import numpy as np
-import xarray as xr
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
@@ -20,7 +19,7 @@ class Normal(EcuaciónOrg):
     def eval(símismo, paso, sim):
         pobs = símismo.pobs(sim)
 
-        estoc = xr.ufuncs.maximum(1, pobs * símismo.cf['sigma'] * paso)
+        estoc = np.maximum(1, pobs * símismo.cf['sigma'] * paso)
         estoc[:] = np.random.normal(0, estoc)
 
         return estoc.round()
