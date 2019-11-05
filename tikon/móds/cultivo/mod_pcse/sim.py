@@ -108,16 +108,6 @@ class SimulPCSE(SimulCultivoExterno):
         'wheat': 'trigo'
     }
 
-    def __init__(símismo, sim, parcelas):
-        super().__init__(sim=sim, parcelas=parcelas)
-
-    def obt_org(símismo, cultivo, variedad=None):
-        try:
-            cultivo = símismo._trads_cultivos[cultivo.lower()]
-        except KeyError:
-            pass
-        super().obt_org(cultivo, variedad)
-
     def requísitos(símismo, controles=False):
         if not controles:
             return {'clima.temp_máx', 'clima.temp_mín', 'clima.rad', 'clima.precip'}
