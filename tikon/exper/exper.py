@@ -4,16 +4,20 @@ import numpy as np
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
 from tikon.estruc.tiempo import Tiempo, gen_tiempo
+from tikon.exper.parc import Parcela
+from tikon.móds.cultivo.extrn import ParcelasCultivoExterno
 
 from .control import ControlesExper
 from .datos import MnjdrInicExper, DatosExper
 
 
 class Exper(object):
-    def __init__(símismo, nombre, obs=None):
+    def __init__(símismo, nombre, parcelas, obs=None):
         símismo.nombre = nombre
         símismo.datos = DatosExper()
-        símismo.controles = ControlesExper()
+
+        símismo.parcelas = _extract_parcelas(parcelas)
+        símismo.controles = ControlesExper(símismo.parcelas)
 
         símismo.datos.agregar_obs(obs)
 
@@ -28,6 +32,17 @@ class Exper(object):
         return gen_tiempo(t)
 
 
+def _extract_parcelas(parcelas):
+    parcelas = [parcelas] if isinstance(parcelas, (Parcela, ParcelasCultivoExterno)) else parcelas
+    l_prcs = []
+    for prc in parcelas:
+        if isinstance(prc, Parcela):
+            l_prcs.append(prc)
+        else:
+            l_prcs += prc.parcelas
+    return l_prcs
+
+
 class Exper(object):
     def __init__(símismo, obs=None):
         símismo.obs = MnjdrObsExper(obs)
@@ -39,9 +54,6 @@ class Exper(object):
         except KeyError:
             inic_mód = símismo.inic.agregar_mód(mód)
         return inic_mód.obt_inic(var)
-
-    def agregar_obs(símismo, obs):
-        símismo.obs.agregar_obs(obs)
 
     def obtener_obs(símismo, mód, var=None):
         if var:
