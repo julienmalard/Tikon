@@ -1,17 +1,16 @@
-import numpy as np
+from tikon.exper.parc import _controles_parc
 
 _controles_auto = {
-    'parcelas': ['1'],
-    'superficies': np.array([1.]),
-    'lat': np.array([11.0025]),
-    'lon': np.array([76.9656])
+    'n_cohortes': 10
 }
 
 
 class ControlesExper(object):
-    def __init__(símismo):
-        símismo._usuario = {}
+    def __init__(símismo, parcelas):
         símismo._auto = _controles_auto
+        símismo._usuario = {}
+
+        símismo._usuario.update(_controles_parc(parcelas))
 
     def verif(símismo):
         pass
