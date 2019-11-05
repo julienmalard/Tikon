@@ -82,9 +82,9 @@ class ResDepred(ResultadoRed):
 
     ejes_etps = [EJE_ETAPA, EJE_VÍCTIMA]
 
-    def __init__(símismo, sim, coords):
+    def __init__(símismo, sim, coords, vars_interés):
         coords = {EJE_VÍCTIMA: sim.víctimas, **coords}
-        super().__init__(sim=sim, coords=coords)
+        super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class ResEdad(ResultadoRed):

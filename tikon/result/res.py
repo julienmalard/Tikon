@@ -3,17 +3,24 @@ from itertools import product
 import numpy as np
 import xarray as xr
 from tikon.estruc.simul import PlantillaSimul
-from tikon.result.dibujar import graficar_pred
+from tikon.result.dibs import graficar_res
 from tikon.result.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
 from tikon.result.valid import reps_necesarias
+from tikon.utils import proc_líms
 
 
 class Resultado(PlantillaSimul):
     líms = None
+    unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
+        if '.' in símismo.nombre:
+            raise ValueError(
+                'Nombre {nombre} inválido: Nombres de resultados no pueden contener ".".'.format(nombre=símismo.nombre)
+            )
+
         símismo.sim = sim
-        símismo.obs = sim.simul_exper.exper.obt_obs(símismo.nombre)
+        símismo.obs = sim.exper.obt_obs(símismo.nombre)
 
         símismo.t = sim.simul_exper.t if _res_temporal(símismo.nombre, sim.nombre, símismo.obs, vars_interés) else None
 
@@ -23,16 +30,15 @@ class Resultado(PlantillaSimul):
         super().__init__(símismo.nombre, subsimuls=[])
 
     @property
-    def nombre(símismo):
-        raise NotImplementedError
-
-    @property
     def datos(símismo):
         return símismo._datos
 
     @datos.setter
     def datos(símismo, val):
-        símismo._datos[:] = val
+        if isinstance(val, xr.DataArray):
+            símismo._datos.loc[val.coords] = val
+        else:
+            símismo._datos[:] = val
 
     def iniciar(símismo):
         símismo.datos_t[:] = 0
@@ -41,14 +47,13 @@ class Resultado(PlantillaSimul):
     def incrementar(símismo, paso, f):
         if símismo.t is not None:
             símismo._datos = símismo.datos_t[{EJE_TIEMPO: símismo.t.i}]
-        super().incrementar(paso, f)
 
     def cerrar(símismo):
         pass
 
     def verificar_estado(símismo):
         if símismo.líms:
-            mín, máx = símismo.líms
+            mín, máx = proc_líms(símismo.líms)
 
             if np.any(símismo.datos < mín) or np.any(símismo.datos > máx):
                 raise ValueError(
@@ -95,15 +100,16 @@ class Resultado(PlantillaSimul):
 
         return 0, 0
 
-    def graficar(símismo, directorio=''):
+    def graficar(símismo, directorio='', argsll=None):
         if símismo.datos_t.t is not None:
+            argsll = argsll or {}
             for índs in símismo.iter_índs(símismo.datos_t, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
                 título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
 
                 obs_índs = símismo.obs.loc[índs] if símismo.obs is not None else None
-                graficar_pred(
+                graficar_res(
                     título, directorio,
-                    predic=símismo.datos_t.loc[índs], obs=obs_índs
+                    simulado=símismo.datos_t.loc[índs], obs=obs_índs, **argsll
                 )
 
     def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
@@ -124,6 +130,10 @@ class Resultado(PlantillaSimul):
 
         for índs in product(*[datos[dim].values for dim in datos.dims if dim not in excluir]):
             yield dict(zip(datos.dims, índs))
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
     def __str__(símismo):
         return símismo.nombre
@@ -171,4 +181,3 @@ class Resultado0(Matriz):
             for val in símismo.inic:
                 símismo.poner_valor(vals=val.valor(), índs=val.índs)
             símismo.actualizar()
-

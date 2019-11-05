@@ -3,7 +3,7 @@ from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
 from tikon.result.res import Resultado
 
-from .utils import RES_descop, RES_CONC, RES_MRTLD, EJE_PRODUCTO
+from .utils import RES_DESCOMP, RES_CONC, RES_MRTLD, EJE_PRODUCTO
 
 
 class ResultadoApli(Resultado):
@@ -16,9 +16,9 @@ class ResultadoApli(Resultado):
         raise NotImplementedError
 
 
-class Resdescop(Resultado):
+class ResDescomp(Resultado):
     líms = (0, np.nan)
-    nombre = RES_descop
+    nombre = RES_DESCOMP
     unids = 'kg / ha / día'
 
 

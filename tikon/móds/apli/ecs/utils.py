@@ -1,2 +1,2 @@
-ECS_descop = 'descoposición'
+ECS_DESCOMP = 'Descomposición'
 ECS_MRTLD = 'Mortalidad'
