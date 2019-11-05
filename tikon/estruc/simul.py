@@ -1,7 +1,7 @@
 import os
 import threading
 
-from tikon.exper import Exper
+from .exper import Exper
 from tikon.result.utils import gen_coords_base
 
 

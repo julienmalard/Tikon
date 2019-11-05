@@ -53,7 +53,7 @@ class DatosVar(object):
         símismo._obs = obs
 
     def agregar_prm(símismo, prm):
-
+        raise NotImplementedError  # para hacer
     def fechas(símismo):
         if símismo._obs:
             return símismo._obs.fechas()

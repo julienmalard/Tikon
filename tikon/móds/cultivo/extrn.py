@@ -2,17 +2,19 @@ import inspect
 from itertools import product
 
 import xarray as xr
-from tikon.exper.parc import Parcela
+from tikon.estruc import Parcela, GrupoParcelas
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.result.utils import EJE_PARC
 
 
-class ParcelasCultivoExterno(object):
+class ParcelasCultivoExterno(GrupoParcelas):
 
     def __init__(símismo, parcelas, combin=('estoc', 'parám')):
+        parcelas = [parcelas] if isinstance(parcelas, Parcela) else parcelas
+        super().__init__(parcelas=parcelas)
+
         símismo.combin = combin if isinstance(combin, CombinSimsCult) else CombinSimsCult(combin)
-        símismo.parcelas = [parcelas] if isinstance(parcelas, Parcela) else parcelas
         símismo.conv_cultivos = {}
 
     def conectar_cultivo(símismo, obj_cultivo, nombre):

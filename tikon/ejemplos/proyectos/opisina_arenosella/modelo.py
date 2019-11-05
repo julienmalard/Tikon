@@ -1,5 +1,5 @@
 from tikon.ejemplos.datos import obt_datos
-from tikon.exper.exper import Exper
+from tikon.estruc.exper import Exper
 from tikon.móds.rae import MetamCompleta, Parasitoide
 from tikon.móds.rae import RedAE
 from tikon.móds.rae import ObsPobs
