@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 
 import pandas as pd
-
+import re
 from எண்ணிக்கை import உரைக்கு as உ
 
 
@@ -52,7 +52,9 @@ def _gen_fecha(f):
     if isinstance(f, pd.Timestamp):
         return f
     if isinstance(f, str):
-        return pd.Timestamp(datetime.strptime('-'.join(உ(x, 'latin') for x in str.split('-/.')), '%Y-%m-%d').date())
+        return pd.Timestamp(
+            datetime.strptime('-'.join(உ(x, 'latin') for x in re.split(r'[-/\.]', f)), '%Y-%m-%d').date()
+        )
     if isinstance(f, date):
         return pd.Timestamp(f)
     if isinstance(f, datetime):
