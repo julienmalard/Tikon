@@ -1,4 +1,4 @@
-from tikon.exper.parc import _controles_parc
+from .parc import _controles_parc
 
 _controles_auto = {
     'n_cohortes': 10

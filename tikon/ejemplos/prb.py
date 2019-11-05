@@ -4,7 +4,7 @@ from pprint import pprint
 from tikon.ejemplos.a_prioris import a_prioris
 # from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.modelo import Simulador
-from tikon.exper.exper import Exper
+from tikon.estruc.exper import Exper
 from tikon.móds.rae import MetamCompleta, Sencillo, Parasitoide
 # from tikon.rae.orgs.plantas import Hojas
 from tikon.móds.rae import RedAE

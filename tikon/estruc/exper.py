@@ -3,12 +3,12 @@ import os
 import numpy as np
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
-from tikon.estruc.tiempo import Tiempo, gen_tiempo
-from tikon.exper.parc import Parcela
-from tikon.móds.cultivo.extrn import ParcelasCultivoExterno
 
 from .control import ControlesExper
 from .datos import MnjdrInicExper, DatosExper
+from .parc import GrupoParcelas
+from .parc import Parcela
+from .tiempo import Tiempo, gen_tiempo
 
 
 class Exper(object):
@@ -33,7 +33,7 @@ class Exper(object):
 
 
 def _extract_parcelas(parcelas):
-    parcelas = [parcelas] if isinstance(parcelas, (Parcela, ParcelasCultivoExterno)) else parcelas
+    parcelas = [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas
     l_prcs = []
     for prc in parcelas:
         if isinstance(prc, Parcela):

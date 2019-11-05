@@ -6,7 +6,7 @@ from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
 from tikon.móds.clima.clima import Clima
 from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.modelo import Simulador, EspecCalibsCorrida
-from tikon.exper.exper import Exper
+from tikon.estruc.exper import Exper
 from tikon.móds.rae import MetamCompleta, Parasitoide
 from tikon.móds.rae.orgs.plantas import Hojas
 from tikon.móds.rae import RedAE

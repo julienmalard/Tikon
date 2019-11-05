@@ -18,6 +18,11 @@ class Parcela(object):
         símismo.geom = geom or GeomParcela()
 
 
+class GrupoParcelas(object):
+    def __init__(símismo, parcelas):
+        símismo.parcelas = parcelas
+
+
 class ParcelaShp(Parcela):
     def __init__(símismo, archivo, nombre=None):
         nombre = nombre or os.path.splitext(os.path.split(archivo)[1])[0]
@@ -42,7 +47,7 @@ class GeomParcela(object):
         if coords is not None:
             polígono = Polygon(coords)
             superficie = superficie or _área_de_polígono(polígono)
-            centroide = centroide or polígono.centroid
+            centroide = centroide or (polígono.centroid.xy[0][0], polígono.centroid.xy[1][0])
         else:
             centroide = centroide or (11.0025, 76.9656)
             superficie = superficie or 1
