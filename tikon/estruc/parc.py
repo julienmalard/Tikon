@@ -58,7 +58,7 @@ def _controles_parc(parcelas):
         [prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'ha'}
     )
     elevs = xr.DataArray(
-        [prc.geom.elevación for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'm'}
+        [prc.geom.elev for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'm'}
     )
     cntrds = xr.DataArray(
         [prc.geom.centroide for prc in parcelas],

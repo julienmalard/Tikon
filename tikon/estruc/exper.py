@@ -19,7 +19,7 @@ class Exper(object):
         símismo.parcelas = _extract_parcelas(parcelas)
         símismo.controles = ControlesExper(símismo.parcelas)
 
-        símismo.datos.agregar_obs(obs)
+        # símismo.datos.agregar_obs(obs)
 
     def gen_t(símismo, t):
         if t is None:
@@ -43,7 +43,7 @@ def _extract_parcelas(parcelas):
     return l_prcs
 
 
-class Exper(object):
+class Exper0(object):
     def __init__(símismo, obs=None):
         símismo.obs = MnjdrObsExper(obs)
         símismo.inic = MnjdrInicExper()
