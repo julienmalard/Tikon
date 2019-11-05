@@ -1,10 +1,4 @@
-import numpy as np
-
-inf = np.inf
-
-
-def proc_líms(líms):
-    return -inf if líms[0] is None else líms[0], inf if líms[1] is None else líms[1]
+from tikon.utils import proc_líms
 
 
 def líms_compat(líms, ref):

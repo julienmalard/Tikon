@@ -5,7 +5,8 @@ import numpy as np
 from scipy import stats as estad
 from scipy.special import expit, logit
 from tikon.ecs._espec_dists import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
-from tikon.ecs._utils import proc_líms, líms_compat
+from tikon.ecs._utils import líms_compat
+from tikon.utils import proc_líms
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
 
 

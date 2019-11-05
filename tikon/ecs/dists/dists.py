@@ -66,13 +66,10 @@ class MnjdrDists(object):
         if índs is None or not len(índs):
             return símismo.val
         else:
-            í = índs.pop(0)
-            val = None
-            if str(í) in símismo.índs:
-                val = símismo.índs[str(í)].obt_val(índs, heredar)
-            elif í in símismo.índs:  # para hacer: es muy inelegante.
+            í = str(índs.pop(0))
+            if í in símismo.índs:
                 val = símismo.índs[í].obt_val(índs, heredar)
-            if not val:
+            else:
                 val = símismo.val if heredar else []
             return val
 

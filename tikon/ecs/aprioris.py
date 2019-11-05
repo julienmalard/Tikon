@@ -1,5 +1,6 @@
 from ._espec_dists import líms_dist, obt_nombre
-from ._utils import proc_líms, líms_compat
+from ._utils import líms_compat
+from tikon.utils import proc_líms
 from .dists import DistAnalítica
 
 

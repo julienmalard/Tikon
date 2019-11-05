@@ -1,9 +1,11 @@
 import numpy as np
+import xarray as xr
+from tikon.result.utils import EJE_PARÁMS
 
 
 class MnjdrValsCoefs(object):
     def __init__(símismo, l_paráms, n_reps):
-        símismo._paráms = {str(pr): pr.gen_matr_parám(n_reps) for pr in l_paráms}
+        símismo._paráms = {str(pr): pr.gen_matr_parám(sim=sim, n_reps=n_reps) for pr in l_paráms}
 
     def vals_paráms(símismo):
         return [prm for matr in símismo._paráms.values() for prm in matr.vals_paráms()]
@@ -13,85 +15,63 @@ class MnjdrValsCoefs(object):
             matr.act_vals()
 
     def __getitem__(símismo, itema):
-        return np.rollaxis(símismo._paráms[str(itema)].val(), -1)
+        return símismo._paráms[itema].val()
 
 
 class PlantillaMatrsParáms(object):
-    def __init__(símismo, subs):
+    def __init__(símismo, subs, eje, índice):
         símismo._sub_matrs = subs
-        símismo._matr = np.zeros(símismo.tmñ())
 
-    def tmñ(símismo):
-        return _tmñ(símismo._sub_matrs)
+        símismo.eje = eje
+        símismo.índice = índice
+        símismo._datos = xr.DataArray(0, coords=símismo.coords, dims=list(símismo.coords))
+
+    @property
+    def coords(símismo):
+        return {símismo.eje: [sub.índice for sub in símismo._sub_matrs], **_combin_coords(símismo._sub_matrs)}
 
     def act_vals(símismo):
-        if isinstance(símismo._sub_matrs, ValsParámCoso):
-            símismo._sub_matrs.act_vals()
-            símismo._matr[:] = símismo._sub_matrs.val
-        else:
-            if isinstance(símismo._sub_matrs, list):
-                itr = enumerate(símismo._sub_matrs)
-            else:
-                itr = símismo._sub_matrs
-
-            for i, sub in itr:
-                sub.act_vals()
-                símismo._matr[i] = sub.val()
+        for sub in símismo._sub_matrs:
+            sub.act_vals()
+            símismo._datos.loc[{símismo.eje: sub.índice}] = sub.val
 
     def val(símismo):
-        return símismo._matr
+        return símismo._datos
 
     def vals_paráms(símismo):
-        if isinstance(símismo._sub_matrs, ValsParámCoso):
-            return [símismo._sub_matrs]
-        else:
-            itr = [mtr[1] for mtr in símismo._sub_matrs] if isinstance(símismo._sub_matrs, ValsParámCosoInter) \
-                else símismo._sub_matrs
-            return [vls for mtr in itr for vls in mtr.vals_paráms()]
+        return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]
 
 
 class MatrParám(PlantillaMatrsParáms):
-    def __init__(símismo, matrs_cosos):
-        super().__init__(matrs_cosos)
-
-
-class MatrParámCoso(PlantillaMatrsParáms):
-    def __init__(símismo, vals):
-        super().__init__(vals)
+    def __init__(símismo, matrs_cosos, eje, índice):
+        super().__init__(matrs_cosos, eje=eje, índice=índice)
 
 
 class ValsParámCosoInter(PlantillaMatrsParáms):
-    def __init__(símismo, matrs_vals_inter, tmñ_inter):
-        símismo._tmñ_inter = tmñ_inter
-        super().__init__(matrs_vals_inter)
-
-    def tmñ(símismo):
-        return (símismo._tmñ_inter,
-                *_tmñ(list(símismo._sub_matrs.values()))[1:])  # para hacer: probablemente puede ser más elegante
-
-    def __iter__(símismo):
-        for vl in símismo._sub_matrs.items():
-            yield vl
-
-    def __len__(símismo):
-        return len(símismo._sub_matrs)
+    def __init__(símismo, vals_paráms_inter, eje, índice):
+        super().__init__(vals_paráms_inter, eje=eje, índice=índice)
 
 
-class ValsParámCoso(object):
+class ValsParámCoso(PlantillaMatrsParáms):
 
-    def __init__(símismo, tmñ, prm_base, inter=None):
-        símismo._tmñ = (tmñ,)
+    def __init__(símismo, tmñ, prm_base, índice, inter=None):
+        símismo.tmñ = tmñ
         símismo._prm = prm_base
         símismo._inter = inter
-        símismo._val = np.zeros(tmñ)
+
+        super().__init__(subs=[], eje=EJE_PARÁMS, índice=índice)
+
+    @property
+    def coords(símismo):
+        return {símismo.eje: range(símismo.tmñ)}
 
     @property
     def val(símismo):
-        return símismo._val
+        return símismo._datos
 
     @val.setter
     def val(símismo, val):
-        símismo._val[:] = val
+        símismo._datos[:] = val
 
     def dists_disp(símismo, heredar):
         return símismo._prm.dists_disp(símismo._inter, heredar)
@@ -100,13 +80,14 @@ class ValsParámCoso(object):
         return símismo._prm.calib_base()
 
     def llenar_de_base(símismo):
-        símismo.val = símismo.dist_base().obt_vals(símismo._tmñ)
+        símismo.val = símismo.dist_base().obt_vals(símismo.tmñ)
 
-    def apriori(símismo):
-        return símismo._prm.a_priori(símismo._inter)
+    def a_priori(símismo):
+        apriori = símismo._prm.apriori(símismo._inter)
+        return apriori or símismo._prm.cls_base.apriori
 
     def llenar_de_apriori(símismo):
-        símismo.val = símismo.apriori().obt_vals(símismo._tmñ)
+        símismo.val = símismo.a_priori().obt_vals(símismo.tmñ)
 
     def llenar_de_dists(símismo, dists):
         val = []
@@ -120,13 +101,12 @@ class ValsParámCoso(object):
         símismo.val = np.ravel(val)
 
     def act_vals(símismo):
+        """No necesario porque valores se establecen con las funciones `llenar_de...` o de manera externa por
+        un calibrador u otro."""
         pass
 
     def vals_paráms(símismo):
-        return [símismo]
-
-    def tmñ(símismo):
-        return símismo._tmñ
+        yield símismo
 
     def guardar_calib(símismo, dist, nombre):
         símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
@@ -136,20 +116,17 @@ class ValsParámCoso(object):
 
 
 class Inter(object):
-    def __init__(símismo, itemas):
+    def __init__(símismo, itemas, eje):
         símismo.itemas = itemas
+        símismo.eje = eje
 
     def __iter__(símismo):
         for i in símismo.itemas:
             yield i
 
 
-def _tmñ(grupo):
-    if isinstance(grupo, (ValsParámCoso, ValsParámCosoInter)):
-        return grupo.tmñ()
-    else:
-        n = len(grupo)
-        tmñ = grupo[0].tmñ()
-        if not all(obj.tmñ() == tmñ for obj in grupo):
-            raise ValueError
-        return (n, *tmñ)
+def _combin_coords(grupo):
+    coords = grupo[0].coords
+    if not all(obj.coords == coords for obj in grupo):
+        raise ValueError('Coordinadas deben ser iguales para cada miembro de un grupo.')
+    return coords

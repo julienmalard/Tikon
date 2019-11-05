@@ -1,33 +1,27 @@
-import numpy as np
-
-from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, MatrParámCoso
+from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter
 from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
 
 
 class PlantillaRamaEc(object):
     cls_ramas = []
-    nombre = NotImplemented
+    req_todas_ramas = False
+
     _cls_en_coso = NotImplemented
     _nombre_res = NotImplemented
     _eje_cosos = NotImplemented
-    req_todas_ramas = False
 
-    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
+    def __init__(símismo, cosos, n_reps, ecs):
 
         símismo.cosos = cosos
-        símismo.í_cosos = í_cosos
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
             ramas_ecs = [ec[rm.nombre] for ec in ecs]
-            activos = [
-                (i, rm_ec) for i, rm_ec in enumerate(ramas_ecs) if rm_ec.verificar_activa(sim)
-            ]
-            activos = list(zip(*activos))
+            activos = [rm_ec for rm_ec in ramas_ecs if rm_ec.verificar_activa(mód=mód)]
             if activos:
                 í_cosos_rm, ecs_rm = activos
                 cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
-                símismo._ramas[rm.nombre] = rm(cosos_rm, í_cosos_rm, n_reps, ecs=ecs_rm)
+                símismo._ramas[rm.nombre] = rm(cosos_rm, n_reps=n_reps, ecs=ecs_rm)
 
     def vals_paráms(símismo):
         return {pr for rm in símismo for pr in rm.vals_paráms()}
@@ -48,40 +42,38 @@ class PlantillaRamaEc(object):
         for rm in símismo:
             rm.act_vals()
 
-    def obt_res(símismo, filtrar=True):
-        return símismo.obt_val_mód(símismo._nombre_res, filtrar=filtrar)
+    def obt_val_res(símismo, sim, filtrar=True):
+        return símismo.obt_val_mód(sim, var=símismo._nombre_res, filtrar=filtrar)
 
-    def obt_val_mód(símismo, var, filtrar=True):
-        res = símismo.sim.obt_res(var)
+    def obt_val_mód(símismo, sim, var, filtrar=True):
+        if filtrar:
+            return sim.obt_valor(var).loc[{símismo._eje_cosos: símismo.cosos}]
+        return sim.obt_valor(var)
 
-        índs = {símismo._eje_cosos: símismo.cosos} if filtrar else None
+    def poner_val_res(símismo, sim, val, rel=False):
+        sim.poner_valor(símismo._nombre_res, val=val, rel=rel)
 
-        return res.obt_valor(índs)
+    @staticmethod
+    def poner_val_mód(sim, var, val, rel=False):
+        sim.poner_valor(var, val, rel=rel)
 
-    def poner_val_res(símismo, val, rel=False, índs=None):
-        res = símismo.sim.obt_res(símismo._nombre_res)
-        res.poner_valor(val, rel=rel, índs=índs)
-        # para hacer: ¡filtrar!
+    @staticmethod
+    def obt_val_extern(sim, var, mód=None):
+        if not mód:
+            mód, var = var.split('.')
+        return sim.simul_exper[mód].obt_valor(var)
 
-    def poner_val_mód(símismo, var, val, rel=False, filtrar=True):
-        res = símismo.sim.obt_res(var)
-        res.poner_valor(val, rel=rel, índs={símismo._eje_cosos: símismo.cosos} if filtrar else None)
-
-    def í_eje(símismo, var, eje):
-        return símismo.sim.obt_res(var).í_eje(eje)
-
-    def í_eje_res(símismo, eje):
-        return símismo.í_eje(símismo._nombre_res, eje=eje)
-
-    def obt_val_extern(símismo, var, mód=None):
-        return símismo.sim.obt_val_extern(var, mód)
-
-    def obt_val_control(símismo, var):
-        return símismo.sim.obt_val_control(var)
+    @staticmethod
+    def obt_val_control(sim, var):
+        return sim.exper.controles[var]
 
     @classmethod
     def para_coso(cls, coso):
         return cls._cls_en_coso(cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
     def __iter__(símismo):
         for rm in símismo._ramas.values():
@@ -103,7 +95,7 @@ class ÁrbolEcs(PlantillaRamaEc):
     _cls_en_coso = ÁrbolEcsCoso
 
     def __init__(símismo, cosos, n_reps):
-        super().__init__(cosos, n_reps, í_cosos=np.arange(len(cosos)), ecs=[coso.ecs for coso in cosos])
+        super().__init__(cosos, n_reps=n_reps, ecs=[coso.ecs for coso in cosos])
 
     def cosos_en_categ(símismo, categ):
         if categ in símismo:
@@ -111,9 +103,20 @@ class ÁrbolEcs(PlantillaRamaEc):
         else:
             return []
 
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
+
 
 class CategEc(PlantillaRamaEc):
     _cls_en_coso = CategEcCoso
+
+    def obt_val_res(símismo, sim, filtrar=False):
+        return super().obt_val_res(sim=sim, filtrar=filtrar)
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
 
 class SubcategEc(PlantillaRamaEc):
@@ -123,16 +126,20 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso)
             if res is not None:
-                símismo.poner_val_res(res, índs={símismo._eje_cosos: ec.cosos})
+                símismo.poner_val_res(sim, res)
 
         símismo.postproc(paso, sim=sim)
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
 
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
 
-    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
-        super().__init__(cosos, n_reps, í_cosos, ecs=ecs)
+    def __init__(símismo, cosos, n_reps, ecs):
+        super().__init__(cosos, n_reps, ecs=ecs)
         símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_reps)
 
     def act_vals(símismo):
@@ -149,6 +156,10 @@ class Ecuación(PlantillaRamaEc):
         return {tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
                 for prm in símismo.cls_ramas if prm.inter is not None}
 
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
+
     def eval(símismo, paso, sim):
         raise NotImplementedError
 
@@ -163,33 +174,40 @@ class EcuaciónVacía(Ecuación):
 class Parám(PlantillaRamaEc):
     _cls_en_coso = ParámCoso
     líms = (None, None)
-    unids = None
     inter = None
     cls_ramas = []
+    apriori = None
 
-    def __init__(símismo, cosos, n_reps, í_cosos, ecs):
+    def __init__(símismo, cosos, n_reps, ecs):
         símismo._prms_cosos = ecs
-        super().__init__(cosos, n_reps, í_cosos, ecs=ecs)
+        super().__init__(cosos, n_reps, ecs=ecs)
 
-    def obt_inter(símismo, coso):
-        if símismo.inter is not None:
-            return símismo.sim.inter(coso=coso, tipo=símismo.inter)
+    def obt_inter(símismo, sim, coso):
+        if símismo.inter:
+            return sim.inter(coso=coso, tipo=símismo.inter)
 
-    def gen_matr_parám(símismo, n_rep):
+    def gen_matr_parám(símismo, sim, n_reps):
         l_prms = []
         for coso, prm_cs in zip(símismo.cosos, símismo._prms_cosos):
-            inters = símismo.obt_inter(coso)
-            if inters is None:
-                vals = ValsParámCoso(tmñ=n_rep, prm_base=prm_cs)
+            inters = símismo.obt_inter(sim=sim, coso=coso)
+            if not inters:
+                vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=coso)
             else:
-                vals = ValsParámCosoInter({
-                    í: ValsParámCoso(tmñ=n_rep, prm_base=prm_cs, inter=inter)
-                    for í, inter in inters
-                }, tmñ_inter=inters.tmñ)
+                vals = ValsParámCosoInter([
+                    ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=inter[-1], inter=inter) for inter in inters
+                ], eje=inters.eje, índice=coso)
 
-            l_prms.append(MatrParámCoso(vals))
-        return MatrParám(l_prms)
+            l_prms.append(vals)
+        return MatrParám(l_prms, eje=eje_coso, índice=None)
 
     @classmethod
     def para_coso(cls, coso):
         return cls._cls_en_coso(cls, coso)
+
+    @property
+    def unids(símismo):
+        raise NotImplementedError
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
