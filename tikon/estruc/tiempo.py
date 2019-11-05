@@ -45,7 +45,7 @@ def gen_tiempo(t):
     elif isinstance(t, str):
         return Tiempo(f_inic=t, f_final=_gen_fecha(t) + timedelta(days=30))
     else:
-        raise TypeError()
+        raise TypeError(type(t))
 
 
 def _gen_fecha(f):
@@ -57,7 +57,5 @@ def _gen_fecha(f):
         )
     if isinstance(f, date):
         return pd.Timestamp(f)
-    if isinstance(f, datetime):
-        return pd.Timestamp(f.date())
 
     raise TypeError(type(f))
