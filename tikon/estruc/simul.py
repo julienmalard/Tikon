@@ -166,8 +166,8 @@ class SimulExper(PlantillaSimul):
 class SimulMódulo(PlantillaSimul):
     resultados = []
 
-    def __init__(símismo, nombre, simul_exper, ecs, vars_interés):
-        if '.' in nombre:
+    def __init__(símismo, mód, simul_exper, ecs, vars_interés):
+        if '.' in mód.nombre:
             raise ValueError(
                 'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=nombre)
             )
@@ -181,14 +181,20 @@ class SimulMódulo(PlantillaSimul):
             parc=simul_exper.exper.controles['parcelas']
         )
         objs_res = [res(sim=símismo, coords=coords_base, vars_interés=vars_interés) for res in símismo.resultados]
-        super().__init__(nombre, objs_res)
+        super().__init__(mód.nombre, objs_res)
 
     def gen_paráms(símismo):
         return símismo.ecs.vals_paráms()
 
+    def iniciar(símismo):
+        pass
+
     def incrementar(símismo, paso, f):
         if símismo.ecs:
             símismo.ecs.eval(paso=paso, sim=símismo)
+
+    def cerrar(símismo):
+        pass
 
     def poner_valor(símismo, var, val, rel=False):
         if rel:
@@ -198,6 +204,9 @@ class SimulMódulo(PlantillaSimul):
 
     def obt_valor(símismo, var):
         return símismo[var].datos
+
+    def obt_valor_extern(símismo, var, mód):
+        return símismo.simul_exper[mód].obt_valor(var)
 
     def inter(símismo, coso, tipo):
         pass
