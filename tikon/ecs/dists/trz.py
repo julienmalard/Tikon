@@ -12,7 +12,7 @@ class DistTraza(Dist):
             pesos = pesos / np.sum(pesos)
 
         if trz.size != pesos.size:
-            raise ValueError
+            raise ValueError('El tamaño de la traza y él de sus pesos deben ser iguales.')
 
         símismo.trz = trz
         símismo.pesos = pesos
@@ -32,8 +32,8 @@ class DistTraza(Dist):
     def aprox_líms(símismo, prc):
         # Las superficies de las colas que hay que dejar afuera del rango de los límites
         colas = ((1 - prc) / 2, 0.5 + prc / 2)
-
-        return np.array([np.percentile(símismo.trz, colas[0] * 100, np.percentile(símismo.trz, colas[1] * 100))])
+        trz, pesos = símismo.trz, símismo.pesos
+        return np.array([_centil_pesos(trz, pesos, colas[0]), _centil_pesos(trz, pesos, colas[1])])
 
     def a_dic(símismo):
         return {
@@ -45,3 +45,15 @@ class DistTraza(Dist):
     @classmethod
     def de_dic(cls, dic):
         return DistTraza(trz=dic['trz'], pesos=dic['pesos'])
+
+
+def _centil_pesos(x, p, q):
+    # Mientras esparamos que numpy lo implemente
+    # código de https://github.com/nudomarinero/wquantiles/blob/master/wquantiles.py
+    índs_ord = np.argsort(x)
+    x_ord = x[índs_ord]
+    p_ord = p[índs_ord]
+
+    sn = np.cumsum(p_ord)
+    pn = (sn - 0.5 * p_ord) / sn[-1]
+    return np.interp(q, pn, x_ord)
