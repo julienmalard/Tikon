@@ -93,7 +93,7 @@ class DistAnalítica(Dist):
                     'No se puede especificar densidad de 1 con rango ilimitado como "{}".'.format(líms_dens)
                 )
             return DistAnalítica(dist='Uniforme', paráms={'ubic': líms_dens[0], 'escl': líms_dens[1] - líms_dens[0]})
-        elif dens <= 0:
+        elif dens <= 0 or dens > 1:
             raise ValueError('La densidad debe ser en (0, 1].')
 
         if líms[0] == -np.inf:
