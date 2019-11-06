@@ -1,7 +1,8 @@
-from ._espec_dists import líms_dist, obt_nombre
-from ._utils import líms_compat
 from tikon.utils import proc_líms
+
+from ._utils import líms_compat
 from .dists import DistAnalítica
+from .dists import líms_dist, obt_nombre
 
 
 class APriori(object):
