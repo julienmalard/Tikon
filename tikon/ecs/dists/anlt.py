@@ -4,10 +4,11 @@ from warnings import warn as avisar
 import numpy as np
 from scipy import stats as estad
 from scipy.special import expit, logit
-from tikon.ecs._espec_dists import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
 from tikon.ecs._utils import líms_compat
-from tikon.utils import proc_líms
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
+from tikon.utils import proc_líms
+
+from ._espec_dists import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
 
 
 class DistAnalítica(Dist):
@@ -110,6 +111,7 @@ class DistAnalítica(Dist):
             líms_dens_intern = líms_dens
         else:
             líms_dens_intern = transf.transf_inv(líms_dens)
+            líms_dens_intern.sort()
 
         if líms_dens_intern[0] == -np.inf:
             if líms_dens_intern[1] == np.inf:
