@@ -11,7 +11,7 @@ from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
 
 
 class DistAnalítica(Dist):
-    def __init__(símismo, dist, paráms, transf=None):
+    def __init__(símismo, dist, paráms=None, transf=None):
         símismo._escl = paráms.pop('escl') if 'escl' in paráms else 1
         símismo._ubic = paráms.pop('ubic') if 'ubic' in paráms else 0
 
@@ -19,7 +19,7 @@ class DistAnalítica(Dist):
 
         if isinstance(dist, str):
             símismo.nombre_dist = dist
-            símismo.paráms = paráms
+            símismo.paráms = paráms or []
             símismo.dist = obt_scipy(dist, paráms)
         else:
             símismo.nombre_dist = obt_nombre(dist)
