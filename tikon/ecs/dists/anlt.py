@@ -91,7 +91,7 @@ class DistAnalítica(Dist):
                 raise ValueError(
                     'No se puede especificar densidad de 1 con rango ilimitado como "{}".'.format(líms_dens)
                 )
-            return DistAnalítica(dist='Uniforme', paráms={'ubic': líms_dens[0], 'escl': líms_dens[1] - líms_dens[0]})
+            return DistAnalítica(dist='Uniforme', paráms={'loc': líms_dens[0], 'scale': líms_dens[1] - líms_dens[0]})
         elif dens <= 0 or dens > 1:
             raise ValueError('La densidad debe ser en (0, 1].')
 
@@ -129,7 +129,7 @@ class DistAnalítica(Dist):
             mu = (líms_dens_intern[1] + líms_dens_intern[0]) / 2
             sg = (líms_dens_intern[0] - líms_dens_intern[1]) / 2 / estad.norm.ppf((1 - dens) / 2)
 
-        return DistAnalítica('Normal', paráms={'ubic': mu, 'escl': sg}, transf=transf)
+        return DistAnalítica('Normal', paráms={'loc': mu, 'scale': sg}, transf=transf)
 
     @classmethod
     def de_traza(cls, trz, líms, permitidas):
@@ -224,12 +224,12 @@ class TransfDist(object):
     def a_dic(símismo):
         return {
             'transf': símismo._transf,
-            'ubic': símismo._ubic, 'escl': símismo._escl
+            'loc': símismo._ubic, 'scale': símismo._escl
         }
 
     @classmethod
     def de_dic(cls, dic):
-        return TransfDist(dic['transf'], ubic=dic['ubic'], escl=dic['escl'])
+        return TransfDist(dic['transf'], ubic=dic['loc'], escl=dic['scale'])
 
 
 def _gen_transf_sin_líms(trz, líms):
