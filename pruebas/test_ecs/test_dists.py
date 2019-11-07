@@ -3,7 +3,8 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import scipy.stats as estad
-from tikon.ecs.dists import DistAnalítica, DistTraza
+from tikon.ecs.dists import DistAnalítica, DistTraza, Dist
+from tikon.ecs.dists.anlt import TransfDist
 
 
 class PruebaDistAnalítica(unittest.TestCase):
@@ -13,6 +14,60 @@ class PruebaDistAnalítica(unittest.TestCase):
 
     def _verif_en_líms(símismo, trz, líms):
         símismo.assertTrue(líms[0] <= trz.min() and trz.max() <= líms[1])
+
+    @staticmethod
+    def test_de_texto():
+        dist = DistAnalítica('gamma', {'a': 2, 'ubic': 1, 'escl': 2})
+        líms = dist.aprox_líms(0.80)
+        d_sp = estad.gamma(a=2, loc=1, scale=2)
+        npt.assert_allclose(líms, [d_sp.ppf(0.1), d_sp.ppf(0.9)])
+
+    @staticmethod
+    def test_de_scipy():
+        d_sp = estad.gamma(a=2, loc=1, scale=2)
+        dist = DistAnalítica(d_sp)
+        npt.assert_allclose(dist.aprox_líms(0.80), [d_sp.ppf(0.1), d_sp.ppf(0.9)])
+
+    def test_transf(símismo):
+        d_sp = estad.t(df=2, loc=-1, scale=5)
+        trz = DistAnalítica(d_sp, transf=TransfDist('expit', ubic=1, escl=2)).obt_vals(1000)
+        npt.assert_allclose([trz.min(), trz.max()], (1, 3))
+
+    def test_de_traza(símismo):
+        trazas = {
+            '[R,R]': estad.uniform(loc=1, scale=3).rvs(1000),
+            '[R, ∞)': estad.gamma(2, loc=1).rvs(1000),
+            '(-∞, R]': -estad.gamma(2, loc=1).rvs(1000),
+            '(-∞, +∞)': estad.norm().rvs(1000)
+        }
+        líms = {
+            '[R,R]': (),
+            '[R, ∞)': (),
+            '(-∞, R]': (),
+            '(-∞, +∞)': (),
+        }
+        for ll_trz, trz in trazas.items():
+            pass
+
+    def test_de_traza_no_compatible(símismo):
+        pass
+
+    def test_de_traza_no_muy_buena(símismo):
+        pass
+
+    def test_obt_vals(símismo):
+        trz = DistAnalítica(estad.norm()).obt_vals(10)
+        símismo.assertEqual(len(trz), 10)
+
+    def test_obt_vals_índs(símismo):
+        dist = DistAnalítica(estad.norm())
+
+    def test_aprox_líms(símismo):
+        pass
+
+    def test_tamaño(símismo):
+        dist = DistAnalítica(estad.norm())
+        símismo.assertTrue(dist.tmñ() == np.inf)
 
     def test_de_líms(símismo):
         for nmbr, lm in símismo.líms.items():
@@ -49,7 +104,7 @@ class PruebaDistAnalítica(unittest.TestCase):
                             DistAnalítica.de_dens(dens, líms_dens=lm_d, líms=lm_t)
                     else:
                         dist = DistAnalítica.de_dens(dens, líms_dens=lm_d, líms=lm_t)
-                        trz = dist.obt_vals(1000)
+                        trz = dist.obt_vals(10000)
                         símismo._verif_en_líms(trz, lm_t)
                         npt.assert_allclose(dens, np.mean(np.logical_and(trz > lm_d[0], trz < lm_d[1])), rtol=0.05)
 
@@ -74,23 +129,42 @@ class PruebaDistAnalítica(unittest.TestCase):
                     with símismo.assertRaises(ValueError):
                         DistAnalítica.de_dens(1, líms_dens=v, líms=(2, 8))
 
-    def test_de_traza(símismo):
-        pass
+    @staticmethod
+    def test_conv_dic_texto():
+        dist = DistAnalítica('T', paráms={'df': 3}, transf=TransfDist('expit', ubic=1, escl=2))
+        dist2 = Dist.de_dic(dist.a_dic())
+        npt.assert_allclose(dist.aprox_líms(95), dist2.aprox_líms(95))
 
-    def test_obt_vals(símismo):
-        pass
+    @staticmethod
+    def test_conv_dic_scipy():
+        dist = DistAnalítica(estad.t(df=3, loc=1, scale=2))
+        dist2 = Dist.de_dic(dist.a_dic())
+        npt.assert_allclose(dist.aprox_líms(95), dist2.aprox_líms(95))
 
-    def test_obt_vals_índs(símismo):
-        pass
 
-    def test_aprox_líms(símismo):
-        pass
+class PruebaTransfDist(unittest.TestCase):
+    def test_transf(símismo):
+        datos = np.arange(10)
+        for tr in ['exp', 'expit', None]:
+            with símismo.subTest(tr):
+                transf = TransfDist(tr)
+                npt.assert_allclose(datos, transf.transf_inv(transf.transf(datos)))
 
-    def test_tamaño(símismo):
-        pass
+    def test_ubic(símismo):
+        datos = np.arange(-20, 20)
+        transf = TransfDist('expit', ubic=1)
+        símismo.assertAlmostEqual(transf.transf(datos).min(), 1)
+
+    def test_escala(símismo):
+        datos = np.arange(-20, 20)
+        transf = TransfDist('expit', escl=2)
+        símismo.assertAlmostEqual(transf.transf(datos).max(), 2)
 
     def test_conv_dic(símismo):
-        pass
+        datos = np.arange(-20, 20)
+        transf = TransfDist('expit', ubic=1, escl=2)
+        transf2 = TransfDist.de_dic(transf.a_dic())
+        npt.assert_equal(transf.transf(datos), transf2.transf(datos))
 
 
 class PruebaDistTraza(unittest.TestCase):
@@ -125,7 +199,7 @@ class PruebaDistTraza(unittest.TestCase):
         npt.assert_equal(símismo.dist.obt_vals_índ(índs), símismo.dist.trz[índs])
 
     def test_conv_dic(símismo):
-        dist = DistTraza.de_dic(símismo.dist.a_dic())
+        dist = Dist.de_dic(símismo.dist.a_dic())
         npt.assert_allclose(dist.trz, símismo.dist.trz)
         npt.assert_allclose(dist.pesos, símismo.dist.pesos)
 

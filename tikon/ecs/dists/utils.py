@@ -1,9 +1,10 @@
 from math import pi
 
 import scipy.stats as estad
-
 # Un diccionario de las distribuciones y de sus objetos de SciPy correspondientes.
-_dists = {
+from tikon.utils import proc_líms
+
+dists = {
     'Alpha': {'scipy': estad.alpha,
               'paráms': ['a', 'ubic', 'escl'],
               'límites': (0, None)
@@ -44,10 +45,6 @@ _dists = {
              'paráms': ['df', 'ubic', 'escl'],
              'límites': (0, None)
              },
-    'Cosine': {'scipy': estad.cosine,
-               'paráms': ['ubic', 'escl'],
-               'límites': (-pi, pi)
-               },
     'DobleGamma': {'scipy': estad.dgamma,
                    'paráms': ['a', 'ubic', 'escl'],
                    'límites': (0, None)
@@ -93,10 +90,6 @@ _dists = {
                       'paráms': ['c', 'ubic', 'escl'],
                       'límites': (0, None)
                       },
-    'FrechetDerecha': {'scipy': estad.frechet_r,
-                       'paráms': ['c', 'ubic', 'escl'],
-                       'límites': (0, None)
-                       },
     'LogísticaGeneral': {'scipy': estad.genlogistic,
                          'paráms': ['c', 'ubic', 'escl'],
                          'límites': (0, None)
@@ -109,18 +102,10 @@ _dists = {
                       'paráms': ['c', 'ubic', 'escl'],
                       'límites': (0, None)
                       },
-    'ExponencialGeneral': {'scipy': estad.genexpon,
-                           'paráms': ['a', 'b', 'c', 'ubic', 'escl'],
-                           'límites': (0, None)
-                           },
     'ExtremaGeneral': {'scipy': estad.genextreme,
                        'paráms': ['c', 'ubic', 'escl'],
                        'límites': (None, None)
                        },
-    'HyperGauss': {'scipy': estad.gausshyper,
-                   'paráms': ['a', 'b', 'c', 'z', 'ubic', 'escl'],
-                   'límites': (0, 1)
-                   },
     'Gamma': {'scipy': estad.gamma,
               'paráms': ['a', 'ubic', 'escl'],
               'límites': (0, None)
@@ -129,11 +114,6 @@ _dists = {
                      'paráms': ['a', 'c', 'ubic', 'escl'],
                      'límites': (0, None)
                      },
-    # 'MitadLogísticaGeneral': {'scipy': estad.genhalflogistic,
-    #            'paráms': [],
-    #                           'límites': (0, 1),  # El límite es (0, 1/'c')
-    #                           'tipo': 'cont'
-    #                           },
     'Gilbrat': {'scipy': estad.gilbrat,
                 'paráms': ['ubic', 'escl'],
                 'límites': (0, None)
@@ -274,10 +254,6 @@ _dists = {
                         'paráms': ['c', 'ubic', 'escl'],
                         'límites': (0, None)
                         },
-    'R': {'scipy': estad.rdist,
-          'paráms': ['c', 'ubic', 'escl'],
-          'límites': (-1, 1)
-          },
     'Recíproco': {'scipy': estad.reciprocal,
                   'paráms': ['a', 'b', 'ubic', 'escl'],
                   'límites': (0, 1),  # El límite es ('a', 'b')
@@ -295,11 +271,6 @@ _dists = {
                               'paráms': ['mu', 'ubic', 'escl'],
                               'límites': (0, None)
                               },
-    'Semicircular': {'scipy': estad.semicircular,
-                     'paráms': ['ubic', 'escl'],
-                     'límites': (-1, 1)
-                     },
-
     'NormalSesgada': {'scipy': estad.skewnorm,
                       'paráms': ['a', 'ubic', 'escl'],
                       'límites': (None, None)
@@ -362,17 +333,17 @@ _dists = {
 
 def _valid_nombre(nombre):
     try:
-        return next(nmbr for nmbr in _dists if nmbr.lower() == nombre.lower())
+        return next(nmbr for nmbr in dists if nmbr.lower() == nombre.lower())
     except StopIteration:
         raise ValueError(
             'No hay distribución llamada "{nm}". Debe ser una de:\n'
-            '\t{ops}'.format(nm=nombre, ops=', '.join(_dists))
+            '\t{ops}'.format(nm=nombre, ops=', '.join(dists))
         )
 
 
 def _obt_dic_dist(nombre):
     nombre = _valid_nombre(nombre)
-    return _dists[nombre]
+    return dists[nombre]
 
 
 def clase_scipy(nombre):
@@ -380,7 +351,7 @@ def clase_scipy(nombre):
 
 
 def líms_dist(nombre):
-    return _obt_dic_dist(nombre)['límites']
+    return proc_líms(_obt_dic_dist(nombre)['límites'])
 
 
 def prms_dist(nombre):
@@ -407,4 +378,4 @@ def obt_prms_obj_scipy(dist_sp):
 
 
 def obt_nombre(dist_sp):
-    return next(nmb for nmb in _dists if isinstance(dist_sp, _dists[nmb]['scipy']))
+    return next(nmb for nmb in dists if dists[nmb]['scipy'].name == dist_sp.dist.name)

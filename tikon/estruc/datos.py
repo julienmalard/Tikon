@@ -193,7 +193,7 @@ class MnjdrInicVar(object):
                 obj_val = símismo.agregar_prm(índs, prm.para_coso(None))
 
             for ll, v in val.items():
-                dist = Dist.gen_dist(v['val'])
+                dist = Dist.de_dic(v['val'])
                 obj_val.prm_base.agregar_calib(ll, dist)
 
     def __iter__(símismo):

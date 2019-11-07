@@ -8,13 +8,12 @@ from tikon.ecs._utils import líms_compat
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
 from tikon.utils import proc_líms
 
-from ._espec_dists import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
+from .utils import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
 
 
 class DistAnalítica(Dist):
     def __init__(símismo, dist, paráms=None, transf=None):
-        símismo._escl = paráms.pop('escl') if 'escl' in paráms else 1
-        símismo._ubic = paráms.pop('ubic') if 'ubic' in paráms else 0
+        paráms = paráms or {}
 
         símismo._transf = transf
 
@@ -41,13 +40,12 @@ class DistAnalítica(Dist):
         # Las superficies de las colas que hay que dejar afuera del rango de los límites
         colas = ((1 - prc) / 2, 0.5 + prc / 2)
 
-        líms_d = np.array([símismo.dist.percentiles(colas[0]), símismo.dist.percentiles(colas[1])])
+        líms_d = np.array([símismo.dist.ppf(colas[0]), símismo.dist.ppf(colas[1])])
 
         return símismo.transf_vals(líms_d)
 
     def transf_vals(símismo, vals):
 
-        vals = vals * símismo._escl + símismo._ubic
         if símismo._transf is not None:
             vals = símismo._transf.transf(vals)
 
@@ -58,13 +56,14 @@ class DistAnalítica(Dist):
             'tipo': símismo.__class__.__name__,
             '_transf': símismo._transf.a_dic() if símismo._transf else None,
             'dist': símismo.nombre_dist,
-            'paráms': {'scipy': símismo.paráms, 'escl': símismo._escl, 'ubic': símismo._ubic}
+            'paráms': símismo.paráms
         }
 
     @classmethod
     def de_dic(cls, dic):
         transf = TransfDist.de_dic(dic['_transf']) if dic['_transf'] else None
-        return cls(dist=dic['dist'], paráms=dic['paráms'], transf=transf)
+        dist_sp = obt_scipy(dic['dist'], dic['paráms'])
+        return cls(dist=dist_sp, transf=transf)
 
     @classmethod
     def de_líms(cls, líms):
@@ -72,14 +71,14 @@ class DistAnalítica(Dist):
 
         if líms[0] == -np.inf:
             if líms[1] == np.inf:
-                return DistAnalítica(dist='Normal', paráms={'ubic': 0, 'escl': _escl_inf})
+                return DistAnalítica(dist='Normal', transf=TransfDist(None, ubic=0, escl=_escl_inf))
 
-            return DistAnalítica(dist='Exponencial', paráms={'ubic': líms[1], 'escl': -_escl_inf})
+            return DistAnalítica(dist='Exponencial', transf=TransfDist(None, ubic=líms[1], escl=-_escl_inf))
 
         if líms[1] == np.inf:
-            return DistAnalítica(dist='Exponencial', paráms={'ubic': líms[0], 'escl': _escl_inf})
+            return DistAnalítica(dist='Exponencial', transf=TransfDist(None, ubic=líms[0], escl=_escl_inf))
 
-        return DistAnalítica(dist='Uniforme', paráms={'ubic': líms[0], 'escl': líms[1] - líms[0]})
+        return DistAnalítica(dist='Uniforme', transf=TransfDist(None, ubic=líms[0], escl=líms[1] - líms[0]))
 
     @classmethod
     def de_dens(cls, dens, líms_dens, líms):
@@ -139,9 +138,6 @@ class DistAnalítica(Dist):
         mejor_ajuste = {}
 
         for nmbr in permitidas:
-
-            # Trazas en (-∞, +∞)
-
             líms_d = líms_dist(nmbr)
 
             if líms_d[0] == -np.inf and líms_d[1] == np.inf:
@@ -203,18 +199,18 @@ class TransfDist(object):
         ubic: int or float
         escl: int or float
         """
-
-        símismo._transf = transf.lower()
-        if símismo._transf == 'expit':
-            símismo._f = expit
-            símismo._f_inv = logit
-        elif símismo._transf == 'exp':
-            símismo._f = np.exp
-            símismo._f_inv = np.log
-        elif transf is None:
+        if transf is None:
             símismo._f = símismo._f_inv = lambda x: x
         else:
-            raise ValueError(transf)
+            símismo._transf = transf.lower()
+            if símismo._transf == 'expit':
+                símismo._f = expit
+                símismo._f_inv = logit
+            elif símismo._transf == 'exp':
+                símismo._f = np.exp
+                símismo._f_inv = np.log
+            else:
+                raise ValueError(transf)
 
         símismo._ubic = ubic
         símismo._escl = escl
