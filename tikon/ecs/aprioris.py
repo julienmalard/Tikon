@@ -3,6 +3,8 @@ from tikon.utils import proc_líms
 from ._utils import líms_compat
 from .dists import DistAnalítica
 from .dists import líms_dist, obt_nombre
+from .dists.anlt import TransfDist
+from .dists.utils import obt_prms_obj_scipy
 
 
 class APriori(object):
@@ -21,11 +23,13 @@ class APrioriDens(APriori):
 
 class APrioriDist(APriori):
     def __init__(símismo, dist):
-        símismo._dist = dist
+        símismo._dist = dist.__class__
+        símismo._prms = obt_prms_obj_scipy(dist)
         símismo._líms_dist = líms_dist(obt_nombre(dist))
 
     def dist(símismo, líms):
         líms = proc_líms(líms)
-        líms_compat(líms, símismo._líms_dist)
+        ajust = líms_compat(líms, símismo._líms_dist)
 
-        return DistAnalítica(símismo._dist)
+        transf = TransfDist(None, **ajust)
+        return DistAnalítica(símismo._dist, paráms=símismo._prms, transf=transf)

@@ -21,10 +21,6 @@ class Dist(object):
 
     @classmethod
     def de_dic(cls, dic):
-        raise NotImplementedError
-
-    @classmethod
-    def gen_dist(cls, dic):
         if not dic:
             return
         tipo = dic['tipo']
@@ -90,7 +86,7 @@ class MnjdrDists(object):
         def act_mnjdr(mnj, d, índs_ant=None):
             val = d['val']
             índs = d['índs']
-            mnj.actualizar(dist=Dist.gen_dist(val), índs=índs_ant)
+            mnj.actualizar(dist=Dist.de_dic(val), índs=índs_ant)
             for í in índs:
                 act_mnjdr(mnj, d=índs[í], índs_ant=(índs_ant or []) + [í])
 
