@@ -28,25 +28,21 @@ class PruebaDistAnalítica(unittest.TestCase):
         dist = DistAnalítica(d_sp)
         npt.assert_allclose(dist.aprox_líms(0.80), [d_sp.ppf(0.1), d_sp.ppf(0.9)])
 
-    def test_transf(símismo):
+    @staticmethod
+    def test_transf():
         d_sp = estad.t(df=2, loc=-1, scale=5)
         trz = DistAnalítica(d_sp, transf=TransfDist('expit', ubic=1, escl=2)).obt_vals(1000)
         npt.assert_allclose([trz.min(), trz.max()], (1, 3))
 
     def test_de_traza(símismo):
-        trazas = {
-            '[R,R]': estad.uniform(loc=1, scale=3).rvs(1000),
-            '[R, ∞)': estad.gamma(2, loc=1).rvs(1000),
-            '(-∞, R]': -estad.gamma(2, loc=1).rvs(1000),
-            '(-∞, +∞)': estad.norm().rvs(1000)
-        }
+        traza = estad.norm().rvs(30)
         líms = {
             '[R,R]': (),
             '[R, ∞)': (),
             '(-∞, R]': (),
             '(-∞, +∞)': (),
         }
-        for ll_trz, trz in trazas.items():
+        for nmbr, líms in líms.items():
             pass
 
     def test_de_traza_no_compatible(símismo):
@@ -56,11 +52,12 @@ class PruebaDistAnalítica(unittest.TestCase):
         pass
 
     def test_obt_vals(símismo):
-        trz = DistAnalítica(estad.norm()).obt_vals(10)
-        símismo.assertEqual(len(trz), 10)
+        vals = DistAnalítica(estad.norm()).obt_vals(10)
+        símismo.assertEqual(len(vals), 10)
 
     def test_obt_vals_índs(símismo):
-        dist = DistAnalítica(estad.norm())
+        vals = DistAnalítica(estad.norm()).obt_vals_índ([1, 2, 3])
+        símismo.assertEqual(len(vals), 3)
 
     def test_aprox_líms(símismo):
         pass
