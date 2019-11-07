@@ -5,7 +5,7 @@ import numpy.testing as npt
 import scipy.stats as estad
 from tikon.ecs.dists import DistAnalítica, DistTraza, Dist
 from tikon.ecs.dists.anlt import TransfDist
-
+import tikon.ecs.dists.utils as utls
 
 class PruebaDistAnalítica(unittest.TestCase):
     @classmethod
@@ -43,7 +43,8 @@ class PruebaDistAnalítica(unittest.TestCase):
             '(-∞, +∞)': (),
         }
         for nmbr, líms in líms.items():
-            pass
+            dist = DistAnalítica.de_traza(traza, líms=líms, permitidas=list(utls.dists))
+
 
     def test_de_traza_no_compatible(símismo):
         pass
