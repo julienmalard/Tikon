@@ -10,6 +10,10 @@ class PruebaUtils(unittest.TestCase):
             with símismo.subTest(nmbr):
                 prms = utl.prms_dist(nmbr)
                 líms = utl.líms_dist(nmbr)
-                dist_sp = utl.obt_scipy(nmbr, {pr: np.random.random() for pr in prms})
+                d_prms = {pr: np.random.random() for pr in prms}
+                dist_sp = utl.obt_scipy(nmbr, d_prms)
                 trz = dist_sp.rvs(10000)
-                símismo.assertTrue(trz.min() >= líms[0] and trz.max() <= líms[1])
+                símismo.assertTrue(
+                    trz.min() >= líms[0] * d_prms['scale'] + d_prms['loc']
+                    and trz.max() <= líms[1] * d_prms['scale'] + d_prms['loc']
+                )
