@@ -21,10 +21,6 @@ dists = {
              'paráms': ['a', 'b', 'loc', 'scale'],
              'límites': (0, 1)
              },
-    'BetaPrima': {'scipy': estad.betaprime,
-                  'paráms': ['a', 'b', 'loc', 'scale'],
-                  'límites': (0, None)
-                  },
     'Bradford': {'scipy': estad.bradford,
                  'paráms': ['c', 'loc', 'scale'],
                  'límites': (0, 1)
@@ -61,19 +57,10 @@ dists = {
                           'paráms': ['K', 'loc', 'scale'],
                           'límites': (None, None)
                           },
-    'WeibullExponencial': {'scipy': estad.exponweib,
-                           'paráms': ['a', 'c', 'loc', 'scale'],
-                           'límites': (0, None)
-                           },
-    'PotencialExponencial': {'scipy': estad.exponpow,
-                             'paráms': ['b', 'loc', 'scale'],
-                             'límites': (0, None)
-                             },
     'F': {'scipy': estad.f,
           'paráms': ['dfn', 'dfd', 'loc', 'scale'],
           'límites': (0, None)
           },
-
     'BirnbaumSaunders': {'scipy': estad.fatiguelife,
                          'paráms': ['c', 'loc', 'scale'],
                          'límites': (0, None)
@@ -118,10 +105,6 @@ dists = {
                 'paráms': ['loc', 'scale'],
                 'límites': (0, None)
                 },
-    'Gompertz': {'scipy': estad.gompertz,
-                 'paráms': ['c', 'loc', 'scale'],
-                 'límites': (0, None)
-                 },
     'GumbelDerecho': {'scipy': estad.gumbel_r,
                       'paráms': ['loc', 'scale'],
                       'límites': (None, None)
@@ -142,10 +125,6 @@ dists = {
                     'paráms': ['loc', 'scale'],
                     'límites': (0, None)
                     },
-    'MitadNormalGeneral': {'scipy': estad.halfgennorm,
-                           'paráms': ['beta', 'loc', 'scale'],
-                           'límites': (0, None)
-                           },
     'HyperSecante': {'scipy': estad.hypsecant,
                      'paráms': ['loc', 'scale'],
                      'límites': (None, None)
@@ -162,18 +141,6 @@ dists = {
                        'paráms': ['c', 'loc', 'scale'],
                        'límites': (0, None)
                        },
-    'JohnsonSB': {'scipy': estad.johnsonsb,
-                  'paráms': ['a', 'b', 'loc', 'scale'],
-                  'límites': (0, 1)
-                  },
-    'JohnsonSU': {'scipy': estad.johnsonsu,
-                  'paráms': ['a', 'b', 'loc', 'scale'],
-                  'límites': (None, None)
-                  },
-    'KSDosNLargo': {'scipy': estad.kstwobign,
-                    'paráms': ['loc', 'scale'],
-                    'límites': (0, None)
-                    },
     'Laplace': {'scipy': estad.laplace,
                 'paráms': ['loc', 'scale'],
                 'límites': (None, None)
@@ -206,10 +173,6 @@ dists = {
                 'paráms': ['loc', 'scale'],
                 'límites': (0, None)
                 },
-    'Mielke': {'scipy': estad.mielke,
-               'paráms': ['k', 's', 'loc', 'scale'],
-               'límites': (0, None)
-               },
     'Nakagami': {'scipy': estad.nakagami,
                  'paráms': ['nu', 'loc', 'scale'],
                  'límites': (0, None)
@@ -218,14 +181,6 @@ dists = {
                       'paráms': ['df', 'nc', 'loc', 'scale'],
                       'límites': (0, None)
                       },
-    'FNoCentral': {'scipy': estad.ncf,
-                   'paráms': ['dfn', 'dfd', 'nc', 'loc', 'scale'],
-                   'límites': (0, None)
-                   },
-    'TNoCentral': {'scipy': estad.nct,
-                   'paráms': ['df', 'nc', 'loc', 'scale'],
-                   'límites': (None, None)
-                   },
     'Normal': {'scipy': estad.norm,
                'paráms': ['loc', 'scale'],
                'límites': (None, None)
@@ -242,14 +197,6 @@ dists = {
                   'paráms': ['a', 'loc', 'scale'],
                   'límites': (0, 1)
                   },
-    'PotencialLogNormal': {'scipy': estad.powerlognorm,
-                           'paráms': ['c', 's', 'loc', 'scale'],
-                           'límites': (0, None)
-                           },
-    'PotencialNormal': {'scipy': estad.powernorm,
-                        'paráms': ['c', 'loc', 'scale'],
-                        'límites': (None, None)
-                        },
     'Rayleigh': {'scipy': estad.rayleigh,
                  'paráms': ['loc', 'scale'],
                  'límites': (0, None)
@@ -258,20 +205,14 @@ dists = {
              'paráms': ['b', 'loc', 'scale'],
              'límites': (0, None)
              },
-    'GaussInversaRecíproco': {'scipy': estad.recipinvgauss,
-                              'paráms': ['mu', 'loc', 'scale'],
-                              'límites': (0, None)
-                              },
     'NormalSesgada': {'scipy': estad.skewnorm,
                       'paráms': ['a', 'loc', 'scale'],
                       'límites': (None, None)
                       },
-
     'T': {'scipy': estad.t,
           'paráms': ['df', 'loc', 'scale'],
           'límites': (None, None)
           },
-
     'Triang': {'scipy': estad.triang,
                'paráms': ['c', 'loc', 'scale'],
                'límites': (0, 1),  # El límite es ('a', 'b')
@@ -285,10 +226,6 @@ dists = {
                  'paráms': ['loc', 'scale'],
                  'límites': (0, 1),
                  'tipo': 'cont'
-                 },
-    'VonMises': {'scipy': estad.vonmises,
-                 'paráms': ['kappa', 'loc', 'scale'],
-                 'límites': (-pi, pi)
                  },
     'Wald': {'scipy': estad.wald,
              'paráms': ['loc', 'scale'],

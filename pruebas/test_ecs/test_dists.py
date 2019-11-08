@@ -4,8 +4,11 @@ import numpy as np
 import numpy.testing as npt
 import scipy.stats as estad
 import tikon.ecs.dists.utils as utls
+from numpy import exp
+from scipy.special import expit
 from tikon.ecs.dists import DistAnalítica, DistTraza, Dist
 from tikon.ecs.dists.anlt import TransfDist
+from tikon.utils import proc_líms
 
 
 class PruebaDistAnalítica(unittest.TestCase):
@@ -14,6 +17,7 @@ class PruebaDistAnalítica(unittest.TestCase):
         cls.líms = {'[R,R]': (3, 7), '[R, ∞)': (1, np.inf), '(-∞, R]': (-np.inf, 4), '(-∞, +∞)': (-np.inf, np.inf)}
 
     def _verif_en_líms(símismo, trz, líms):
+        líms = proc_líms(líms)
         símismo.assertTrue(líms[0] <= trz.min() and trz.max() <= líms[1])
 
     @staticmethod
@@ -36,16 +40,26 @@ class PruebaDistAnalítica(unittest.TestCase):
         npt.assert_allclose([trz.min(), trz.max()], (1, 3))
 
     def test_de_traza(símismo):
-        traza = estad.norm().rvs(30)
         líms = {
-            '[R,R]': (),
-            '[R, ∞)': (),
-            '(-∞, R]': (),
-            '(-∞, +∞)': (),
+            '[R,R]': (0, 1),
+            '[R, ∞)': (1, None),
+            '(-∞, R]': (None, 1),
+            '(-∞, +∞)': (None, None),
         }
         for nmbr, líms in líms.items():
-            pass
-            # dist = DistAnalítica.de_traza(traza, líms=líms, permitidas=list(utls.dists))
+            traza = estad.norm().rvs(30)
+            with símismo.subTest(líms):
+                if líms[0] is not None:
+                    if líms[1] is not None:
+                        traza = expit(traza) * (líms[1] - líms[0]) + líms[0]
+                    else:
+                        traza = exp(traza) + líms[0]
+                elif líms[1] is not None:
+                    traza = -exp(traza) + líms[1]
+                dist = DistAnalítica.de_traza(traza, líms=líms, permitidas=list(utls.dists))
+                símismo._verif_en_líms(dist.obt_vals(10000), líms)
+                p = estad.ttest_ind(dist.obt_vals(10000), traza)[1]
+                símismo.assertLess(0.1, p)
 
     def test_de_traza_no_compatible(símismo):
         pass
@@ -144,7 +158,7 @@ class PruebaDistAnalítica(unittest.TestCase):
 class PruebaTransfDist(unittest.TestCase):
     def test_transf(símismo):
         datos = np.arange(10)
-        for tr in ['exp', 'expit', None]:
+        for tr in ['lnexp', 'expit', 'neglnexp', None]:
             with símismo.subTest(tr):
                 transf = TransfDist(tr)
                 npt.assert_allclose(datos, transf.transf_inv(transf.transf(datos)))

@@ -1,9 +1,6 @@
-from tikon.utils import proc_líms
-
 from ._utils import líms_compat
 from .dists import DistAnalítica
 from .dists import líms_dist, obt_nombre
-from .dists.anlt import TransfDist
 from .dists.utils import obt_prms_obj_scipy
 
 
@@ -28,8 +25,6 @@ class APrioriDist(APriori):
         símismo._líms_dist = líms_dist(obt_nombre(dist))
 
     def dist(símismo, líms):
-        líms = proc_líms(líms)
-        ajust = líms_compat(líms, símismo._líms_dist)
+        líms_compat(líms, símismo._líms_dist)
 
-        transf = TransfDist(None, **ajust)
-        return DistAnalítica(símismo._dist, paráms=símismo._prms, transf=transf)
+        return DistAnalítica(símismo._dist, paráms=símismo._prms)
