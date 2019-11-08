@@ -2,13 +2,13 @@ import os
 from pprint import pprint
 
 from tikon.ejemplos.a_prioris import a_prioris
+from tikon.estruc.exper import Exper
 # from tikon.ecs.aprioris import APrioriDens
 from tikon.estruc.modelo import Simulador
-from tikon.estruc.exper import Exper
 from tikon.móds.rae import MetamCompleta, Sencillo, Parasitoide
+from tikon.móds.rae import ObsPobs
 # from tikon.rae.orgs.plantas import Hojas
 from tikon.móds.rae import RedAE
-from tikon.móds.rae import ObsPobs
 
 # Coco = Hojas(nombre='Palma de coco')  # Unidades: mm2 / ha
 # apriori = APrioriDens(rango=(38, 42), certidumbre=0.95)

@@ -4,13 +4,16 @@ from tikon.calibrador.spotpy_ import EVM
 from tikon.sensib import gen_anlzdr_sensib
 
 from .calibs import _gen_espec_calibs
+from .módulo import Módulo
 from .simul import Simulación
 
 
 class Modelo(object):
 
     def __init__(símismo, módulos):
-        símismo.módulos = {str(m): m for m in módulos}
+        if isinstance(módulos, Módulo):
+            módulos = [módulos]
+        símismo.módulos = módulos
 
     def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
 

@@ -11,7 +11,6 @@ class EcsCrec(CategEcOrg):
     nombre = ECS_CREC
     cls_ramas = [ModifCrec, EcuaciónCrec]
     _nombre_res = RES_CREC
-    req_todas_ramas = True
 
     def postproc(símismo, paso, sim):
         crec = símismo.obt_val_res(sim)

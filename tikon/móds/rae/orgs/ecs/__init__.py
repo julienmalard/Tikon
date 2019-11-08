@@ -17,4 +17,5 @@ class EcsOrgs(ÁrbolEcs):
     cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
 
     def verificar(símismo):
+        # Si crec Ec es
         pass  # para hacer

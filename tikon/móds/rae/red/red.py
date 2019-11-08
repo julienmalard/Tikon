@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import Módulo
+from tikon.estruc.módulo import MóduloCoso
 from tikon.estruc.simul import SimulMódulo
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from tikon.móds.rae.orgs.insectos import Parasitoide
@@ -13,8 +13,9 @@ from ..orgs.organismo import EtapaFantasma
 from ..red.res import res as res_red
 
 
-class RedAE(Módulo):
+class RedAE(MóduloCoso):
     nombre = 'red'
+    cls_ecs = EcsOrgs
 
     def __init__(símismo, orgs=None):
         super().__init__(cosos=orgs)
@@ -40,7 +41,7 @@ class RedAE(Módulo):
         return SimulRed(mód=símismo, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def gen_ecs(símismo, n_reps):
-        return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
+        return símismo.cls_ecs(cosos=símismo.etapas, n_reps=n_reps)
 
 
 class SimulRed(SimulMódulo):
@@ -81,7 +82,7 @@ class SimulRed(SimulMódulo):
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def requísitos(símismo, controles=False):
-        return {req for etp in símismo.etapas for req in etp.requísitos(controles)}
+        return {req for etp in símismo.etapas for req in etp.requísitos(símismo, controles)}
 
     def inter(símismo, coso, tipo):
         if isinstance(tipo, str):

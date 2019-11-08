@@ -10,13 +10,6 @@ from tikon.result.utils import EJE_PARC
 from . import res
 
 
-class Cultivo(Módulo):
-    nombre = 'cultivo'
-
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulCultivo(simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
-
-
 class SimulCultivo(SimulMódulo):
     resultados = [res.ResBiomasa, res.ResHumedadSuelo]
 
@@ -62,3 +55,8 @@ class SimulCultivo(SimulMódulo):
     def __iter__(símismo):
         for prc in símismo.simuls_parcelas:
             yield prc
+
+
+class Cultivo(Módulo):
+    nombre = 'cultivo'
+    cls_simul = SimulCultivo

@@ -6,20 +6,6 @@ from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
 
 
-class Aplicaciones(Módulo):
-    nombre = 'aplicaciones'
-
-    def __init__(símismo, productos):
-        super().__init__(productos)
-
-    @property
-    def productos(símismo):
-        return [símismo[prod] for prod in símismo]
-
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulAplicaciones(mód=símismo, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
-
-
 class SimulAplicaciones(SimulMódulo):
     resultados = [ResDescomp, ResConcentración, ResMortalidad]
 
@@ -40,5 +26,14 @@ class SimulAplicaciones(SimulMódulo):
         if len(inter):
             return Inter(inter, eje=EJE_ETAPA)
 
-    def requísitos(símismo, controles=False):
-        pass
+
+class Aplicaciones(Módulo):
+    nombre = 'aplicaciones'
+    cls_simul = SimulAplicaciones
+
+    def __init__(símismo, productos):
+        super().__init__(productos)
+
+    @property
+    def productos(símismo):
+        return [símismo[prod] for prod in símismo]
