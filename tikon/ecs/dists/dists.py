@@ -64,7 +64,7 @@ class MnjdrDists(object):
 
         í = str(índs.pop(0))
         if í in símismo.índs:
-            return símismo.índs[í].obt_val(índs, heredar)
+            return símismo[í].obt_val(índs, heredar)
         if heredar:
             return símismo.val
 
