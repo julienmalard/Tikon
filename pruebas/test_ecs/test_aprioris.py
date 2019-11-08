@@ -22,7 +22,8 @@ class PruebaAprioris(unittest.TestCase):
     def test_apriori_dist():
         apr = APrioriDist(estad.norm())
         trz = apr.dist((None, None)).obt_vals(10000)
-        npt.assert_almost_equal(trz.mean(), 0, decimal=2)
+        npt.assert_allclose(trz.mean(), 0, atol=0.05)
+        npt.assert_allclose(trz.std(), 1, atol=0.05)
 
     def test_apriori_dist_líms_erróneas(símismo):
         apr = APrioriDist(estad.norm())
