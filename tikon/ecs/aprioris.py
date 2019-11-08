@@ -20,11 +20,10 @@ class APrioriDens(APriori):
 
 class APrioriDist(APriori):
     def __init__(símismo, dist):
-        símismo._dist = dist.__class__
-        símismo._prms = obt_prms_obj_scipy(dist)
+        símismo._dist = dist
         símismo._líms_dist = líms_dist(obt_nombre(dist))
 
     def dist(símismo, líms):
-        líms_compat(líms, símismo._líms_dist)
+        líms_compat(símismo._líms_dist, líms)
 
-        return DistAnalítica(símismo._dist, paráms=símismo._prms)
+        return DistAnalítica(símismo._dist)
