@@ -65,6 +65,7 @@ class PruebaDistAnalítica(unittest.TestCase):
         with símismo.assertRaises(ValueError):
             DistAnalítica.de_traza(trz=np.random.random(10), líms=(0, None), permitidas=['Beta'])
 
+    @unittest.skip('implementar')
     def test_de_traza_no_muy_buena(símismo):
         pass
 
@@ -76,6 +77,7 @@ class PruebaDistAnalítica(unittest.TestCase):
         vals = DistAnalítica(estad.norm()).obt_vals_índ([1, 2, 3])
         símismo.assertEqual(len(vals), 3)
 
+    @unittest.skip('implementar')
     def test_aprox_líms(símismo):
         pass
 
@@ -254,7 +256,7 @@ class PruebaMnjdrDists(unittest.TestCase):
     def test_índs_herencia(símismo):
         mnjdr = MnjdrDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índs=['a'])
+        mnjdr.actualizar(dist, índs='a')
         símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
 
     def test_índs_sin_herencia(símismo):
