@@ -154,7 +154,7 @@ def _gen_datos(coords, t):
     return xr.DataArray(data=0, coords=coords, dims=list(coords))
 
 
-class Resultado0(Matriz):
+class Resultado0(object):
     def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
 
         símismo.obs = obs

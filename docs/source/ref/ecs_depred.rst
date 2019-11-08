@@ -1,4 +1,3 @@
-
 """
 
         Respuestas funcionales (y = consumo de presa por cápita de depredador, D = densidad del depredador,

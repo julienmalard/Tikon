@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import MóduloCoso
+from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from tikon.móds.rae.orgs.insectos import Parasitoide
@@ -11,37 +11,6 @@ from tikon.móds.rae.red.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA
 from ..orgs.ecs import EcsOrgs
 from ..orgs.organismo import EtapaFantasma
 from ..red.res import res as res_red
-
-
-class RedAE(MóduloCoso):
-    nombre = 'red'
-    cls_ecs = EcsOrgs
-
-    def __init__(símismo, orgs=None):
-        super().__init__(cosos=orgs)
-
-    @property
-    def etapas(símismo):
-        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo._cosos)]
-
-    @property
-    def orgs(símismo):
-        return [símismo[org] for org in símismo]
-
-    def añadir_org(símismo, org):
-        símismo._cosos[str(org)] = org
-
-    def quitar_org(símismo, org):
-        try:
-            símismo._cosos.pop(str(org))
-        except KeyError:
-            raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
-
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulRed(mód=símismo, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
-
-    def gen_ecs(símismo, n_reps):
-        return símismo.cls_ecs(cosos=símismo.etapas, n_reps=n_reps)
 
 
 class SimulRed(SimulMódulo):
@@ -146,3 +115,31 @@ class SimulRed(SimulMódulo):
                 raise ValueError('Población de cohorte "nan".\n{mnsg}'.format(mnsg=mnsg))
             if np.any(np.not_equal(pobs_coh.sum(dim=EJE_COH), pobs)):
                 raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))
+
+
+class RedAE(Módulo):
+    nombre = 'red'
+    cls_simul = SimulRed
+
+    def __init__(símismo, orgs=None):
+        super().__init__(cosos=orgs)
+
+    @property
+    def etapas(símismo):
+        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo._cosos)]
+
+    @property
+    def orgs(símismo):
+        return [símismo[org] for org in símismo]
+
+    def añadir_org(símismo, org):
+        símismo._cosos[str(org)] = org
+
+    def quitar_org(símismo, org):
+        try:
+            símismo._cosos.pop(str(org))
+        except KeyError:
+            raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
+
+    def gen_ecs(símismo, n_reps):
+        return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
