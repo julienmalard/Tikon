@@ -76,11 +76,11 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
     def desactivar_ec(símismo, subcateg=None):
         if subcateg is None:
-            subcateg = símismo._ramas.values()
+            subcateg = list(símismo._ramas)
         else:
             subcateg = [subcateg]
         for sub in subcateg:
-            sub.desactivar_ec()
+            símismo[sub].desactivar_ec()
 
 
 class SubcategEcCoso(PlantillaRamaEcCoso):
