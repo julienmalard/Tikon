@@ -7,19 +7,6 @@ from tikon.result.utils import EJE_TIEMPO, EJE_PARC, EJE_COORD
 from تقدیر.مقام import مقام
 
 
-class Clima(Módulo):
-    nombre = 'clima'
-
-    def __init__(símismo, fuentes=None, escenario=8.5):
-        símismo.fuentes = fuentes
-        símismo.escenario = escenario
-
-        super().__init__()
-
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulClima(símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
-
-
 class SimulClima(SimulMódulo):
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         centroides = símismo.simul_exper.exper.controles['centroides']
@@ -65,6 +52,17 @@ class SimulClima(SimulMódulo):
         diarios = símismo.datos.loc[{EJE_TIEMPO: f}]
         for res in símismo:
             símismo[res].loc[{EJE_TIEMPO: f}] = diarios[str(res)]
+
+
+class Clima(Módulo):
+    nombre = 'clima'
+    cls_simul = SimulClima
+
+    def __init__(símismo, fuentes=None, escenario=8.5):
+        símismo.fuentes = fuentes
+        símismo.escenario = escenario
+
+        super().__init__()
 
 
 def _vr_taqdir_a_tikon(vr):

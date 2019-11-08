@@ -11,10 +11,7 @@ class PlantillaRamaEcCoso(object):
         símismo._ramas = {str(r): r for r in ramas}
 
     def verificar_activa(símismo, sim_mód):
-        if símismo.cls_pariente.req_todas_ramas:
-            return all(rm.verificar_activa(sim_mód) for rm in símismo)
-        else:
-            return any(rm.verificar_activa(sim_mód) for rm in símismo)
+        return any(rm.verificar_activa(sim_mód) for rm in símismo)
 
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
@@ -32,6 +29,9 @@ class PlantillaRamaEcCoso(object):
         for r in símismo:
             r.renombrar_calib(nombre, nuevo)
 
+    def requísitos(símismo, controles=False):
+        return {req for rm in símismo for req in rm.requísitos(controles) if rm.verificar_activa(sim_mód)}
+
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
 
@@ -48,9 +48,6 @@ class PlantillaRamaEcCoso(object):
     def __copy__(símismo):
         ramas = [copy(rm) for rm in símismo._ramas.values()]
         return símismo.__class__(símismo.cls_pariente, ramas=ramas, coso=símismo.coso)
-
-    def __eq__(símismo, otro):
-        return símismo.cls_pariente == otro
 
     def __str__(símismo):
         return str(símismo.cls_pariente.nombre)
@@ -97,14 +94,14 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
     def activar_ec(símismo, ec):
         try:
             obj_ec = símismo[ec]
-            símismo._activada = obj_ec
-            for rm in símismo._ramas.values():
-                rm.activada = False
-
-            obj_ec.activada = True
-
         except KeyError:
-            raise ValueError(ec)
+            raise ValueError('Ecuación {ec} no existe por aquí.'.format(ec=ec))
+
+        símismo._activada = obj_ec
+        for rm in símismo._ramas.values():
+            rm.activada = False
+
+        obj_ec.activada = True
 
     def desactivar_ec(símismo):
         símismo.activar_ec('Nada')
@@ -119,13 +116,15 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         símismo.activada = False
 
     def verificar_activa(símismo, sim_mód):
-        from .árb_mód import EcuaciónVacía
-        if símismo.activada and símismo != EcuaciónVacía:
+        if símismo.activada and str(símismo) != 'Nada':
             inters = símismo.cls_pariente.inter()
             if inters:
                 return all(sim_mód.inter(símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
+
+    def requísitos(símismo, controles=False):
+        return símismo.cls_pariente.requísitos(controles)
 
 
 class ParámCoso(PlantillaRamaEcCoso):

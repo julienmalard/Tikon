@@ -1,8 +1,9 @@
 import os
 import threading
 
-from .exper import Exper
 from tikon.result.utils import gen_coords_base
+
+from .exper import Exper
 
 
 class PlantillaSimul(object):
@@ -65,14 +66,15 @@ class Simulación(PlantillaSimul):
         exper = [exper] if isinstance(exper, Exper) else exper
 
         símismo.ecs = {m: m.gen_ecs(n_reps=reps['paráms']) for m in módulos}
-        símismo.paráms = símismo.gen_paráms()
 
         super().__init__(
             nombre,
             subsimuls=[
-                SimulExper(módulos, exper=exp, t=t, ecs=símismo.ecs, vars_interés=vars_interés) for exp in exper
+                SimulExper(módulos, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
+                for exp in exper
             ]
         )
+        símismo.paráms = símismo.gen_paráms()
         calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
 
     def simular(símismo):
@@ -82,7 +84,8 @@ class Simulación(PlantillaSimul):
 
     def iniciar(símismo):
         for ecs in símismo.ecs.values():
-            ecs.act_coefs()
+            if ecs:
+                ecs.act_coefs()
 
         super().iniciar()
 
@@ -118,10 +121,11 @@ class Simulación(PlantillaSimul):
 
 
 class SimulExper(PlantillaSimul):
-    def __init__(símismo, módulos, exper, t, ecs, vars_interés):
+    def __init__(símismo, módulos, exper, t, reps, ecs, vars_interés):
         símismo.exper = exper
         símismo.t = exper.gen_t(t)
         símismo.ecs = ecs
+        símismo.reps = reps
         super().__init__(
             nombre=exper.nombre,
             subsimuls=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in módulos]
@@ -132,7 +136,8 @@ class SimulExper(PlantillaSimul):
     def verificar_reqs(símismo):
 
         for sim_mód in símismo:
-            for req in sim_mód.requísitos():
+            reqs_mód = símismo[sim_mód].requísitos() or []
+            for req in reqs_mód:
                 mód_req, var_req = req.split('.')
                 try:
                     otro_mód = símismo[mód_req]
@@ -146,7 +151,8 @@ class SimulExper(PlantillaSimul):
                             var=var_req, otro=otro_mód, mód=sim_mód
                         )
                     )
-            for req in sim_mód.requísitos(controles=True):
+            reqs_mód_cntrl = símismo[sim_mód].requísitos(controles=True) or []
+            for req in reqs_mód_cntrl:
                 if req not in símismo.exper.controles:
                     raise ValueError(
                         'Falta requísito {req} de módulo {mód} en experimento {exp}'.format(
@@ -212,4 +218,5 @@ class SimulMódulo(PlantillaSimul):
         pass
 
     def requísitos(símismo, controles=False):
-        raise NotImplementedError
+        if símismo.ecs:
+            return símismo.ecs.requísitos(sim=símismo, controles=controles)

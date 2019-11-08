@@ -4,20 +4,6 @@ from tikon.estruc.módulo import Módulo
 from tikon.estruc.simul import SimulMódulo
 
 
-class Manejo(Módulo):
-    nombre = 'manejo'
-
-    def __init__(símismo, reglas=None):
-        if isinstance(reglas, Regla):
-            reglas = [reglas]
-        símismo.reglas = reglas or []
-
-        super().__init__()
-
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return SimulManejo(mód=símismo, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
-
-
 class Regla(object):
     def __init__(símismo, condición, acción):
         símismo.condición = deepcopy(condición)
@@ -42,3 +28,15 @@ class SimulManejo(SimulMódulo):
     def incrementar(símismo, paso, f):
         for r in símismo.reglas:
             r(sim=símismo, paso=paso, f=f)
+
+
+class Manejo(Módulo):
+    nombre = 'manejo'
+    cls_simul = SimulManejo
+
+    def __init__(símismo, reglas=None):
+        if isinstance(reglas, Regla):
+            reglas = [reglas]
+        símismo.reglas = reglas or []
+
+        super().__init__()

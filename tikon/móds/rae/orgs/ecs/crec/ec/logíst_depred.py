@@ -1,4 +1,3 @@
-import xarray as xr
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.red.utils import EJE_VÍCTIMA, RES_DEPR
 

@@ -1,8 +1,6 @@
-import pandas as pd
 from tikon.ecs.dists import Dist
 from tikon.ecs.paráms import ValsParámCoso
 from tikon.ecs.árb_mód import Parám
-from tikon.result.utils import EJE_TIEMPO
 from tikon.utils import guardar_json, leer_json
 
 
@@ -54,6 +52,7 @@ class DatosVar(object):
 
     def agregar_prm(símismo, prm):
         raise NotImplementedError  # para hacer
+
     def fechas(símismo):
         if símismo._obs:
             return símismo._obs.fechas()

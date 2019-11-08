@@ -3,8 +3,8 @@ from warnings import warn as avisar
 import numpy as np
 from scipy import stats as estad
 from scipy.special import expit, logit
-from tikon.ecs._utils import líms_compat
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
+from tikon.ecs.utils import líms_compat
 from tikon.utils import proc_líms
 
 from .utils import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
@@ -268,8 +268,8 @@ def invlnexp(x):
 
 
 def neglnexp(x):
-    return -np.log(np.exp(-x) + 1)/np.log(2) + 1
+    return -np.log(np.exp(-x) + 1) / np.log(2) + 1
 
 
 def invneglnexp(x):
-    return -np.log(np.exp(np.log(2)*(1-x))-1)
+    return -np.log(np.exp(np.log(2) * (1 - x)) - 1)

@@ -24,11 +24,15 @@ class Módulo(object):
         for c in símismo:
             símismo[c].cargar_calibs(os.path.join(directorio, c.nombre))
 
+    def gen_simul(símismo, simul_exper, vars_interés, ecs):
+        símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
+
     @property
     def nombre(símismo):
         raise NotImplementedError
 
-    def gen_simul(símismo, simul_exper, vars_interés, ecs):
+    @property
+    def cls_simul(símismo):
         raise NotImplementedError
 
     def __getitem__(símismo, itema):

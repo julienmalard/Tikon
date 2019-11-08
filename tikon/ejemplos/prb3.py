@@ -4,13 +4,12 @@ from multiprocessing import Pool as Reserva
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
-
 from tikon.ejemplos import en_ejemplos
 from tikon.ejemplos.prb import red, Paras_pupa, exper_A, Paras_larvas
 from tikon.estruc.modelo import Simulador
+from tikon.móds.manejo import Manejo, Regla
 from tikon.móds.manejo.acciones import AgregarPob, MultPob
 from tikon.móds.manejo.conds import CondTiempo
-from tikon.móds.manejo import Manejo, Regla
 from tikon.utils import leer_json, guardar_json
 
 red.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final/red'))
@@ -168,7 +167,7 @@ eje.set_ylabel('Población (ha-1)', fontsize=20)
 
 fig.legend(
     *eje.get_legend_handles_labels(), loc='lower center', ncol=6, fontsize=20,
-    #bbox_to_anchor=(0.5, 0.05)
+    # bbox_to_anchor=(0.5, 0.05)
 )
 fig.subplots_adjust(bottom=0.25)
 fig.savefig('Artículo 1 Fig 6.png')

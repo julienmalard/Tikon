@@ -4,7 +4,6 @@ from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso
 
 class PlantillaRamaEc(object):
     cls_ramas = []
-    req_todas_ramas = False
 
     _cls_en_coso = NotImplemented
     _nombre_res = NotImplemented
@@ -25,9 +24,6 @@ class PlantillaRamaEc(object):
 
     def vals_paráms(símismo):
         return {pr for rm in símismo for pr in rm.vals_paráms()}
-
-    def requísitos(símismo, controles=False):
-        return {req for rm in símismo for req in rm.requísitos()}
 
     def eval(símismo, paso, sim):
         for rm in símismo:

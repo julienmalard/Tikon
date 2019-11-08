@@ -1,7 +1,6 @@
-from ._utils import líms_compat
 from .dists import DistAnalítica
 from .dists import líms_dist, obt_nombre
-from .dists.utils import obt_prms_obj_scipy
+from .utils import líms_compat
 
 
 class APriori(object):

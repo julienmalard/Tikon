@@ -1,8 +1,7 @@
-from pcse.base import MultiCropDataProvider
 from pcse.engine import Engine
 from tikon.exper.parc import Parcela, GeomParcela
 from tikon.móds.cultivo.extrn import ParcelasCultivoExterno
-import tikon.móds.rae.orgs.plantas.externa as extrn
+
 from .sim import SimulPCSE
 
 

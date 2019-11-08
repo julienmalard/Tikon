@@ -12,6 +12,9 @@ class ControlesExper(object):
 
         símismo._usuario.update(_controles_parc(parcelas))
 
+    def __contains__(símismo, itema):
+        return itema in símismo._auto or itema in símismo._usuario
+
     def __setitem__(símismo, llave, valor):
         if valor is not None:
             símismo._usuario[llave] = valor

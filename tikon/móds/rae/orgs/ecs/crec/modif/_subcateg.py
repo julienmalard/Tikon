@@ -1,4 +1,4 @@
-from tikon.ecs.árb_mód import SubcategEc, EcuaciónVacía
+from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg
 from tikon.móds.rae.red.utils import RES_CREC
 

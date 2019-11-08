@@ -1,6 +1,5 @@
 import numpy as np
 import spotpy.objectivefunctions as of
-import xarray as xr
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
 from tikon.result.utils import EJE_ESTOC, EJE_PARÁMS
 

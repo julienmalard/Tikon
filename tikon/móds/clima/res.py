@@ -5,4 +5,3 @@ class ResultadoClima(Resultado):
     @property
     def nombre(símismo):
         raise NotImplementedError
-

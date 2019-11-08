@@ -1,5 +1,3 @@
-from warnings import warn as avisar
-
 import numpy as np
 from tikon.ecs.dists.dists import Dist
 

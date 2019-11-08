@@ -10,13 +10,12 @@ import pandas as pd
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from scipy.signal import savgol_filter
-
 from tikon.ejemplos import en_ejemplos
 from tikon.ejemplos.prb import red, Paras_pupa, exper_A, Paras_larvas, Oarenosella
 from tikon.estruc.modelo import Simulador
+from tikon.móds.manejo import Manejo, Regla
 from tikon.móds.manejo.acciones import AgregarPob, MultPob
 from tikon.móds.manejo.conds import CondTiempo, CondPoblación, SuperiorOIgual, CondCada, Inferior
-from tikon.móds.manejo import Manejo, Regla
 from tikon.utils import guardar_json, leer_json
 
 red.cargar_calibs(en_ejemplos('calibs Sitio A epm ens final/red'))
@@ -176,7 +175,7 @@ def correr(*args):
     simul = Simulador([copia_red, mnj])
     res = simul.simular(400, n_rep_parám=50, n_rep_estoc=5, exper=exp)
 
-    d_res_final = _procesar_res(res, todos = nombre == 'sin control')
+    d_res_final = _procesar_res(res, todos=nombre == 'sin control')
 
     guardar_json(d_res_final, archivo=dir_egr + '/res.json')
     res.graficar(dir_egr)
@@ -321,7 +320,8 @@ def _evaluar_todo():
                 alpha=0.25
             )
             # ejes1.plot(tiempos, [np.mean(np.greater_equal(t[rebana], umbral)) for t in d_suma_larvas[a]], label=a)
-        ejes1.plot(tiempos, np.full(len(tiempos), np.sum(np.mean((np.maximum(0, suma_larvas_base[rebana] - umbral)), axis=(1,2,3)) / umbral)))
+        ejes1.plot(tiempos, np.full(len(tiempos), np.sum(
+            np.mean((np.maximum(0, suma_larvas_base[rebana] - umbral)), axis=(1, 2, 3)) / umbral)))
 
         eje2 = ejes1.twinx()
         eje2.plot(tiempos, np.median(suma_larvas_base[tiempos], axis=(-1, -2)), color='#000000', label='Población')
