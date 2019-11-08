@@ -16,6 +16,7 @@ class PruebaModelo(unittest.TestCase):
         with símismo.assertRaises(ValueError):
             req_var_falta.modelo.simular('var modelo falta', exper=req_var_falta.exper, t=10)
 
+    @unittest.skip('implementar')
     def test_req_ecuación_falta(símismo):
         pass
 
