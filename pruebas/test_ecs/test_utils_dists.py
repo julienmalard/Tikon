@@ -17,3 +17,7 @@ class PruebaUtils(unittest.TestCase):
                     trz.min() >= líms[0] * d_prms['scale'] + d_prms['loc']
                     and trz.max() <= líms[1] * d_prms['scale'] + d_prms['loc']
                 )
+
+    def test_nombre_equivocado(símismo):
+        with símismo.assertRaises(ValueError):
+            utl.obt_scipy('no existo', {})

@@ -1,4 +1,3 @@
-import math as mat
 from warnings import warn as avisar
 
 import numpy as np
@@ -99,10 +98,10 @@ class DistAnalítica(Dist):
             if líms[1] == np.inf:
                 transf = None
             else:
-                transf = TransfDist('Exp', ubic=líms[1], escl=-1)
+                transf = TransfDist('LnExp', ubic=líms[1], escl=-1)
 
         elif líms[1] == np.inf:
-            transf = TransfDist('Exp', ubic=líms[0])
+            transf = TransfDist('LnExp', ubic=líms[0])
         else:
             transf = TransfDist('Expit', ubic=líms[0], escl=líms[1] - líms[0])
 
@@ -134,11 +133,19 @@ class DistAnalítica(Dist):
     @classmethod
     def de_traza(cls, trz, líms, permitidas):
 
+        líms = proc_líms(líms)
+        if trz.min() < líms[0] or trz.max() > líms[1]:
+            raise ValueError('Valores en traza deben caber en los límites teoréticos de la distribución.')
+
         # Un diccionario para guardar el mejor ajuste
         mejor_ajuste = {}
 
         for nmbr in permitidas:
             líms_d = líms_dist(nmbr)
+            try:
+                líms_compat(líms, líms_d)
+            except ValueError:
+                continue
 
             if líms_d[0] == -np.inf and líms_d[1] == np.inf:
                 transf = _gen_transf_sin_líms(trz, líms)
@@ -147,24 +154,15 @@ class DistAnalítica(Dist):
                 transf = _gen_transf_1_lím(trz, líms, líms_d)
                 restric = {'floc': 0}
             else:
-                transf = None
-
-                if líms[0] == -np.inf or líms[1] == np.inf:
-                    continue
-
+                transf = TransfDist(None, ubic=líms[0] - líms_d[0], escl=(líms[1] - líms[0]) / (líms_d[1] - líms_d[0]))
                 # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
-                if nmbr == 'Beta':
-                    restric = {'floc': líms[0], 'fscale': líms[1] - líms[0]}
-                elif nmbr == 'VonMises':
-                    restric = {'floc': líms[0] + mat.pi, 'fscale': (líms[1] - líms[0]) / (2 * mat.pi)}
-                else:
-                    continue
+                restric = {'floc': 0, 'fscale': 1}
 
             trz_transf = transf.transf_inv(trz) if transf else trz
             try:
                 cls_sp = clase_scipy(nmbr)
-                if nmbr == 'Uniforme':
-                    prms = {'loc': líms[0], 'scale': líms[1] - líms[0]}
+                if len(prms_dist(nmbr)) == len(restric):
+                    prms = {'loc': 0, 'scale': 1}
                 else:
                     ajustados = cls_sp.fit(trz_transf, **restric)
                     prms = {pr: vl for pr, vl in zip(prms_dist(nmbr), ajustados)}
@@ -176,7 +174,7 @@ class DistAnalítica(Dist):
             # Si el ajuste es mejor que el mejor ajuste anterior...
             if not mejor_ajuste or p > mejor_ajuste['p']:
                 # Guardarlo
-                mejor_ajuste = dict(dist='nombre_dist', paráms=prms, transf=transf, p=p)
+                mejor_ajuste = dict(dist=nmbr, paráms=prms, transf=transf, p=p)
 
         if not mejor_ajuste:
             raise ValueError('No se encontró distribución permitida compatible.')
@@ -206,9 +204,12 @@ class TransfDist(object):
             if símismo._transf == 'expit':
                 símismo._f = expit
                 símismo._f_inv = logit
-            elif símismo._transf == 'exp':
-                símismo._f = np.exp
-                símismo._f_inv = np.log
+            elif símismo._transf == 'lnexp':
+                símismo._f = lnexp
+                símismo._f_inv = invlnexp
+            elif símismo._transf == 'neglnexp':
+                símismo._f = neglnexp
+                símismo._f_inv = invneglnexp
             else:
                 raise ValueError(transf)
 
@@ -237,22 +238,38 @@ def _gen_transf_sin_líms(trz, líms):
         if líms[1] == np.inf:
             # noinspection PyTypeChecker
             return TransfDist(None, ubic=np.mean(trz), escl=np.std(trz))
-        return TransfDist('exp', ubic=líms[1], escl=-np.std(trz))
+        return TransfDist('LnExp', ubic=líms[1], escl=-np.std(trz))
 
     if líms[1] == np.inf:
         # noinspection PyTypeChecker
-        return TransfDist('exp', ubic=líms[0], escl=np.std(trz))
-    return TransfDist('expit', ubic=líms[0], escl=líms[1] - líms[0])
+        return TransfDist('LnExp', ubic=líms[0], escl=np.std(trz))
+    return TransfDist('Expit', ubic=líms[0], escl=líms[1] - líms[0])
 
 
 def _gen_transf_1_lím(trz, líms, líms_d):
-    if sum([líms[0] == -np.inf, líms[1] == np.inf]) != 1:
-        return
-    if (np.isfinite(líms[0]) and np.isfinite(líms_d[0])) or (np.isfinite(líms[1]) and np.isfinite(líms_d[1])):
-        escl = 1
-        ubic = líms[0] - líms_d[0]
-    else:
+    if líms_d[0] == -np.inf:
         escl = -1
-        ubic = -líms[0] - líms_d[1]
+        líms_d = (-líms_d[1], np.inf)
+        líms = (-líms[1], -líms[0])
+    else:
+        escl = 1
+    ubic = líms[0] - líms_d[0]
+    if líms[1] == np.inf:
+        return TransfDist(None, ubic=ubic, escl=escl)
+    return TransfDist('NegLnExp', ubic=ubic, escl=escl * (líms[1] - líms[0]))
 
-    return TransfDist(None, ubic=ubic, escl=escl * np.std(trz))
+
+def lnexp(x):
+    return np.log(np.exp(x) + 1)
+
+
+def invlnexp(x):
+    return np.log(np.exp(x) - 1)
+
+
+def neglnexp(x):
+    return -np.log(np.exp(-x) + 1)/np.log(2) + 1
+
+
+def invneglnexp(x):
+    return -np.log(np.exp(np.log(2)*(1-x))-1)
