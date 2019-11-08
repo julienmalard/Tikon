@@ -6,7 +6,7 @@ import scipy.stats as estad
 import tikon.ecs.dists.utils as utls
 from numpy import exp
 from scipy.special import expit
-from tikon.ecs.dists import DistAnalítica, DistTraza, Dist
+from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists
 from tikon.ecs.dists.anlt import TransfDist
 from tikon.utils import proc_líms
 
@@ -62,7 +62,8 @@ class PruebaDistAnalítica(unittest.TestCase):
                 símismo.assertLess(0.1, p)
 
     def test_de_traza_no_compatible(símismo):
-        pass
+        with símismo.assertRaises(ValueError):
+            DistAnalítica.de_traza(trz=np.random.random(10), líms=(0, None), permitidas=['Beta'])
 
     def test_de_traza_no_muy_buena(símismo):
         pass
@@ -173,7 +174,8 @@ class PruebaTransfDist(unittest.TestCase):
         transf = TransfDist('expit', escl=2)
         símismo.assertAlmostEqual(transf.transf(datos).max(), 2)
 
-    def test_conv_dic(símismo):
+    @staticmethod
+    def test_conv_dic():
         datos = np.arange(-20, 20)
         transf = TransfDist('expit', ubic=1, escl=2)
         transf2 = TransfDist.de_dic(transf.a_dic())
@@ -195,10 +197,11 @@ class PruebaDistTraza(unittest.TestCase):
         líms = símismo.dist.aprox_líms(prc)
         npt.assert_allclose(líms, estad.norm.ppf([(1 - prc) / 2, 0.5 + prc / 2]), rtol=.10)
 
-    @unittest.skip('saber')
-    def test_pesos(símismo):
-        dist = DistTraza(símismo.dist.trz, pesos=símismo.dist.trz.argsort())
-        npt.assert_array_less(símismo.dist.aprox_líms(0.99), dist.aprox_líms(0.95))
+    @staticmethod
+    def test_pesos():
+        dist = DistTraza(np.arange(100), pesos=np.arange(100))
+        sin_pesos = DistTraza(np.arange(100))
+        npt.assert_array_less(sin_pesos.aprox_líms(0.95), dist.aprox_líms(0.95))
 
     def test_obt_vals(símismo):
         vals = símismo.dist.obt_vals(10)
@@ -223,13 +226,55 @@ class PruebaDistTraza(unittest.TestCase):
 
 class PruebaMnjdrDists(unittest.TestCase):
     def test_base(símismo):
-        pass
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist)
+        símismo.assertIs(dist, mnjdr.obt_val())
+
+    def test_borrar(símismo):
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist)
+        mnjdr.actualizar(None)
+        símismo.assertIsNone(mnjdr.obt_val())
 
     def test_índs(símismo):
-        pass
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist, índs=['a', 'b'])
+        símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
 
-    def test_índs_múltiples(símismo):
-        pass
+    def test_índs_no_existen(símismo):
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist)
+        símismo.assertIsNone(mnjdr.obt_val(índs=['hola'], heredar=False))
+        símismo.assertIs(dist, mnjdr.obt_val(índs=['hola']))
 
-    def test_conv_dic(símismo):
-        pass
+    def test_índs_herencia(símismo):
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist, índs=['a'])
+        símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
+
+    def test_índs_sin_herencia(símismo):
+        mnjdr = MnjdrDists()
+        dist = DistAnalítica(estad.norm())
+        mnjdr.actualizar(dist, índs=['a'])
+        símismo.assertIsNone(mnjdr.obt_val(['a', 'b'], heredar=False))
+
+    @staticmethod
+    def test_conv_dic():
+        mnjdr = MnjdrDists()
+        dist0 = DistAnalítica(estad.norm())
+        dista = DistAnalítica(estad.gamma(1))
+        distb = DistAnalítica(estad.norm(3, 4))
+
+        mnjdr.actualizar(dist0)
+        mnjdr.actualizar(dista, índs=['a'])
+        mnjdr.actualizar(distb, índs=['a', 'b'])
+        nuevo = MnjdrDists.de_dic(mnjdr.a_dic())
+        p = .95
+        npt.assert_equal(mnjdr.obt_val().aprox_líms(p), nuevo.obt_val().aprox_líms(p))
+        npt.assert_equal(mnjdr.obt_val('a').aprox_líms(p), nuevo.obt_val('a').aprox_líms(p))
+        npt.assert_equal(mnjdr.obt_val(['a', 'b']).aprox_líms(p), nuevo.obt_val(['a', 'b']).aprox_líms(p))
