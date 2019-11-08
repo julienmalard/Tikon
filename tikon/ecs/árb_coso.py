@@ -10,11 +10,11 @@ class PlantillaRamaEcCoso(object):
         símismo.cls_pariente = cls_pariente
         símismo._ramas = {str(r): r for r in ramas}
 
-    def verificar_activa(símismo, mód):
+    def verificar_activa(símismo, sim_mód):
         if símismo.cls_pariente.req_todas_ramas:
-            return all(rm.verificar_activa(mód) for rm in símismo)
+            return all(rm.verificar_activa(sim_mód) for rm in símismo)
         else:
-            return any(rm.verificar_activa(mód) for rm in símismo)
+            return any(rm.verificar_activa(sim_mód) for rm in símismo)
 
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
@@ -91,8 +91,8 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
         símismo._activada.activada = True
 
-    def verificar_activa(símismo, mód):
-        return símismo.ec_activa().verificar_activa(mód)
+    def verificar_activa(símismo, sim_mód):
+        return símismo.ec_activa().verificar_activa(sim_mód)
 
     def activar_ec(símismo, ec):
         try:
@@ -118,12 +118,12 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         super().__init__(cls_pariente, ramas, coso)
         símismo.activada = False
 
-    def verificar_activa(símismo, mód):
+    def verificar_activa(símismo, sim_mód):
         from .árb_mód import EcuaciónVacía
         if símismo.activada and símismo != EcuaciónVacía:
             inters = símismo.cls_pariente.inter()
             if inters:
-                return all(mód.inter(símismo.coso, tipo=intr) for intr in inters)
+                return all(sim_mód.inter(símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
 
@@ -138,7 +138,7 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
 
-    def verificar_activa(símismo, mód):
+    def verificar_activa(símismo, sim_mód):
         return True  # Parámetros de una ecuación activa siempre están activados.
 
     def agregar_calib(símismo, id_cal, dist, inter=None):

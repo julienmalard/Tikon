@@ -17,7 +17,7 @@ class PlantillaRamaEc(object):
 
         for rm in símismo.cls_ramas:
             ramas_ecs = [ec[rm.nombre] for ec in ecs]
-            activos = [rm_ec for rm_ec in ramas_ecs if rm_ec.verificar_activa(mód=mód)]
+            activos = [rm_ec for rm_ec in ramas_ecs if rm_ec.verificar_activa(sim_mód=mód)]
             if activos:
                 í_cosos_rm, ecs_rm = activos
                 cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
