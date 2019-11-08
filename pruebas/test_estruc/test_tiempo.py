@@ -47,7 +47,7 @@ class PruebaGenerarTiempo(unittest.TestCase):
         símismo._verif_igual(t)
 
     def test_otro_idioma(símismo):
-        t = Tiempo('૨૦૦૦-૦૧-૦૧', '૨૦૦૦-૦૧-૧૦')
+        t = Tiempo('૨૦૦૦-૦૧-૦૧', '૨૦૦૦-૦૧-૧૦')  # ¡Hablemos gujerati!
         símismo._verif_igual(t)
 
     def test_error_tipo(símismo):
