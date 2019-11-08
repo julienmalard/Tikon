@@ -25,7 +25,7 @@ class Módulo(object):
             símismo[c].cargar_calibs(os.path.join(directorio, c.nombre))
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
+        return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
 
     @property
     def nombre(símismo):

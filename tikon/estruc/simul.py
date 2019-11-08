@@ -49,6 +49,9 @@ class PlantillaSimul(object):
     def a_dic(símismo):
         return {s: símismo[s].a_dic() for s in símismo}
 
+    def __contains__(símismo, itema):
+        return str(itema) in símismo._subsimuls
+
     def __getitem__(símismo, itema):
         return símismo._subsimuls[str(itema)]
 
@@ -145,7 +148,7 @@ class SimulExper(PlantillaSimul):
                     raise ValueError(
                         'Módulo {otro} requerido por módulo {mód} no existe.'.format(otro=mód_req, mód=sim_mód)
                     )
-                if var_req not in otro_mód.variables:
+                if var_req not in otro_mód:
                     raise ValueError(
                         'Variable {var} de módulo {otro} requerido por módulo {mód} no existe.'.format(
                             var=var_req, otro=otro_mód, mód=sim_mód
@@ -175,7 +178,7 @@ class SimulMódulo(PlantillaSimul):
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         if '.' in mód.nombre:
             raise ValueError(
-                'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=nombre)
+                'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=mód.nombre)
             )
 
         símismo.simul_exper = simul_exper

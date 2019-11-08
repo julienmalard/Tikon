@@ -127,3 +127,4 @@ def _rcnep(y_obs, y_pred):
 
 class ProcesadorValid(object):
     def __init__(símismo, f_valid, ):
+        pass

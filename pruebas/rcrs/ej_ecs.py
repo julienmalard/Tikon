@@ -33,8 +33,18 @@ class Parám0a2(Parám):
     líms = (0, 2)
 
 
+class ParámA(Parám):
+    nombre = 'a'
+    unids = None
+    líms = (None, None)
+
+
 class EcuaciónSencilla(Ecuación):
     nombre = 'Sencilla'
+    cls_ramas = [ParámA]
+
+    def eval(símismo, paso, sim):
+        pass
 
 
 class EcuaciónReqs(Ecuación):
@@ -48,17 +58,17 @@ class SubcategEc1a(SubcategEc):
 
 class SubcategEc1b(SubcategEc):
     nombre = '1b'
-    cls_ramas = [EcuaciónVacía]
+    cls_ramas = [EcuaciónVacía, EcuaciónSencilla]
 
 
 class SubcategEc2a(SubcategEc):
     nombre = '2a'
-    cls_ramas = [EcuaciónVacía]
+    cls_ramas = [EcuaciónVacía, EcuaciónSencilla]
 
 
 class SubcategEc2b(SubcategEc):
     nombre = '2b'
-    cls_ramas = [EcuaciónVacía]
+    cls_ramas = [EcuaciónVacía, EcuaciónSencilla]
 
 
 class CategEc1(CategEc):
