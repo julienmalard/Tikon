@@ -57,6 +57,14 @@ nada menos, nada más.
 #. Formato estandardizado para guardar y compartir modelos calibrados
 #. Y, por supuesto, gráficos bonitos
 
+¿Qué no es Tiko'n?
+==================
+Tiko'n **no** es, y no intenta(rá) ser:
+
+* Un modelo basado en agentes. Estos modelos toman demasiado poder computacional a las escalas geográficas
+  y temporales y con el nivel de incertidumbre paramétrico y estocástico para los cuales se diseñó Tiko'n.
+* Un modelo con resolución intraparcela. Si quieres más resolución espacial, debes crear parcelas más pequeñas.
+
 Contenido
 =========
 
