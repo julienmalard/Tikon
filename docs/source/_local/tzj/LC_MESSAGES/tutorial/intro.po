@@ -160,14 +160,14 @@ msgstr ""
 #: ../../source/tutorial/intro.rst:101
 msgid ""
 "Ahora vamos a calibrar nuestro modelo. Primero creamos un "
-":class:`~tikon.estruc.simulador.Simulador` para poder correr simulaciones y "
+":class:`~tikon.central.simulador.Simulador` para poder correr simulaciones y "
 "calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
 "módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:105
 msgid ""
-"from tikon.estruc.simulador import Simulador\n"
+"from tikon.central.simulador import Simulador\n"
 "\n"
 "simul = Simulador(red)\n"
 "\n"

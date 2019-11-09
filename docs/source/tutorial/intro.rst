@@ -98,13 +98,13 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
 
 Calibración
 -----------
-Ahora vamos a calibrar nuestro modelo. Primero creamos un :class:`~tikon.estruc.simulador.Simulador` para poder correr
+Ahora vamos a calibrar nuestro modelo. Primero creamos un :class:`~tikon.central.simulador.Simulador` para poder correr
 simulaciones y calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un módulo (la red), pero
 se podrían incluir clima, manejo, o cultivos también.
 
 .. code-block:: python
 
-   from tikon.estruc.simulador import Simulador
+   from tikon.central.simulador import Simulador
 
    simul = Simulador(red)
 

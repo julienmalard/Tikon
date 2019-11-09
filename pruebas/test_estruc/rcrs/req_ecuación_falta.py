@@ -1,5 +1,5 @@
 from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía
-from tikon.estruc import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
+from tikon.central import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
 
 
 class EcuaciónReqFalta(Ecuación):

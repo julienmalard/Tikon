@@ -8,13 +8,13 @@ Aquí sigue una breve introducción a los términos específicos a Tiko'n.
 
 Simulador
 ---------
-Un :class:`~tikon.estruc.simulador.Simulador` es la unidad fundamental de un modelo en Tiko'n. Contiene
-varios módulos (:class:`~tikon.estruc.módulo.Módulo`) que interactuan entre sí mismos.
-Todas simulaciones y calibraciones se efectuan a través de un :class:`~tikon.estruc.simulador.Simulador`.
+Un :class:`~tikon.central.simulador.Simulador` es la unidad fundamental de un modelo en Tiko'n. Contiene
+varios módulos (:class:`~tikon.central.módulo.Módulo`) que interactuan entre sí mismos.
+Todas simulaciones y calibraciones se efectuan a través de un :class:`~tikon.central.simulador.Simulador`.
 
 Módulos
 -------
-Cada :class:`~tikon.estruc.módulo.Módulo` en Tiko'n representa una parte del agroecosistema. Por ejemplo, existen
+Cada :class:`~tikon.central.módulo.Módulo` en Tiko'n representa una parte del agroecosistema. Por ejemplo, existen
 módulos para la red agroecológica, para el clima, para el cultivo y para el manejo humano.
 Los módulos pueden intercambiar valores de variables en el transcurso de una simulación.
 
@@ -26,10 +26,10 @@ automáticamente.
 
 Simulaciones
 ------------
-Se efectuan simulaciones por llamar :func:`~tikon.estruc.simulador.Simulador.simular` con especificaciones
+Se efectuan simulaciones por llamar :func:`~tikon.central.simulador.Simulador.simular` con especificaciones
 de escala temporal, repeticiones paramétricas y estocásticas, y experimento.
-Adentro de cada simulación, el modelo se va a :func:`~tikon.estruc.simulador.Simulador.iniciar`,
-:func:`~tikon.estruc.simulador.Simulador.correr`, y finalmente :func:`~tikon.estruc.simulador.Simulador.cerrar`.
+Adentro de cada simulación, el modelo se va a :func:`~tikon.central.simulador.Simulador.iniciar`,
+:func:`~tikon.central.simulador.Simulador.correr`, y finalmente :func:`~tikon.central.simulador.Simulador.cerrar`.
 
 Resultados
 ----------

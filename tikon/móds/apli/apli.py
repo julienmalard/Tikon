@@ -1,6 +1,6 @@
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import Módulo
-from tikon.estruc.simul import SimulMódulo
+from tikon.central.módulo import Módulo
+from tikon.central.simul import SimulMódulo
 from tikon.móds.apli.res import ResConcentración, ResDescomp, ResMortalidad
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
@@ -22,9 +22,8 @@ class SimulAplicaciones(SimulMódulo):
                 etps_inter.update(símismo.simul_exper[RedAE.nombre].etapas)
             else:
                 raise ValueError(tipo)
-        inter = [[str(etp.org), str(etp)] for etp in etps_inter]
-        if len(inter):
-            return Inter(inter, eje=EJE_ETAPA)
+        if len(etps_inter):
+            return Inter(etps_inter, eje=EJE_ETAPA)
 
 
 class Aplicaciones(Módulo):

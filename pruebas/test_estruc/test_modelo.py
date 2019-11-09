@@ -2,7 +2,8 @@ import unittest
 
 import numpy.testing as npt
 import xarray.testing as xrt
-from tikon.estruc import Modelo
+from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
+from tikon.central import Modelo
 
 from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, req_ecuación_falta, \
     req_ecuación_inter, obt_valor_control, obt_valor_extern, var_con_punto, inic_modelo, obt_valor, poner_valor_extern
@@ -27,23 +28,23 @@ class PruebaModelo(unittest.TestCase):
         Modelo([inic_modelo.Módulo1, inic_modelo.Módulo2()])
 
     def test_módulo_con_punto(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorNombreInválido):
             módulo_con_punto.modelo.simular('módulo con punto', exper=módulo_con_punto.exper, t=10)
 
     def test_var_con_punto(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorNombreInválido):
             var_con_punto.modelo.simular('var con punto', exper=var_con_punto.exper, t=10)
 
     def test_req_modelo_falta(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             req_modelo_falta.modelo.simular('simul modelo falta', exper=req_modelo_falta.exper, t=10)
 
     def test_req_var_falta(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             req_var_falta.modelo.simular('var modelo falta', exper=req_var_falta.exper, t=10)
 
     def test_req_control_falta(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             req_cntrl_falta.modelo.simular('simul modelo falta', exper=req_cntrl_falta.exper, t=10)
 
     @staticmethod
@@ -86,18 +87,18 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         exper = req_ecuación_falta.exper
         coso.activar_ec('categ', 'subcateg', 'req falta')
 
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             modelo.simular('ecuación req falta', exper=exper, t=10)
 
         coso.activar_ec('categ', 'subcateg', 'req controles falta')
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             modelo.simular('ecuación req control falta', exper=exper, t=10)
 
         coso.desactivar_ec('categ')
         modelo.simular('ecuaciones reqs faltan no activadas', exper=exper, t=10)
 
     def test_req_ecuación_inter(símismo):
-        modelo = req_ecuación_inter.modelo
+        modelo = req_ecuación_inter.mi_modelo
         coso1 = req_ecuación_inter.coso1
         coso2 = req_ecuación_inter.coso2
         exper = req_ecuación_inter.exper
@@ -105,7 +106,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         modelo.simular('sin interacciones', exper=exper, t=10)
 
         coso1.interactua_con(coso2)
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorRequísitos):
             modelo.simular('con interacciones', exper=exper, t=10)
 
     def test_obt_valor(símismo):

@@ -4,8 +4,8 @@ from tikon.result.utils import EJE_PARÁMS
 
 
 class MnjdrValsCoefs(object):
-    def __init__(símismo, l_paráms, n_reps):
-        símismo._paráms = {str(pr): pr.gen_matr_parám(sim=sim, n_reps=n_reps) for pr in l_paráms}
+    def __init__(símismo, modelo, mód, l_paráms, n_reps):
+        símismo._paráms = {str(pr): pr.gen_matr_parám(modelo=modelo, mód=mód, n_reps=n_reps) for pr in l_paráms}
 
     def vals_paráms(símismo):
         return [prm for matr in símismo._paráms.values() for prm in matr.vals_paráms()]
@@ -63,7 +63,7 @@ class ValsParámCoso(PlantillaMatrsParáms):
 
     @property
     def coords(símismo):
-        return {símismo.eje: range(símismo.tmñ)}
+        return {símismo.eje: list(range(símismo.tmñ))}
 
     @property
     def val(símismo):
@@ -123,6 +123,9 @@ class Inter(object):
     def __iter__(símismo):
         for i in símismo.itemas:
             yield i
+
+    def __bool__(símismo):
+        return len(símismo.itemas) > 0
 
 
 def _combin_coords(grupo):

@@ -1,4 +1,4 @@
-from tikon.estruc.coso import Coso
+from tikon.central.coso import Coso
 
 from .ecs import EcsProducto
 

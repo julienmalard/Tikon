@@ -1,6 +1,6 @@
 from typing import List
 
-from tikon.estruc.coso import Coso
+from tikon.central.coso import Coso
 from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
 
 from .ecs import EcsOrgs
@@ -155,6 +155,10 @@ class Etapa(Coso):
     def __init__(símismo, nombre, org):
         super().__init__(nombre, EcsOrgs)
         símismo.org = org
+
+    @property
+    def índices_inter(símismo):
+        return [str(símismo.org), str(símismo)]
 
     def presas(símismo):
         return símismo.org.presas(símismo)

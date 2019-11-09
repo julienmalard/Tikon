@@ -1,14 +1,14 @@
 General
 =======
 
-.. autoclass:: tikon.estruc.simulador.Simulador
+.. autoclass:: tikon.central.simulador.Simulador
    :members:
 
-.. autoclass:: tikon.estruc.coso.Coso
+.. autoclass:: tikon.central.coso.Coso
    :members:
 
-.. autoclass:: tikon.estruc.módulo.Módulo
+.. autoclass:: tikon.central.módulo.Módulo
    :members:
 
-.. autoclass:: tikon.estruc.tiempo.Tiempo
+.. autoclass:: tikon.central.tiempo.Tiempo
    :members:

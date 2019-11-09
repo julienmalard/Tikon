@@ -1,4 +1,4 @@
-from tikon.estruc import Coso
+from tikon.central import Coso
 
 from .ej_ecs import EjÁrbol
 

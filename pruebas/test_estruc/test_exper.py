@@ -1,6 +1,6 @@
 import unittest
 
-from tikon.estruc import Exper, Parcela, GrupoParcelas
+from tikon.central import Exper, Parcela, GrupoParcelas
 from tikon.result.utils import EJE_PARC
 
 
