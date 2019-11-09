@@ -31,6 +31,9 @@ class Exper(object):
 
         return gen_tiempo(t)
 
+    def obt_obs(símismo, var):
+        pass
+
 
 def _extract_parcelas(parcelas):
     parcelas = [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas

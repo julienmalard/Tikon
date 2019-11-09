@@ -1,4 +1,5 @@
 import os
+from inspect import isclass
 
 from tikon.calibrador.spotpy_ import EVM
 from tikon.sensib import gen_anlzdr_sensib
@@ -11,8 +12,10 @@ from .simul import Simulación
 class Modelo(object):
 
     def __init__(símismo, módulos):
-        if isinstance(módulos, Módulo):
+        if isinstance(módulos, Módulo) or (isclass(módulos) and issubclass(módulos, Módulo)):
             módulos = [módulos]
+        módulos = [m() if isclass(m) else m for m in módulos]
+
         símismo.módulos = módulos
 
     def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
@@ -20,10 +23,12 @@ class Modelo(object):
         calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
         reps = _gen_reps(reps)
 
-        return Simulación(
+        simul = Simulación(
             nombre=nombre, modelo=símismo, t=t, exper=exper, calibs=calibs, reps=reps,
             vars_interés=vars_interés
-        ).simular()
+        )
+        simul.simular()
+        return simul
 
     def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
 

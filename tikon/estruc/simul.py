@@ -8,9 +8,9 @@ from .exper import Exper
 
 class PlantillaSimul(object):
 
-    def __init__(símismo, nombre, subsimuls):
+    def __init__(símismo, nombre, subs):
         símismo.nombre = nombre
-        símismo._subsimuls = {str(s): s for s in subsimuls}
+        símismo._subs = {str(s): s for s in subs}
 
     def iniciar(símismo):
         for s in símismo:
@@ -50,13 +50,13 @@ class PlantillaSimul(object):
         return {s: símismo[s].a_dic() for s in símismo}
 
     def __contains__(símismo, itema):
-        return str(itema) in símismo._subsimuls
+        return str(itema) in símismo._subs
 
     def __getitem__(símismo, itema):
-        return símismo._subsimuls[str(itema)]
+        return símismo._subs[str(itema)]
 
     def __iter__(símismo):
-        for s in símismo._subsimuls:
+        for s in símismo._subs:
             yield s
 
     def __str__(símismo):
@@ -72,7 +72,7 @@ class Simulación(PlantillaSimul):
 
         super().__init__(
             nombre,
-            subsimuls=[
+            subs=[
                 SimulExper(modelo.módulos, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
                 for exp in exper
             ]
@@ -131,7 +131,7 @@ class SimulExper(PlantillaSimul):
         símismo.reps = reps
         super().__init__(
             nombre=exper.nombre,
-            subsimuls=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in módulos]
+            subs=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in módulos]
         )
 
         símismo.verificar_reqs()
@@ -146,11 +146,11 @@ class SimulExper(PlantillaSimul):
                     otro_mód = símismo[mód_req]
                 except KeyError:
                     raise ValueError(
-                        'Módulo {otro} requerido por módulo {mód} no existe.'.format(otro=mód_req, mód=sim_mód)
+                        'Módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(otro=mód_req, mód=sim_mód)
                     )
                 if var_req not in otro_mód:
                     raise ValueError(
-                        'Variable {var} de módulo {otro} requerido por módulo {mód} no existe.'.format(
+                        'Variable "{var}" de módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(
                             var=var_req, otro=otro_mód, mód=sim_mód
                         )
                     )
@@ -158,7 +158,7 @@ class SimulExper(PlantillaSimul):
             for req in reqs_mód_cntrl:
                 if req not in símismo.exper.controles:
                     raise ValueError(
-                        'Falta requísito {req} de módulo {mód} en experimento {exp}'.format(
+                        'Falta requísito "{req}" de módulo "{mód}" en experimento "{exp}"'.format(
                             req=req, mód=sim_mód, exp=símismo.exper
                         )
                     )
@@ -184,6 +184,7 @@ class SimulMódulo(PlantillaSimul):
         símismo.simul_exper = simul_exper
         símismo.exper = simul_exper.exper
         símismo.ecs = ecs
+        símismo.mód = mód
 
         coords_base = gen_coords_base(
             n_rep_estoc=simul_exper.reps['estoc'], n_rep_paráms=simul_exper.reps['paráms'],
@@ -210,9 +211,12 @@ class SimulMódulo(PlantillaSimul):
 
     def obt_valor_extern(símismo, var, mód=None):
         if not mód:
-            var, mód = var.split('.')
+            mód, var = var.split('.')
 
         return símismo.simul_exper[mód].obt_valor(var)
+
+    def obt_valor_control(símismo, var):
+        return símismo.exper.controles[var]
 
     def poner_valor(símismo, var, val, rel=False):
         if rel:
