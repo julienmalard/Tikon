@@ -25,7 +25,7 @@ class SimulRed(SimulMódulo):
         símismo.orgs = mód.orgs
 
         símismo.víctimas = set(pr for etp in símismo.etapas for pr in etp.presas()).union(
-            set(h for etp in símismo.etapas for h in símismo.huéspedes(etp))
+            set(h for etp in símismo.etapas for h in mód.huéspedes(etp))
         )
 
         símismo.etps_repr = [
@@ -36,7 +36,7 @@ class SimulRed(SimulMódulo):
         ]
 
         símismo.parás_hués = [
-            (etp, símismo.huéspedes(etp), símismo.fantasmas(etp))
+            (etp, mód.huéspedes(etp), símismo.fantasmas(etp))
             for etp in símismo.etapas if isinstance(etp.org, Parasitoide)
         ]
 
@@ -52,34 +52,6 @@ class SimulRed(SimulMódulo):
 
     def requísitos(símismo, controles=False):
         return {req for etp in símismo.etapas for req in etp.requísitos(símismo, controles)}
-
-    def inter(símismo, coso, tipo):
-        if isinstance(tipo, str):
-            tipo = [tipo]
-
-        etps_inter = set()
-        for tp in tipo:
-            if tp == 'presa':
-                etps_inter.update(símismo.presas(coso))
-            elif tp == 'huésped':
-                etps_inter.update(símismo.huéspedes(coso))
-            else:
-                raise ValueError(tipo)
-        inter = [[str(etp.org), str(etp)] for etp in etps_inter]
-        if len(inter):
-            return Inter(inter, eje=EJE_VÍCTIMA)
-
-    def presas(símismo, etp):
-        presas = [pr for pr in etp.presas() if pr in símismo]
-
-        # Incluir los fantasmas de las presas
-        fants_presas = [etp for etp in símismo.etapas if isinstance(etp, EtapaFantasma) and etp.etp_hués in presas]
-
-        return presas + fants_presas
-
-    def huéspedes(símismo, etp):
-        """Huéspedes que pueden ser directamente infectados por parasitoide `etp`."""
-        return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
 
     def fantasmas(símismo, etp):
         return [pr for pr in etp.org.fantasmas() if pr in símismo.etapas]
@@ -141,5 +113,33 @@ class RedAE(Módulo):
         except KeyError:
             raise KeyError('El organismo "{org}" no existía en esta red.'.format(org=org))
 
-    def gen_ecs(símismo, n_reps):
-        return EcsOrgs(cosos=símismo.etapas, n_reps=n_reps)
+    def inter(símismo, modelo, coso, tipo):
+        if isinstance(tipo, str):
+            tipo = [tipo]
+
+        etps_inter = set()
+        for tp in tipo:
+            if tp == 'presa':
+                etps_inter.update(símismo.presas(coso))
+            elif tp == 'huésped':
+                etps_inter.update(símismo.huéspedes(coso))
+            else:
+                raise ValueError(tipo)
+        inter = [[str(etp.org), str(etp)] for etp in etps_inter]
+        if len(inter):
+            return Inter(inter, eje=EJE_VÍCTIMA)
+
+    def presas(símismo, etp):
+        presas = [pr for pr in etp.presas() if pr in símismo]
+
+        # Incluir los fantasmas de las presas
+        fants_presas = [etp for etp in símismo.etapas if isinstance(etp, EtapaFantasma) and etp.etp_hués in presas]
+
+        return presas + fants_presas
+
+    def huéspedes(símismo, etp):
+        """Huéspedes que pueden ser directamente infectados por parasitoide `etp`."""
+        return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
+
+    def gen_ecs(símismo, modelo, n_reps):
+        return EcsOrgs(modelo, cosos=símismo.etapas, n_reps=n_reps)

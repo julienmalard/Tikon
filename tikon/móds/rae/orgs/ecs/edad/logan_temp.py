@@ -37,7 +37,7 @@ class FuncLoganTemperatura(EcuaciónOrg):
     def eval(símismo, paso, sim):
         cf = símismo.cf
 
-        temp_prom = símismo.obt_val_extern(sim, 'clima.temp_prom')
+        temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
         return (np.exp(cf['rho'] * temp_prom) -
                 np.exp(cf['rho'] * cf['t_letal'] - (cf['t_letal'] - temp_prom) / cf['delta'])
                 ) * paso

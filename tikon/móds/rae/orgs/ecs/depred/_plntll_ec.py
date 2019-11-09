@@ -8,7 +8,7 @@ class EcuaciónDepred(EcuaciónOrg):
 
     def dens_pobs(símismo, sim, filtrar=True):
         pobs = símismo.pobs(filtrar)
-        superficies = sim.obt_val_control('superficies')
+        superficies = sim.obt_valor_control('superficies')
         return pobs / superficies
 
     def eval(símismo, paso, sim):

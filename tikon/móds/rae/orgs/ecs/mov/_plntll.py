@@ -10,7 +10,7 @@ class PlantillaEcDifusión(EcuaciónOrg):
 
         atr = sim.calc_atr(paso, sim)
 
-        dsnt = símismo.obt_val_res(sim)
+        dsnt = símismo.obt_valor_res(sim)
         atr_ajust = (atr * d / dsnt).fillna(1)  # Atracción ajustada por distancia. 1 = no atracción neta
 
         probs = atr_ajust / atr_ajust.sum(dim=EJE_DEST)  # Normalizar probabilidades para sumar a 1

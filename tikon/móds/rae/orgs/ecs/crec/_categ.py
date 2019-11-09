@@ -13,11 +13,11 @@ class EcsCrec(CategEcOrg):
     _nombre_res = RES_CREC
 
     def postproc(símismo, paso, sim):
-        crec = símismo.obt_val_res(sim)
+        crec = símismo.obt_valor_res(sim)
         pobs = símismo.pobs(sim)
 
         # Evitar pérdidas de poblaciones superiores a la población.
         crec = np.maximum(crec, -pobs)
 
-        símismo.poner_val_res(sim, val=crec)
+        símismo.poner_valor_res(sim, val=crec)
         símismo.ajust_pobs(sim, pobs=crec)

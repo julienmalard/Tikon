@@ -20,7 +20,7 @@ class LogístPresa(EcuaciónCrec):
     cls_ramas = [K]
 
     def eval(símismo, paso, sim):
-        crec_etps = símismo.obt_val_res(sim)
+        crec_etps = símismo.obt_valor_res(sim)
         pobs_presas = símismo.pobs(sim, filtrar=False)
         pobs = símismo.pobs(sim)
 

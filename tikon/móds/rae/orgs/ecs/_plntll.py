@@ -6,10 +6,10 @@ class CategEcOrg(CategEc):
     _eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
-        return símismo.obt_val_mód(sim, RES_POBS, filtrar=filtrar)
+        return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)
 
     def ajust_pobs(símismo, sim, pobs):
-        símismo.poner_val_mód(sim, var=RES_POBS, val=pobs)
+        símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs)
 
     @property
     def nombre(símismo):
@@ -20,7 +20,7 @@ class SubcategEcOrg(SubcategEc):
     _eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
-        return símismo.obt_val_mód(sim, RES_POBS, filtrar=filtrar)
+        return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)
 
     @property
     def nombre(símismo):
@@ -31,7 +31,7 @@ class EcuaciónOrg(Ecuación):
     _eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
-        return símismo.obt_val_mód(sim, RES_POBS, filtrar=filtrar)
+        return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)
 
     def eval(símismo, paso, sim):
         raise NotImplementedError

@@ -5,8 +5,8 @@ from ._plntll import EcuaciónOrg
 
 class EcuaciónConCohorte(EcuaciónOrg):
 
-    def __init__(símismo, cosos, n_reps, ecs):
-        super().__init__(cosos, n_reps, ecs)
+    def __init__(símismo, modelo, cosos, n_reps, ecs):
+        super().__init__(modelo, cosos, n_reps, ecs)
 
         símismo.dist = None
 
@@ -15,7 +15,7 @@ class EcuaciónConCohorte(EcuaciónOrg):
         símismo.dist = símismo._cls_dist(**símismo._prms_scipy())
 
     def cambio_edad(símismo, sim):
-        return símismo.obt_val_mód(sim, RES_EDAD)
+        return símismo.obt_valor_mód(sim, RES_EDAD)
 
     @staticmethod
     def trans_cohortes(sim, cambio_edad, dist):

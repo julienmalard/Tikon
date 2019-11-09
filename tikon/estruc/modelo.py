@@ -21,7 +21,7 @@ class Modelo(object):
         reps = _gen_reps(reps)
 
         return Simulación(
-            nombre=nombre, módulos=símismo.módulos, t=t, exper=exper, calibs=calibs, reps=reps,
+            nombre=nombre, modelo=símismo, t=t, exper=exper, calibs=calibs, reps=reps,
             vars_interés=vars_interés
         ).simular()
 

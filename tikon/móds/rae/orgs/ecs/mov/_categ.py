@@ -13,8 +13,8 @@ class EcsMov(CategEcOrg):
     _nombre_res = RES_MOV
 
     def postproc(símismo, paso, sim):
-        mov = símismo.obt_val_res(sim).floor()
-        símismo.poner_val_res(sim, mov)
+        mov = símismo.obt_valor_res(sim).floor()
+        símismo.poner_valor_res(sim, mov)
 
         emigr = mov.sum(dim=EJE_DEST)
         imigr = mov.sum(dim=EJE_PARC).rename({EJE_DEST: EJE_PARC})

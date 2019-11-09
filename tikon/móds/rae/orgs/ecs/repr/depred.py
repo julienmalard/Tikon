@@ -18,6 +18,6 @@ class Depred(EcuaciónOrg):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        depred = símismo.obt_val_mód(sim, RES_DEPR)
+        depred = símismo.obt_valor_mód(sim, RES_DEPR)
         pobs = símismo.pobs(sim)  # Paso ya se tomó en cuenta con depredaciones
         return (cf['n'] * depred).sum(dim=EJE_VÍCTIMA) * pobs
