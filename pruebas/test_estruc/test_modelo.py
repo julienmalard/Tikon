@@ -10,7 +10,7 @@ from tikon.result.utils import EJE_TIEMPO
 
 from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, req_ecuación_falta, \
     req_ecuación_inter, obt_valor_control, obt_valor_extern, var_con_punto, inic_modelo, obt_valor, \
-    poner_valor_extern, poner_valor
+    poner_valor_extern, poner_valor, ec_obt_valor
 
 
 class PruebaModelo(unittest.TestCase):
@@ -136,11 +136,12 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def test_postproc_categ(símismo):
         pass
 
-    def test_obt_valor(símismo):
-        pass
-
-    def test_poner_valor(símismo):
-        pass
+    @staticmethod
+    def test_obt_y_poner_valor():
+        modelo = ec_obt_valor.mi_modelo
+        exper = ec_obt_valor.exper
+        res = modelo.simular('ec obt valor', exper, t=10, vars_interés=True)['exper']['módulo']
+        xrt.assert_equal(res['res 1'].datos_t[1:], res['res 2'].datos_t[1:]+1)
 
     def test_obt_valor_control(símismo):
         pass
