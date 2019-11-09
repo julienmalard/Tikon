@@ -49,6 +49,7 @@ class SimulClima(SimulMódulo):
             return ['centroides', 'elevación']
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         diarios = símismo.datos.loc[{EJE_TIEMPO: f}]
         for res in símismo:
             símismo[res].loc[{EJE_TIEMPO: f}] = diarios[str(res)]

@@ -14,23 +14,28 @@ class Tiempo(object):
         símismo._n_pasos = (f_final - f_inic).days // paso
 
         símismo.eje = pd.date_range(f_inic, end=f_final, freq=str(símismo.paso) + 'D')
-        símismo._i = 0
+        símismo.i = 0
 
     def avanzar(símismo):
-        for f in símismo.eje:
-            símismo._i += 1
+        for f in símismo.eje[1:]:
+            símismo.i += 1
             yield f
 
     @property
     def fecha(símismo):
-        return símismo.eje[símismo._i]
+        return símismo.eje[símismo.i]
+
+    @property
+    def í_previo(símismo):
+        if símismo.i != 0:
+            return símismo.eje[símismo.i - 1]
 
     @property
     def n_día(símismo):
-        return símismo._i * símismo.paso
+        return símismo.i * símismo.paso
 
     def reinic(símismo):
-        símismo._i = 0
+        símismo.i = 0
 
     def __len__(símismo):
         return len(símismo.eje)

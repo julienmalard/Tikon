@@ -26,6 +26,7 @@ class SimulManejo(SimulMódulo):
         return {req for rgl in símismo.reglas for req in rgl.requísitos(controles)}
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         for r in símismo.reglas:
             r(sim=símismo, paso=paso, f=f)
 
