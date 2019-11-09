@@ -11,7 +11,6 @@ from tikon.utils import proc_líms
 
 class Resultado(PlantillaSimul):
     líms = None
-    unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
         if '.' in símismo.nombre:
@@ -22,16 +21,18 @@ class Resultado(PlantillaSimul):
         símismo.sim = sim
         símismo.obs = sim.exper.obt_obs(símismo.nombre)
 
-        símismo.t = sim.simul_exper.t if _res_temporal(símismo.nombre, sim.nombre, símismo.obs, vars_interés) else None
+        símismo.t = sim.simul_exper.t if _res_temporal(
+            símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés
+        ) else None
 
         símismo.datos_t = _gen_datos(coords, t=símismo.t)
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]  # Crear enlace dinámico entre resultados diarios y temporales
 
-        super().__init__(símismo.nombre, subsimuls=[])
+        super().__init__(símismo.nombre, subs=[])
 
     @property
     def datos(símismo):
-        return símismo._datos
+        return símismo._datos.drop(EJE_TIEMPO)
 
     @datos.setter
     def datos(símismo, val):
@@ -135,6 +136,10 @@ class Resultado(PlantillaSimul):
     def nombre(símismo):
         raise NotImplementedError
 
+    @property
+    def unids(símismo):
+        raise NotImplementedError
+
     def __str__(símismo):
         return símismo.nombre
 
@@ -151,7 +156,7 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 
 def _gen_datos(coords, t):
     coords = {EJE_TIEMPO: t.eje() if t is not None else [0], **coords}
-    return xr.DataArray(data=0, coords=coords, dims=list(coords))
+    return xr.DataArray(data=0., coords=coords, dims=list(coords))
 
 
 class Resultado0(object):
