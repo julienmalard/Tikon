@@ -1,14 +1,20 @@
-from tikon.estruc import Módulo, SimulMódulo, Exper, Parcela, Modelo
+from tikon.estruc import Módulo, SimulMódulo, Modelo, Exper, Parcela
+from tikon.result.res import Resultado
 
 
-class SimulMóduloNombrePunto(SimulMódulo):
-    pass
+class Res(Resultado):
+    nombre = 'soy.resultado'
+    unids = None
 
 
-class MóduloNombrePunto(Módulo):
-    nombre = 'Tengo.un.Punto'
-    cls_simul = SimulMóduloNombrePunto
+class SimulMóduloVarPunto(SimulMódulo):
+    resultados = [Res]
+
+
+class MóduloVarPunto(Módulo):
+    nombre = 'módulo'
+    cls_simul = SimulMóduloVarPunto
 
 
 exper = Exper('exper', Parcela('parcela'))
-modelo = Modelo([MóduloNombrePunto()])
+modelo = Modelo(MóduloVarPunto())
