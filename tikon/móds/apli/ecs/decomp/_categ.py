@@ -19,6 +19,6 @@ class EcsDescomp(CategEc):
     _nombre_res = RES_DESCOMP
 
     def postproc(símismo, paso, sim):
-        descomp = símismo.obt_val_res(sim)
+        descomp = símismo.obt_valor_res(sim)
 
-        símismo.poner_val_mód(sim, RES_CONC, -descomp, rel=True)
+        símismo.poner_valor_mód(sim, RES_CONC, -descomp, rel=True)

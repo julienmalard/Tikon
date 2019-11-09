@@ -25,8 +25,8 @@ class EcsRepr(CategEcOrg):
 
     def postproc(símismo, paso, sim):
         # Agregar las reproducciones a las poblaciones
-        reprod = símismo.obt_val_res(sim).round()
+        reprod = símismo.obt_valor_res(sim).round()
         reprod[EJE_ETAPA] = sim.etps_repr
-        símismo.poner_val_res(sim, reprod)
+        símismo.poner_valor_res(sim, reprod)
 
         símismo.ajust_pobs(sim, reprod)

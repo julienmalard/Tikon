@@ -18,11 +18,11 @@ class EcsEstoc(CategEcOrg):
     _nombre_res = RES_ESTOC
 
     def postproc(símismo, paso, sim):
-        estoc = símismo.obt_val_res(sim)
+        estoc = símismo.obt_valor_res(sim)
         pobs = símismo.pobs(sim)
 
         # Verificar que no quitemos más que existen
         estoc = estoc.where(-estoc < pobs, -pobs)
 
-        símismo.poner_val_res(sim, estoc)
+        símismo.poner_valor_res(sim, estoc)
         símismo.ajust_pobs(sim, estoc)

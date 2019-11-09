@@ -19,10 +19,10 @@ class LogístDepred(EcuaciónCrec):
     cls_ramas = [K]
 
     def eval(símismo, paso, sim):
-        crec_etps = símismo.obt_val_res(sim)
+        crec_etps = símismo.obt_valor_res(sim)
         pobs_etps = símismo.pobs(sim)
 
-        depred = símismo.obt_val_mód(sim, var=RES_DEPR)  # La depredación por estas etapas
+        depred = símismo.obt_valor_mód(sim, var=RES_DEPR)  # La depredación por estas etapas
 
         k = (depred * símismo.cf['K']).sum(dim=EJE_VÍCTIMA)  # Calcular la capacidad de carga
         return crec_etps * (pobs_etps * (1 - pobs_etps / k))  # Ecuación logística sencilla

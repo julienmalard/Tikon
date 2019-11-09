@@ -16,5 +16,5 @@ class Linear(EcuaciónOrg):
     _nombre_res = RES_TRANS
 
     def eval(símismo, paso, sim):
-        trans = símismo.obt_val_res(sim)
+        trans = símismo.obt_valor_res(sim)
         return (símismo.cf['a'] * trans).round()

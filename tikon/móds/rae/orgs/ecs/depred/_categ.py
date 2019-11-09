@@ -28,13 +28,10 @@ class EcsDepred(CategEcOrg):
     cls_ramas = [EcDepred]
     _nombre_res = RES_DEPR
 
-    def __init__(símismo, cosos, n_reps, ecs):
-        super().__init__(cosos, n_reps, ecs)
-
     def postproc(símismo, paso, sim):
         cohortes = sim[RES_COHORTES]
 
-        depred = símismo.obt_val_res(sim)
+        depred = símismo.obt_valor_res(sim)
 
         # Reemplazar valores NaN con 0.
         depred = depred.fillna(0)
@@ -43,7 +40,7 @@ class EcsDepred(CategEcOrg):
         depred = depred.where(depred > 0, 0)
 
         # Ajustar por superficies
-        superficies = sim.obt_val_control('superficies')
+        superficies = sim.obt_valor_control('superficies')
         depred = depred * superficies
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
@@ -57,7 +54,7 @@ class EcsDepred(CategEcOrg):
         depred = np.floor(depred.fillna(0))
 
         # Guardar la depredación final
-        símismo.poner_val_res(sim, depred)
+        símismo.poner_valor_res(sim, depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
         depred_por_presa = depred.sum(dim=EJE_ETAPA)

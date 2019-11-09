@@ -38,7 +38,7 @@ class FuncBrièreTemperatura(EcuaciónOrg):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        temp_prom = símismo.obt_val_extern(sim, 'clima.temp_prom')
+        temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
 
         return (temp_prom * (temp_prom - cf['t_dev_mín']) * np.sqrt(cf['t_letal'] - temp_prom)) * paso
 

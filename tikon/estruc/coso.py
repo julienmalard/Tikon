@@ -20,8 +20,8 @@ class Coso(object):
     def desactivar_ec(símismo, categ, subcateg=None):
         símismo.ecs.desactivar_ec(categ=categ, subcateg=subcateg)
 
-    def categ_activa(símismo, categ, sim_mód):
-        return símismo.ecs[categ].verificar_activa(sim_mód)
+    def categ_activa(símismo, categ, modelo):
+        return símismo.ecs[categ].verificar_activa(modelo)
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)

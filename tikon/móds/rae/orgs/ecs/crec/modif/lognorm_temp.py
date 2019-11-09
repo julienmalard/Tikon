@@ -21,7 +21,7 @@ class LogNormTemp(EcuaciónOrg):
 
     def eval(símismo, paso, sim):
         # r responde a la temperatura con una ecuación log normal.
-        temp_máx = sim.obt_val_extern('clima.temp_máx')
+        temp_máx = sim.obt_valor_extern('clima.temp_máx')
         cf = símismo.cf
 
         return cf['r'] * paso * np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2)

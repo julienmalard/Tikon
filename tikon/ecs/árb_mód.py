@@ -9,18 +9,20 @@ class PlantillaRamaEc(object):
     _nombre_res = NotImplemented
     _eje_cosos = NotImplemented
 
-    def __init__(símismo, cosos, n_reps, ecs):
+    def __init__(símismo, modelo, cosos, n_reps, ecs):
 
         símismo.cosos = cosos
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
-            ramas_ecs = [ec[rm.nombre] for ec in ecs]
-            activos = [rm_ec for rm_ec in ramas_ecs if rm_ec.verificar_activa(sim_mód=mód)]
+            activos = list(zip(*[
+                (ec[rm.nombre], coso) for ec, coso in zip(ecs, cosos) if ec[rm.nombre].verificar_activa(modelo=modelo)
+            ]))
             if activos:
-                í_cosos_rm, ecs_rm = activos
-                cosos_rm = [cs for í, cs in enumerate(cosos) if í in í_cosos_rm]
-                símismo._ramas[rm.nombre] = rm(cosos_rm, n_reps=n_reps, ecs=ecs_rm)
+                símismo._ramas[rm.nombre] = rm(modelo, activos[1], n_reps=n_reps, ecs=activos[0])
+
+    def requísitos(símismo, controles=False):
+        return {req for rm in símismo for req in (rm.requísitos(controles) or set())}
 
     def vals_paráms(símismo):
         return {pr for rm in símismo for pr in rm.vals_paráms()}
@@ -38,35 +40,35 @@ class PlantillaRamaEc(object):
         for rm in símismo:
             rm.act_vals()
 
-    def obt_val_res(símismo, sim, filtrar=True):
-        return símismo.obt_val_mód(sim, var=símismo._nombre_res, filtrar=filtrar)
+    def obt_valor_res(símismo, sim, filtrar=True):
+        return símismo.obt_valor_mód(sim, var=símismo._nombre_res, filtrar=filtrar)
 
-    def obt_val_mód(símismo, sim, var, filtrar=True):
+    def obt_valor_mód(símismo, sim, var, filtrar=True):
         if filtrar:
             return sim.obt_valor(var).loc[{símismo._eje_cosos: símismo.cosos}]
         return sim.obt_valor(var)
 
-    def poner_val_res(símismo, sim, val, rel=False):
+    def poner_valor_res(símismo, sim, val, rel=False):
         sim.poner_valor(símismo._nombre_res, val=val, rel=rel)
 
     @staticmethod
-    def poner_val_mód(sim, var, val, rel=False):
+    def poner_valor_mód(sim, var, val, rel=False):
         sim.poner_valor(var, val, rel=rel)
 
     @staticmethod
-    def poner_val_extern(sim, var, val, mód=None, rel=False):
-        if not mód:
-            mód, var = var.split('.')
-        return sim.simul_exper[mód].poner_valor(var, val, rel=rel)
-
-    @staticmethod
-    def obt_val_extern(sim, var, mód=None):
+    def obt_valor_extern(sim, var, mód=None):
         if not mód:
             mód, var = var.split('.')
         return sim.simul_exper[mód].obt_valor(var)
 
     @staticmethod
-    def obt_val_control(sim, var):
+    def poner_valor_extern(sim, var, val, mód=None, rel=False):
+        if not mód:
+            mód, var = var.split('.')
+        return sim.simul_exper[mód].poner_valor(var, val, rel=rel)
+
+    @staticmethod
+    def obt_valor_control(sim, var):
         return sim.exper.controles[var]
 
     @classmethod
@@ -96,8 +98,8 @@ class PlantillaRamaEc(object):
 class ÁrbolEcs(PlantillaRamaEc):
     _cls_en_coso = ÁrbolEcsCoso
 
-    def __init__(símismo, cosos, n_reps):
-        super().__init__(cosos, n_reps=n_reps, ecs=[coso.ecs for coso in cosos])
+    def __init__(símismo, modelo, cosos, n_reps):
+        super().__init__(modelo, cosos=cosos, n_reps=n_reps, ecs=[coso.ecs for coso in cosos])
 
     def cosos_en_categ(símismo, categ):
         if categ in símismo:
@@ -113,8 +115,8 @@ class ÁrbolEcs(PlantillaRamaEc):
 class CategEc(PlantillaRamaEc):
     _cls_en_coso = CategEcCoso
 
-    def obt_val_res(símismo, sim, filtrar=False):
-        return super().obt_val_res(sim=sim, filtrar=filtrar)
+    def obt_valor_res(símismo, sim, filtrar=False):
+        return super().obt_valor_res(sim=sim, filtrar=filtrar)
 
     @property
     def nombre(símismo):
@@ -128,7 +130,7 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso)
             if res is not None:
-                símismo.poner_val_res(sim, res)
+                símismo.poner_valor_res(sim, res)
 
         símismo.postproc(paso, sim=sim)
 
@@ -140,8 +142,8 @@ class SubcategEc(PlantillaRamaEc):
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
 
-    def __init__(símismo, cosos, n_reps, ecs):
-        super().__init__(cosos, n_reps, ecs=ecs)
+    def __init__(símismo, modelo, cosos, n_reps, ecs):
+        super().__init__(modelo, cosos, n_reps, ecs=ecs)
         símismo.cf = MnjdrValsCoefs(símismo._ramas.values(), n_reps=n_reps)
 
     def act_vals(símismo):
@@ -180,9 +182,9 @@ class Parám(PlantillaRamaEc):
     cls_ramas = []
     apriori = None
 
-    def __init__(símismo, cosos, n_reps, ecs):
+    def __init__(símismo, modelo, cosos, n_reps, ecs):
         símismo._prms_cosos = ecs
-        super().__init__(cosos, n_reps, ecs=ecs)
+        super().__init__(modelo, cosos, n_reps, ecs=ecs)
 
     def obt_inter(símismo, sim, coso):
         if símismo.inter:

@@ -64,16 +64,16 @@ class PlantillaSimul(object):
 
 
 class Simulación(PlantillaSimul):
-    def __init__(símismo, nombre, módulos, exper, t, calibs, reps, vars_interés):
+    def __init__(símismo, nombre, modelo, exper, t, calibs, reps, vars_interés):
 
         exper = [exper] if isinstance(exper, Exper) else exper
 
-        símismo.ecs = {m: m.gen_ecs(n_reps=reps['paráms']) for m in módulos}
+        símismo.ecs = {m: m.gen_ecs(modelo, n_reps=reps['paráms']) for m in modelo.módulos}
 
         super().__init__(
             nombre,
             subsimuls=[
-                SimulExper(módulos, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
+                SimulExper(modelo.módulos, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
                 for exp in exper
             ]
         )
@@ -88,7 +88,7 @@ class Simulación(PlantillaSimul):
     def iniciar(símismo):
         for ecs in símismo.ecs.values():
             if ecs:
-                ecs.act_coefs()
+                ecs.act_vals()
 
         super().iniciar()
 
@@ -193,7 +193,7 @@ class SimulMódulo(PlantillaSimul):
         super().__init__(mód.nombre, objs_res)
 
     def gen_paráms(símismo):
-        return símismo.ecs.vals_paráms()
+        return símismo.ecs.vals_paráms() if símismo.ecs else []
 
     def iniciar(símismo):
         pass
@@ -205,21 +205,26 @@ class SimulMódulo(PlantillaSimul):
     def cerrar(símismo):
         pass
 
+    def obt_valor(símismo, var):
+        return símismo[var].datos
+
+    def obt_valor_extern(símismo, var, mód=None):
+        if not mód:
+            var, mód = var.split('.')
+
+        return símismo.simul_exper[mód].obt_valor(var)
+
     def poner_valor(símismo, var, val, rel=False):
         if rel:
             símismo[var].datos += val
         else:
             símismo[var].datos = val
 
-    def obt_valor(símismo, var):
-        return símismo[var].datos
-
-    def obt_valor_extern(símismo, var, mód):
-        return símismo.simul_exper[mód].obt_valor(var)
-
-    def inter(símismo, coso, tipo):
-        pass
+    def poner_valor_extern(símismo, var, val, mód=None, rel=False):
+        if not mód:
+            mód, var = var.split('.')
+        return símismo.simul_exper[mód].poner_valor(var, val, rel=rel)
 
     def requísitos(símismo, controles=False):
         if símismo.ecs:
-            return símismo.ecs.requísitos(sim=símismo, controles=controles)
+            return símismo.ecs.requísitos(controles=controles)

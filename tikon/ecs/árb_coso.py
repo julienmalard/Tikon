@@ -10,8 +10,8 @@ class PlantillaRamaEcCoso(object):
         símismo.cls_pariente = cls_pariente
         símismo._ramas = {str(r): r for r in ramas}
 
-    def verificar_activa(símismo, sim_mód):
-        return any(rm.verificar_activa(sim_mód) for rm in símismo)
+    def verificar_activa(símismo, modelo):
+        return any(rm.verificar_activa(modelo) for rm in símismo)
 
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
@@ -28,9 +28,6 @@ class PlantillaRamaEcCoso(object):
     def renombrar_calib(símismo, nombre, nuevo):
         for r in símismo:
             r.renombrar_calib(nombre, nuevo)
-
-    def requísitos(símismo, controles=False):
-        return {req for rm in símismo for req in rm.requísitos(controles) if rm.verificar_activa(sim_mód)}
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -88,8 +85,8 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
         símismo._activada.activada = True
 
-    def verificar_activa(símismo, sim_mód):
-        return símismo.ec_activa().verificar_activa(sim_mód)
+    def verificar_activa(símismo, modelo):
+        return símismo.ec_activa().verificar_activa(modelo)
 
     def activar_ec(símismo, ec):
         try:
@@ -115,11 +112,11 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         super().__init__(cls_pariente, ramas, coso)
         símismo.activada = False
 
-    def verificar_activa(símismo, sim_mód):
+    def verificar_activa(símismo, modelo):
         if símismo.activada and str(símismo) != 'Nada':
             inters = símismo.cls_pariente.inter()
             if inters:
-                return all(sim_mód.inter(símismo.coso, tipo=intr) for intr in inters)
+                return all(modelo.inter(símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
 
@@ -137,7 +134,7 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
 
-    def verificar_activa(símismo, sim_mód):
+    def verificar_activa(símismo, modelo):
         return True  # Parámetros de una ecuación activa siempre están activados.
 
     def agregar_calib(símismo, id_cal, dist, inter=None):

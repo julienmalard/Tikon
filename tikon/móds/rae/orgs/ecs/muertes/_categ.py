@@ -37,8 +37,8 @@ class EcsMuerte(CategEcOrg):
         """
 
         pobs = símismo.pobs(sim)
-        q = símismo.obt_val_res(sim)
+        q = símismo.obt_valor_res(sim)
         muertes = (pobs * (1 - (1 - q) ** paso)).round()
 
-        símismo.poner_val_res(sim, val=muertes)
+        símismo.poner_valor_res(sim, val=muertes)
         símismo.ajust_pobs(sim, -muertes)

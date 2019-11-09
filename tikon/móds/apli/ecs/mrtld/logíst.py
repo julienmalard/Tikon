@@ -23,6 +23,6 @@ class Logística(Ecuación):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        conc = símismo.obt_val_res(sim)
+        conc = símismo.obt_valor_res(sim)
 
         return 1 / (1 + np.exp(-cf['b'] * (conc - cf['a'])))

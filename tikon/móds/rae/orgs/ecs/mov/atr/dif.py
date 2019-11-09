@@ -14,7 +14,7 @@ class DifusiónAleatoria(PlantillaEcDifusión):
     cls_ramas = [D]
 
     def calc_atr(símismo, paso, sim):
-        superficies = símismo.obt_val_control(sim, 'superficies')
+        superficies = símismo.obt_valor_control(sim, 'superficies')
         pobs = símismo.pobs(sim)
         ratio = pobs / superficies
         return ratio / ratio.rename({EJE_PARC: EJE_DEST})

@@ -16,6 +16,6 @@ class DecaiExp(Ecuación):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        conc = símismo.obt_val_res(sim)
+        conc = símismo.obt_valor_res(sim)
         λ = mat.log(2) / cf['t50']
         return conc * (1 - np.exp(-λ * paso))

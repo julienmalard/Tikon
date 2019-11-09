@@ -45,7 +45,7 @@ class LogNormTemp(EcuaciónOrg):
     def eval(símismo, paso, sim):
         cf = símismo.cf
 
-        t_máx = símismo.obt_val_extern(sim, 'clima.temp_máx')
+        t_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
         sobrevivencia = cf['k'] * np.exp(-0.5 * (np.log(t_máx / cf['t']) / cf['rho']) ** 2)
 
         return 1 - sobrevivencia

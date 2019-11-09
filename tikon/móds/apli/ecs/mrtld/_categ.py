@@ -14,10 +14,10 @@ class EcuaciónMortalidad(SubcategEc):
     _eje_cosos = EJE_PRODUCTO
 
     def postproc(símismo, paso, sim):
-        mortalidad = símismo.obt_val_res(sim)
+        mortalidad = símismo.obt_valor_res(sim)
         sobrevivencia = 1 - mortalidad
         mortalidad_final = 1 - sobrevivencia ** paso
-        símismo.poner_val_res(sim, mortalidad_final)
+        símismo.poner_valor_res(sim, mortalidad_final)
 
 
 class EcsMortalidad(CategEc):
@@ -25,6 +25,6 @@ class EcsMortalidad(CategEc):
     cls_ramas = [EcuaciónMortalidad]
 
     def postproc(símismo, paso, sim):
-        mortalidad = símismo.obt_val_res(sim)
-        pobs = símismo.obt_val_extern(sim, RES_POBS, mód=RedAE.nombre)
-        símismo.poner_val_extern(sim, var=RES_POBS, val=pobs * mortalidad)
+        mortalidad = símismo.obt_valor_res(sim)
+        pobs = símismo.obt_valor_extern(sim, RES_POBS, mód=RedAE.nombre)
+        símismo.poner_valor_extern(sim, var=RES_POBS, val=pobs * mortalidad)

@@ -4,6 +4,7 @@ from tikon.estruc.coso import Coso
 
 
 class Módulo(object):
+    cls_ecs = None
 
     def __init__(símismo, cosos=None):
 
@@ -13,8 +14,9 @@ class Módulo(object):
 
         símismo._cosos = {str(c): c for c in cosos}
 
-    def gen_ecs(símismo, n_reps):
-        pass
+    def gen_ecs(símismo, mód, n_reps):
+        if símismo.cls_ecs:
+            return símismo.cls_ecs(mód, cosos=list(símismo._cosos.values()), n_reps=n_reps)
 
     def guardar_calibs(símismo, directorio=''):
         for c in símismo:
@@ -26,6 +28,9 @@ class Módulo(object):
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
+
+    def inter(símismo, modelo, coso, tipo):
+        pass
 
     @property
     def nombre(símismo):

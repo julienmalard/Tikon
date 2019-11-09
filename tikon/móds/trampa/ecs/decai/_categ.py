@@ -19,6 +19,6 @@ class EcsDecai(CategEc):
     _nombre_res = RES_DECAI
 
     def postproc(símismo, paso, sim):
-        decai = símismo.obt_val_res(sim)
+        decai = símismo.obt_valor_res(sim)
 
-        símismo.poner_val_mód(sim, RES_PODER, -decai, rel=True)
+        símismo.poner_valor_mód(sim, RES_PODER, -decai, rel=True)

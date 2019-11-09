@@ -24,8 +24,8 @@ class PlantillaFuncDíasGrados(EcuaciónOrg):
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        temp_máx = símismo.obt_val_extern(sim, 'clima.temp_máx')
-        temp_mín = símismo.obt_val_extern(sim, 'clima.temp_mín')
+        temp_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
+        temp_mín = símismo.obt_valor_extern(sim, 'clima.temp_mín')
         return días_grados(temp_máx, temp_mín, umbrales=(cf['mín'], cf['máx']), **símismo._args()) * paso
 
     def requísitos(símismo, controles=False):

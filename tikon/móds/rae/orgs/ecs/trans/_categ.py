@@ -11,10 +11,10 @@ class EcsTrans(CategEcOrg):
     _nombre_res = RES_TRANS
 
     def postproc(símismo, paso, sim):
-        trans = símismo.obt_val_res(sim).floor()  # Redondear las transiciones calculadas
+        trans = símismo.obt_valor_res(sim).floor()  # Redondear las transiciones calculadas
 
         # Quitar los organismos que transicionaron
-        símismo.poner_val_res(sim, trans)
+        símismo.poner_valor_res(sim, trans)
         símismo.ajust_pobs(sim, -trans)
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
