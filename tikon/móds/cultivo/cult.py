@@ -26,8 +26,10 @@ class SimulCultivo(SimulMódulo):
     def iniciar(símismo):
         for s in símismo.simuls_parcelas:
             s.iniciar()
+        super().iniciar()
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         símismo.aplicar_daño()
         for s in símismo.simuls_parcelas:
             s.incrementar(paso, f)
@@ -48,13 +50,10 @@ class SimulCultivo(SimulMódulo):
     def cerrar(símismo):
         for s in símismo.simuls_parcelas:
             s.cerrar()
+        super().cerrar()
 
     def requísitos(símismo, controles=False):
         return {req for prc in símismo for req in símismo[prc].requísitos(controles)}
-
-    def __iter__(símismo):
-        for prc in símismo.simuls_parcelas:
-            yield prc
 
 
 class Cultivo(Módulo):

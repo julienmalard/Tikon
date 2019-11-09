@@ -197,15 +197,10 @@ class SimulMódulo(PlantillaSimul):
     def gen_paráms(símismo):
         return símismo.ecs.vals_paráms() if símismo.ecs else []
 
-    def iniciar(símismo):
-        pass
-
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         if símismo.ecs:
             símismo.ecs.eval(paso=paso, sim=símismo)
-
-    def cerrar(símismo):
-        pass
 
     def obt_valor(símismo, var):
         return símismo[var].datos

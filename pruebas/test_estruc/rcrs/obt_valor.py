@@ -18,6 +18,7 @@ class SimulMóduloCntrl(SimulMódulo):
     resultados = [Res1, Res2]
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         símismo.poner_valor('res 1', math.pi)
         val_1 = símismo.obt_valor('res 1')
         símismo.poner_valor('res 2', val_1)

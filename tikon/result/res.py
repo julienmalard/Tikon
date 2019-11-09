@@ -49,6 +49,7 @@ class Resultado(PlantillaSimul):
     def incrementar(símismo, paso, f):
         if símismo.t is not None:
             símismo._datos = símismo.datos_t[{EJE_TIEMPO: símismo.t.i}]
+            símismo._datos[:] = símismo.datos_t[{EJE_TIEMPO: símismo.t.i - 1}]
 
     def cerrar(símismo):
         pass
@@ -156,7 +157,7 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 
 
 def _gen_datos(coords, t):
-    coords = {EJE_TIEMPO: t.eje() if t is not None else [0], **coords}
+    coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
     return xr.DataArray(data=0., coords=coords, dims=list(coords))
 
 

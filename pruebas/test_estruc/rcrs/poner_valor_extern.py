@@ -17,6 +17,7 @@ class SimulMódulo1(SimulMódulo):
 
 class SimulMódulo2(SimulMódulo):
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         símismo.poner_valor_extern('módulo 1.res 1', const)
 
 

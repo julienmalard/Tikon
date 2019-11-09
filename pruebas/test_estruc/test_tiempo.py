@@ -57,17 +57,17 @@ class PruebaGenerarTiempo(unittest.TestCase):
 
 class PruebaFuncionalidadTiempo(unittest.TestCase):
     def test_avanzar(símismo):
-        t = Tiempo('2000/01/01', '2000/01/31')
+        t = Tiempo('2000/01/01', '2000/02/01')
         fechas, n_días = zip(*[(f, t.n_día) for f in t.avanzar()])
-        pdt.assert_index_equal(pd.Index(fechas), t.eje)
+        pdt.assert_index_equal(pd.Index(fechas), t.eje[1:])
         npt.assert_equal(np.array(n_días), np.arange(1, 32))
 
     def test_paso(símismo):
-        t = Tiempo('2000/01/01', '2000/01/31', paso=2)
+        t = Tiempo('2000/01/01', '2000/02/01', paso=2)
         pdt.assert_index_equal(t.eje, pd.date_range('2000/01/01', '2000/01/31', freq='2D'))
         fechas, n_días = zip(*[(f, t.n_día) for f in t.avanzar()])
-        pdt.assert_index_equal(pd.Index(fechas), t.eje)
-        npt.assert_equal(np.array(n_días), np.arange(1, 17) * 2)
+        pdt.assert_index_equal(pd.Index(fechas), t.eje[1:])
+        npt.assert_equal(np.array(n_días), np.arange(1, 16) * 2)
 
     def test_reinic(símismo):
         t = Tiempo('2000/01/01', '2000/01/31')

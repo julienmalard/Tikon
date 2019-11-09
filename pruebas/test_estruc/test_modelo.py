@@ -1,12 +1,16 @@
 import unittest
 
+import numpy as np
 import numpy.testing as npt
+import xarray as xr
 import xarray.testing as xrt
-from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central import Modelo
+from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
+from tikon.result.utils import EJE_TIEMPO
 
 from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, req_ecuación_falta, \
-    req_ecuación_inter, obt_valor_control, obt_valor_extern, var_con_punto, inic_modelo, obt_valor, poner_valor_extern
+    req_ecuación_inter, obt_valor_control, obt_valor_extern, var_con_punto, inic_modelo, obt_valor, \
+    poner_valor_extern, poner_valor
 
 
 class PruebaModelo(unittest.TestCase):
@@ -54,6 +58,23 @@ class PruebaModelo(unittest.TestCase):
         exper.controles['var'] = 2
         res_mód = modelo.simular('valor control', exper=exper, t=10)['exper']['módulo']
         xrt.assert_equal(res_mód['res 1'].datos, res_mód['res 2'].datos)
+
+    def test_poner_valor(símismo):
+        modelo = poner_valor.modelo
+        modelo_rel = poner_valor.modelo_rel
+        exper = poner_valor.exper
+        with símismo.subTest(relativo=False):
+            res = modelo.simular('valor control', exper=exper, t=10, vars_interés=True)
+            npt.assert_equal(res['exper']['módulo']['res'].datos.values, 1)
+        with símismo.subTest(relativo=True):
+            res = modelo_rel.simular('valor control', exper=exper, t=10, vars_interés=True)
+            datos_res = res['exper']['módulo']['res'].datos_t
+            xrt.assert_equal(
+                datos_res,
+                xr.DataArray(
+                    np.arange(11), coords={EJE_TIEMPO: datos_res[EJE_TIEMPO]}, dims=EJE_TIEMPO
+                ).broadcast_like(datos_res)
+            )
 
     @staticmethod
     def test_obt_valor_control():
@@ -109,10 +130,16 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         with símismo.assertRaises(ErrorRequísitos):
             modelo.simular('con interacciones', exper=exper, t=10)
 
+    def test_postproc_subcateg(símismo):
+        pass
+
+    def test_postproc_categ(símismo):
+        pass
+
     def test_obt_valor(símismo):
         pass
 
-    def test_postproc(símismo):
+    def test_poner_valor(símismo):
         pass
 
     def test_obt_valor_control(símismo):

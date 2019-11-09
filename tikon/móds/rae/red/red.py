@@ -58,6 +58,7 @@ class SimulRed(SimulMódulo):
 
     def iniciar(símismo):
         símismo[RES_COHORTES].agregar(símismo[RES_POBS].valores())
+        super().iniciar()
 
     def poner_valor(símismo, var, val, rel=False):
         if var == RES_POBS:

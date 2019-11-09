@@ -11,6 +11,7 @@ class SimulMóduloCntrl(SimulMódulo):
     resultados = [Res]
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         val_cntrl = símismo.obt_valor_control('var')
         símismo.poner_valor('res', val_cntrl)
 

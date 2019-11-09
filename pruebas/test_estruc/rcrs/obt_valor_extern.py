@@ -11,6 +11,7 @@ class SimulMódulo1(SimulMódulo):
     resultados = [Res1]
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         símismo.poner_valor('res 1', 2)
 
 
@@ -23,6 +24,7 @@ class SimulMódulo2(SimulMódulo):
     resultados = [Res2]
 
     def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
         val = símismo.obt_valor_extern('módulo 1.res 1')
         símismo.poner_valor('res 2', val)
 
