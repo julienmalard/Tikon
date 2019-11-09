@@ -21,7 +21,8 @@ class PlantillaRamaEc(object):
             ]))
             if activos:
                 ecs_activos, cosos_activos = activos
-                símismo._ramas[rm.nombre] = rm(modelo, mód, cosos_activos, n_reps=n_reps, ecs=ecs_activos)
+                # convertir tuple a lista abajo es necesario para xr.DataArray.loc después
+                símismo._ramas[rm.nombre] = rm(modelo, mód, list(cosos_activos), n_reps=n_reps, ecs=list(ecs_activos))
 
     def requísitos(símismo, controles=False):
         return {req for rm in símismo for req in (rm.requísitos(controles) or set())}
@@ -130,7 +131,7 @@ class SubcategEc(PlantillaRamaEc):
 
     def eval(símismo, paso, sim):
         for ec in símismo._ramas.values():
-            res = ec.eval(paso)
+            res = ec.eval(paso, sim)
             if res is not None:
                 símismo.poner_valor_res(sim, res)
 
