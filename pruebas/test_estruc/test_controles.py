@@ -1,6 +1,6 @@
 import unittest
 
-from tikon.estruc import ControlesExper, Parcela
+from tikon.central import ControlesExper, Parcela
 
 
 class PruebaControlesExper(unittest.TestCase):

@@ -32,7 +32,7 @@ En más detalles, Tiko'n:
 ```python
 from tikon.móds.rae import RedAE
 from tikon.móds.rae import MetamCompleta, Parasitoide
-from tikon.estruc.modelo import Simulador
+from tikon.central.modelo import Simulador
 
 # Crear los insectos
 oruga = MetamCompleta('oruga', njuvenil=3)

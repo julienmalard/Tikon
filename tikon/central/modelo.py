@@ -86,9 +86,9 @@ class Modelo(object):
 
 def _gen_reps(reps, calib=False):
     if calib:
-        base = {'paráms': 15, 'estoc': 5}
-    else:
         base = {'paráms': 1, 'estoc': 30}
+    else:
+        base = {'paráms': 15, 'estoc': 5}
     if reps is None:
         return base
     if isinstance(reps, int):

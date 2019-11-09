@@ -1,8 +1,8 @@
 import numpy as np
 import xarray as xr
 from tikon.ecs.paráms import Inter
-from tikon.estruc.módulo import Módulo
-from tikon.estruc.simul import SimulMódulo
+from tikon.central.módulo import Módulo
+from tikon.central.simul import SimulMódulo
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from tikon.móds.rae.orgs.insectos import Parasitoide
 from tikon.móds.rae.red.res.cohortes import ResCohortes
@@ -92,6 +92,7 @@ class SimulRed(SimulMódulo):
 class RedAE(Módulo):
     nombre = 'red'
     cls_simul = SimulRed
+    eje_coso = EJE_ETAPA
 
     def __init__(símismo, orgs=None):
         super().__init__(cosos=orgs)
@@ -141,5 +142,5 @@ class RedAE(Módulo):
         """Huéspedes que pueden ser directamente infectados por parasitoide `etp`."""
         return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
 
-    def gen_ecs(símismo, modelo, n_reps):
-        return EcsOrgs(modelo, cosos=símismo.etapas, n_reps=n_reps)
+    def gen_ecs(símismo, modelo, mód, n_reps):
+        return EcsOrgs(modelo, mód, cosos=símismo.etapas, n_reps=n_reps)

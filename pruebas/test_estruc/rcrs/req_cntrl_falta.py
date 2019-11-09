@@ -1,4 +1,4 @@
-from tikon.estruc import Módulo, SimulMódulo, Modelo, Exper, Parcela
+from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela
 
 
 class SimulMóduloCntrlFalta(SimulMódulo):

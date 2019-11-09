@@ -1,5 +1,5 @@
-from tikon.estruc.módulo import Módulo
-from tikon.estruc.simul import SimulMódulo
+from tikon.central.módulo import Módulo
+from tikon.central.simul import SimulMódulo
 from tikon.móds.clima.clima import Clima
 from tikon.móds.cultivo.res import RES_BIOMASA
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno

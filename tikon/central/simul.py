@@ -1,6 +1,7 @@
 import os
 import threading
 
+from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.result.utils import gen_coords_base
 
 from .exper import Exper
@@ -68,7 +69,7 @@ class Simulación(PlantillaSimul):
 
         exper = [exper] if isinstance(exper, Exper) else exper
 
-        símismo.ecs = {m: m.gen_ecs(modelo, n_reps=reps['paráms']) for m in modelo.módulos}
+        símismo.ecs = {m: m.gen_ecs(modelo, mód=m, n_reps=reps['paráms']) for m in modelo.módulos}
 
         super().__init__(
             nombre,
@@ -145,11 +146,11 @@ class SimulExper(PlantillaSimul):
                 try:
                     otro_mód = símismo[mód_req]
                 except KeyError:
-                    raise ValueError(
+                    raise ErrorRequísitos(
                         'Módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(otro=mód_req, mód=sim_mód)
                     )
                 if var_req not in otro_mód:
-                    raise ValueError(
+                    raise ErrorRequísitos(
                         'Variable "{var}" de módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(
                             var=var_req, otro=otro_mód, mód=sim_mód
                         )
@@ -157,7 +158,7 @@ class SimulExper(PlantillaSimul):
             reqs_mód_cntrl = símismo[sim_mód].requísitos(controles=True) or []
             for req in reqs_mód_cntrl:
                 if req not in símismo.exper.controles:
-                    raise ValueError(
+                    raise ErrorRequísitos(
                         'Falta requísito "{req}" de módulo "{mód}" en experimento "{exp}"'.format(
                             req=req, mód=sim_mód, exp=símismo.exper
                         )
@@ -177,7 +178,7 @@ class SimulMódulo(PlantillaSimul):
 
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         if '.' in mód.nombre:
-            raise ValueError(
+            raise ErrorNombreInválido(
                 'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=mód.nombre)
             )
 

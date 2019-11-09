@@ -5,7 +5,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
-from tikon.estruc import gen_tiempo, Tiempo
+from tikon.central import gen_tiempo, Tiempo
 
 
 class PruebaGenerarTiempo(unittest.TestCase):

@@ -1,4 +1,4 @@
-from tikon.estruc import Módulo, SimulMódulo, Exper, Parcela, Modelo
+from tikon.central import Módulo, SimulMódulo, Exper, Parcela, Modelo
 
 
 class SimulMóduloDependiente(SimulMódulo):

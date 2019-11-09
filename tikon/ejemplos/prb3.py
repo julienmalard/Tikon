@@ -6,7 +6,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from tikon.ejemplos import en_ejemplos
 from tikon.ejemplos.prb import red, Paras_pupa, exper_A, Paras_larvas
-from tikon.estruc.modelo import Simulador
+from tikon.central.modelo import Simulador
 from tikon.móds.manejo import Manejo, Regla
 from tikon.móds.manejo.acciones import AgregarPob, MultPob
 from tikon.móds.manejo.conds import CondTiempo

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
-from tikon.estruc.módulo import Módulo
-from tikon.estruc.simul import SimulMódulo
+from tikon.central.módulo import Módulo
+from tikon.central.simul import SimulMódulo
 
 
 class Regla(object):

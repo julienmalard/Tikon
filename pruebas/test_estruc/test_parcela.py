@@ -1,6 +1,6 @@
 import unittest
 
-from tikon.estruc import GeomParcela, Parcela
+from tikon.central import GeomParcela, Parcela
 
 
 class PruebaGeomParcela(unittest.TestCase):

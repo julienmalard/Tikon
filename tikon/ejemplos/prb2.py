@@ -3,7 +3,7 @@ from copy import deepcopy
 from pprint import pprint
 
 from tikon.ejemplos.prb import Oarenosella, red, exper_A
-from tikon.estruc.modelo import Simulador
+from tikon.central.modelo import Simulador
 from tikon.exper import Exper
 from tikon.móds.rae import ObsPobs
 

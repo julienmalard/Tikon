@@ -2,8 +2,8 @@ from pprint import pprint
 
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
-from tikon.estruc.exper import Exper
-from tikon.estruc.modelo import Simulador, EspecCalibsCorrida
+from tikon.central.exper import Exper
+from tikon.central.modelo import Simulador, EspecCalibsCorrida
 from tikon.móds.clima.clima import Clima
 from tikon.móds.rae import MetamCompleta, Parasitoide
 from tikon.móds.rae import ObsPobs

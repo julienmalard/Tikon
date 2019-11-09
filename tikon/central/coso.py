@@ -9,6 +9,10 @@ class Coso(object):
         símismo.nombre = nombre
         símismo.ecs = ecs.para_coso(coso=símismo)
 
+    @property
+    def índices_inter(símismo):
+        return símismo.nombre
+
     def activar_ec(símismo, categ, subcateg, ec, **argspc):
         símismo.ecs.activar_ec(categ, subcateg, ec)
 

@@ -2,9 +2,9 @@ import os
 from pprint import pprint
 
 from tikon.ejemplos.a_prioris import a_prioris
-from tikon.estruc.exper import Exper
+from tikon.central.exper import Exper
 # from tikon.ecs.aprioris import APrioriDens
-from tikon.estruc.modelo import Simulador
+from tikon.central.modelo import Simulador
 from tikon.móds.rae import MetamCompleta, Sencillo, Parasitoide
 from tikon.móds.rae import ObsPobs
 # from tikon.rae.orgs.plantas import Hojas

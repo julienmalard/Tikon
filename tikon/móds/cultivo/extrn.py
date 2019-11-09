@@ -2,7 +2,7 @@ import inspect
 from itertools import product
 
 import xarray as xr
-from tikon.estruc import Parcela, GrupoParcelas
+from tikon.central import Parcela, GrupoParcelas
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.result.utils import EJE_PARC

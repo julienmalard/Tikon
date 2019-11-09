@@ -2,7 +2,8 @@ from itertools import product
 
 import numpy as np
 import xarray as xr
-from tikon.estruc.simul import PlantillaSimul
+from tikon.central.errores import ErrorNombreInválido
+from tikon.central.simul import PlantillaSimul
 from tikon.result.dibs import graficar_res
 from tikon.result.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
 from tikon.result.valid import reps_necesarias
@@ -14,7 +15,7 @@ class Resultado(PlantillaSimul):
 
     def __init__(símismo, sim, coords, vars_interés):
         if '.' in símismo.nombre:
-            raise ValueError(
+            raise ErrorNombreInválido(
                 'Nombre {nombre} inválido: Nombres de resultados no pueden contener ".".'.format(nombre=símismo.nombre)
             )
 

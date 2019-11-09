@@ -1,4 +1,4 @@
-from tikon.estruc import Módulo, SimulMódulo, Exper, Parcela
+from tikon.central import Módulo, SimulMódulo, Exper, Parcela
 from tikon.result.res import Resultado
 
 

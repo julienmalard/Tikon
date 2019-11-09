@@ -1,5 +1,6 @@
 from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
-from tikon.estruc import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
+from tikon.central import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
+from tikon.ecs.paráms import Inter
 
 
 class ParámInter(Parám):
@@ -56,14 +57,16 @@ class MóduloReqEcInter(Módulo):
     nombre = 'Requísitos ecs inter'
     cls_simul = SimulMóduloReqEcInter
     cls_ecs = EcsReqInter
+    eje_coso = 'coso'
 
     def __init__(símismo):
         super().__init__(cosos=[coso1, coso2])
 
     def inter(símismo, modelo, coso, tipo):
-        if tipo == 'otro':
-            return coso.interacciones
+        for tp in tipo:
+            if tp == 'otro':
+                return Inter(coso.interacciones, eje='eje interacción')
 
 
 exper = Exper('exper', Parcela('parcela'))
-modelo = Modelo(MóduloReqEcInter())
+mi_modelo = Modelo(MóduloReqEcInter())
