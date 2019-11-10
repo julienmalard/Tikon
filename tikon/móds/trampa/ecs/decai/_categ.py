@@ -8,14 +8,14 @@ from .exp_neg import DecaiExp
 class EcDecai(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [DecaiExp, EcuaciónVacía]
-    _eje_cosos = EJE_TRAMPA
+    eje_cosos = EJE_TRAMPA
     _nombre_res = RES_DECAI
 
 
 class EcsDecai(CategEc):
     nombre = ECS_DECAI
     cls_ramas = [EcDecai]
-    _eje_cosos = EJE_TRAMPA
+    eje_cosos = EJE_TRAMPA
     _nombre_res = RES_DECAI
 
     def postproc(símismo, paso, sim):

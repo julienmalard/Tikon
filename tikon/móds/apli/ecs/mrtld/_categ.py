@@ -11,7 +11,7 @@ class EcuaciónMortalidad(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [Logística, EcuaciónVacía]
     _nombre_res = RES_MRTLD
-    _eje_cosos = EJE_PRODUCTO
+    eje_cosos = EJE_PRODUCTO
 
     def postproc(símismo, paso, sim):
         mortalidad = símismo.obt_valor_res(sim)

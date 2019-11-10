@@ -3,7 +3,7 @@ from tikon.móds.rae.red.utils import EJE_ETAPA, RES_POBS
 
 
 class CategEcOrg(CategEc):
-    _eje_cosos = EJE_ETAPA
+    eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
         return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)
@@ -17,7 +17,7 @@ class CategEcOrg(CategEc):
 
 
 class SubcategEcOrg(SubcategEc):
-    _eje_cosos = EJE_ETAPA
+    eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
         return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)
@@ -28,7 +28,7 @@ class SubcategEcOrg(SubcategEc):
 
 
 class EcuaciónOrg(Ecuación):
-    _eje_cosos = EJE_ETAPA
+    eje_cosos = EJE_ETAPA
 
     def pobs(símismo, sim, filtrar=True):
         return símismo.obt_valor_mód(sim, RES_POBS, filtrar=filtrar)

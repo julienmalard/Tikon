@@ -26,11 +26,6 @@ class Tiempo(object):
         return símismo.eje[símismo.i]
 
     @property
-    def í_previo(símismo):
-        if símismo.i != 0:
-            return símismo.eje[símismo.i - 1]
-
-    @property
     def n_día(símismo):
         return símismo.i * símismo.paso
 

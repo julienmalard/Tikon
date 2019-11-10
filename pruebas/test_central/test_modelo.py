@@ -8,9 +8,9 @@ from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.result.utils import EJE_TIEMPO
 
-from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, req_ecuación_falta, \
-    req_ecuación_inter, obt_valor_control, obt_valor_extern, var_con_punto, inic_modelo, obt_valor, \
-    poner_valor_extern, poner_valor, ec_obt_valor
+from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, obt_valor_control, \
+    obt_valor_extern, var_con_punto, inic_modelo, obt_valor, \
+    poner_valor_extern, poner_valor
 
 
 class PruebaModelo(unittest.TestCase):
@@ -72,7 +72,7 @@ class PruebaModelo(unittest.TestCase):
             xrt.assert_equal(
                 datos_res,
                 xr.DataArray(
-                    np.arange(11), coords={EJE_TIEMPO: datos_res[EJE_TIEMPO]}, dims=EJE_TIEMPO
+                    np.arange(11), coords={EJE_TIEMPO: datos_res[EJE_TIEMPO]}, dims=[EJE_TIEMPO]
                 ).broadcast_like(datos_res)
             )
 
@@ -98,76 +98,3 @@ class PruebaModelo(unittest.TestCase):
         const = poner_valor_extern.const
         res = modelo.simular('valor extern', exper=exper, t=10)
         npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
-
-
-class PruebaFuncionalidadesEcs(unittest.TestCase):
-
-    def test_req_ecuación_falta(símismo):
-        modelo = req_ecuación_falta.modelo
-        coso = req_ecuación_falta.coso
-        exper = req_ecuación_falta.exper
-        coso.activar_ec('categ', 'subcateg', 'req falta')
-
-        with símismo.assertRaises(ErrorRequísitos):
-            modelo.simular('ecuación req falta', exper=exper, t=10)
-
-        coso.activar_ec('categ', 'subcateg', 'req controles falta')
-        with símismo.assertRaises(ErrorRequísitos):
-            modelo.simular('ecuación req control falta', exper=exper, t=10)
-
-        coso.desactivar_ec('categ')
-        modelo.simular('ecuaciones reqs faltan no activadas', exper=exper, t=10)
-
-    def test_req_ecuación_inter(símismo):
-        modelo = req_ecuación_inter.mi_modelo
-        coso1 = req_ecuación_inter.coso1
-        coso2 = req_ecuación_inter.coso2
-        exper = req_ecuación_inter.exper
-
-        modelo.simular('sin interacciones', exper=exper, t=10)
-
-        coso1.interactua_con(coso2)
-        with símismo.assertRaises(ErrorRequísitos):
-            modelo.simular('con interacciones', exper=exper, t=10)
-
-    def test_postproc_subcateg(símismo):
-        pass
-
-    def test_postproc_categ(símismo):
-        pass
-
-    @staticmethod
-    def test_obt_y_poner_valor():
-        modelo = ec_obt_valor.mi_modelo
-        exper = ec_obt_valor.exper
-        res = modelo.simular('ec obt valor', exper, t=10, vars_interés=True)['exper']['módulo']
-        xrt.assert_equal(res['res 1'].datos_t[1:], res['res 2'].datos_t[1:]+1)
-
-    def test_obt_valor_control(símismo):
-        pass
-
-    def test_obt_valor_extern(símismo):
-        pass
-
-    def test_poner_valor_extern(símismo):
-        pass
-
-    def test_inter(símismo):
-        pass
-
-
-class PruebaVarsInterés(unittest.TestCase):
-    def test_todos(símismo):
-        pass
-
-    def test_ninguno(símismo):
-        pass
-
-    def test_obs(símismo):
-        pass
-
-    def test_nombres(símismo):
-        pass
-
-    def test_módulos(símismo):
-        pass
