@@ -31,7 +31,7 @@ class Módulo(object):
         return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
 
     def inter(símismo, modelo, coso, tipo):
-        pass
+        raise ValueError('Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo))
 
     @property
     def nombre(símismo):

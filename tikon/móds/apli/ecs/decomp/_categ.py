@@ -8,14 +8,14 @@ from .exp_neg import DecaiExp
 class EcDescomp(SubcategEc):
     nombre = 'Ecuación'
     cls_ramas = [DecaiExp, EcuaciónVacía]
-    _eje_cosos = EJE_PRODUCTO
+    eje_cosos = EJE_PRODUCTO
     _nombre_res = RES_DESCOMP
 
 
 class EcsDescomp(CategEc):
     nombre = ECS_DESCOMP
     cls_ramas = [EcDescomp]
-    _eje_cosos = EJE_PRODUCTO
+    eje_cosos = EJE_PRODUCTO
     _nombre_res = RES_DESCOMP
 
     def postproc(símismo, paso, sim):

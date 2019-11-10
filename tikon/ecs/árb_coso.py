@@ -120,9 +120,6 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
             return True
         return False
 
-    def requísitos(símismo, controles=False):
-        return símismo.cls_pariente.requísitos(controles)
-
 
 class ParámCoso(PlantillaRamaEcCoso):
     def __init__(símismo, cls_pariente, coso):

@@ -59,6 +59,7 @@ class PruebaApriorisCoso(unittest.TestCase):
         npt.assert_equal(dist_apriori.aprox_líms(0.95), ref.aprox_líms(0.95))
         raise NotImplementedError
 
+    @unittest.skip('implementar')
     def test_espec_apriori_líms_incompat(símismo):
         pass
 

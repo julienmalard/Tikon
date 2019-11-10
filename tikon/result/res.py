@@ -38,7 +38,7 @@ class Resultado(PlantillaSimul):
     @datos.setter
     def datos(símismo, val):
         if isinstance(val, xr.DataArray):
-            símismo._datos.loc[val.coords] = val
+            símismo._datos.loc[val.coords] = val.broadcast_like(símismo._datos.loc[val.coords])
         else:
             símismo._datos[:] = val
 

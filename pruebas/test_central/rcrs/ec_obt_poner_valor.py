@@ -5,7 +5,7 @@ from tikon.result.res import Resultado
 
 class EcuaciónObtVal(Ecuación):
     nombre = 'obt val'
-    _eje_cosos = 'coso'
+    eje_cosos = 'coso'
 
     def eval(símismo, paso, sim):
         val = símismo.obt_valor_mód(sim, 'res 1')
@@ -15,11 +15,13 @@ class EcuaciónObtVal(Ecuación):
 class SubCategReqFalta(SubcategEc):
     nombre = 'subcateg'
     cls_ramas = [EcuaciónObtVal, EcuaciónVacía]
+    eje_cosos = 'coso'
 
 
 class CategObtVal(CategEc):
     nombre = 'categ'
     cls_ramas = [SubCategReqFalta]
+    eje_cosos = 'coso'
 
 
 class EcsObtVal(ÁrbolEcs):

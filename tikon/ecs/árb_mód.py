@@ -1,3 +1,5 @@
+import xarray as xr
+
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter
 from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
 
@@ -7,7 +9,6 @@ class PlantillaRamaEc(object):
 
     _cls_en_coso = NotImplemented
     _nombre_res = NotImplemented
-    _eje_cosos = NotImplemented
 
     def __init__(símismo, modelo, mód, cosos, n_reps, ecs):
 
@@ -48,7 +49,7 @@ class PlantillaRamaEc(object):
 
     def obt_valor_mód(símismo, sim, var, filtrar=True):
         if filtrar:
-            return sim.obt_valor(var).loc[{símismo._eje_cosos: símismo.cosos}]
+            return sim.obt_valor(var).loc[{símismo.eje_cosos: símismo.cosos}]
         return sim.obt_valor(var)
 
     def poner_valor_res(símismo, sim, val, rel=False):
@@ -82,6 +83,10 @@ class PlantillaRamaEc(object):
     def nombre(símismo):
         raise NotImplementedError
 
+    @property
+    def eje_cosos(símismo):
+        raise NotImplementedError
+
     def __iter__(símismo):
         for rm in símismo._ramas.values():
             yield rm
@@ -100,6 +105,7 @@ class PlantillaRamaEc(object):
 
 class ÁrbolEcs(PlantillaRamaEc):
     _cls_en_coso = ÁrbolEcsCoso
+    eje_cosos = None
 
     def __init__(símismo, modelo, mód, cosos, n_reps):
         super().__init__(modelo, mód, cosos=cosos, n_reps=n_reps, ecs=[coso.ecs for coso in cosos])
@@ -125,6 +131,10 @@ class CategEc(PlantillaRamaEc):
     def nombre(símismo):
         raise NotImplementedError
 
+    @property
+    def eje_cosos(símismo):
+        raise NotImplementedError
+
 
 class SubcategEc(PlantillaRamaEc):
     _cls_en_coso = SubcategEcCoso
@@ -133,6 +143,8 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso, sim)
             if res is not None:
+                if not isinstance(res, xr.DataArray):
+                    res = xr.DataArray(res, coords={ec.eje_cosos: ec.cosos}, dims=[ec.eje_cosos])
                 símismo.poner_valor_res(sim, res)
 
         símismo.postproc(paso, sim=sim)
@@ -141,9 +153,14 @@ class SubcategEc(PlantillaRamaEc):
     def nombre(símismo):
         raise NotImplementedError
 
+    @property
+    def eje_cosos(símismo):
+        raise NotImplementedError
+
 
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
+    eje_cosos = None
 
     def __init__(símismo, modelo, mód, cosos, n_reps, ecs):
         super().__init__(modelo, mód, cosos, n_reps, ecs=ecs)
@@ -165,6 +182,10 @@ class Ecuación(PlantillaRamaEc):
 
     @property
     def nombre(símismo):
+        raise NotImplementedError
+
+    @property
+    def eje_cosos(símismo):
         raise NotImplementedError
 
     def eval(símismo, paso, sim):
