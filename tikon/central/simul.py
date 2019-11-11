@@ -2,7 +2,7 @@ import os
 import threading
 
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
-from tikon.result.utils import gen_coords_base
+from tikon.central.utils import gen_coords_base
 
 from .exper import Exper
 
@@ -193,6 +193,7 @@ class SimulMódulo(PlantillaSimul):
             n_rep_estoc=simul_exper.reps['estoc'], n_rep_paráms=simul_exper.reps['paráms'],
             parc=simul_exper.exper.controles['parcelas']
         )
+        símismo.nombre = mód.nombre
         objs_res = [res(sim=símismo, coords=coords_base, vars_interés=vars_interés) for res in símismo.resultados]
         super().__init__(mód.nombre, objs_res)
 

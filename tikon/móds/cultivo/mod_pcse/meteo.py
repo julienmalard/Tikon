@@ -3,7 +3,7 @@ import pandas as pd
 from pcse.base import WeatherDataProvider, WeatherDataContainer
 from pcse.db import NASAPowerWeatherDataProvider
 from pcse.util import reference_ET
-from tikon.result.utils import EJE_TIEMPO
+from tikon.result import EJE_TIEMPO
 
 
 class ProveedorMeteoPCSEPandas(NASAPowerWeatherDataProvider):

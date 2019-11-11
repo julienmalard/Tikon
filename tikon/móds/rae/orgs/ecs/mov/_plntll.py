@@ -1,5 +1,5 @@
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
-from tikon.result.utils import EJE_DEST
+from tikon.result import EJE_DEST
 
 
 class PlantillaEcDifusión(EcuaciónOrg):

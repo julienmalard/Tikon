@@ -6,7 +6,7 @@ import xarray as xr
 from geopy.distance import distance
 from shapely.geometry import Polygon
 from shapely.ops import transform
-from tikon.result.utils import EJE_PARC, EJE_DEST, EJE_COORD
+from tikon.central.utils import EJE_PARC, EJE_DEST, EJE_COORD
 
 
 class Parcela(object):

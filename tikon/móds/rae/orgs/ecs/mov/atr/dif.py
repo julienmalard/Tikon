@@ -1,6 +1,6 @@
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.mov._plntll import PlantillaEcDifusión
-from tikon.result.utils import EJE_PARC, EJE_DEST
+from tikon.result import EJE_PARC, EJE_DEST
 
 
 class D(Parám):

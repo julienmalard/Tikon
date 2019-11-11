@@ -5,7 +5,7 @@ from tikon.móds.cultivo.res import RES_BIOMASA
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import RES_DEPR, EJE_VÍCTIMA, EJE_ETAPA, RES_POBS
-from tikon.result.utils import EJE_PARC
+from tikon.result import EJE_PARC
 
 from . import res
 

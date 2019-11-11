@@ -1,7 +1,7 @@
 import math
 
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela
-from tikon.result.res import Resultado
+from tikon.central.res import Resultado
 
 const = math.e
 

@@ -1,7 +1,7 @@
 import unittest
 
 from tikon.central import Exper, Parcela, GrupoParcelas
-from tikon.result.utils import EJE_PARC
+from tikon.central.utils import EJE_PARC
 
 
 class PruebaExperParc(unittest.TestCase):
@@ -29,5 +29,5 @@ class PruebaExperParc(unittest.TestCase):
                 símismo.assertListEqual(exp.controles[cntrl][EJE_PARC].values.tolist(), ['una', 'otra'])
 
     @unittest.skip('implementar')
-    def test_resultados(símismo):
+    def test_datos(símismo):
         pass

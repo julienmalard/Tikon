@@ -61,7 +61,9 @@ class PruebaApriorisCoso(unittest.TestCase):
 
     @unittest.skip('implementar')
     def test_espec_apriori_líms_incompat(símismo):
-        pass
+        cs = EjemploCoso()
+        apr = APrioriDens((0, 1), 0.95)
+        cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a')
 
     @unittest.skip('implementar')
     def test_verificar(símismo):

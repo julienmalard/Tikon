@@ -5,13 +5,14 @@ import xarray as xr
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
 from tikon.result.dibs import graficar_res
-from tikon.result.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
+from tikon.central.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
 from tikon.result.valid import reps_necesarias
 from tikon.utils import proc_líms
 
 
 class Resultado(PlantillaSimul):
     líms = None
+    inicializable = False
 
     def __init__(símismo, sim, coords, vars_interés):
         if '.' in símismo.nombre:
@@ -20,7 +21,7 @@ class Resultado(PlantillaSimul):
             )
 
         símismo.sim = sim
-        símismo.obs = sim.exper.obt_obs(símismo.nombre)
+        símismo.obs = sim.exper.datos.obt_obs(sim, símismo)
 
         símismo.t = sim.simul_exper.t if _res_temporal(
             símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés
@@ -45,6 +46,12 @@ class Resultado(PlantillaSimul):
     def iniciar(símismo):
         símismo.datos_t[:] = 0
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]
+
+        if símismo.inicializable:
+            for índs in símismo.iter_índs(símismo.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]):
+                inic = símismo.sim.exper.datos.obt_inic(mód=símismo.sim, var=símismo, índs=índs)
+                if inic:
+                    símismo._datos.loc[índs] = inic
 
     def incrementar(símismo, paso, f):
         if símismo.t is not None:
@@ -131,8 +138,9 @@ class Resultado(PlantillaSimul):
         if isinstance(excluir, str):
             excluir = [excluir]
 
-        for índs in product(*[datos[dim].values for dim in datos.dims if dim not in excluir]):
-            yield dict(zip(datos.dims, índs))
+        dims = [dim for dim in datos.dims if dim not in excluir]
+        for índs in product(*[datos[dim].values for dim in dims]):
+            yield dict(zip(dims, índs))
 
     @property
     def nombre(símismo):
@@ -176,7 +184,7 @@ class Resultado0(object):
             dims_obs = símismo.obs.dims
 
             # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
-            for índs in dims_obs.iter_índs(excluir='días'):
+            for índs in dims_obs.iter_índs(excluir=EJE_TIEMPO):
                 vals_inic = símismo.obs.obt_val_t(t_inic, índs=índs)
 
                 vals_inic[np.isnan(vals_inic)] = 0

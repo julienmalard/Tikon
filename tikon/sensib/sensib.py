@@ -79,8 +79,8 @@ class ResSensibResultado(object):
         d_sens = {}
 
         matr_t = símismo.res.matr_t
-        for índs in matr_t.iter_índs(excluir=['días', 'estoc', 'parám']):
-            ejes_orig = np.argsort([matr_t.í_eje('días'), matr_t.í_eje('estoc'), matr_t.í_eje('parám')])
+        for índs in matr_t.iter_índs(excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁM]):
+            ejes_orig = np.argsort([matr_t.í_eje(EJE_TIEMPO), matr_t.í_eje(EJE_ESTOC), matr_t.í_eje(EJE_PARÁM)])
 
             vals_res = matr_t.obt_valor_t(índs=índs)
             vals_res = np.moveaxis(vals_res, ejes_orig, [0, 1, 2])
@@ -111,7 +111,7 @@ class ResSensibResultado(object):
 
     def dibujar(símismo, directorio=''):
         matr_t = símismo.res.matr_t
-        for índs in matr_t.iter_índs(excluir=['días', 'estoc', 'parám']):
+        for índs in matr_t.iter_índs(excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁM]):
             l_llaves = list(str(ll) for ll in índs.values())
             d_sensib = símismo.sensib
             for ll in l_llaves:

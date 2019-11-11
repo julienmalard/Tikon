@@ -1,5 +1,5 @@
 import pandas as pd
-from tikon.result.utils import EJE_TIEMPO
+from tikon.central.utils import EJE_TIEMPO
 
 
 class Obs(object):
