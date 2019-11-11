@@ -29,7 +29,7 @@ class PlantillaRamaEc(object):
         return {req for rm in símismo for req in (rm.requísitos(controles) or set())}
 
     def vals_paráms(símismo):
-        return {pr for rm in símismo for pr in rm.vals_paráms()}
+        return [pr for rm in símismo for pr in rm.vals_paráms()]
 
     def eval(símismo, paso, sim):
         for rm in símismo:
@@ -201,6 +201,7 @@ class EcuaciónVacía(Ecuación):
 
 class Parám(PlantillaRamaEc):
     _cls_en_coso = ParámCoso
+    eje_cosos = None
     líms = (None, None)
     inter = None
     cls_ramas = []

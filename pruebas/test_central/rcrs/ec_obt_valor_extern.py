@@ -2,14 +2,16 @@ from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
 from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía
 from tikon.result.res import Resultado
 
+valor = 6.02214e23
+
 
 class EcuaciónObtVal(Ecuación):
     nombre = 'obt val'
     eje_cosos = 'coso'
 
     def eval(símismo, paso, sim):
-        val = símismo.obt_valor_mód(sim, 'res 1')
-        símismo.poner_valor_mód(sim, 'res 2', val)
+        val = símismo.obt_valor_extern(sim, 'res 2', 'otro módulo')
+        símismo.poner_valor_mód(sim, 'res', val)
 
 
 class SubCategObtVal(SubcategEc):
@@ -46,23 +48,20 @@ class ResEjeCoso(Resultado):
         raise NotImplementedError
 
 
-class Res1(ResEjeCoso):
-    nombre = 'res 1'
+class Res(ResEjeCoso):
+    nombre = 'res'
 
 
-class Res2(ResEjeCoso):
+class Res2(Resultado):
     nombre = 'res 2'
+    unids = None
 
 
 class SimulMóduloObtVal(SimulMódulo):
-    resultados = [Res1, Res2]
-
-    def incrementar(símismo, paso, f):
-        super().incrementar(paso, f)
-        símismo.poner_valor('res 1', 1, rel=True)
+    resultados = [Res]
 
 
-coso1, coso2, coso3 = [CosoObtValor(str(i)) for i in range(1, 4)]
+coso = CosoObtValor('hola')
 
 
 class MóduloObtVal(Módulo):
@@ -77,5 +76,18 @@ class MóduloObtVal(Módulo):
         return EcsObtVal(modelo, mód, cosos=símismo.l_cosos, n_reps=n_reps)
 
 
+class SimulOtroMódulo(SimulMódulo):
+    resultados = [Res2]
+
+    def incrementar(símismo, paso, f):
+        super().incrementar(paso, f)
+        símismo.poner_valor('res 2', valor)
+
+
+class OtroMódulo(Módulo):
+    nombre = 'otro módulo'
+    cls_simul = SimulOtroMódulo
+
+
 exper = Exper('exper', Parcela('parcela'))
-mi_modelo = Modelo(MóduloObtVal([coso1, coso2, coso3]))
+mi_modelo = Modelo([MóduloObtVal([coso]), OtroMódulo])

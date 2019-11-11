@@ -98,3 +98,26 @@ class PruebaModelo(unittest.TestCase):
         const = poner_valor_extern.const
         res = modelo.simular('valor extern', exper=exper, t=10)
         npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
+
+    @unittest.skip('implementar')
+    def test_tiempo_de_obs(símismo):
+        exper = modelo_tiempo.exper
+        modelo = modelo_tiempo.modelo
+        f_inic, f_final = modelo_tiempo.f_inic, modelo_tiempo.f_final
+        res = modelo.simular('tiempo de obs', exper=exper, t=10)['exper']['módulo']['res']
+        xrt.assert_equal(res[EJE_TIEMPO], pd.date_range(f_inic, f_final))
+
+    @unittest.skip('implementar')
+    def test_obs_tiempo_numérico(símismo):
+        exper = modelo_tiempo.exper
+        modelo = modelo_tiempo.modelo
+        f_inic = modelo_tiempo.f_inic
+        res = modelo.simular('tiempo numérico', exper=exper, t=10)['exper']['módulo']['res']
+        xrt.assert_equal(res[EJE_TIEMPO], pd.date_range(f_inic, 11))
+
+    @unittest.skip('implementar')
+    def test_no_obs_no_tiempo(símismo):
+        exper = modelo_tiempo.exper_sin_obs
+        modelo = modelo_tiempo.modelo
+        with símismo.assertRaises(ValueError):
+            modelo.simular('sin tiempo o obs', exper)

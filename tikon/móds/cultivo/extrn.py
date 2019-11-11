@@ -120,7 +120,7 @@ class CombinSimsCult(object):
 class InstanciaSimulCultivo(object):
     def __init__(símismo, sim, vars_, índs):
         símismo.sim = sim
-        símismo.datos = xr.Dataset({vr: xr.DataArray(0, coords=índs, dims=list(índs)) for vr in vars_})
+        símismo.datos = xr.Dataset({vr: xr.DataArray(0., coords=índs, dims=list(índs)) for vr in vars_})
         símismo.llenar_vals()
 
     def iniciar(símismo):

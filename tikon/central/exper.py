@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 import numpy as np
 from tikon.ecs.aprioris import APrioriDens
@@ -19,17 +20,22 @@ class Exper(object):
         símismo.parcelas = _extract_parcelas(parcelas)
         símismo.controles = ControlesExper(símismo.parcelas)
 
-        # símismo.datos.agregar_obs(obs)
+        if obs:
+            símismo.datos.agregar_obs(obs)
 
     def gen_t(símismo, t):
+        f_inic, f_final = símismo.datos.fechas()
         if t is None:
-            f_inic, f_final = símismo.datos.fechas()
-            if not f_inic or not f_final:
+            if not f_inic:
                 raise ValueError('Debes especificar fecha inicial y final para simulaciones sin observaciones.')
-
             return Tiempo(f_inic=f_inic, f_final=f_final)
 
+        if isinstance(t, int) and f_inic:
+            return Tiempo(f_inic, f_inic + timedelta(days=t))
         return gen_tiempo(t)
+
+    def gen_paráms(símismo, modelo):
+        return set()
 
     def obt_obs(símismo, var):
         pass

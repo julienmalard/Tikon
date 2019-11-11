@@ -1,6 +1,7 @@
 from tikon.ecs.dists import Dist
 from tikon.ecs.paráms import ValsParámCoso
 from tikon.ecs.árb_mód import Parám
+from tikon.result.obs import Obs
 from tikon.utils import guardar_json, leer_json
 
 
@@ -24,14 +25,13 @@ class PlantillaDatosVals(object):
 class DatosExper(PlantillaDatosVals):
 
     def agregar_obs(símismo, obs):
-        if isinstance(obs, list):
-            for ob in obs:
-                símismo.agregar_obs(ob)
-        else:
-            if obs.mód not in símismo._datos:
-                símismo._datos[obs.mód] = DatosMód()
+        if isinstance(obs, Obs):
+            obs = [obs]
+        for o_ in obs:
+            if o_.mód not in símismo._datos:
+                símismo._datos[o_.mód] = DatosMód()
 
-            símismo._datos[obs.mód].agregar_obs(obs)
+            símismo._datos[o_.mód].agregar_obs(o_)
 
 
 class DatosMód(PlantillaDatosVals):
