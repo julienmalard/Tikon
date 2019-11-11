@@ -36,6 +36,7 @@ class CalibSpotPy(Calibrador):
         vero = egr_spotpy['like1'].values
         vero, buenas = símismo.filtrar_res(vero, n)
 
+        return
         if not len(buenas):
             avisar('No se encontró solución aceptable.')
             return

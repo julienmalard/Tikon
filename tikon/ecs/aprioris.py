@@ -20,7 +20,7 @@ class APrioriDens(APriori):
 class APrioriDist(APriori):
     def __init__(símismo, dist):
         símismo._dist = dist
-        símismo._líms_dist = líms_dist(obt_nombre(dist))
+        símismo._líms_dist = líms_dist(dist)
 
     def dist(símismo, líms):
         líms_compat(símismo._líms_dist, líms)

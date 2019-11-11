@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 import tikon.ecs.dists.utils as utl
+from scipy.stats import beta
 
 
 class PruebaUtils(unittest.TestCase):
@@ -21,3 +22,21 @@ class PruebaUtils(unittest.TestCase):
     def test_nombre_equivocado(símismo):
         with símismo.assertRaises(ValueError):
             utl.obt_scipy('no existo', {})
+
+
+class PruebaLímsDist(unittest.TestCase):
+    def test_líms_de_nombre(símismo):
+        símismo.assertTupleEqual(utl.líms_dist('Uniforme'), (0, 1))
+
+    def test_líms_de_dist(símismo):
+        dists = {
+            'sin args': [beta(1, 2), (0, 1)],
+            '2 args llave': [beta(1, 2, loc=2, scale=3), (2, 3)],
+            'arg escala llave ubic pos': [beta(1, 2, 2, scale=3), (2, 3)],
+            'arg escal llave': [beta(1, 2, scale=3), (0, 3)],
+            'arg ubic pos': [beta(1, 2, 2), (2, 1)],
+            '2 args pos': [beta(1, 2, 2, 3), (2, 3)]
+        }
+        for nmbr, (dist, ref) in dists.items():
+            with símismo.subTest(nmbr):
+                símismo.assertTupleEqual(utl.obt_ubic_escl(dist), ref)

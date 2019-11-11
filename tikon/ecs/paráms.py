@@ -24,7 +24,7 @@ class PlantillaMatrsParáms(object):
 
         símismo.eje = eje
         símismo.índice = índice
-        símismo._datos = xr.DataArray(0, coords=símismo.coords, dims=list(símismo.coords))
+        símismo._datos = xr.DataArray(0., coords=símismo.coords, dims=list(símismo.coords))
 
     @property
     def coords(símismo):
@@ -82,12 +82,12 @@ class ValsParámCoso(PlantillaMatrsParáms):
     def llenar_de_base(símismo):
         símismo.val = símismo.dist_base().obt_vals(símismo.tmñ)
 
-    def a_priori(símismo):
+    def apriori(símismo):
         apriori = símismo._prm.apriori(símismo._inter)
         return apriori or símismo._prm.cls_base.apriori
 
     def llenar_de_apriori(símismo):
-        símismo.val = símismo.a_priori().obt_vals(símismo.tmñ)
+        símismo.val = símismo.apriori().obt_vals(símismo.tmñ)
 
     def llenar_de_dists(símismo, dists):
         val = []

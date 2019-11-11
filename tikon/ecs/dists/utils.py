@@ -1,5 +1,6 @@
 from math import pi
 
+import numpy as np
 import scipy.stats as estad
 # Un diccionario de las distribuciones y de sus objetos de SciPy correspondientes.
 from tikon.utils import proc_líms
@@ -265,8 +266,19 @@ def clase_scipy(nombre):
     return _obt_dic_dist(nombre)['scipy']
 
 
-def líms_dist(nombre):
-    return proc_líms(_obt_dic_dist(nombre)['límites'])
+def líms_dist(dist):
+    if isinstance(dist, str):
+        return proc_líms(_obt_dic_dist(dist)['límites'])
+    else:
+        nombre = obt_nombre(dist)
+        líms = proc_líms(_obt_dic_dist(nombre)['límites'])
+        ubic, escala = obt_ubic_escl(dist)
+        return líms[0] + ubic, (líms[1] - líms[0]) * escala + ((líms[0] + ubic) if líms[0] > -np.inf else 0)
+
+
+def obt_ubic_escl(dist):
+    ubic, escl = dist.dist._parse_args(*dist.args, **dist.kwds)[1:]
+    return ubic, escl
 
 
 def prms_dist(nombre):

@@ -26,7 +26,7 @@ class PlantillaSimul(object):
             símismo[s].cerrar()
 
     def gen_paráms(símismo):
-        return set(prm for s in símismo for prm in símismo[s].gen_paráms())
+        return [prm for s in símismo for prm in símismo[s].gen_paráms()]
 
     def verificar_estado(símismo):
         for s in símismo:
@@ -78,6 +78,8 @@ class Simulación(PlantillaSimul):
                 for exp in exper
             ]
         )
+
+        prms_exper = {prm for exp in exper for prm in exp.gen_paráms(modelo)}
         símismo.paráms = símismo.gen_paráms()
         calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
 

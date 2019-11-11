@@ -8,8 +8,8 @@ class EcuaciónObtVal(Ecuación):
     eje_cosos = 'coso'
 
     def eval(símismo, paso, sim):
-        val = símismo.obt_valor_mód(sim, 'res 1')
-        símismo.poner_valor_mód(sim, 'res 2', val)
+        val = símismo.obt_valor_control(sim, 'var control')
+        símismo.poner_valor_mód(sim, 'res', val)
 
 
 class SubCategObtVal(SubcategEc):
@@ -46,23 +46,18 @@ class ResEjeCoso(Resultado):
         raise NotImplementedError
 
 
-class Res1(ResEjeCoso):
-    nombre = 'res 1'
-
-
-class Res2(ResEjeCoso):
-    nombre = 'res 2'
+class Res(ResEjeCoso):
+    nombre = 'res'
 
 
 class SimulMóduloObtVal(SimulMódulo):
-    resultados = [Res1, Res2]
+    resultados = [Res]
 
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)
-        símismo.poner_valor('res 1', 1, rel=True)
 
 
-coso1, coso2, coso3 = [CosoObtValor(str(i)) for i in range(1, 4)]
+coso = CosoObtValor('hola')
 
 
 class MóduloObtVal(Módulo):
@@ -78,4 +73,4 @@ class MóduloObtVal(Módulo):
 
 
 exper = Exper('exper', Parcela('parcela'))
-mi_modelo = Modelo(MóduloObtVal([coso1, coso2, coso3]))
+mi_modelo = Modelo(MóduloObtVal([coso]))
