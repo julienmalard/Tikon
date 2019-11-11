@@ -6,11 +6,10 @@ import xarray as xr
 import xarray.testing as xrt
 from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
-from tikon.result.utils import EJE_TIEMPO
+from tikon.central.utils import EJE_TIEMPO
 
 from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, obt_valor_control, \
-    obt_valor_extern, var_con_punto, inic_modelo, obt_valor, \
-    poner_valor_extern, poner_valor
+    obt_valor_extern, var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
 
 class PruebaModelo(unittest.TestCase):
@@ -96,8 +95,20 @@ class PruebaModelo(unittest.TestCase):
         modelo = poner_valor_extern.modelo
         exper = poner_valor_extern.exper
         const = poner_valor_extern.const
-        res = modelo.simular('valor extern', exper=exper, t=10)
+        res = modelo.simular('valor extern', exper=exper, t=1)
         npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
+    @unittest.skip('implementar')
+
+    def test_res_inicializable(símismo):
+        modelo, exper, const = res_inicializable.modelo, res_inicializable.exper, res_inicializable.const
+        res = modelo.simular('inicializado', exper=exper, t=1, vars_interés=True)
+        datos_res = res['exper']['módulo']['res'].datos_t
+        xrt.assert_equal(
+            datos_res,
+            xr.DataArray(
+                const, coords={EJE_TIEMPO: datos_res[EJE_TIEMPO]}, dims=[EJE_TIEMPO]
+            ).broadcast_like(datos_res)
+        )
 
     @unittest.skip('implementar')
     def test_tiempo_de_obs(símismo):

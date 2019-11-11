@@ -1,5 +1,5 @@
 from tikon.central import Módulo, SimulMódulo, Exper, Parcela
-from tikon.result.res import Resultado
+from tikon.central.res import Resultado
 
 
 class Res1(Resultado):

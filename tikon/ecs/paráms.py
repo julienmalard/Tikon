@@ -1,6 +1,6 @@
 import numpy as np
 import xarray as xr
-from tikon.result.utils import EJE_PARÁMS
+from tikon.central.utils import EJE_PARÁMS
 
 
 class MnjdrValsCoefs(object):
@@ -77,14 +77,16 @@ class ValsParámCoso(PlantillaMatrsParáms):
         return símismo._prm.dists_disp(símismo._inter, heredar)
 
     def dist_base(símismo):
+        apriori_auto = símismo._prm.cls_pariente.apriori
+        if apriori_auto:
+            return apriori_auto.dist(símismo._prm.líms)
         return símismo._prm.calib_base()
 
     def llenar_de_base(símismo):
         símismo.val = símismo.dist_base().obt_vals(símismo.tmñ)
 
     def apriori(símismo):
-        apriori = símismo._prm.apriori(símismo._inter)
-        return apriori or símismo._prm.cls_base.apriori
+        return símismo._prm.apriori(símismo._inter)
 
     def llenar_de_apriori(símismo):
         símismo.val = símismo.apriori().obt_vals(símismo.tmñ)

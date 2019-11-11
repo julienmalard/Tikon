@@ -2,8 +2,8 @@ import numpy as np
 from tikon.móds.rae.orgs.organismo import EtapaFantasma
 from tikon.móds.rae.red.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RES_CREC, RES_REPR, RES_MRTE, \
     RES_TRANS, RES_MOV, RES_ESTOC, EJE_ETAPA
-from tikon.result.res import Resultado
-from tikon.result.utils import EJE_DEST
+from tikon.central.res import Resultado
+from tikon.result import EJE_DEST
 
 
 class ResultadoRed(Resultado):
@@ -43,6 +43,7 @@ class ResultadoRed(Resultado):
 class ResPobs(ResultadoRed):
     nombre = RES_POBS
     unids = 'individuos'
+    inicializable = True
 
     def iniciar(símismo):
         super().iniciar()

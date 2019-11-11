@@ -3,7 +3,7 @@ import os
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
-from tikon.result.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
+from tikon.central.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
 
 
 def graficar_res(

@@ -2,7 +2,9 @@ import os
 from datetime import timedelta
 
 import numpy as np
+from scipy.stats import uniform
 from tikon.ecs.aprioris import APrioriDens
+from tikon.ecs.dists import DistAnalítica, Dist
 from tikon.ecs.árb_mód import Parám
 
 from .control import ControlesExper
@@ -34,11 +36,13 @@ class Exper(object):
             return Tiempo(f_inic, f_inic + timedelta(days=t))
         return gen_tiempo(t)
 
-    def gen_paráms(símismo, modelo):
-        return set()
+    def espec_inic(símismo, dist, mód, var, índs=None):
+        if not isinstance(dist, Dist):
+            dist = DistAnalítica(uniform(dist, 0))
+        símismo.datos.agregar_inic(dist, mód, var, índs=índs)
 
-    def obt_obs(símismo, var):
-        pass
+    def gen_paráms(símismo, sim):
+        return set()
 
 
 def _extract_parcelas(parcelas):
@@ -97,7 +101,7 @@ class Exper0(object):
 
                     prm_coso = prm.para_coso(None)
                     apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
-                    prm_coso.espec_a_priori(apriori)
+                    prm_coso.espec_apriori(apriori)
                     prm_inic = símismo.inic.agregar_prm(
                         mód='red', var='Pobs', índs={'etapa': str(etp)}, prm_base=prm_coso
                     )

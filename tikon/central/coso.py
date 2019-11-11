@@ -28,7 +28,7 @@ class Coso(object):
         return símismo.ecs[categ].verificar_activa(modelo)
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
-        símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
+        símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, inter=índs)
 
     def verificar(símismo):
         símismo.ecs.verificar()

@@ -52,9 +52,9 @@ class PlantillaRamaEcCoso(object):
 
 class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
-    def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, índs=None):
+    def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, inter=None):
         obj_parám = símismo._ramas[categ][sub_categ][ec][parám]
-        obj_parám.espec_a_priori(apriori, inter=índs)
+        obj_parám.espec_apriori(apriori, inter=inter)
 
     def activar_ec(símismo, categ, subcateg, ec):
         símismo[categ][subcateg].activar_ec(ec)
@@ -146,7 +146,7 @@ class ParámCoso(PlantillaRamaEcCoso):
     def renombrar_calib(símismo, nombre, nuevo):
         símismo._calibs[nuevo] = símismo._calibs.pop(nombre)
 
-    def espec_a_priori(símismo, apriori, inter=None):
+    def espec_apriori(símismo, apriori, inter=None):
         dist = apriori.dist(símismo.líms)
         símismo._apriori.actualizar(dist=dist, índs=inter)
 

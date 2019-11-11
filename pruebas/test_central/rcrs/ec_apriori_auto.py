@@ -1,14 +1,19 @@
+from scipy.stats import uniform
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
 from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía, Parám
+from tikon.ecs.aprioris import APrioriDist
+from tikon.ecs.dists import líms_dist
 from tikon.central.res import Resultado
 
-rango = (2.5, 4)
+apr = uniform(0, 5)
+rango = líms_dist(apr)
 
 
 class A(Parám):
     nombre = 'a'
     unids = None
-    líms = rango
+    líms = (0, None)
+    apriori = APrioriDist(apr)
 
 
 class EcuaciónParám(Ecuación):

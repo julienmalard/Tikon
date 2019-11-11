@@ -1,7 +1,7 @@
 import numpy as np
 import spotpy.objectivefunctions as of
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
-from tikon.result.utils import EJE_ESTOC, EJE_PARÁMS
+from tikon.result import EJE_ESTOC, EJE_PARÁMS
 
 
 # Funciones pesos

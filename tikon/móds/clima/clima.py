@@ -2,7 +2,7 @@ import xarray as xr
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.móds.clima.res import ResultadoClima
-from tikon.result.utils import EJE_TIEMPO, EJE_PARC, EJE_COORD
+from tikon.result import EJE_TIEMPO, EJE_PARC, EJE_COORD
 # noinspection PyUnresolvedReferences
 from تقدیر.مقام import مقام
 

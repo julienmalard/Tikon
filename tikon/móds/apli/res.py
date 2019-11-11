@@ -1,7 +1,7 @@
 import numpy as np
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
-from tikon.result.res import Resultado
+from tikon.central.res import Resultado
 
 from .utils import RES_DESCOMP, RES_CONC, RES_MRTLD, EJE_PRODUCTO
 
@@ -23,9 +23,10 @@ class ResDescomp(Resultado):
 
 
 class ResConcentración(Resultado):
-    líms = (0, np.nan)
     nombre = RES_CONC
     unids = 'kg / ha'
+    líms = (0, np.nan)
+    inicializable = True
 
 
 class ResMortalidad(Resultado):

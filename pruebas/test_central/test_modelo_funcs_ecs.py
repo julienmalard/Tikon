@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import xarray.testing as xrt
 from pruebas.test_central.rcrs import req_ecuación_falta, req_ecuación_inter, ec_obt_poner_valor, ec_postproc, \
-    ec_valor_control, ec_obt_valor_extern, ec_poner_valor_extern, ec_parám
+    ec_valor_control, ec_obt_valor_extern, ec_poner_valor_extern, ec_parám, ec_apriori_auto
 from scipy.stats import uniform
 from tikon.central import Modelo
 from tikon.central.calibs import EspecCalibsCorrida
@@ -85,7 +85,8 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
         npt.assert_equal(res.datos.values, valor)
 
-    def test_poner_valor_extern(símismo):
+    @staticmethod
+    def test_poner_valor_extern():
         modelo, exper, valor = ec_poner_valor_extern.mi_modelo, ec_poner_valor_extern.exper, ec_poner_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['otro módulo']['res 2']
@@ -96,12 +97,17 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
         símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
 
-    @unittest.skip('implementar')
     def test_apriori_auto(símismo):
-        modelo, exper, rango = ec_parám.mi_modelo, ec_parám.exper, ec_parám.rango
-        raise NotImplementedError
-        res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
-        símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
+        calibs = EspecCalibsCorrida(aprioris=True)
+        modelo, exper, rango = ec_apriori_auto.mi_modelo, ec_apriori_auto.exper, ec_apriori_auto.rango
+        with símismo.subTest('apriori auto'):
+            res = modelo.simular('apriori auto', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+            símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
+        with símismo.subTest('apriori manual'):
+            coso = ec_apriori_auto.coso
+            coso.espec_apriori(APrioriDist(uniform(3, 3)), 'categ', sub_categ='subcateg', ec='ec', prm='a')
+            res = modelo.simular('apriori auto', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+            símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= 6)))
 
     def test_apriori_coso(símismo):
         exper = ec_parám.exper
@@ -110,7 +116,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         coso.espec_apriori(apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a')
 
         calibs = EspecCalibsCorrida(aprioris=True)
-        res = modelo.simular('ec obt valor extern', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+        res = modelo.simular('apriori', exper, t=2, calibs=calibs)['exper']['módulo']['res']
         símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= (3 + 1))))
 
     @unittest.skip('implementar')

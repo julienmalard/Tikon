@@ -1,4 +1,4 @@
-from tikon.result.res import Resultado
+from tikon.central.res import Resultado
 
 
 class ResultadoClima(Resultado):

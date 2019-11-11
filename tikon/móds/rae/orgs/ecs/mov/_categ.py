@@ -1,7 +1,7 @@
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_MOV
 from tikon.móds.rae.red.utils import RES_MOV
-from tikon.result.utils import EJE_PARC, EJE_DEST
+from tikon.result import EJE_PARC, EJE_DEST
 
 from .atr import Atracción
 from .dstn import Distancia
