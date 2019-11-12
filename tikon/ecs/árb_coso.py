@@ -13,9 +13,6 @@ class PlantillaRamaEcCoso(object):
     def verificar_activa(símismo, modelo, mód):
         return any(rm.verificar_activa(modelo, mód) for rm in símismo)
 
-    def a_dic(símismo):
-        return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
-
     def de_dic(símismo, dic):
         for rm in símismo:
             if str(rm) in dic:
@@ -25,9 +22,17 @@ class PlantillaRamaEcCoso(object):
         for r in símismo:
             r.borrar_calib(nombre)
 
+    def borrar_aprioris(símismo, categ, sub_categ, ec, prm, índs=None):
+
+        for r in categs:
+            r.borrar_aprioris()
+
     def renombrar_calib(símismo, nombre, nuevo):
         for r in símismo:
             r.renombrar_calib(nombre, nuevo)
+
+    def a_dic(símismo):
+        return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
 
     def __getitem__(símismo, itema):
         return símismo._ramas[str(itema)]
@@ -149,6 +154,9 @@ class ParámCoso(PlantillaRamaEcCoso):
     def espec_apriori(símismo, apriori, inter=None):
         dist = apriori.dist(símismo.líms)
         símismo._apriori.actualizar(dist=dist, índs=inter)
+
+    def borrar_apriori(símismo, índs=None):
+        símismo._apriori.borrar(índs)
 
     def apriori(símismo, inter=None):
         return símismo._apriori.obt_val(inter)

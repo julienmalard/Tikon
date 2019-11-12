@@ -30,6 +30,9 @@ class Coso(object):
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, inter=índs)
 
+    def borrar_aprioris(símismo, categ=None, sub_categ=None, ec=None, prm=None, índs=None):
+        símismo.ecs.borrar_aprioris(categ, sub_categ, ec, prm, inter=índs)
+
     def verificar(símismo):
         símismo.ecs.verificar()
 

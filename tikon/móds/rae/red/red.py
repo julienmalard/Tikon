@@ -1,8 +1,8 @@
 import numpy as np
 import xarray as xr
-from tikon.ecs.paráms import Inter
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.ecs.paráms import Inter
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from tikon.móds.rae.orgs.insectos import Parasitoide
 from tikon.móds.rae.red.res.cohortes import ResCohortes

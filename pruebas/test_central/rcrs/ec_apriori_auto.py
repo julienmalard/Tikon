@@ -1,9 +1,9 @@
 from scipy.stats import uniform
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
+from tikon.central.res import Resultado
 from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía, Parám
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.dists import líms_dist
-from tikon.central.res import Resultado
 
 apr = uniform(0, 5)
 rango = líms_dist(apr)

@@ -36,13 +36,27 @@ class Exper(object):
             return Tiempo(f_inic, f_inic + timedelta(days=t))
         return gen_tiempo(t)
 
-    def espec_inic(símismo, dist, mód, var, índs=None):
-        if not isinstance(dist, Dist):
-            dist = DistAnalítica(uniform(dist, 0))
-        símismo.datos.agregar_inic(dist, mód, var, índs=índs)
-
     def gen_paráms(símismo, sim):
-        return set()
+        for mód in sim[símismo.nombre]:
+            for res in sim[símismo.nombre][mód]:
+                if sim[símismo.nombre][mód][res].inicializable:
+                    try:
+                        símismo.datos.obt_inic(mód, var, índs=índs)
+                    except:
+                        pass
+
+        return []
+
+    def guardar_calib(símismo, directorio=''):
+        archivo = os.path.join(directorio, símismo.nombre + '.json')
+        símismo.datos.guardar_calib(archivo)
+
+    def cargar_calib(símismo, directorio=''):
+        if os.path.splitext(directorio)[1] == '.json':
+            archivo = directorio
+        else:
+            archivo = os.path.join(directorio, símismo.nombre + '.json')
+        símismo.datos.cargar_calib(archivo)
 
 
 def _extract_parcelas(parcelas):
@@ -110,16 +124,6 @@ class Exper0(object):
     def paráms(símismo):
         return símismo.inic.vals_paráms()
 
-    def guardar_calib(símismo, directorio=''):
-        archivo = os.path.join(directorio, símismo.nombre + '.json')
-        símismo.inic.guardar_calib(archivo)
-
-    def cargar_calib(símismo, directorio=''):
-        if os.path.splitext(directorio)[1] == '.json':
-            archivo = directorio
-        else:
-            archivo = os.path.join(directorio, símismo.nombre + '.json')
-        símismo.inic.cargar_calib(archivo)
 
 
 class MnjdrObsExper(object):

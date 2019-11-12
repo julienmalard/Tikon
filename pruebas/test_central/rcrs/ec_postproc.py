@@ -1,8 +1,8 @@
 import math
 
 from tikon.central import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
-from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía
 from tikon.central.res import Resultado
+from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía
 
 agreg_postproc_subcateg = math.pi
 agreg_postproc_categ = math.e

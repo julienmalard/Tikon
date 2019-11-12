@@ -1,7 +1,7 @@
 import numpy as np
+from tikon.central.res import Resultado
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA
-from tikon.central.res import Resultado
 
 from .utils import RES_DESCOMP, RES_CONC, RES_MRTLD, EJE_PRODUCTO
 

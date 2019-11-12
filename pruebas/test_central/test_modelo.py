@@ -2,14 +2,16 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
+import pandas as pd
 import xarray as xr
 import xarray.testing as xrt
+from pruebas.test_central.rcrs import tiempo_obs
 from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.utils import EJE_TIEMPO
 
-from .rcrs import req_modelo_falta, req_var_falta, módulo_con_punto, req_cntrl_falta, obt_valor_control, \
-    obt_valor_extern, var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
+from .rcrs import  \
+    var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
 
 class PruebaModelo(unittest.TestCase):
@@ -31,6 +33,7 @@ class PruebaModelo(unittest.TestCase):
         Modelo([inic_modelo.Módulo1, inic_modelo.Módulo2()])
 
     def test_módulo_con_punto(símismo):
+        from .rcrs import módulo_con_punto
         with símismo.assertRaises(ErrorNombreInválido):
             módulo_con_punto.modelo.simular('módulo con punto', exper=módulo_con_punto.exper, t=10)
 
@@ -39,14 +42,17 @@ class PruebaModelo(unittest.TestCase):
             var_con_punto.modelo.simular('var con punto', exper=var_con_punto.exper, t=10)
 
     def test_req_modelo_falta(símismo):
+        from .rcrs import req_modelo_falta
         with símismo.assertRaises(ErrorRequísitos):
             req_modelo_falta.modelo.simular('simul modelo falta', exper=req_modelo_falta.exper, t=10)
 
     def test_req_var_falta(símismo):
+        from .rcrs import req_var_falta
         with símismo.assertRaises(ErrorRequísitos):
             req_var_falta.modelo.simular('var modelo falta', exper=req_var_falta.exper, t=10)
 
     def test_req_control_falta(símismo):
+        from .rcrs import req_cntrl_falta
         with símismo.assertRaises(ErrorRequísitos):
             req_cntrl_falta.modelo.simular('simul modelo falta', exper=req_cntrl_falta.exper, t=10)
 
@@ -77,6 +83,7 @@ class PruebaModelo(unittest.TestCase):
 
     @staticmethod
     def test_obt_valor_control():
+        from .rcrs import obt_valor_control
         modelo = obt_valor_control.modelo
         exper = obt_valor_control.exper
         exper.controles['var'] = 2
@@ -85,6 +92,7 @@ class PruebaModelo(unittest.TestCase):
 
     @staticmethod
     def test_obt_valor_extern():
+        from .rcrs import obt_valor_extern
         modelo = obt_valor_extern.modelo
         exper = obt_valor_extern.exper
         res = modelo.simular('valor extern', exper=exper, t=10)
@@ -97,7 +105,6 @@ class PruebaModelo(unittest.TestCase):
         const = poner_valor_extern.const
         res = modelo.simular('valor extern', exper=exper, t=1)
         npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
-    @unittest.skip('implementar')
 
     def test_res_inicializable(símismo):
         modelo, exper, const = res_inicializable.modelo, res_inicializable.exper, res_inicializable.const
@@ -110,25 +117,24 @@ class PruebaModelo(unittest.TestCase):
             ).broadcast_like(datos_res)
         )
 
-    @unittest.skip('implementar')
-    def test_tiempo_de_obs(símismo):
-        exper = modelo_tiempo.exper
-        modelo = modelo_tiempo.modelo
-        f_inic, f_final = modelo_tiempo.f_inic, modelo_tiempo.f_final
-        res = modelo.simular('tiempo de obs', exper=exper, t=10)['exper']['módulo']['res']
-        xrt.assert_equal(res[EJE_TIEMPO], pd.date_range(f_inic, f_final))
+    @staticmethod
+    def test_tiempo_de_obs():
+        exper = tiempo_obs.exper
+        modelo = tiempo_obs.modelo
+        f_inic, f_final = tiempo_obs.f_inic, tiempo_obs.f_final
+        res = modelo.simular('tiempo numérico', exper=exper)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, f_final, freq='D'))
 
-    @unittest.skip('implementar')
-    def test_obs_tiempo_numérico(símismo):
-        exper = modelo_tiempo.exper
-        modelo = modelo_tiempo.modelo
-        f_inic = modelo_tiempo.f_inic
+    @staticmethod
+    def test_tiempo_numérico_de_obs():
+        exper = tiempo_obs.exper
+        modelo = tiempo_obs.modelo
+        f_inic = tiempo_obs.f_inic
         res = modelo.simular('tiempo numérico', exper=exper, t=10)['exper']['módulo']['res']
-        xrt.assert_equal(res[EJE_TIEMPO], pd.date_range(f_inic, 11))
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=11, freq='D'))
 
-    @unittest.skip('implementar')
     def test_no_obs_no_tiempo(símismo):
-        exper = modelo_tiempo.exper_sin_obs
-        modelo = modelo_tiempo.modelo
+        exper = tiempo_obs.exper_sin_obs
+        modelo = tiempo_obs.modelo
         with símismo.assertRaises(ValueError):
             modelo.simular('sin tiempo o obs', exper)
