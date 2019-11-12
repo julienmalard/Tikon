@@ -1,6 +1,6 @@
-from tikon.ecs.paráms import Inter
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.ecs.paráms import Inter
 from tikon.móds.apli.res import ResConcentración, ResDescomp, ResMortalidad
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.red.utils import EJE_ETAPA

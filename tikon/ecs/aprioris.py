@@ -1,5 +1,5 @@
 from .dists import DistAnalítica
-from .dists import líms_dist, obt_nombre
+from .dists import líms_dist
 from .utils import líms_compat
 
 

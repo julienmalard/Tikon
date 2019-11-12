@@ -1,6 +1,6 @@
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
-from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía
 from tikon.central.res import Resultado
+from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía
 
 
 class EcuaciónObtVal(Ecuación):

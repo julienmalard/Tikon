@@ -79,8 +79,8 @@ class Simulación(PlantillaSimul):
             ]
         )
 
-        prms_exper = {prm for exp in exper for prm in exp.gen_paráms(modelo)}
-        símismo.paráms = símismo.gen_paráms()
+        prms_exper = [prm for exp in exper for prm in exp.gen_paráms(símismo)]
+        símismo.paráms = símismo.gen_paráms() + prms_exper
         calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
 
     def simular(símismo):

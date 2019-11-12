@@ -1,19 +1,21 @@
-from tikon.ecs.dists import Dist, MnjdrDists
+from scipy.stats import uniform
+
+from tikon.ecs.dists import Dist, MnjdrDists, DistAnalítica
 from tikon.ecs.paráms import ValsParámCoso
 from tikon.ecs.árb_mód import Parám
 from tikon.result import Obs
 from tikon.utils import guardar_json, leer_json
 
 
-class PlantillaDatosVals(object):
+class PlantillaDatosVals(dict):
 
     def __init__(símismo):
-        símismo._datos = {}
+        super().__init__()
 
     def fechas(símismo):
         f_inic = f_final = None
         for dato in símismo:
-            otra_inic, otra_final = dato.fechas()
+            otra_inic, otra_final = símismo[dato].fechas()
             if (otra_inic is not None) and (f_inic is not None):
                 f_inic = min(otra_inic, f_inic)
             else:
@@ -25,9 +27,8 @@ class PlantillaDatosVals(object):
 
         return f_inic, f_final
 
-    def __iter__(símismo):
-        for dato in símismo._datos.values():
-            yield dato
+    def a_dic(símismo):
+        return {ll: símismo[ll].a_dic() for ll in símismo}
 
 
 class DatosExper(PlantillaDatosVals):
@@ -36,64 +37,91 @@ class DatosExper(PlantillaDatosVals):
         if isinstance(obs, Obs):
             obs = [obs]
         for o_ in obs:
-            if o_.mód not in símismo._datos:
-                símismo._datos[o_.mód] = DatosMód()
-            símismo._datos[o_.mód].agregar_obs(o_)
+            if o_.mód not in símismo:
+                símismo[o_.mód] = DatosMód()
+            símismo[o_.mód].agregar_obs(o_)
 
     def agregar_inic(símismo, dist, mód, var, índs=None):
+        if not isinstance(dist, Dist):
+            dist = DistAnalítica(uniform(dist, 0))
+
         mód, var = str(mód), str(var)
-        if mód not in símismo._datos:
-            símismo._datos[mód] = DatosMód()
-        símismo._datos[mód].agregar_inic(dist, var, índs=índs)
+        if mód not in símismo:
+            símismo[mód] = DatosMód()
+        símismo[mód].agregar_inic(dist, var, índs=índs)
 
     def obt_obs(símismo, mód, var):
         mód, var = str(mód), str(var)
-        if mód in símismo._datos:
-            return símismo._datos[mód].obt_obs(var)
+        if mód in símismo:
+            return símismo[mód].obt_obs(var)
 
     def obt_inic(símismo, mód, var, índs):
         mód, var = str(mód), str(var)
-        if mód in símismo._datos:
-            return símismo._datos[mód].obt_inic(var, índs=índs)
+        if mód in símismo:
+            return símismo[mód].obt_inic(var, índs=índs)
+
+    def cargar_calib(símismo, archivo):
+        d_calib = leer_json(archivo)
+        for m, dic in d_calib.items():
+            if m in símismo:
+                mód = símismo[m]
+            else:
+                símismo[m] = DatosMód()
+                mód = símismo[m]
+            mód.de_dic(dic)
+
+    def guardar_calib(símismo, directorio):
+        guardar_json(símismo.a_dic(), directorio)
 
 
 class DatosMód(PlantillaDatosVals):
 
     def agregar_obs(símismo, obs):
-        if obs.var not in símismo._datos:
-            símismo._datos[obs.var] = DatosVar()
-        símismo._datos[obs.var].agregar_obs(obs)
+        if obs.var not in símismo:
+            símismo[obs.var] = DatosVar()
+        símismo[obs.var].agregar_obs(obs)
 
     def agregar_inic(símismo, dist, var, índs=None):
-        if var not in símismo._datos:
-            símismo._datos[var] = DatosVar()
-        símismo._datos[var].agregar_inic(dist, índs=índs)
+        if var not in símismo:
+            símismo[var] = DatosVar()
+        símismo[var].agregar_inic(dist, índs=índs)
 
     def obt_obs(símismo, var):
-        if var in símismo._datos:
-            return símismo._datos[var].obs
+        if var in símismo:
+            return símismo[var].obs
 
     def obt_inic(símismo, var, índs):
-        if var in símismo._datos:
-            return símismo._datos[var].prms.obt_val(índs, heredar=True)
+        if var in símismo:
+            return símismo[var].dists.obt_val(índs, heredar=True)
+
+    def de_dic(símismo, dic):
+        for vr, d in dic.items():
+            if vr in símismo:
+                obj_var = símismo[vr]
+            else:
+                obj_var = MnjdrInicVar(vr)
+                símismo[vr] = obj_var
+            obj_var.de_dic(d)
 
 
 class DatosVar(PlantillaDatosVals):
     def __init__(símismo):
         símismo.obs = []
-        símismo.prms = MnjdrDists()
+        símismo.dists = MnjdrDists()
         super().__init__()
 
     def agregar_obs(símismo, obs):
         símismo.obs.append(obs)
 
     def agregar_inic(símismo, dist, índs=None):
-        símismo.prms.actualizar(dist, índs=índs)
+        símismo.dists.actualizar(dist, índs=índs)
 
     def __iter__(símismo):
-        for o_ in símismo.obs:
-            yield o_
+        for i in range(len(símismo.obs)):
+            yield i
 
+    def __getitem__(símismo, itema):
+        return símismo.obs[itema]
 
 class MnjdrInicExper(object):
     # para hacer: ¿combinar con MnjdrObsExper?
@@ -106,30 +134,6 @@ class MnjdrInicExper(object):
     def vals_paráms(símismo):
         return [vl for m in símismo for vl in símismo[m].vals_paráms()]
 
-    def guardar_calib(símismo, directorio):
-        dic_calib = símismo._calib_a_dic()
-        guardar_json(dic_calib, directorio)
-
-    def _calib_a_dic(símismo):
-        return {m: símismo[m].a_dic() for m in símismo}
-
-    def __getitem__(símismo, itema):
-        return símismo._inic[str(itema)]
-
-    def __iter__(símismo):
-        for m in símismo._inic:
-            yield m
-
-    def cargar_calib(símismo, archivo):
-        d_calib = leer_json(archivo)
-        for m, dic in d_calib.items():
-            try:
-                mód = símismo[m]
-            except KeyError:
-                símismo.agregar_mód(m)
-                mód = símismo[m]
-            mód.de_dic(dic)
-
 
 class MnjdrInicMód(object):
     def __init__(símismo):
@@ -140,25 +144,6 @@ class MnjdrInicMód(object):
 
     def agregar_prm(símismo, var, índs, prm_base):
         return símismo[var].agregar_prm(índs, prm_base)
-
-    def a_dic(símismo):
-        return {vr[0]: vr[1].a_dic() for vr in símismo}
-
-    def de_dic(símismo, dic):
-        for vr, d in dic.items():
-            if vr in símismo:
-                obj_var = símismo[vr]
-            else:
-                obj_var = MnjdrInicVar(vr)
-                símismo._inic[vr] = obj_var
-            obj_var.de_dic(d)
-
-    def __getitem__(símismo, itema):
-        return símismo._inic[str(itema)]
-
-    def __iter__(símismo):
-        for vr in símismo._inic.items():
-            yield vr
 
 
 class ParámInic():
@@ -218,7 +203,3 @@ class MnjdrInicVar(object):
             for ll, v in val.items():
                 dist = Dist.de_dic(v['val'])
                 obj_val.prm_base.agregar_calib(ll, dist)
-
-    def __iter__(símismo):
-        for v in símismo.vals:
-            yield v

@@ -30,6 +30,10 @@ class Módulo(object):
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
 
+    def borrar_aprioris(símismo):
+        for c in símismo:
+            símismo[c].borrar_aprioris()
+
     def inter(símismo, modelo, coso, tipo):
         raise ValueError('Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo))
 

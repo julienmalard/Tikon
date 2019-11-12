@@ -160,7 +160,6 @@ class SubcategEc(PlantillaRamaEc):
 
 class Ecuación(PlantillaRamaEc):
     _cls_en_coso = EcuaciónCoso
-    eje_cosos = None
 
     def __init__(símismo, modelo, mód, cosos, n_reps, ecs):
         super().__init__(modelo, mód, cosos, n_reps, ecs=ecs)
@@ -194,6 +193,7 @@ class Ecuación(PlantillaRamaEc):
 
 class EcuaciónVacía(Ecuación):
     nombre = 'Nada'
+    eje_cosos = None
 
     def eval(símismo, paso, sim):
         pass

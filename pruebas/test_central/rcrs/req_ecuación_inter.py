@@ -1,5 +1,5 @@
-from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
 from tikon.central import Módulo, SimulMódulo, Exper, Parcela, Modelo, Coso
+from tikon.ecs import ÁrbolEcs, CategEc, SubcategEc, Ecuación, EcuaciónVacía, Parám
 from tikon.ecs.paráms import Inter
 
 

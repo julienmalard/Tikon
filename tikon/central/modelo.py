@@ -20,7 +20,7 @@ class Modelo(object):
 
     def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
 
-        calibs = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
+        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=True)
         reps = _gen_reps(reps)
 
         simul = Simulación(
