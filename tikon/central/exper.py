@@ -1,23 +1,21 @@
 import os
 from datetime import timedelta
 
-import numpy as np
-from scipy.stats import uniform
 from tikon.ecs.aprioris import APrioriDens
-from tikon.ecs.dists import DistAnalítica, Dist
 from tikon.ecs.árb_mód import Parám
 
 from .control import ControlesExper
 from .datos import MnjdrInicExper, DatosExper
 from .parc import GrupoParcelas
 from .parc import Parcela
+from .paráms_exper import ParámsExper
 from .tiempo import Tiempo, gen_tiempo
 
 
 class Exper(object):
     def __init__(símismo, nombre, parcelas, obs=None):
         símismo.nombre = nombre
-        símismo.datos = DatosExper()
+        símismo.datos = DatosExper(nombre)
 
         símismo.parcelas = _extract_parcelas(parcelas)
         símismo.controles = ControlesExper(símismo.parcelas)
@@ -36,16 +34,8 @@ class Exper(object):
             return Tiempo(f_inic, f_inic + timedelta(days=t))
         return gen_tiempo(t)
 
-    def gen_paráms(símismo, sim):
-        for mód in sim[símismo.nombre]:
-            for res in sim[símismo.nombre][mód]:
-                if sim[símismo.nombre][mód][res].inicializable:
-                    try:
-                        símismo.datos.obt_inic(mód, var, índs=índs)
-                    except:
-                        pass
-
-        return []
+    def gen_paráms(símismo, sim_exper):
+        return ParámsExper(símismo, sim_exper)
 
     def guardar_calib(símismo, directorio=''):
         archivo = os.path.join(directorio, símismo.nombre + '.json')
@@ -72,7 +62,6 @@ def _extract_parcelas(parcelas):
 
 class Exper0(object):
     def __init__(símismo, obs=None):
-        símismo.obs = MnjdrObsExper(obs)
         símismo.inic = MnjdrInicExper()
 
     def obt_inic(símismo, mód, var=None):
@@ -97,88 +86,24 @@ class Exper0(object):
         except KeyError:
             return []
 
-        etps = red.etapas()
         # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
-        obs = símismo.obtener_obs(red, 'Pobs')
         for etp in etps:
             try:
-                obs.obt_val_t(0, {'etapa': etp})
-            except ValueError:
-                try:
-                    # para hacer: necesitamos objeto para índs. Idealmente el mismo que para índs de matrices
-                    prm_inic = símismo.inic['red']['Pobs'].obt_val({'etapa': str(etp)})
+                # para hacer: necesitamos objeto para índs. Idealmente el mismo que para índs de matrices
+                prm_inic = símismo.inic['red']['Pobs'].obt_val({'etapa': str(etp)})
 
-                except KeyError:
-                    class prm(Parám):
-                        nombre = 'inic'
-                        líms = (0, None)
+            except KeyError:
+                class prm(Parám):
+                    nombre = 'inic'
+                    líms = (0, None)
 
-                    prm_coso = prm.para_coso(None)
-                    apriori = APrioriDens((0, np.max(obs.obt_val_t(0))), 0.9)
-                    prm_coso.espec_apriori(apriori)
-                    prm_inic = símismo.inic.agregar_prm(
-                        mód='red', var='Pobs', índs={'etapa': str(etp)}, prm_base=prm_coso
-                    )
-                prm_inic.iniciar_prm(tmñ=n_rep_parám)
+                prm_coso = prm.para_coso(None)
+                apriori = APrioriDens()
+                prm_coso.espec_apriori(apriori)
+                prm_inic = símismo.inic.agregar_prm(
+                    mód='red', var='Pobs', índs={'etapa': str(etp)}, prm_base=prm_coso
+                )
+            prm_inic.iniciar_prm(tmñ=n_rep_parám)
 
     def paráms(símismo):
         return símismo.inic.vals_paráms()
-
-
-
-class MnjdrObsExper(object):
-    def __init__(símismo, obs=None):
-        símismo._obs = {}
-        if obs is not None:
-            símismo.agregar_obs(obs)
-
-    def agregar_obs(símismo, obs):
-
-        mód = str(obs.mód)
-        if mód not in símismo._obs:
-            símismo._obs[mód] = MnjdrObsMód()
-        símismo._obs[mód].agregar_obs(obs, obs.var)
-
-    def f_inic(símismo):
-        fechas = [f for f in [obs.f_inic() for obs in símismo] if f]
-        if fechas:
-            return min(fechas)
-
-    def n_días(símismo, f_inic):
-        días = [f for f in [obs.n_días(f_inic) for obs in símismo] if f]
-        if días:
-            return max(días)
-
-    def __iter__(símismo):
-        for obs in símismo._obs.values():
-            yield obs
-
-    def __getitem__(símismo, itema):
-        return símismo._obs[str(itema)]
-
-
-class MnjdrObsMód(object):
-    def __init__(símismo):
-        símismo._obs = {}
-
-    def agregar_obs(símismo, obs, var):
-        símismo._obs[var] = obs
-
-    def f_inic(símismo):
-        try:
-            min([f for f in [obs.f_inic() for obs in símismo] if f])
-        except ValueError:
-            return None
-
-    def n_días(símismo, f_inic):
-        return max([obs.n_días(f_inic) for obs in símismo])
-
-    def __contains__(símismo, itema):
-        return itema in símismo._obs
-
-    def __iter__(símismo):
-        for obs in símismo._obs.values():
-            yield obs
-
-    def __getitem__(símismo, itema):
-        return símismo._obs[str(itema)]

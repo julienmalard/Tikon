@@ -135,6 +135,7 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         símismo.líms = símismo.cls_pariente.líms
         símismo.inter = símismo.cls_pariente.inter
+        símismo.apriori_auto = símismo.cls_pariente.apriori
 
     def verificar_activa(símismo, modelo, mód):
         return True  # Parámetros de una ecuación activa siempre están activados.

@@ -25,6 +25,8 @@ class DistAnalítica(Dist):
             símismo.paráms = obt_prms_obj_scipy(dist)
             símismo.dist = dist
 
+        símismo.líms = tuple(símismo.transf_vals(np.array(líms_dist(símismo.dist))))
+
     def obt_vals(símismo, n):
         return símismo.transf_vals(símismo.dist.rvs(n))
 

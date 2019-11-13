@@ -8,9 +8,9 @@ import xarray.testing as xrt
 from pruebas.test_central.rcrs import tiempo_obs
 from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
-from tikon.central.utils import EJE_TIEMPO
+from tikon.utils import EJE_TIEMPO
 
-from .rcrs import  \
+from .rcrs import \
     var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
 
@@ -106,7 +106,8 @@ class PruebaModelo(unittest.TestCase):
         res = modelo.simular('valor extern', exper=exper, t=1)
         npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
 
-    def test_res_inicializable(símismo):
+    @staticmethod
+    def test_res_inicializable():
         modelo, exper, const = res_inicializable.modelo, res_inicializable.exper, res_inicializable.const
         res = modelo.simular('inicializado', exper=exper, t=1, vars_interés=True)
         datos_res = res['exper']['módulo']['res'].datos_t

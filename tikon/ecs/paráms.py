@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
-from tikon.central.utils import EJE_PARÁMS
+
+from tikon.utils import EJE_PARÁMS
 
 
 class MnjdrValsCoefs(object):
@@ -15,10 +16,10 @@ class MnjdrValsCoefs(object):
             matr.act_vals()
 
     def __getitem__(símismo, itema):
-        return símismo._paráms[itema].val()
+        return símismo._paráms[itema].val
 
 
-class PlantillaMatrsParáms(object):
+class MatrParám(object):
     def __init__(símismo, subs, eje, índice):
         símismo._sub_matrs = subs
 
@@ -30,30 +31,25 @@ class PlantillaMatrsParáms(object):
     def coords(símismo):
         return {símismo.eje: [sub.índice for sub in símismo._sub_matrs], **_combin_coords(símismo._sub_matrs)}
 
+    @property
+    def val(símismo):
+        return símismo._datos
+
     def act_vals(símismo):
         for sub in símismo._sub_matrs:
             sub.act_vals()
             símismo._datos.loc[{símismo.eje: sub.índice}] = sub.val
 
-    def val(símismo):
-        return símismo._datos
-
     def vals_paráms(símismo):
         return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]
 
 
-class MatrParám(PlantillaMatrsParáms):
-    def __init__(símismo, matrs_cosos, eje, índice):
-        super().__init__(matrs_cosos, eje=eje, índice=índice)
-
-
-class ValsParámCosoInter(PlantillaMatrsParáms):
+class ValsParámCosoInter(MatrParám):
     def __init__(símismo, vals_paráms_inter, eje, índice):
         super().__init__(vals_paráms_inter, eje=eje, índice=índice)
 
 
-class ValsParámCoso(PlantillaMatrsParáms):
-
+class ValsParámCoso(MatrParám):
     def __init__(símismo, tmñ, prm_base, índice, inter=None):
         símismo.tmñ = tmñ
         símismo._prm = prm_base
@@ -77,7 +73,7 @@ class ValsParámCoso(PlantillaMatrsParáms):
         return símismo._prm.dists_disp(símismo._inter, heredar)
 
     def dist_base(símismo):
-        apriori_auto = símismo._prm.cls_pariente.apriori
+        apriori_auto = símismo._prm.apriori_auto
         if apriori_auto:
             return apriori_auto.dist(símismo._prm.líms)
         return símismo._prm.calib_base()
@@ -112,9 +108,6 @@ class ValsParámCoso(PlantillaMatrsParáms):
 
     def guardar_calib(símismo, dist, nombre):
         símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
-
-    def __eq__(símismo, otro):
-        return símismo._prm is otro._prm and símismo._inter == otro._inter
 
 
 class Inter(object):

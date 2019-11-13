@@ -2,9 +2,8 @@ import os
 import threading
 
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
+from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
-
-from .exper import Exper
 
 
 class PlantillaSimul(object):
@@ -25,8 +24,8 @@ class PlantillaSimul(object):
         for s in símismo:
             símismo[s].cerrar()
 
-    def gen_paráms(símismo):
-        return [prm for s in símismo for prm in símismo[s].gen_paráms()]
+    def vals_paráms(símismo):
+        return _únicos([prm for s in símismo for prm in símismo[s].vals_paráms()])
 
     def verificar_estado(símismo):
         for s in símismo:
@@ -79,8 +78,7 @@ class Simulación(PlantillaSimul):
             ]
         )
 
-        prms_exper = [prm for exp in exper for prm in exp.gen_paráms(símismo)]
-        símismo.paráms = símismo.gen_paráms() + prms_exper
+        símismo.paráms = símismo.vals_paráms()
         calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
 
     def simular(símismo):
@@ -138,6 +136,10 @@ class SimulExper(PlantillaSimul):
         )
 
         símismo.verificar_reqs()
+        símismo.paráms_exper = símismo.exper.gen_paráms(símismo)
+
+    def vals_paráms(símismo):
+        return super().vals_paráms() + símismo.paráms_exper.vals_paráms()
 
     def verificar_reqs(símismo):
 
@@ -168,6 +170,7 @@ class SimulExper(PlantillaSimul):
 
     def iniciar(símismo):
         símismo.t.reinic()
+        símismo.paráms_exper.iniciar()
         super().iniciar()
 
     def correr(símismo):
@@ -197,7 +200,7 @@ class SimulMódulo(PlantillaSimul):
         objs_res = [res(sim=símismo, coords=coords_base, vars_interés=vars_interés) for res in símismo.resultados]
         super().__init__(mód.nombre, objs_res)
 
-    def gen_paráms(símismo):
+    def vals_paráms(símismo):
         return símismo.ecs.vals_paráms() if símismo.ecs else []
 
     def incrementar(símismo, paso, f):
@@ -231,3 +234,11 @@ class SimulMódulo(PlantillaSimul):
     def requísitos(símismo, controles=False):
         if símismo.ecs:
             return símismo.ecs.requísitos(controles=controles)
+
+
+def _únicos(lista):
+    final = []
+    for l in lista:
+        if l not in final:
+            final.append(l)
+    return final

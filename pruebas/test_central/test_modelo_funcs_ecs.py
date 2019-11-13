@@ -3,8 +3,6 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import xarray.testing as xrt
-from pruebas.test_central.rcrs import req_ecuación_falta, req_ecuación_inter, ec_obt_poner_valor, ec_postproc, \
-    ec_valor_control, ec_obt_valor_extern, ec_poner_valor_extern, ec_parám, ec_apriori_auto
 from scipy.stats import uniform
 from tikon.central import Modelo
 from tikon.central.calibs import EspecCalibsCorrida
@@ -15,6 +13,7 @@ from tikon.ecs.aprioris import APrioriDist
 class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     def test_req_ecuación_falta(símismo):
+        from .rcrs import req_ecuación_falta
         modelo = req_ecuación_falta.modelo
         coso = req_ecuación_falta.coso
         exper = req_ecuación_falta.exper
@@ -31,6 +30,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         modelo.simular('ecuaciones reqs faltan no activadas', exper=exper, t=10)
 
     def test_req_ecuación_inter(símismo):
+        from .rcrs import req_ecuación_inter
         modelo = req_ecuación_inter.mi_modelo
         coso1 = req_ecuación_inter.coso1
         coso2 = req_ecuación_inter.coso2
@@ -44,6 +44,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     @staticmethod
     def test_postproc():
+        from .rcrs import ec_postproc
         modelo = ec_postproc.modelo
         exper = ec_postproc.exper
 
@@ -62,6 +63,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     @staticmethod
     def test_obt_y_poner_valor():
+        from .rcrs import ec_obt_poner_valor
         modelo = ec_obt_poner_valor.mi_modelo
         exper = ec_obt_poner_valor.exper
         res = modelo.simular('ec obt valor', exper, t=10, vars_interés=True)['exper']['módulo']
@@ -69,6 +71,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     @staticmethod
     def test_obt_valor_control():
+        from .rcrs import ec_valor_control
         modelo = ec_valor_control.mi_modelo
         exper = ec_valor_control.exper
         valor = 34
@@ -78,6 +81,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     @staticmethod
     def test_obt_valor_extern():
+        from .rcrs import ec_obt_valor_extern
         modelo = ec_obt_valor_extern.mi_modelo
         exper = ec_obt_valor_extern.exper
         valor = ec_obt_valor_extern.valor
@@ -87,22 +91,27 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     @staticmethod
     def test_poner_valor_extern():
+        from .rcrs import ec_poner_valor_extern
         modelo, exper, valor = ec_poner_valor_extern.mi_modelo, ec_poner_valor_extern.exper, ec_poner_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['otro módulo']['res 2']
         npt.assert_equal(res.datos.values, valor)
 
     def test_parám(símismo):
+        from .rcrs import ec_parám
         modelo, exper, rango = ec_parám.mi_modelo, ec_parám.exper, ec_parám.rango
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
         símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
 
     def test_apriori_auto(símismo):
+        from .rcrs import ec_apriori_auto
         calibs = EspecCalibsCorrida(aprioris=True)
         modelo, exper, rango = ec_apriori_auto.mi_modelo, ec_apriori_auto.exper, ec_apriori_auto.rango
+
         with símismo.subTest('apriori auto'):
             res = modelo.simular('apriori auto', exper, t=2, calibs=calibs)['exper']['módulo']['res']
             símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
+
         with símismo.subTest('apriori manual'):
             coso = ec_apriori_auto.coso
             coso.espec_apriori(APrioriDist(uniform(3, 3)), 'categ', sub_categ='subcateg', ec='ec', prm='a')
@@ -110,6 +119,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
             símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= 6)))
 
     def test_apriori_coso(símismo):
+        from .rcrs import ec_parám
         exper = ec_parám.exper
         coso = ec_parám.CosoParám('hola')
         modelo = Modelo(ec_parám.MóduloParám([coso]))
@@ -118,6 +128,10 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         calibs = EspecCalibsCorrida(aprioris=True)
         res = modelo.simular('apriori', exper, t=2, calibs=calibs)['exper']['módulo']['res']
         símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= (3 + 1))))
+
+    @unittest.skip('implementar')
+    def test_borrar_apriori(símsmo):
+        pass
 
     @unittest.skip('implementar')
     def test_inter(símismo):
