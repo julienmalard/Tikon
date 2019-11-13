@@ -1,11 +1,8 @@
 import os
 from datetime import timedelta
 
-from tikon.ecs.aprioris import APrioriDens
-from tikon.ecs.árb_mód import Parám
-
 from .control import ControlesExper
-from .datos import MnjdrInicExper, DatosExper
+from .datos import DatosExper
 from .parc import GrupoParcelas
 from .parc import Parcela
 from .paráms_exper import ParámsExper
@@ -58,52 +55,3 @@ def _extract_parcelas(parcelas):
         else:
             l_prcs += prc.parcelas
     return l_prcs
-
-
-class Exper0(object):
-    def __init__(símismo, obs=None):
-        símismo.inic = MnjdrInicExper()
-
-    def obt_inic(símismo, mód, var=None):
-        try:
-            inic_mód = símismo.inic[mód]
-        except KeyError:
-            inic_mód = símismo.inic.agregar_mód(mód)
-        return inic_mód.obt_inic(var)
-
-    def obtener_obs(símismo, mód, var=None):
-        if var:
-            return símismo.obs[mód][var]
-        return símismo.obs[mód]
-
-    def iniciar_estruc(símismo, tiempo, mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés):
-
-        # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
-        # TODO LO QUE SIGUE ES CÓDIGO TEMPORARIO Y HORRIBLEMENTE INELEGANTE, INEFICAZ, E INCÓMODO
-
-        try:
-            red = mnjdr_móds['red']
-        except KeyError:
-            return []
-
-        # para hacer: limpiar, y agregar fecha de inicio y parcelas. generalizar y quitar mención de 'red' y 'etapa'
-        for etp in etps:
-            try:
-                # para hacer: necesitamos objeto para índs. Idealmente el mismo que para índs de matrices
-                prm_inic = símismo.inic['red']['Pobs'].obt_val({'etapa': str(etp)})
-
-            except KeyError:
-                class prm(Parám):
-                    nombre = 'inic'
-                    líms = (0, None)
-
-                prm_coso = prm.para_coso(None)
-                apriori = APrioriDens()
-                prm_coso.espec_apriori(apriori)
-                prm_inic = símismo.inic.agregar_prm(
-                    mód='red', var='Pobs', índs={'etapa': str(etp)}, prm_base=prm_coso
-                )
-            prm_inic.iniciar_prm(tmñ=n_rep_parám)
-
-    def paráms(símismo):
-        return símismo.inic.vals_paráms()

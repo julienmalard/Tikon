@@ -165,32 +165,3 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 def _gen_datos(coords, t):
     coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
     return xr.DataArray(data=0., coords=coords, dims=list(coords))
-
-
-class Resultado0(object):
-    def __init__(símismo, nombre, dims, tiempo=None, obs=None, inic=None):
-
-        símismo.obs = obs
-        símismo.inic = inic
-
-    def reinic(símismo):
-        super().reinic()
-
-        if símismo.obs:
-            t_inic = símismo.tiempo.día()  # para hacer: con f_inic
-
-            dims_obs = símismo.obs.dims
-
-            # para hacer: en una única llamada a poner_valor() en cuanto funcionen los índices múltiples en rebanar()
-            for índs in dims_obs.iter_índs(excluir=EJE_TIEMPO):
-                vals_inic = símismo.obs.obt_val_t(t_inic, índs=índs)
-
-                vals_inic[np.isnan(vals_inic)] = 0
-                símismo.poner_valor(vals=vals_inic, índs=índs)
-
-            símismo.actualizar()
-
-        if símismo.inic:
-            for val in símismo.inic:
-                símismo.poner_valor(vals=val.valor(), índs=val.índs)
-            símismo.actualizar()
