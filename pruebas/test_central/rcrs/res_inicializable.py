@@ -31,5 +31,5 @@ class MóduloResInic(Módulo):
 obs = Obs(mód='módulo', var='res', datos=xr.DataArray(const, coords={'mi eje': np.arange(5)}, dims=['mi eje']))
 
 exper = Exper('exper', Parcela('parcela'))
-exper.datos.agregar_inic(const, mód='módulo', var='res')
+exper.datos.espec_inic(const, mód='módulo', var='res')
 modelo = Modelo(MóduloResInic())

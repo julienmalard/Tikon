@@ -4,10 +4,9 @@ import numpy as np
 import xarray as xr
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
-from tikon.central.utils import EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC
 from tikon.result.dibs import graficar_res
 from tikon.result.valid import reps_necesarias
-from tikon.utils import proc_líms
+from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 
 class Resultado(PlantillaSimul):
@@ -48,10 +47,9 @@ class Resultado(PlantillaSimul):
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]
 
         if símismo.inicializable:
-            for índs in símismo.iter_índs(símismo.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]):
-                inic = símismo.sim.exper.datos.obt_inic(mód=símismo.sim, var=símismo, índs=índs)
-                if inic:
-                    símismo._datos.loc[índs] = inic
+            inic = símismo.sim.simul_exper.paráms_exper[str(símismo.sim)][str(símismo)]
+            if inic is not None:
+                símismo.datos = inic.matr.val
 
     def incrementar(símismo, paso, f):
         if símismo.t is not None:

@@ -202,9 +202,11 @@ class EcuaciónVacía(Ecuación):
 class Parám(PlantillaRamaEc):
     _cls_en_coso = ParámCoso
     eje_cosos = None
+    cls_ramas = []
+
+    # Éstos se pueden personalizar
     líms = (None, None)
     inter = None
-    cls_ramas = []
     apriori = None
 
     def __init__(símismo, modelo, mód, cosos, n_reps, ecs):

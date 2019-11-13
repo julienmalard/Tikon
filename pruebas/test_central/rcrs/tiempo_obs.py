@@ -3,11 +3,10 @@ import math
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela
 from tikon.central.res import Resultado
-from tikon.central.utils import EJE_TIEMPO
 from tikon.result import Obs
+from tikon.utils import EJE_TIEMPO
 
 const = math.pi
 

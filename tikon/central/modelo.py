@@ -42,32 +42,34 @@ class Modelo(object):
             símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
     def sensib(
-            símismo, exper, t=None, n=10, método='sobol', calibs=None, paso=1, n_rep_estoc=30,
-            vars_interés=None, ops_mstr=None, ops_anlz=None
+            símismo, nombre, exper, t=None, analizador=None, calibs=None, n_rep_estoc=30,
+            vars_interés=None
     ):
-        ops_mstr = ops_mstr or {}
-        ops_anlz = ops_anlz or {}
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
-        sim = Simulación(símismo.módulos, exper=exper, t=t, reps=(n_rep_estoc, 1), vars_interés=vars_interés)
+        reps = {'estoc': n_rep_estoc, 'paráms': 1}
+        sim = Simulación(
+            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
+            vars_interés=vars_interés
+        )
 
-        anlzdr = gen_anlzdr_sensib(método, sim.paráms, calibs=calibs)
+        anlzdr = gen_anlzdr_sensib(analizador)
 
-        anlzdr.aplicar_muestrea(n, ops=ops_mstr)
+        anlzdr.aplicar_muestrea(sim.paráms, calibs=calibs)
 
         sim.iniciar()
         sim.correr()
         sim.cerrar()
 
-        return anlzdr.analizar(sim, ops=ops_anlz)
+        return anlzdr.analizar(sim)
 
     def calibrar(
             símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM, func=None, calibs=None, reps=None,
-            paráms=None,
+            paráms=None
     ):
 
         reps = _gen_reps(reps, calib=True)
-        sim = Simulación(nombre, símismo.módulos, exper=exper, t=t, reps=reps, vars_interés=None)
+        sim = Simulación(nombre, modelo=símismo, exper=exper, t=t, reps=reps, vars_interés=None)
 
         def func_opt():
             sim.iniciar()

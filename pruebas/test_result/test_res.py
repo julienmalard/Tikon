@@ -2,7 +2,6 @@ import unittest
 
 import numpy as np
 import xarray
-
 from tikon.central import Resultado
 
 

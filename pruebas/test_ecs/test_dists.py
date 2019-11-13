@@ -3,10 +3,10 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import scipy.stats as estad
-import tikon.ecs.dists.utils as utls
 from numpy import exp
 from scipy.special import expit
 from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists
+from tikon.ecs.dists import utils as utls
 from tikon.ecs.dists.anlt import TransfDist
 from tikon.utils import proc_líms
 

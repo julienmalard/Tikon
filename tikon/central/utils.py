@@ -1,9 +1,4 @@
-EJE_PARÁMS = 'paráms'
-EJE_ESTOC = 'estoc'
-EJE_TIEMPO = 'tiempo'
-EJE_PARC = 'parcela'
-EJE_DEST = 'dest'
-EJE_COORD = 'coord'
+from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_PARC
 
 
 def gen_coords_base(n_rep_estoc, n_rep_paráms, parc):

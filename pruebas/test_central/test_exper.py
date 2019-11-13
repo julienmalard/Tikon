@@ -1,7 +1,7 @@
 import unittest
 
 from tikon.central import Exper, Parcela, GrupoParcelas
-from tikon.central.utils import EJE_PARC
+from tikon.utils import EJE_PARC
 
 
 class PruebaExperParc(unittest.TestCase):
