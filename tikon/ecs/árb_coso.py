@@ -4,51 +4,46 @@ from typing import Dict
 from .dists import DistAnalítica, MnjdrDists
 
 
-class PlantillaRamaEcCoso(object):
+class PlantillaRamaEcCoso(dict):
     def __init__(símismo, cls_pariente, ramas, coso):
         símismo.coso = coso
         símismo.cls_pariente = cls_pariente
-        símismo._ramas = {str(r): r for r in ramas}
+        super().__init__(**{str(r): r for r in ramas})
 
     def verificar_activa(símismo, modelo, mód):
-        return any(rm.verificar_activa(modelo, mód) for rm in símismo)
+        return any(símismo[rm].verificar_activa(modelo, mód) for rm in símismo)
 
     def de_dic(símismo, dic):
         for rm in símismo:
-            if str(rm) in dic:
-                rm.de_dic(dic[str(rm)])
+            if rm in dic:
+                símismo[rm].de_dic(dic[rm])
 
     def borrar_calib(símismo, nombre):
-        for r in símismo:
-            r.borrar_calib(nombre)
+        for rm in símismo:
+            símismo[rm].borrar_calib(nombre)
 
-    def borrar_aprioris(símismo, categ, sub_categ, ec, prm, índs=None):
+    def borrar_aprioris(símismo, *args, índs=None):
+        ramas = args[0] if len(args) else None
+        if isinstance(ramas, str):
+            ramas = [ramas]
+        elif ramas is None:
+            ramas = iter(símismo)
 
-        for r in categs:
-            r.borrar_aprioris()
+        for rm in ramas:
+            símismo[rm].borrar_aprioris(*(args[1:] if len(args) > 1 else []), índs=índs)
 
     def renombrar_calib(símismo, nombre, nuevo):
-        for r in símismo:
-            r.renombrar_calib(nombre, nuevo)
+        for rm in símismo:
+            símismo[rm].renombrar_calib(nombre, nuevo)
 
     def a_dic(símismo):
-        return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo._ramas.items()}.items() if len(v)}
-
-    def __getitem__(símismo, itema):
-        return símismo._ramas[str(itema)]
-
-    def __setitem__(símismo, llave, valor):
-        símismo._ramas[llave] = valor
-
-    def __iter__(símismo):
-        for rm in símismo._ramas.values():
-            yield rm
+        return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo.items()}.items() if len(v)}
 
     def __contains__(símismo, itema):
-        return str(itema) in símismo._ramas
+        return str(itema) in símismo
 
     def __copy__(símismo):
-        ramas = [copy(rm) for rm in símismo._ramas.values()]
+        ramas = [copy(rm) for rm in símismo.values()]
         return símismo.__class__(símismo.cls_pariente, ramas=ramas, coso=símismo.coso)
 
     def __str__(símismo):
@@ -58,7 +53,7 @@ class PlantillaRamaEcCoso(object):
 class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, inter=None):
-        obj_parám = símismo._ramas[categ][sub_categ][ec][parám]
+        obj_parám = símismo[categ][sub_categ][ec][parám]
         obj_parám.espec_apriori(apriori, inter=inter)
 
     def activar_ec(símismo, categ, subcateg, ec):
@@ -75,7 +70,7 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
     def desactivar_ec(símismo, subcateg=None):
         if subcateg is None:
-            subcateg = list(símismo._ramas)
+            subcateg = list(símismo)
         else:
             subcateg = [subcateg]
         for sub in subcateg:
@@ -100,7 +95,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
             raise ValueError('Ecuación {ec} no existe por aquí.'.format(ec=ec))
 
         símismo._activada = obj_ec
-        for rm in símismo._ramas.values():
+        for rm in símismo.values():
             rm.activada = False
 
         obj_ec.activada = True
@@ -156,7 +151,9 @@ class ParámCoso(PlantillaRamaEcCoso):
         dist = apriori.dist(símismo.líms)
         símismo._apriori.actualizar(dist=dist, índs=inter)
 
-    def borrar_apriori(símismo, índs=None):
+    def borrar_aprioris(símismo, *args, índs=None):
+        if len(args):
+            raise ValueError()
         símismo._apriori.borrar(índs)
 
     def apriori(símismo, inter=None):
