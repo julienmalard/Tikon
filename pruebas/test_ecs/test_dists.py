@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 import numpy as np
 import numpy.testing as npt
@@ -6,7 +7,6 @@ import scipy.stats as estad
 from numpy import exp
 from scipy.special import expit
 from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists
-from tikon.ecs.dists import utils as utls
 from tikon.ecs.dists.anlt import TransfDist
 from tikon.utils import proc_líms
 
@@ -41,8 +41,8 @@ class PruebaDistAnalítica(unittest.TestCase):
 
     def test_de_traza(símismo):
         líms = {
-            '[R,R]': (0, 1),
-            '[R, ∞)': (1, None),
+            '[R,R]': (1, 5),
+            '[R, ∞)': (3, None),
             '(-∞, R]': (None, 1),
             '(-∞, +∞)': (None, None),
         }
@@ -56,18 +56,23 @@ class PruebaDistAnalítica(unittest.TestCase):
                         traza = exp(traza) + líms[0]
                 elif líms[1] is not None:
                     traza = -exp(traza) + líms[1]
-                dist = DistAnalítica.de_traza(traza, líms=líms, permitidas=list(utls.dists))
+                dist = DistAnalítica.de_traza(traza, líms=líms)
                 símismo._verif_en_líms(dist.obt_vals(10000), líms)
                 p = estad.ttest_ind(dist.obt_vals(10000), traza)[1]
                 símismo.assertLess(0.1, p)
+
+    def test_de_traza_líms_erróneos(símismo):
+        with símismo.assertRaises(ValueError):
+            DistAnalítica.de_traza(trz=estad.norm().rvs(10), líms=(0, None))
 
     def test_de_traza_no_compatible(símismo):
         with símismo.assertRaises(ValueError):
             DistAnalítica.de_traza(trz=np.random.random(10), líms=(0, None), permitidas=['Beta'])
 
-    @unittest.skip('implementar')
     def test_de_traza_no_muy_buena(símismo):
-        pass
+        with warnings.catch_warnings(record=True) as w:
+            DistAnalítica.de_traza(trz=estad.beta(3, 4).rvs(100), líms=(0, 1), permitidas=['Uniforme'])
+            símismo.assertTrue(len(w), 1)
 
     def test_obt_vals(símismo):
         vals = DistAnalítica(estad.norm()).obt_vals(10)
@@ -77,9 +82,10 @@ class PruebaDistAnalítica(unittest.TestCase):
         vals = DistAnalítica(estad.norm()).obt_vals_índ([1, 2, 3])
         símismo.assertEqual(len(vals), 3)
 
-    @unittest.skip('implementar')
-    def test_aprox_líms(símismo):
-        pass
+    @staticmethod
+    def test_aprox_líms():
+        líms = DistAnalítica(estad.norm()).aprox_líms(0.80)
+        npt.assert_equal(líms, (estad.norm.ppf(0.1), estad.norm.ppf(0.9)))
 
     def test_tamaño(símismo):
         dist = DistAnalítica(estad.norm())
@@ -161,7 +167,7 @@ class PruebaDistAnalítica(unittest.TestCase):
 class PruebaTransfDist(unittest.TestCase):
     def test_transf(símismo):
         datos = np.arange(10)
-        for tr in ['lnexp', 'expit', 'neglnexp', None]:
+        for tr in ['lnexp', 'expit', None]:
             with símismo.subTest(tr):
                 transf = TransfDist(tr)
                 npt.assert_allclose(datos, transf.transf_inv(transf.transf(datos)))
