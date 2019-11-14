@@ -11,10 +11,16 @@ class A(Parám):
     líms = rango
 
 
+class B(Parám):
+    nombre = 'b'
+    unids = None
+    líms = rango
+
+
 class EcuaciónParám(Ecuación):
     nombre = 'ec'
     eje_cosos = 'coso'
-    cls_ramas = [A]
+    cls_ramas = [A, B]
 
     def eval(símismo, paso, sim):
         símismo.poner_valor_mód(sim, 'res', símismo.cf['a'])

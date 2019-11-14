@@ -37,11 +37,7 @@ class MnjdrDists(object):
         símismo.índs = {}
 
     def actualizar(símismo, dist, índs=None):
-        if isinstance(índs, str):
-            índs = [índs]
-        elif índs is not None:
-            índs = list(índs)  # generar copia
-
+        índs = símismo._proc_índs(índs)
         if índs is None or not índs:
             símismo.val = dist
         else:
@@ -53,11 +49,7 @@ class MnjdrDists(object):
             símismo.índs[í].actualizar(dist, índs)
 
     def obt_val(símismo, índs=None, heredar=True):
-
-        if isinstance(índs, str):
-            índs = [índs]
-        elif índs is not None:
-            índs = list(índs)  # generar copia
+        índs = símismo._proc_índs(índs)
 
         if índs is None or not len(índs):
             return símismo.val
@@ -67,6 +59,22 @@ class MnjdrDists(object):
             return símismo[í].obt_val(índs, heredar)
         if heredar:
             return símismo.val
+
+    def borrar(símismo, índs=None):
+        índs = símismo._proc_índs(índs)
+
+        if índs is None or not índs:
+            símismo.val = None
+        else:
+            í = str(índs.pop(0))
+            símismo.índs[í].borrar(índs)
+
+    @staticmethod
+    def _proc_índs(índs):
+        if isinstance(índs, str):
+            return [índs]
+        elif índs is not None:
+            return list(índs)  # generar copia
 
     def __getitem__(símismo, itema):
         return símismo.índs[itema]

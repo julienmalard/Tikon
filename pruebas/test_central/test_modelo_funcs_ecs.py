@@ -5,7 +5,6 @@ import numpy.testing as npt
 import xarray.testing as xrt
 from scipy.stats import uniform
 from tikon.central import Modelo
-from tikon.central.calibs import EspecCalibsCorrida
 from tikon.central.errores import ErrorRequísitos
 from tikon.ecs.aprioris import APrioriDist
 
@@ -105,17 +104,16 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     def test_apriori_auto(símismo):
         from .rcrs import ec_apriori_auto
-        calibs = EspecCalibsCorrida(aprioris=True)
         modelo, exper, rango = ec_apriori_auto.mi_modelo, ec_apriori_auto.exper, ec_apriori_auto.rango
 
         with símismo.subTest('apriori auto'):
-            res = modelo.simular('apriori auto', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+            res = modelo.simular('apriori auto', exper, t=2)['exper']['módulo']['res']
             símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.datos.values, res.datos.values <= rango[1])))
 
         with símismo.subTest('apriori manual'):
             coso = ec_apriori_auto.coso
             coso.espec_apriori(APrioriDist(uniform(3, 3)), 'categ', sub_categ='subcateg', ec='ec', prm='a')
-            res = modelo.simular('apriori auto', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+            res = modelo.simular('apriori auto', exper, t=2)['exper']['módulo']['res']
             símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= 6)))
 
     def test_apriori_coso(símismo):
@@ -125,13 +123,48 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         modelo = Modelo(ec_parám.MóduloParám([coso]))
         coso.espec_apriori(apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a')
 
-        calibs = EspecCalibsCorrida(aprioris=True)
-        res = modelo.simular('apriori', exper, t=2, calibs=calibs)['exper']['módulo']['res']
+        res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
         símismo.assertTrue(np.all(np.logical_and(3 <= res.datos.values, res.datos.values <= (3 + 1))))
 
-    @unittest.skip('implementar')
-    def test_borrar_apriori(símsmo):
-        pass
+    def test_borrar_apriori(símismo):
+        from .rcrs import ec_parám
+        exper = ec_parám.exper
+        coso = ec_parám.CosoParám('hola')
+        modelo = Modelo(ec_parám.MóduloParám([coso]))
+        with símismo.subTest('todos'):
+            coso.espec_apriori(
+                apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a'
+            )
+            coso.borrar_aprioris()
+            res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
+            símismo.assertTrue(np.any(np.logical_or(3 > res.datos.values, res.datos.values > (3 + 1))))
+
+        with símismo.subTest('parámetro específico'):
+            coso.espec_apriori(
+                apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a'
+            )
+            coso.borrar_aprioris('categ', 'subcateg', 'ec', prm='a')
+            res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
+            símismo.assertTrue(np.any(np.logical_or(3 > res.datos.values, res.datos.values > (3 + 1))))
+
+        with símismo.subTest('otra rama'):
+            coso.espec_apriori(
+                apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a'
+            )
+            coso.borrar_aprioris('categ', 'subcateg', 'ec', prm='b')
+            res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
+            símismo.assertTrue(np.any(np.logical_or(3 <= res.datos.values, res.datos.values <= (3 + 1))))
+
+    def test_borrar_apriori_rama(símismo):
+        from .rcrs import ec_parám
+        exper = ec_parám.exper
+        coso = ec_parám.CosoParám('hola')
+        modelo = Modelo(ec_parám.MóduloParám([coso]))
+        coso.espec_apriori(apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a')
+        coso.borrar_aprioris(categ='categ')
+
+        res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
+        símismo.assertTrue(np.any(np.logical_or(3 > res.datos.values, res.datos.values > (3 + 1))))
 
     @unittest.skip('implementar')
     def test_inter(símismo):
