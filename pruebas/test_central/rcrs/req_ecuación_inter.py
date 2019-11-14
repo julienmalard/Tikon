@@ -12,6 +12,7 @@ class ParámInter(Parám):
 class EcuaciónReq(Ecuación):
     nombre = 'req'
     cls_ramas = [ParámInter]
+    eje_cosos = 'coso'
 
     def eval(símismo, paso, sim):
         pass
@@ -24,11 +25,13 @@ class EcuaciónReq(Ecuación):
 class SubCategReqInter(SubcategEc):
     nombre = 'subcateg'
     cls_ramas = [EcuaciónReq, EcuaciónVacía]
+    eje_cosos = 'coso'
 
 
 class CategReqInter(CategEc):
     nombre = 'categ'
     cls_ramas = [SubCategReqInter]
+    eje_cosos = 'coso'
 
 
 class EcsReqInter(ÁrbolEcs):

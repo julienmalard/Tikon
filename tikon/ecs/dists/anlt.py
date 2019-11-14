@@ -3,6 +3,7 @@ from warnings import warn as avisar
 import numpy as np
 from scipy import stats as estad
 from scipy.special import expit, logit
+from tikon.ecs.dists import utils
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
 from tikon.ecs.utils import líms_compat
 from tikon.utils import proc_líms
@@ -133,7 +134,8 @@ class DistAnalítica(Dist):
         return DistAnalítica('Normal', paráms={'loc': mu, 'scale': sg}, transf=transf)
 
     @classmethod
-    def de_traza(cls, trz, líms, permitidas):
+    def de_traza(cls, trz, líms, permitidas=None):
+        permitidas = permitidas or list(utils.dists)
 
         líms = proc_líms(líms)
         if trz.min() < líms[0] or trz.max() > líms[1]:
@@ -145,7 +147,7 @@ class DistAnalítica(Dist):
         for nmbr in permitidas:
             líms_d = líms_dist(nmbr)
             try:
-                líms_compat(líms, líms_d)
+                _líms_compat_teor(líms, líms_d)
             except ValueError:
                 continue
 
@@ -156,22 +158,21 @@ class DistAnalítica(Dist):
                 transf = _gen_transf_1_lím(trz, líms, líms_d)
                 restric = {'floc': 0}
             else:
-                transf = TransfDist(None, ubic=líms[0] - líms_d[0], escl=(líms[1] - líms[0]) / (líms_d[1] - líms_d[0]))
+                escl = (líms[1] - líms[0]) / (líms_d[1] - líms_d[0])
+                ubic = líms[0] - líms_d[0] * escl
+                transf = TransfDist(None, ubic=ubic, escl=escl)
                 # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
                 restric = {'floc': 0, 'fscale': 1}
 
-            trz_transf = transf.transf_inv(trz) if transf else trz
-            try:
-                cls_sp = clase_scipy(nmbr)
-                if len(prms_dist(nmbr)) == len(restric):
-                    prms = {'loc': 0, 'scale': 1}
-                else:
-                    ajustados = cls_sp.fit(trz_transf, **restric)
-                    prms = {pr: vl for pr, vl in zip(prms_dist(nmbr), ajustados)}
-                p = estad.kstest(rvs=trz_transf, cdf=cls_sp(**prms).cdf)[1]
-            except:
-                prms = None
-                p = 0
+            trz_transf = transf.transf_inv(trz)
+
+            cls_sp = clase_scipy(nmbr)
+            if len(prms_dist(nmbr)) == len(restric):
+                prms = {'loc': 0, 'scale': 1}
+            else:
+                ajustados = cls_sp.fit(trz_transf, **restric)
+                prms = {pr: vl for pr, vl in zip(prms_dist(nmbr), ajustados)}
+            p = estad.kstest(rvs=trz_transf, cdf=cls_sp(**prms).cdf)[1]
 
             # Si el ajuste es mejor que el mejor ajuste anterior...
             if not mejor_ajuste or p > mejor_ajuste['p']:
@@ -183,7 +184,7 @@ class DistAnalítica(Dist):
 
         # Si no logramos un buen aujste, avisar al usuario.
         if mejor_ajuste['p'] <= 0.10:
-            avisar('El ajuste de la mejor distribución quedó muy mal (p = %f).' % round(mejor_ajuste['p'], 4))
+            avisar('El ajuste de la mejor distribución quedó muy mal (p = {:.6f}).'.format(mejor_ajuste['p']))
 
         mejor_ajuste.pop('p')
         return DistAnalítica(**mejor_ajuste)
@@ -209,9 +210,6 @@ class TransfDist(object):
             elif símismo._transf == 'lnexp':
                 símismo._f = lnexp
                 símismo._f_inv = invlnexp
-            elif símismo._transf == 'neglnexp':
-                símismo._f = neglnexp
-                símismo._f_inv = invneglnexp
             else:
                 raise ValueError(transf)
 
@@ -250,15 +248,17 @@ def _gen_transf_sin_líms(trz, líms):
 
 def _gen_transf_1_lím(trz, líms, líms_d):
     if líms_d[0] == -np.inf:
-        escl = -1
         líms_d = (-líms_d[1], np.inf)
         líms = (-líms[1], -líms[0])
-    else:
-        escl = 1
-    ubic = líms[0] - líms_d[0]
-    if líms[1] == np.inf:
+
+    if líms[0] == -np.inf:
+        escl = trz.std()
+        ubic = líms[1] - líms_d[0] * escl
+        return TransfDist(None, ubic=ubic, escl=-escl)
+    elif líms[1] == np.inf:
+        escl = trz.std()
+        ubic = líms[0] - líms_d[0] * escl
         return TransfDist(None, ubic=ubic, escl=escl)
-    return TransfDist('NegLnExp', ubic=ubic, escl=escl * (líms[1] - líms[0]))
 
 
 def lnexp(x):
@@ -269,9 +269,11 @@ def invlnexp(x):
     return np.log(np.exp(x) - 1)
 
 
-def neglnexp(x):
-    return -np.log(np.exp(-x) + 1) / np.log(2) + 1
-
-
-def invneglnexp(x):
-    return -np.log(np.exp(np.log(2) * (1 - x)) - 1)
+def _líms_compat_teor(líms, ref):
+    líms = proc_líms(líms)
+    ref = proc_líms(ref)
+    suma = sum([ref[0] == -np.inf, ref[1] == np.inf])
+    if suma == 1 and sum([líms[0] == -np.inf, líms[1] == np.inf]) != 1:
+        raise ValueError
+    elif suma == 0 and (líms[0] == -np.inf or líms[1] == np.inf):
+        raise ValueError
