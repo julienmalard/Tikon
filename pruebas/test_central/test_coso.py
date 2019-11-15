@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 import numpy.testing as npt
 from pruebas.rcrs.ej_coso import EjemploCoso
@@ -47,8 +48,8 @@ class PruebaApriorisCoso(unittest.TestCase):
         ref = apr.dist(prm.líms)
         npt.assert_equal(dist_apriori.aprox_líms(0.95), ref.aprox_líms(0.95))
 
-    @unittest.skip('implementar')
-    def test_espec_apriori_índs(símismo):
+    @staticmethod
+    def test_espec_apriori_índs():
         cs = EjemploCoso()
         apr = APrioriDens((0, 1), 0.95)
         cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a', índs=['soy', 'un'])
@@ -57,16 +58,9 @@ class PruebaApriorisCoso(unittest.TestCase):
         dist_apriori = cs.ecs['2']['2a']['Sencilla']['a'].apriori(inter=['soy', 'un', 'índice'])
         ref = apr.dist(prm.líms)
         npt.assert_equal(dist_apriori.aprox_líms(0.95), ref.aprox_líms(0.95))
-        raise NotImplementedError
 
-    @unittest.skip('implementar')
     def test_espec_apriori_líms_incompat(símismo):
         cs = EjemploCoso()
-        apr = APrioriDens((0, 1), 0.95)
-        cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a')
-
-    @unittest.skip('implementar')
-    def test_verificar(símismo):
-        cs = EjemploCoso()
-        cs.verificar()
-        raise NotImplementedError
+        apr = APrioriDens((0, None), 0.95)
+        with símismo.assertRaises(ValueError):
+            cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a')

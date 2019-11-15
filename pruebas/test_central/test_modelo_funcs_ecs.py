@@ -186,7 +186,6 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def test_inter_aprioris(símismo):
         from .rcrs import ec_inter
         modelo = ec_inter.mi_modelo
-        rango = ec_inter.rango
         coso1 = ec_inter.coso1
         coso2 = ec_inter.coso2
         coso3 = ec_inter.coso3

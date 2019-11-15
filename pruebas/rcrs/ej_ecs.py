@@ -1,12 +1,6 @@
+from warnings import warn as avisar
+
 from tikon.ecs.árb_mód import ÁrbolEcs, CategEc, SubcategEc, Ecuación, Parám, EcuaciónVacía
-
-
-class ParámAPriori(Parám):
-    pass
-
-
-class ParámInter(Parám):
-    pass
 
 
 class Parám0aInf(Parám):
@@ -36,7 +30,7 @@ class Parám0a2(Parám):
 class ParámA(Parám):
     nombre = 'a'
     unids = None
-    líms = (None, None)
+    líms = (0, 3)
 
 
 class EcuaciónSencilla(Ecuación):

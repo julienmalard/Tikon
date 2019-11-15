@@ -27,7 +27,3 @@ class PruebaExperParc(unittest.TestCase):
         for cntrl in ['superficies', 'elevaciones', 'centroides', 'distancias']:
             with símismo.subTest(cntrl):
                 símismo.assertListEqual(exp.controles[cntrl][EJE_PARC].values.tolist(), ['una', 'otra'])
-
-    @unittest.skip('implementar')
-    def test_datos(símismo):
-        pass
