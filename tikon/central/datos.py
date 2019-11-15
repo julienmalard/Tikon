@@ -50,6 +50,7 @@ class DatosExper(PlantillaDatosVals):
         mód, var = str(mód), str(var)
         if mód in símismo:
             return símismo[mód].obt_obs(var)
+        return []
 
     def obt_inic(símismo, mód, var, índs):
         mód, var = str(mód), str(var)
@@ -83,6 +84,7 @@ class DatosMód(PlantillaDatosVals):
     def obt_obs(símismo, var):
         if var in símismo:
             return símismo[var].obs
+        return []
 
     def obt_inic(símismo, var, índs):
         if var in símismo:
