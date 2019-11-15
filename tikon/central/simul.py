@@ -4,6 +4,8 @@ import threading
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
+from tikon.result.proc import ens
+from tikon.result.valid import Valid, gen_proc_valid
 
 
 class PlantillaSimul(object):
@@ -31,12 +33,8 @@ class PlantillaSimul(object):
         for s in símismo:
             símismo[s].verificar_estado()
 
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return {s: símismo[s].reps_necesarias(frac_incert, confianza) for s in símismo}
-
     def validar(símismo, proc):
-        valid = {s: símismo[s].validar(proc=proc) for s in símismo}
-        return {ll: v for ll, v in valid.items() if v}
+        return Valid({s: símismo[s].validar(proc=proc) for s in símismo}, proc=proc)
 
     def procesar_calib(símismo, proc):
         vals, pesos = zip(*[s.procesar_calib(proc) for s in símismo])
@@ -119,6 +117,10 @@ class Simulación(PlantillaSimul):
         # Verificar si hubo error
         if errores:
             raise ChildProcessError('Hubo error en los módulos siguientes: {móds}'.format(móds=', '.join(errores)))
+
+    def validar(símismo, proc=ens):
+        proc = gen_proc_valid(proc)
+        return super().validar(proc=proc)
 
     def procesar_calib(símismo, proc):
         return super().procesar_calib(proc)[0]

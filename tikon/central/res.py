@@ -5,7 +5,7 @@ import xarray as xr
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
 from tikon.result.dibs import graficar_res
-from tikon.result.valid import reps_necesarias
+from tikon.result.valid import ValidÍnds, ValidRes
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 
@@ -26,7 +26,8 @@ class Resultado(PlantillaSimul):
             símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés
         ) else None
 
-        símismo.datos_t = _gen_datos(coords, t=símismo.t)
+        símismo.datos_t = _gen_datos(símismo.nombre, coords, t=símismo.t)
+        símismo.datos_t.attrs['unids'] = símismo.unids
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}]  # Crear enlace dinámico entre resultados diarios y temporales
 
         super().__init__(símismo.nombre, subs=[])
@@ -71,25 +72,21 @@ class Resultado(PlantillaSimul):
                 raise ValueError('{res}: Valor no numérico (p. ej., división por 0)'.format(res=símismo))
 
     def validar(símismo, proc):
-        if símismo.obs is not None:
-            obs_corresp = símismo.obs.interp_like(símismo.datos_t)
+        l_proc = []
+        for obs in símismo.obs:
+            datos_corresp = símismo.datos_t.interp_like(obs.datos).dropna(EJE_TIEMPO)
+            obs_corresp = obs.datos.loc[{EJE_TIEMPO: datos_corresp[EJE_TIEMPO]}]
 
-            l_proc = []
-            pesos = []
-            d_valid = {}
-            for índs in símismo.iter_índs(símismo.obs, excluir=EJE_TIEMPO):
+            for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
+                datos_índs = datos_corresp.loc[índs]
+                obs_índs = obs_corresp.loc[índs]
+                l_proc.append(
+                    ValidÍnds(
+                        criterios=proc.calc(obs_índs, datos_índs), peso=proc.pesos(obs_índs)
+                    )
+                )
 
-                l_llaves = list(str(ll) for ll in índs.values())
-
-                dic = d_valid
-                for ll in l_llaves[:-1]:
-                    if ll not in dic:
-                        dic[ll] = {}
-                    dic = dic[ll]
-
-                dic[l_llaves[-1]] = proc.f_vals(símismo.datos_t.loc[índs], obs_corresp.loc[índs])
-
-            return d_valid
+        return ValidRes(l_proc, proc=proc)
 
     def procesar_calib(símismo, proc):
 
@@ -119,9 +116,6 @@ class Resultado(PlantillaSimul):
                     título, directorio,
                     simulado=símismo.datos_t.loc[índs], obs=obs_índs, **argsll
                 )
-
-    def reps_necesarias(símismo, frac_incert=0.95, confianza=0.95):
-        return reps_necesarias(símismo.datos_t, frac_incert=frac_incert, confianza=confianza)
 
     def a_dic(símismo):
         if símismo.t is not None:
@@ -157,11 +151,11 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
         return vars_interés
 
     if vars_interés is None:
-        return obs is not None
+        return len(obs) > 0
 
     return nombre_sim in vars_interés or nombre_sim + '.' + nombre in vars_interés
 
 
-def _gen_datos(coords, t):
+def _gen_datos(nombre, coords, t):
     coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
-    return xr.DataArray(data=0., coords=coords, dims=list(coords))
+    return xr.DataArray(data=0., coords=coords, dims=list(coords), name=nombre)

@@ -1,15 +1,17 @@
 import numpy as np
 import spotpy.objectivefunctions as of
+import xarray as xr
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
-from tikon.result import EJE_ESTOC, EJE_PARÁMS
-
 
 # Funciones pesos
+from tikon.utils import EJE_PARÁMS, EJE_ESTOC
+
+
 def n_existen(x):
     return np.isfinite(x).sum(dim='tiempo').values.item()
 
 
-# Funciones vals
+# Funciones criterios
 def ens(o, s):
     return of.nashsutcliffe(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
@@ -42,6 +44,28 @@ def verosimil_gaus(o, s):
     return gaussianLikelihoodMeasErrorOut(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
+# Funciones criterios incertidumbre
+def r2_percentiles(o, s):
+    conf = _calc_conf(o, s)
+    return of.rsquared(conf, _calc_cent(o))
+
+
+def rcnep_percentiles(o, s):
+    conf = _calc_conf(o, s)
+    return of.rrmse(conf, _calc_cent(o))
+
+
+def _calc_cent(o):
+    return np.arange(1, len(o) + 1) / len(o)
+
+
+def _calc_conf(o, s):
+    perc = (s <= o).mean(dim=[EJE_ESTOC, EJE_PARÁMS]).values
+    conf = np.abs(0.5 - perc) * 2
+    conf.sort()
+    return conf
+
+
 # Funciones combin vals
 def prom_vals(vals, pesos):
     return np.average(vals, weights=pesos)
@@ -54,22 +78,7 @@ def suma_pesos(pesos):
 
 class Procesador(object):
     def __init__(símismo, f_vals=ens, f_pesos=n_existen, f_combin=prom_vals, f_combin_pesos=suma_pesos):
-        símismo.f_vals = f_vals
-        símismo.f_pesos = f_pesos
-        símismo.f_combin = f_combin
-        símismo.f_combin_pesos = f_combin_pesos
-
-
-class ProcesadorValids(Procesador):
-    def __init__(símismo, f_vals=ens, f_pesos=n_existen, f_combin=prom_vals, f_combin_pesos=suma_pesos):
-        if callable(f_vals):
-            f_vals = [f_vals]
-        if isinstance(f_vals, list):
-            f_vals = {f.__name__: f for f in f_vals}
-
-        def f_final_vals(o, s):
-            return {ll: v(o, s) for ll, v in f_vals.items()}
-
-        def f_final_combin()
-
-        super().__init__(f_final_vals, f_pesos, f_combin, f_combin_pesos)
+        símismo.calc = f_vals
+        símismo.pesos = f_pesos
+        símismo.combin = f_combin
+        símismo.combin_pesos = f_combin_pesos
