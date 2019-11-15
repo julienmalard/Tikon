@@ -1,8 +1,6 @@
 from scipy.stats import uniform
 
 from tikon.ecs.dists import Dist, DistAnalítica, MnjdrDists
-from tikon.ecs.paráms import ValsParámCoso
-from tikon.ecs.árb_mód import Parám
 from tikon.result import Obs
 from tikon.utils import guardar_json, leer_json
 
