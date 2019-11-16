@@ -84,7 +84,7 @@ def _dstn(a, b):
 def _área_de_polígono(polígono):
     proj = partial(
         pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),
+        pyproj.Proj('epsg:4326'),
         pyproj.Proj(
             proj='aea',
             lat_1=polígono.bounds[1],

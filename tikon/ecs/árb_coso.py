@@ -57,7 +57,7 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
         obj_parám.espec_apriori(apriori, inter=inter)
 
     def activar_ec(símismo, categ, subcateg, ec):
-        símismo[categ][subcateg].activar_ec(ec)
+        símismo[categ].activar_ec(subcateg, ec)
 
     def desactivar_ec(símismo, categ, subcateg=None):
         símismo[categ].desactivar_ec(subcateg=subcateg)
