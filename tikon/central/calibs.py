@@ -35,8 +35,8 @@ class EspecCalibsCorrida(object):
                         raise ValueError(apriori.nombre_dist)
                     l_dists.append(ConexPrmsDist(prm, apriori))
                     sin_aprioris.remove(prm)
-
-        return símismo.filtrar_dists(sin_aprioris).llenar_lista_calibs(l_dists, permitidas=permitidas)
+        símismo.filtrar_dists(sin_aprioris).llenar_lista_calibs(l_dists, permitidas=permitidas)
+        return l_dists
 
     def filtrar_dists(símismo, l_vals_prm):
         dists_disp = [pr.dists_disp(símismo.heredar_inter) for pr in l_vals_prm]

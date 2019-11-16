@@ -1,6 +1,5 @@
 import numpy as np
 import spotpy.objectivefunctions as of
-import xarray as xr
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut
 
 # Funciones pesos
@@ -82,3 +81,9 @@ class Procesador(object):
         símismo.pesos = f_pesos
         símismo.combin = f_combin
         símismo.combin_pesos = f_combin_pesos
+
+
+def gen_proc(proc):
+    if isinstance(proc, Procesador):
+        return proc
+    return Procesador(f_vals=proc)

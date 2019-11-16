@@ -1,3 +1,5 @@
+import shutil
+import tempfile
 import unittest
 
 import numpy as np
@@ -139,3 +141,28 @@ class PruebaModelo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         with símismo.assertRaises(ValueError):
             modelo.simular('sin tiempo o obs', exper)
+
+
+class PruebaGraficar(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from .rcrs.graficar_res import modelo, exper
+        cls.res = modelo.simular('graficar', exper)
+        cls.dir = tempfile.mkdtemp()
+
+    def test_graficar_res(símismo):
+        símismo.res.graficar(símismo.dir)
+
+    def test_graficar_confianza(símismo):
+        símismo.res.graficar(símismo.dir, argsll={'incert': 'confianza'})
+
+    def test_graficar_componentes(símismo):
+        símismo.res.graficar(símismo.dir, argsll={'incert': 'componentes'})
+
+    def test_graficar_tipo_error(símismo):
+        with símismo.assertRaises(ValueError):
+            símismo.res.graficar(símismo.dir, argsll={'incert': 'nombre erróneo'})
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.dir)
