@@ -2,6 +2,7 @@ import os
 from inspect import isclass
 
 from tikon.calibrador.spotpy_ import EVM
+from tikon.result.proc import ens, gen_proc
 from tikon.sensib import gen_anlzdr_sensib
 
 from .calibs import _gen_espec_calibs
@@ -64,22 +65,26 @@ class Modelo(object):
         return anlzdr.analizar(sim)
 
     def calibrar(
-            símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM, func=None, calibs=None, reps=None,
+            símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM(), proc=ens, calibs=None, reps=None,
             paráms=None
     ):
 
+        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
+
         reps = _gen_reps(reps, calib=True)
-        sim = Simulación(nombre, modelo=símismo, exper=exper, t=t, reps=reps, vars_interés=None)
+        sim = Simulación(nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps, vars_interés=None)
+        proc = gen_proc(proc)
 
         def func_opt():
             sim.iniciar()
             sim.correr()
-            return sim.procesar_calib(func)
+            return sim.procesar_calib(proc)
 
-        espec_calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
         espec_calibs_inic = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
 
-        calibrador(func_opt, paráms=sim.paráms, calibs=espec_calibs).calibrar(n_iter=n_iter, nombre=nombre)
+        calibrador.calibrar(
+            nombre, func=func_opt, paráms=sim.paráms, calibs=calibs, n_iter=n_iter
+        )
 
     def guardar_calibs(símismo, directorio=''):
         for m in símismo.módulos:

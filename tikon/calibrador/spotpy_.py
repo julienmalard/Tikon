@@ -1,6 +1,5 @@
 import math as mat
 import tempfile
-from warnings import warn as avisar
 
 import numpy as np
 import pandas as pd
@@ -11,39 +10,32 @@ from tikon.calibrador.calib import Calibrador
 class CalibSpotPy(Calibrador):
     dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Wald', 'Triang']
 
-    def __init__(símismo, func, paráms, calibs, frac_guardar=0.05, args_muestrear=None):
+    def __init__(símismo, frac_guardar=0.05, args_muestrear=None):
         símismo.frac_guardar = frac_guardar
         símismo._args_muestrear = args_muestrear or {}
-        super().__init__(func, paráms=paráms, calibs=calibs)
 
-    def calibrar(símismo, n_iter, nombre):
+    def _calc_calib(símismo, func, dists, n_iter):
+        mod_spotpy = ModSpotPy(func=func, dists=dists, inversar=símismo.inversar)
 
-        temp = tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_")
+        with tempfile.NamedTemporaryFile('w', encoding='UTF-8', prefix="calibTiko'n_") as d:
+            args = dict(spot_setup=mod_spotpy, dbname=d.name, parallel='seq', dbformat='csv', save_sim=False)
+            args.update(símismo.args_alg())
 
-        mod_spotpy = ModSpotPy(func=símismo.func, dists=símismo.dists, inversar=símismo.inversar)
-        args = dict(spot_setup=mod_spotpy, dbname=temp.name, parallel='seq', dbformat='csv', save_sim=False)
-        args.update(símismo.args_alg())
+            muestreador = símismo.alg_spotpy(**args)
 
-        muestreador = símismo.alg_spotpy(**args)
+            n = mat.ceil(n_iter * símismo.frac_guardar)
 
-        n = mat.ceil(n_iter * símismo.frac_guardar)
+            muestreador.sample(**símismo.args_muestrear(n_iter, n_guardar=n))
 
-        muestreador.sample(**símismo.args_muestrear(n_iter, n_guardar=n))
-
-        egr_spotpy = pd.read_csv(temp.name + '.csv')
-        temp.close()
+            egr_spotpy = pd.read_csv(d.name + '.csv')
 
         vero = egr_spotpy['like1'].values
-        vero, buenas = símismo.filtrar_res(vero, n)
+        vero, í_buenas = símismo.filtrar_res(vero, n)
+        vals = []
+        for í in range(len(dists)):
+            vals.append(egr_spotpy['parvar_' + str(í)][í_buenas].values)
 
-        return
-        if not len(buenas):
-            avisar('No se encontró solución aceptable.')
-            return
-
-        for í, cnx in enumerate(símismo.dists):
-            vals = egr_spotpy['parvar_' + str(í)][buenas].values
-            cnx.guardar_traza(nombre=nombre, vals=vals, pesos=vero)
+        return vero, vals
 
     @property
     def inversar(símismo):
@@ -170,13 +162,12 @@ class ModSpotPy(object):
 
     def parameters(símismo):
         return spt.parameter.generate(
-            [_gen_var_spotpy(d, 'var_' + str(í)) for í, d in enumerate(símismo.dists)]
+            [_gen_var_spotpy(d.dist, 'var_' + str(í)) for í, d in enumerate(símismo.dists)]
         )
 
     def simulation(símismo, x):
-        for v, (d, v_prm) in zip(x, símismo.dists.items()):
-            for vl in v_prm:
-                vl.val = d.transf_vals(v)
+        for v, d in zip(x, símismo.dists):
+            d.prm.val = d.dist.transf_vals(v)
 
         return símismo.func()
 

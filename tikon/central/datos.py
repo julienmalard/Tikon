@@ -52,16 +52,6 @@ class DatosExper(PlantillaDatosVals):
             return símismo[mód].obt_obs(var)
         return []
 
-    def obt_inic(símismo, mód, var, índs):
-        mód, var = str(mód), str(var)
-        if mód in símismo:
-            return símismo[mód].obt_inic(var, índs=índs)
-
-    def gen_paráms(símismo, mód, obj_res):
-        if mód not in símismo:
-            símismo[mód] = DatosMód(mód)
-        símismo[mód].gen_paráms(obj_res)
-
     def cargar_calib(símismo, archivo):
         símismo.de_dic(leer_json(archivo))
 
@@ -85,16 +75,6 @@ class DatosMód(PlantillaDatosVals):
         if var in símismo:
             return símismo[var].obs
         return []
-
-    def obt_inic(símismo, var, índs):
-        if var in símismo:
-            return símismo[var].dists.obt_val(índs, heredar=True)
-
-    def gen_paráms(símismo, obj_res):
-        var = obj_res.nombre
-        if var not in símismo:
-            símismo[var] = DatosVar(var)
-        símismo[var].gen_paráms(obj_res)
 
 
 class DatosVar(PlantillaDatosVals):

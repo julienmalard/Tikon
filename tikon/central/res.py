@@ -78,7 +78,7 @@ class Resultado(PlantillaSimul):
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: datos_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
-                datos_índs = datos_corresp.loc[índs]
+                datos_índs = obs.proc_res(datos_corresp.loc[índs])
                 obs_índs = obs_corresp.loc[índs]
                 l_proc.append(
                     ValidÍnds(
@@ -89,19 +89,19 @@ class Resultado(PlantillaSimul):
         return ValidRes(l_proc, proc=proc)
 
     def procesar_calib(símismo, proc):
+        l_proc = []
+        pesos = []
+        for obs in símismo.obs:
+            datos_corresp = símismo.datos_t.interp_like(obs.datos).dropna(EJE_TIEMPO)
+            obs_corresp = obs.datos.loc[{EJE_TIEMPO: datos_corresp[EJE_TIEMPO]}]
 
-        if símismo.obs is not None:
-            obs_corresp = símismo.obs.interp_like(símismo.datos_t)
-
-            l_proc = []
-            pesos = []
-            for índs in símismo.iter_índs(símismo.obs, excluir=EJE_TIEMPO):
+            for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
                 obs_índs = obs_corresp.loc[índs]
 
-                l_proc.append(proc.f_vals(obs_índs, símismo.datos_t.loc[índs]))
-                pesos.append(proc.f_pesos(obs_índs))
+                l_proc.append(proc.calc(obs_índs, datos_corresp.loc[índs]))
+                pesos.append(proc.pesos(obs_índs))
 
-            return proc.f_vals(l_proc, pesos=pesos), proc.f_pesos(pesos)
+            return proc.combin(l_proc, pesos=pesos), proc.combin_pesos(pesos)
 
         return 0, 0
 

@@ -38,7 +38,7 @@ obs = Obs(
     mód='módulo', var='res', datos=xr.DataArray(
         np.arange(10),
         coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
-    ).expand_dims(crds).expand_dims({EJE_PARC: ['parcela']})
+    ).expand_dims({EJE_PARC: ['parcela'], **crds})
 )
 
 exper = Exper('exper', Parcela('parcela'), obs=obs)

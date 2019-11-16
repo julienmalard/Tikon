@@ -8,9 +8,10 @@ from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 def graficar_res(
         título, directorio, simulado, obs=None, color='#99CC00', promedio=True, incert='confianza',
-        etiq_x=None
+        etiq_x=None, etiq_y=None
 ):
     etiq_x = 'fecha' if etiq_x is None else etiq_x
+    etiq_y = '{var} ({unids})'.format(var=simulado.name, unids=simulado.attrs['unids']) if etiq_y is None else etiq_y
     if not os.path.isdir(directorio):
         os.makedirs(directorio)
 
