@@ -1,4 +1,4 @@
-import shutil
+import os
 import tempfile
 import unittest
 
@@ -146,23 +146,24 @@ class PruebaModelo(unittest.TestCase):
 class PruebaGraficar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from .rcrs.graficar_res import modelo, exper
+        from .rcrs.modelo_calib import modelo, exper
         cls.res = modelo.simular('graficar', exper)
-        cls.dir = tempfile.mkdtemp()
+
+    def _verificar_gráfico(símismo, **args):
+        with tempfile.TemporaryDirectory() as dir_:
+            símismo.res.graficar(dir_, **args)
+            símismo.assertTrue(sum([len(files) for r, d, files in os.walk(dir_)]) == 1)
 
     def test_graficar_res(símismo):
-        símismo.res.graficar(símismo.dir)
+        símismo._verificar_gráfico()
 
     def test_graficar_confianza(símismo):
-        símismo.res.graficar(símismo.dir, argsll={'incert': 'confianza'})
+        símismo._verificar_gráfico(argsll={'incert': 'confianza'})
 
     def test_graficar_componentes(símismo):
-        símismo.res.graficar(símismo.dir, argsll={'incert': 'componentes'})
+        símismo._verificar_gráfico(argsll={'incert': 'componentes'})
 
     def test_graficar_tipo_error(símismo):
-        with símismo.assertRaises(ValueError):
-            símismo.res.graficar(símismo.dir, argsll={'incert': 'nombre erróneo'})
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.dir)
+        with tempfile.TemporaryDirectory() as dir_:
+            with símismo.assertRaises(ValueError):
+                símismo.res.graficar(dir_, argsll={'incert': 'nombre erróneo'})

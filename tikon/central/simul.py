@@ -40,9 +40,9 @@ class PlantillaSimul(object):
         vals, pesos = zip(*[símismo[s].procesar_calib(proc) for s in símismo])
         return proc.combin(vals, pesos=pesos), proc.combin_pesos(pesos)
 
-    def graficar(símismo, directorio):
+    def graficar(símismo, directorio, argsll=None):
         for s in símismo:
-            símismo[s].graficar(directorio=os.path.join(directorio, s))
+            símismo[s].graficar(directorio=os.path.join(directorio, s), argsll=argsll)
 
     def a_dic(símismo):
         return {s: símismo[s].a_dic() for s in símismo}

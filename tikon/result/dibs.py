@@ -10,6 +10,7 @@ def graficar_res(
         título, directorio, simulado, obs=None, color='#99CC00', promedio=True, incert='confianza',
         etiq_x=None, etiq_y=None
 ):
+    obs = obs or []
     etiq_x = 'fecha' if etiq_x is None else etiq_x
     etiq_y = '{var} ({unids})'.format(var=simulado.name, unids=simulado.attrs['unids']) if etiq_y is None else etiq_y
     if not os.path.isdir(directorio):
@@ -20,7 +21,7 @@ def graficar_res(
     ejes = fig.add_subplot(111)
 
     # El vector de días
-    x = simulado[EJE_TIEMPO]
+    x = simulado[EJE_TIEMPO].values
 
     # Si necesario, incluir el promedio de todas las repeticiones (estocásticas y paramétricas)
     prom_simul = simulado.mean(dim=(EJE_ESTOC, EJE_PARÁMS))
@@ -28,9 +29,9 @@ def graficar_res(
         ejes.plot(x, prom_simul, lw=2, color=color, label='Promedio')
 
     # Si hay observaciones, mostrarlas también
-    if obs is not None:
-        ejes.plot(obs[EJE_TIEMPO], obs, 'o', color=color, label='Observaciones')
-        ejes.plot(obs[EJE_TIEMPO], obs, lw=1, color='#000000')
+    for o_ in obs:
+        ejes.plot(o_[EJE_TIEMPO], o_, 'o', color=color, label='Observaciones')
+        ejes.plot(o_[EJE_TIEMPO], o_, lw=1, color='#000000')
 
     # Incluir el incertidumbre si necesario
     if incert is None:
@@ -49,8 +50,8 @@ def graficar_res(
         # Para cada percentil...
         for n, p in enumerate(centiles):
             # Percentiles máximos y mínimos
-            máx_perc = prom_simul.quantile(0.50 + p / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
-            mín_perc = prom_simul.quantile((1 - p) / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
+            máx_perc = simulado.quantile(0.50 + p / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
+            mín_perc = simulado.quantile((1 - p) / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
 
             # Calcular el % de opacidad y dibujar
             op_máx = 0.6
@@ -74,15 +75,15 @@ def graficar_res(
         # Mostrar la incertidumbre descompuesta por sus fuentes
 
         # El rango total de las simulaciones
-        máx_total = prom_simul.max(dim=(EJE_ESTOC, EJE_PARÁMS))
-        mín_total = prom_simul.min(dim=(EJE_ESTOC, EJE_PARÁMS))
+        máx_total = simulado.max(dim=(EJE_ESTOC, EJE_PARÁMS))
+        mín_total = simulado.min(dim=(EJE_ESTOC, EJE_PARÁMS))
         rango_total = máx_total - mín_total
 
         # La desviación estándar de todas las simulaciones (incertidumbre total)
-        des_est_total = prom_simul.std(dim=(EJE_ESTOC, EJE_PARÁMS))
+        des_est_total = simulado.std(dim=(EJE_ESTOC, EJE_PARÁMS))
 
         # El incertidumbre estocástico promedio
-        des_est_estóc = prom_simul.std(dim=EJE_ESTOC).mean(dim=EJE_PARÁMS)
+        des_est_estóc = simulado.std(dim=EJE_ESTOC).mean(dim=EJE_PARÁMS)
 
         # Inferir el incertidumbre paramétrico
         des_est_parám = des_est_total - des_est_estóc
@@ -90,8 +91,8 @@ def graficar_res(
         incert_parám = rango_total * frac_des_est_parám
 
         # Límites de la región de incertidumbre paramétrica en el gráfico
-        mín_parám = np.maximum(mín_total, prom_simul - incert_parám / 2)
-        máx_parám = mín_parám + incert_parám
+        mín_parám = (np.maximum(mín_total, prom_simul - incert_parám / 2)).values
+        máx_parám = (mín_parám + incert_parám).values
 
         ejes.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')
 
