@@ -1,6 +1,6 @@
 import unittest
 
-from .rcrs.modelo_calib import modelo, exper, coso
+from .rcrs.modelo_calib import modelo, exper
 
 
 class PruebaCalib(unittest.TestCase):
@@ -11,4 +11,28 @@ class PruebaCalib(unittest.TestCase):
 
     @unittest.skip('implementar')
     def test_calib_paráms_mód(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_calib_con_inic(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_calib_exluir_inic(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_calib_solamente_inic(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_renombrar_calib(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_borrar_calib(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_guardar_cargar_calib(símismo):
         pass

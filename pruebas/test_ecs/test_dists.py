@@ -4,9 +4,10 @@ import warnings
 import numpy as np
 import numpy.testing as npt
 import scipy.stats as estad
+from matplotlib.figure import Figure as Figura
 from numpy import exp
 from scipy.special import expit
-from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists
+from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists, dibujar_dist
 from tikon.ecs.dists.anlt import TransfDist
 from tikon.utils import proc_líms
 
@@ -286,3 +287,10 @@ class PruebaMnjdrDists(unittest.TestCase):
         npt.assert_equal(mnjdr.obt_val().aprox_líms(p), nuevo.obt_val().aprox_líms(p))
         npt.assert_equal(mnjdr.obt_val('a').aprox_líms(p), nuevo.obt_val('a').aprox_líms(p))
         npt.assert_equal(mnjdr.obt_val(['a', 'b']).aprox_líms(p), nuevo.obt_val(['a', 'b']).aprox_líms(p))
+
+
+class PruebaDib(unittest.TestCase):
+    def test_dibujar(símismo):
+        dist = DistAnalítica(estad.norm())
+        dib = dibujar_dist(dist, 'Mi distribución')
+        símismo.assertTrue(isinstance(dib.figure, Figura))

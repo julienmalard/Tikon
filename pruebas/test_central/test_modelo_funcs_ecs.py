@@ -140,7 +140,8 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         from .rcrs import ec_parám
         exper = ec_parám.exper
         coso = ec_parám.CosoParám('hola')
-        modelo = Modelo(ec_parám.MóduloParám([coso]))
+        módulo = ec_parám.MóduloParám([coso])
+        modelo = Modelo(módulo)
         with símismo.subTest('todos'):
             coso.espec_apriori(
                 apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a'
@@ -164,6 +165,14 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
             coso.borrar_aprioris('categ', 'subcateg', 'ec', prm='b')
             res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
             símismo._verif_en(res, (3, 3 + 1))
+
+        with símismo.subTest('de modelo'):
+            coso.espec_apriori(
+                apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a'
+            )
+            módulo.borrar_aprioris()
+            res = modelo.simular('apriori', exper, t=2)['exper']['módulo']['res']
+            símismo._verif_fuera_de(res, (3, 3 + 1))
 
     def test_inter(símismo):
         from .rcrs import ec_inter
@@ -196,12 +205,12 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a')
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': [coso2, coso3]}], (1.5, 1.5+1))
+            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': [coso2, coso3]}], (1.5, 1.5 + 1))
 
         with símismo.subTest('con índs'):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.borrar_aprioris()
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a', índs=[coso3])
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': coso3}], (1.5, 1.5+1))
-            símismo._verif_fuera_de(res.datos.loc[{'coso': coso1, 'otro': coso2}], (1.5, 1.5+1))
+            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': coso3}], (1.5, 1.5 + 1))
+            símismo._verif_fuera_de(res.datos.loc[{'coso': coso1, 'otro': coso2}], (1.5, 1.5 + 1))

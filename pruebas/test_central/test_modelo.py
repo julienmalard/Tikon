@@ -154,8 +154,8 @@ class PruebaGraficar(unittest.TestCase):
             símismo.res.graficar(dir_, **args)
             símismo.assertTrue(sum([len(files) for r, d, files in os.walk(dir_)]) == 1)
 
-    def test_graficar_res(símismo):
-        símismo._verificar_gráfico()
+    def test_graficar_sin_incert(símismo):
+        símismo._verificar_gráfico(argsll={'incert': None})
 
     def test_graficar_confianza(símismo):
         símismo._verificar_gráfico(argsll={'incert': 'confianza'})
