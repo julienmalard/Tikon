@@ -16,3 +16,4 @@ geopy
 pcse
 tradssat
 pyshp
+pillow
