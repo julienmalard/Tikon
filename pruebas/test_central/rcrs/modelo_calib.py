@@ -6,7 +6,7 @@ from tikon.central.res import Resultado
 from tikon.ecs import ÁrbolEcs, CategEc, EcuaciónVacía, SubcategEc, Ecuación, Parám
 from tikon.ecs.aprioris import APrioriDens
 from tikon.result import Obs
-from tikon.utils import EJE_TIEMPO, EJE_PARC
+from tikon.utils import EJE_TIEMPO, EJE_PARC, EJE_ESTOC
 
 f_inic = '2000-01-01'
 
@@ -15,7 +15,7 @@ class A(Parám):
     nombre = 'a'
     unids = None
     líms = (0, None)
-    apriori = APrioriDens((0, 2), .90)
+    apriori = APrioriDens((0, 3), .90)
     eje_cosos = 'coso'
 
 
@@ -27,7 +27,10 @@ class EcuaciónParám(Ecuación):
 
     def eval(símismo, paso, sim):
         ant = símismo.obt_valor_res(sim)
-        return ant + símismo.cf['a']
+        n_estoc = len(ant[EJE_ESTOC])
+        return ant + símismo.cf['a'] + xr.DataArray(
+            np.random.random(n_estoc)*0.1, coords={EJE_ESTOC: np.arange(n_estoc)}, dims=[EJE_ESTOC]
+        )
 
 
 class SubCategParám(SubcategEc):

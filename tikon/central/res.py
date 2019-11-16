@@ -106,12 +106,12 @@ class Resultado(PlantillaSimul):
         return 0, 0
 
     def graficar(símismo, directorio='', argsll=None):
-        if símismo.datos_t.t is not None:
+        if símismo.t is not None:
             argsll = argsll or {}
             for índs in símismo.iter_índs(símismo.datos_t, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
                 título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
 
-                obs_índs = símismo.obs.loc[índs] if símismo.obs is not None else None
+                obs_índs = [o_.datos.loc[índs] for o_ in símismo.obs]
                 graficar_res(
                     título, directorio,
                     simulado=símismo.datos_t.loc[índs], obs=obs_índs, **argsll
