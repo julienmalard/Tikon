@@ -3,7 +3,7 @@ from tikon.central.res import Resultado
 from tikon.móds.rae.orgs.organismo import EtapaFantasma
 from tikon.móds.rae.red.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RES_CREC, RES_REPR, RES_MRTE, \
     RES_TRANS, RES_MOV, RES_ESTOC, EJE_ETAPA
-from tikon.result import EJE_DEST
+from tikon.utils import EJE_DEST
 
 
 class ResultadoRed(Resultado):
@@ -117,9 +117,9 @@ class ResMov(ResultadoRed):
     nombre = RES_MOV
     líms = None  # Movimiento puede ser positivo (imigración) o negativo (emigración)
 
-    def __init__(símismo, sim, coords):
+    def __init__(símismo, sim, coords, vars_interés):
         coords = {EJE_DEST: sim.exper.controles['parcelas'], **coords}
-        super().__init__(sim=sim, coords=coords)
+        super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class ResEstoc(ResultadoRed):

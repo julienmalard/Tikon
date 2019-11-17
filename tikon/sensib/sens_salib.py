@@ -5,16 +5,20 @@ from .sensib import AnlzdrSensib
 
 
 class SensSALib(AnlzdrSensib):
-    métodos = ['sobol', 'fast', 'morris', 'dmim', 'dgsm', 'ff']
+    def __init__(símismo, n=4, método='sobol', prc=0.95, ops_muestreo=None, ops_anlzr=None):
+        símismo.prc = prc
+        símismo.n = n
+        símismo.método = método.lower()
+        símismo.ops_muestreo = ops_muestreo or {}
+        símismo.ops_anlzr = ops_anlzr or {}
+        super().__init__()
 
-    def __init__(símismo, método, paráms, calibs):
-        super().__init__(método, paráms, calibs)
-
-        n_prms = len(símismo.dists)
-        símismo.problema = {
+    def _problema(símismo, dists):
+        n_prms = len(dists)
+        return {
             'num_vars': n_prms,  # El número de parámetros
             'names': [str(i) for i in range(n_prms)],  # Nombres numéricos muy sencillos
-            'bounds': [d.aprox_líms(0.95) for d in símismo.dists]  # Lista de límites aproximativos
+            'bounds': [d.aprox_líms(símismo.prc) for d in dists]  # Lista de límites aproximativos
         }
 
     def _gen_muestrea(símismo, n, ops):
@@ -36,7 +40,7 @@ class SensSALib(AnlzdrSensib):
     def _analizar(símismo, vec_res, muestra, ops):
 
         if símismo.método == 'sobol':
-            return sobol.analyze(problem=símismo.problema, Y=vec_res, **ops)
+            return sobol.analyze(problem=símismo._problema(), Y=vec_res, **ops)
         elif símismo.método == 'fast':
             return fast.analyze(problem=símismo.problema, Y=vec_res, **ops)
         elif símismo.método == 'morris':

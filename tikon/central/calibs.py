@@ -79,7 +79,7 @@ class ConexPrmsDist(object):
 
     def guardar_traza(símismo, nombre, vals, pesos):
         dist = DistTraza(trz=símismo.dist.transf_vals(vals), pesos=pesos)
-        símismo.prm.guardar_calib(dist, nombre=nombre)
+        símismo.prm.guardar_calibs(dist, nombre=nombre)
 
 
 class DistsFiltradas(object):

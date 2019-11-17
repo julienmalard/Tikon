@@ -146,7 +146,10 @@ class PruebaModelo(unittest.TestCase):
 class PruebaGraficar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from .rcrs.modelo_calib import modelo, exper
+        from .rcrs.modelo_calib import generar
+        gen = generar()
+        modelo = gen['modelo']
+        exper = gen['exper']
         cls.res = modelo.simular('graficar', exper)
 
     def _verificar_gráfico(símismo, **args):

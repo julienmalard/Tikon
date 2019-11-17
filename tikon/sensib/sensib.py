@@ -5,10 +5,8 @@ import numpy as np
 
 class AnlzdrSensib(object):
     dists_disp = None
-    métodos = []
 
-    def __init__(símismo, método, paráms, calibs):
-        símismo.método = método.lower()
+    def __init__(símismo, paráms, calibs):
         símismo.calibs = calibs
         dists = calibs.gen_dists_calibs(paráms, permitidas=símismo.dists_disp)
         # ...y para hacer: más elegante, por supuesto:

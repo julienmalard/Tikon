@@ -272,13 +272,12 @@ def líms_dist(dist):
     else:
         nombre = obt_nombre(dist)
         líms = proc_líms(_obt_dic_dist(nombre)['límites'])
-        ubic, escala = obt_ubic_escl(dist)
+        ubic, escala = obt_prms_obj_scipy(dist)[1:]
         return líms[0] + ubic, (líms[1] - líms[0]) * escala + ((líms[0] + ubic) if líms[0] > -np.inf else 0)
 
 
-def obt_ubic_escl(dist):
-    ubic, escl = dist.dist._parse_args(*dist.args, **dist.kwds)[1:]
-    return ubic, escl
+def obt_prms_obj_scipy(dist):
+    return dist.dist._parse_args(*dist.args, **dist.kwds)
 
 
 def prms_dist(nombre):
@@ -292,10 +291,6 @@ def obt_scipy(nombre, paráms):
         return cls_dist(**paráms)
     else:
         return cls_dist(*paráms[0], **paráms[1])
-
-
-def obt_prms_obj_scipy(dist_sp):
-    return [dist_sp.args, dist_sp.kwds]
 
 
 def obt_nombre(dist_sp):

@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 import spotpy as spt
 from tikon.calibrador.calib import Calibrador
+from tikon.ecs.dists.utils import obt_prms_obj_scipy
 
 
 class CalibSpotPy(Calibrador):
-    dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Wald', 'Triang']
+    dists_disp = ['Normal', 'Uniforme', 'LogNormal', 'Chi2', 'Exponencial', 'Gamma', 'Triang']
 
     def __init__(símismo, frac_guardar=0.05, args_muestrear=None):
         símismo.frac_guardar = frac_guardar
@@ -111,19 +112,11 @@ class ECBUA(CalibSpotPy):
     def filtrar_res(símismo, vero, n):
         return vero[-n:], slice(-n, None)
 
-    def args_muestrear(símismo, n_iter, n_guardar):
-        args = {'runs_after_convergence': n_guardar}
-        args.update(super().args_muestrear(n_iter, n_guardar=n_guardar))
-        return args
-
 
 class ERP(CalibSpotPy):
     """Estimación Robusta de Parámetros"""
 
     alg_spotpy = spt.algorithms.rope
-
-    def args_alg(símismo):
-        return {'alt_objfun': None}
 
 
 class CMMC(CalibSpotPy):
@@ -133,25 +126,6 @@ class CMMC(CalibSpotPy):
 
     def filtrar_res(símismo, vero, n):
         return vero[-n:], slice(-n, None)
-
-    def args_muestrear(símismo, n_iter, n_guardar):
-        args = {'runs_after_convergence': n_guardar}
-        args.update(super().args_muestrear(n_iter, n_guardar=n_guardar))
-        return args
-
-
-class AMAED(CalibSpotPy):
-    """Algoritmo Metrópolis Adaptivo de Evolución Diferencial"""
-
-    alg_spotpy = spt.algorithms.dream
-
-    def filtrar_res(símismo, vero, n):
-        return vero[-n:], slice(-n, None)
-
-    def args_muestrear(símismo, n_iter, n_guardar):
-        args = {'runs_after_convergence': n_guardar}
-        args.update(super().args_muestrear(n_iter, n_guardar=n_guardar))
-        return args
 
 
 class ModSpotPy(object):
@@ -180,19 +154,17 @@ class ModSpotPy(object):
 
 def _gen_var_spotpy(dist, nmbr_var):
     nombre_dist = dist.nombre_dist
-    paráms = dist.paráms
 
-    ubic = paráms['loc'] if 'loc' in paráms else 0
-    escl = paráms['scale'] if 'scale' in paráms else 1
+    prms, ubic, escl = obt_prms_obj_scipy(dist.dist)
 
     if nombre_dist == 'Chi2':
-        var = spt.parameter.Chisquare(nmbr_var, dt=paráms['df'])
+        var = spt.parameter.Chisquare(nmbr_var, dt=prms[0])
 
     elif nombre_dist == 'Exponencial':
         var = spt.parameter.Exponential(nmbr_var, scale=escl)
 
     elif nombre_dist == 'Gamma':
-        var = spt.parameter.Gamma(nmbr_var, shape=paráms['a'], scale=escl)
+        var = spt.parameter.Gamma(nmbr_var, shape=prms[0], scale=escl)
 
     elif nombre_dist == 'LogNormal':
         var = spt.parameter.logNormal(nmbr_var, mean=ubic, sigma=escl)
@@ -203,6 +175,8 @@ def _gen_var_spotpy(dist, nmbr_var):
     elif nombre_dist == 'Uniforme':
         var = spt.parameter.Uniform(nmbr_var, low=ubic, high=ubic + escl)
 
+    elif nombre_dist == 'Triang':
+        var = spt.parameter.Triangular(nmbr_var, left=ubic, mode=(prms[0] * escl) + ubic, right=ubic + escl)
     else:
         raise ValueError(nombre_dist)
 

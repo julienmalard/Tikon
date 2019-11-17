@@ -14,7 +14,7 @@ f_inic = '2000-01-01'
 class A(Parám):
     nombre = 'a'
     unids = None
-    líms = (0, None)
+    líms = (None, None)
     apriori = APrioriDens((0, 3), .90)
     eje_cosos = 'coso'
 
@@ -29,7 +29,7 @@ class EcuaciónParám(Ecuación):
         ant = símismo.obt_valor_res(sim)
         n_estoc = len(ant[EJE_ESTOC])
         return ant + símismo.cf['a'] + xr.DataArray(
-            np.random.random(n_estoc)*0.1, coords={EJE_ESTOC: np.arange(n_estoc)}, dims=[EJE_ESTOC]
+            (np.random.random(n_estoc) - 0.5) * 0.1, coords={EJE_ESTOC: np.arange(n_estoc)}, dims=[EJE_ESTOC]
         )
 
 
@@ -56,9 +56,6 @@ class CosoParám(Coso):
         super().__init__(nombre, EcsParám)
 
 
-coso = CosoParám('hola')
-
-
 class Res(Resultado):
     nombre = 'res'
     unids = None
@@ -82,12 +79,15 @@ class MóduloValid(Módulo):
     eje_coso = 'coso'
 
 
-obs = Obs(
-    mód='módulo', var='res', datos=xr.DataArray(
-        np.arange(10),
-        coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
-    ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso]})
-)
+def generar():
+    coso = CosoParám('hola')
+    obs = Obs(
+        mód='módulo', var='res', datos=xr.DataArray(
+            np.arange(10),
+            coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
+        ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso]})
+    )
+    exper = Exper('exper', Parcela('parcela'), obs=obs)
+    modelo = Modelo(MóduloValid(coso))
 
-exper = Exper('exper', Parcela('parcela'), obs=obs)
-modelo = Modelo(MóduloValid(coso))
+    return {'coso': coso, 'obs': obs, 'exper': exper, 'modelo': modelo}
