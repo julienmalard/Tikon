@@ -290,7 +290,7 @@ def obt_scipy(nombre, paráms):
     if isinstance(paráms, dict):
         return cls_dist(**paráms)
     else:
-        return cls_dist(*paráms[0], **paráms[1])
+        return cls_dist(*paráms[0], loc=paráms[1], scale=paráms[2])
 
 
 def obt_nombre(dist_sp):
