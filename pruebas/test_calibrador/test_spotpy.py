@@ -3,7 +3,7 @@ from warnings import warn as avisar
 
 import scipy.stats as estad
 from pruebas.test_central.rcrs.modelo_calib import generar
-from tikon.calibrador.spotpy_ import EVM, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC
+from tikon.calibrador.spotpy_ import EVM, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC, CalibSpotPy
 from tikon.ecs.aprioris import APrioriDist
 
 
@@ -26,10 +26,11 @@ class PruebaSpotPy(unittest.TestCase):
             'LogNormal': estad.lognorm(1, 0, 2),
             'Chi2': estad.chi2(1, 0, 2),
             'Exponencial': estad.expon(0, 2),
-            'Gamma': estad.gamma(1, 0, 2),
+            'Gamma': estad.gamma(1, 0, 1),
             'Triang': estad.triang(0.5, 0, 2)
         }
-        for nmbre, dist in dists_aprioris.items():
+        for nmbre in CalibSpotPy.dists_disp:
+            dist = dists_aprioris[nmbre]
             with símismo.subTest(nmbre):
                 gen = generar()
                 modelo = gen['modelo']
