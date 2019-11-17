@@ -21,11 +21,11 @@ class Módulo(object):
 
     def guardar_calibs(símismo, directorio=''):
         for c in símismo:
-            símismo[c].guardar_calibs(os.path.join(directorio, c.nombre))
+            símismo[c].guardar_calibs(os.path.join(directorio, c))
 
-    def cargar_calib(símismo, directorio=''):
+    def cargar_calibs(símismo, directorio=''):
         for c in símismo:
-            símismo[c].cargar_calibs(os.path.join(directorio, c.nombre))
+            símismo[c].cargar_calibs(os.path.join(directorio, c))
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
         return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)

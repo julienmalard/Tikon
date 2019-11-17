@@ -106,7 +106,7 @@ class ValsParámCoso(MatrParám):
     def vals_paráms(símismo):
         yield símismo
 
-    def guardar_calib(símismo, dist, nombre):
+    def guardar_calibs(símismo, dist, nombre):
         símismo._prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
 
 

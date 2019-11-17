@@ -39,4 +39,4 @@ class PruebaLímsDist(unittest.TestCase):
         }
         for nmbr, (dist, ref) in dists.items():
             with símismo.subTest(nmbr):
-                símismo.assertTupleEqual(utl.obt_ubic_escl(dist), ref)
+                símismo.assertTupleEqual(utl.obt_prms_obj_scipy(dist)[1:], ref)

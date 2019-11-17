@@ -39,7 +39,7 @@ class Coso(object):
     def requísitos(símismo, controles=False):
         return símismo.ecs.requísitos(controles)
 
-    def guardar_calib(símismo, directorio=''):
+    def guardar_calibs(símismo, directorio=''):
         arch = os.path.join(directorio, símismo.nombre + '.json')
         guardar_json(símismo._ecs_a_json(), arch)
 

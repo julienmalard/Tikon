@@ -3,7 +3,7 @@ from inspect import isclass
 
 from tikon.calibrador.spotpy_ import EVM
 from tikon.result.proc import ens, gen_proc
-from tikon.sensib import gen_anlzdr_sensib
+from tikon.sensib import gen_anlzdr_sensib, SensSALib
 
 from .calibs import _gen_espec_calibs
 from .módulo import Módulo
@@ -42,28 +42,6 @@ class Modelo(object):
             # para hacer: reorganizar sin paráms y exper
             símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
 
-    def sensib(
-            símismo, nombre, exper, t=None, analizador=None, calibs=None, n_rep_estoc=30,
-            vars_interés=None
-    ):
-        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
-
-        reps = {'estoc': n_rep_estoc, 'paráms': 1}
-        sim = Simulación(
-            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
-            vars_interés=vars_interés
-        )
-
-        anlzdr = gen_anlzdr_sensib(analizador)
-
-        anlzdr.aplicar_muestrea(sim.paráms, calibs=calibs)
-
-        sim.iniciar()
-        sim.correr()
-        sim.cerrar()
-
-        return anlzdr.analizar(sim)
-
     def calibrar(
             símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM(), proc=ens, calibs=None, reps=None,
             paráms=None
@@ -86,9 +64,33 @@ class Modelo(object):
             nombre, func=func_opt, paráms=sim.paráms, calibs=calibs, n_iter=n_iter
         )
 
+    def sensib(
+            símismo, nombre, exper, t=None, analizador=None, proc=None, calibs=None, n_rep_estoc=30,
+            vars_interés=None
+    ):
+        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
+        analizador = analizador or SensSALib()
+        reps = {'estoc': n_rep_estoc, 'paráms': analizador.n}
+        sim = Simulación(
+            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
+            vars_interés=vars_interés
+        )
+
+        analizador.aplicar_muestrea(sim.paráms, calibs=calibs)
+
+        sim.iniciar()
+        sim.correr()
+        sim.cerrar()
+
+        return analizador.analizar(sim)
+
     def guardar_calibs(símismo, directorio=''):
         for m in símismo.módulos:
             m.guardar_calibs(directorio=os.path.join(directorio, str(m)))
+
+    def cargar_calibs(símismo, directorio=''):
+        for m in símismo.módulos:
+            m.cargar_calibs(directorio=os.path.join(directorio, str(m)))
 
 
 def _gen_reps(reps, calib=False):
