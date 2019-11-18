@@ -1,6 +1,7 @@
 import os
 import threading
 
+import numpy as np
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
@@ -37,7 +38,7 @@ class PlantillaSimul(object):
         return Valid({s: símismo[s].validar(proc=proc) for s in símismo}, proc=proc)
 
     def procesar_calib(símismo, proc):
-        vals, pesos = zip(*[símismo[s].procesar_calib(proc) for s in símismo])
+        vals, pesos = np.array(list(zip(*[símismo[s].procesar_calib(proc) for s in símismo])))
         return proc.combin(vals, pesos=pesos), proc.combin_pesos(pesos)
 
     def graficar(símismo, directorio, argsll=None):
