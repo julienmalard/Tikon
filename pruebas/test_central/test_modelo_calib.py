@@ -130,7 +130,7 @@ class PruebaCalibInic(unittest.TestCase):
         modelo.cargar_calibs(símismo.dir_)
         modelo.calibrar('calib', exper, n_iter=50, paráms=exper)
         valid = modelo.simular('valid', exper, calibs=['calib']).validar()
-        símismo.assertGreater(valid['ens'], 0.95)
+        símismo.assertGreater(valid['ens'], 0.90)
 
     @classmethod
     def tearDownClass(cls):
