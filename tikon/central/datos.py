@@ -1,6 +1,8 @@
 from scipy.stats import uniform
+from tikon.ecs.aprioris import APrioriDist
 
-from tikon.ecs.dists import Dist, DistAnalítica, MnjdrDists
+from tikon.ecs.dists import Dist, DistAnalítica
+from tikon.ecs.árb_coso import ParámGeneral
 from tikon.result import Obs
 from tikon.utils import guardar_json, leer_json
 
@@ -26,8 +28,97 @@ class PlantillaDatosVals(dict):
 
         return f_inic, f_final
 
+    def a_dic(símismo):
+        dic = {ll: v.a_dic() for ll, v in símismo.items()}
+        return {ll: v for ll, v in dic.items() if v}
+
+    def de_dic(símismo, dic):
+        for ll, d in dic.items():
+            if ll in símismo:
+                sub = símismo[ll]
+            else:
+                símismo[ll] = símismo._sub_cls(ll)
+                sub = símismo[ll]
+            sub.de_dic(d)
+
+    def borrar_calib(símismo, nombre):
+        for dato in símismo.values():
+            dato.borrar_calib(nombre)
+
+    def renombrar_calib(símismo, nombre, nuevo):
+        for dato in símismo.values():
+            dato.renombrar_calib(nombre, nuevo)
+
+    def borrar_inic(símismo):
+        for dato in símismo.values():
+            dato.borrar_inic()
+
+    @property
+    def _sub_cls(símismo):
+        raise NotImplementedError
+
+    def __str__(símismo):
+        return símismo.nombre
+
+
+class DatosVar(PlantillaDatosVals):
+    _sub_cls = None
+
+    def __init__(símismo, nombre):
+        símismo.obs = []
+        símismo.prm = ParámGeneral(nombre, coso=None, líms=None, inter=None, apriori_auto=None)
+        super().__init__(nombre)
+
+    def agregar_obs(símismo, obs):
+        símismo.obs.append(obs)
+
+    def espec_inic(símismo, dist, índs=None):
+        símismo.prm.espec_apriori(apriori=APrioriDist(dist), inter=índs)
+
+    def borrar_inic(símismo):
+        símismo.prm.borrar_aprioris()
+
+    def a_dic(símismo):
+        return símismo.prm.a_dic()
+
+    def de_dic(símismo, dic):
+        símismo.prm.de_dic(dic)
+
+    def borrar_calib(símismo, nombre):
+        símismo.prm.borrar_calib(nombre)
+
+    def renombrar_calib(símismo, nombre, nuevo):
+        símismo.prm.renombrar_calib(nombre, nuevo)
+
+    def __iter__(símismo):
+        for i in range(len(símismo.obs)):
+            yield i
+
+    def __getitem__(símismo, itema):
+        return símismo.obs[itema]
+
+
+class DatosMód(PlantillaDatosVals):
+    _sub_cls = DatosVar
+
+    def agregar_obs(símismo, obs):
+        if obs.var not in símismo:
+            símismo[obs.var] = DatosVar(obs.var)
+        símismo[obs.var].agregar_obs(obs)
+
+    def espec_inic(símismo, dist, var, índs=None):
+        if var not in símismo:
+            símismo[var] = DatosVar(var)
+        símismo[var].espec_inic(dist, índs=índs)
+
+    def obt_obs(símismo, var):
+        if var in símismo:
+            return símismo[var].obs
+        return []
+
 
 class DatosExper(PlantillaDatosVals):
+    _sub_cls = DatosMód
 
     def agregar_obs(símismo, obs):
         if isinstance(obs, Obs):
@@ -52,46 +143,8 @@ class DatosExper(PlantillaDatosVals):
             return símismo[mód].obt_obs(var)
         return []
 
-    def cargar_calib(símismo, archivo):
+    def cargar_calibs(símismo, archivo):
         símismo.de_dic(leer_json(archivo))
 
-    def guardar_calib(símismo, directorio):
+    def guardar_calibs(símismo, directorio):
         guardar_json(símismo.a_dic(), directorio)
-
-
-class DatosMód(PlantillaDatosVals):
-
-    def agregar_obs(símismo, obs):
-        if obs.var not in símismo:
-            símismo[obs.var] = DatosVar(obs.var)
-        símismo[obs.var].agregar_obs(obs)
-
-    def espec_inic(símismo, dist, var, índs=None):
-        if var not in símismo:
-            símismo[var] = DatosVar(var)
-        símismo[var].espec_inic(dist, índs=índs)
-
-    def obt_obs(símismo, var):
-        if var in símismo:
-            return símismo[var].obs
-        return []
-
-
-class DatosVar(PlantillaDatosVals):
-    def __init__(símismo, nombre):
-        símismo.obs = []
-        símismo.dists = MnjdrDists()
-        super().__init__(nombre)
-
-    def agregar_obs(símismo, obs):
-        símismo.obs.append(obs)
-
-    def espec_inic(símismo, dist, índs=None):
-        símismo.dists.actualizar(dist, índs=índs)
-
-    def __iter__(símismo):
-        for i in range(len(símismo.obs)):
-            yield i
-
-    def __getitem__(símismo, itema):
-        return símismo.obs[itema]

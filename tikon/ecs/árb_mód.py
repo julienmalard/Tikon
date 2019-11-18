@@ -77,7 +77,7 @@ class PlantillaRamaEc(object):
 
     @classmethod
     def para_coso(cls, coso):
-        return cls._cls_en_coso(cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
+        return cls._cls_en_coso(cls.nombre, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
 
     @property
     def nombre(símismo):
@@ -173,11 +173,6 @@ class Ecuación(PlantillaRamaEc):
 
     def requísitos(símismo, controles=False):
         pass
-
-    @classmethod
-    def inter(símismo):
-        return {tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
-                for prm in símismo.cls_ramas if prm.inter is not None}
 
     @property
     def nombre(símismo):

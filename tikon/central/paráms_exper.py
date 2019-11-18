@@ -7,8 +7,9 @@ from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 
 class PlantillaParámsExper(dict):
-    def __init__(símismo, nombre, sim, datos, n_reps):
+    def __init__(símismo, nombre, exper, sim, datos, n_reps):
         símismo.nombre = nombre
+        símismo.exper = exper
         símismo.sim = sim
         símismo.datos = datos
         símismo.n_reps = n_reps
@@ -21,49 +22,33 @@ class PlantillaParámsExper(dict):
         for s in símismo:
             símismo[s].iniciar()
 
-    def a_dic(símismo):
-        return {ll: símismo[ll].a_dic() for ll in símismo}
-
-    def de_dic(símismo, dic):
-        for ll, d in dic.items():
-            if ll in símismo:
-                sub = símismo[ll]
-            else:
-                símismo[ll] = símismo._sub_cls(ll)
-                sub = símismo[ll]
-            sub.de_dic(d)
-
-    @property
-    def _sub_cls(símismo):
-        raise NotImplementedError
-
     def __str__(símismo):
         return símismo.nombre
 
 
 class ParámsExperVar(PlantillaParámsExper):
-    _sub_cls = None
 
-    def __init__(símismo, nombre, sim, datos, n_reps):
-        super().__init__(nombre, sim=sim, datos=datos, n_reps=n_reps)
+    def __init__(símismo, nombre, exper, sim, datos, n_reps):
+        super().__init__(nombre, exper, sim=sim, datos=datos, n_reps=n_reps)
         if símismo.datos.obs:
             líms = proc_líms(sim.líms)
             mín = líms[0]
             máx = min(líms[1], np.max([o_.datos.values.max() for o_ in símismo.datos.obs]))
-            apriori = APrioriDens((mín, máx), 0.95)
+            apriori = APrioriDens((mín, máx), 0.55)
         else:
             apriori = None
 
-        símismo.prm = ParámInic(símismo.nombre, unids=sim.unids, líms=sim.líms, apriori=apriori)
+        símismo.prm = ParámInic(símismo.datos.prm, exper=exper, unids=sim.unids, líms=sim.líms, apriori=apriori)
         índs = list(sim.iter_índs(datos=sim.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]))
         coords = {dim: sim.datos[dim].values for dim in sim.datos.dims if
                   dim not in [EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]}
 
         for índ in índs:
             l_índ = list(índ.values())
-            apriori_inic = símismo.datos.dists.obt_val(l_índ, heredar=True)
+            apriori_inic = símismo.datos.prm.apriori(inter=l_índ, heredar=True)
             if apriori_inic:
                 símismo.prm.espec_apriori(APrioriDist(apriori_inic), inter=l_índ)
+        símismo.prm.de_dic(símismo.datos.prm.a_dic())
 
         def _gen_matr_prm(crds, índs=None, inter=None):
             índs = [] if índs is None else índs
@@ -97,33 +82,36 @@ class ParámsExperVar(PlantillaParámsExper):
 
 
 class ParámsExperMód(PlantillaParámsExper):
-    _sub_cls = ParámsExperVar
 
-    def __init__(símismo, nombre, sim, datos, n_reps):
-        super().__init__(nombre, sim, datos, n_reps)
+    def __init__(símismo, nombre, exper, sim, datos, n_reps):
+        super().__init__(nombre, exper, sim, datos, n_reps)
 
         for var in símismo.sim:
             if símismo.sim[var].inicializable:
                 if símismo.datos and var in símismo.datos:
                     datos = símismo.datos[var]
-                    símismo[var] = ParámsExperVar(var, símismo.sim[var], datos=datos, n_reps=n_reps)
+                    símismo[var] = ParámsExperVar(var, exper, símismo.sim[var], datos=datos, n_reps=n_reps)
 
 
 class ParámsExper(PlantillaParámsExper):
-    _sub_cls = ParámsExperMód
 
     def __init__(símismo, exper, sim):
-        super().__init__(exper.nombre, sim, datos=exper.datos, n_reps=sim.reps['paráms'])
+        super().__init__(exper.nombre, exper, sim, datos=exper.datos, n_reps=sim.reps['paráms'])
 
         símismo.exper = exper
         for mód in símismo.sim:
             if símismo.datos and mód in símismo.datos:
                 datos = símismo.datos[mód]
-                símismo[mód] = ParámsExperMód(mód, símismo.sim[mód], datos=datos, n_reps=símismo.n_reps)
+                símismo[mód] = ParámsExperMód(mód, exper, símismo.sim[mód], datos=datos, n_reps=símismo.n_reps)
 
 
 class ParámInic(ParámCoso):
 
-    def __init__(símismo, nombre, unids, líms, apriori):
+    def __init__(símismo, prm_espejo, exper, unids, líms, apriori):
+        símismo.prm_espejo = prm_espejo
+        nombre = prm_espejo.nombre
         atribs = {'nombre': nombre, 'unids': unids, 'líms': líms, 'apriori': apriori}
-        super().__init__(cls_pariente=type(nombre, (Parám,), atribs), coso=None)
+        super().__init__(cls_pariente=type(nombre, (Parám,), atribs), coso=exper)
+
+    def agregar_calib(símismo, id_cal, dist, inter=None):
+        símismo.prm_espejo.agregar_calib(id_cal, dist, inter)

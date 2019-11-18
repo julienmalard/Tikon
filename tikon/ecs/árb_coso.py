@@ -5,9 +5,9 @@ from .dists import DistAnalítica, MnjdrDists
 
 
 class PlantillaRamaEcCoso(dict):
-    def __init__(símismo, cls_pariente, ramas, coso):
+    def __init__(símismo, nombre, ramas, coso):
         símismo.coso = coso
-        símismo.cls_pariente = cls_pariente
+        símismo.nombre = nombre
         super().__init__(**{str(r): r for r in ramas})
 
     def verificar_activa(símismo, modelo, mód):
@@ -44,10 +44,10 @@ class PlantillaRamaEcCoso(dict):
 
     def __copy__(símismo):
         ramas = [copy(rm) for rm in símismo.values()]
-        return símismo.__class__(símismo.cls_pariente, ramas=ramas, coso=símismo.coso)
+        return símismo.__class__(símismo.nombre, ramas=ramas, coso=símismo.coso)
 
     def __str__(símismo):
-        return str(símismo.cls_pariente.nombre)
+        return símismo.nombre
 
 
 class ÁrbolEcsCoso(PlantillaRamaEcCoso):
@@ -78,8 +78,8 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
 
 class SubcategEcCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente, ramas, coso):
-        super().__init__(cls_pariente, ramas, coso)
+    def __init__(símismo, nombre, ramas, coso):
+        super().__init__(nombre, ramas, coso)
 
         símismo._activada = ramas[0]
 
@@ -108,29 +108,34 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
 
 class EcuaciónCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente, ramas, coso):
-        super().__init__(cls_pariente, ramas, coso)
+    def __init__(símismo, nombre, ramas, coso):
+        super().__init__(nombre, ramas, coso)
         símismo.activada = False
 
     def verificar_activa(símismo, modelo, mód):
         if símismo.activada and str(símismo) != 'Nada':
-            inters = símismo.cls_pariente.inter()
+            inters = símismo.inter()
             if inters:
                 return all(mód.inter(modelo, símismo.coso, tipo=intr) for intr in inters)
             return True
         return False
 
+    def inter(símismo):
+        return {
+            tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
+            for prm in símismo.values() if prm.inter is not None
+        }
 
-class ParámCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, cls_pariente, coso):
-        super().__init__(cls_pariente, ramas=[], coso=coso)
 
+class ParámGeneral(PlantillaRamaEcCoso):
+    def __init__(símismo, nombre, coso, líms, inter, apriori_auto):
+        símismo.líms = líms
+        símismo.inter = inter
+        símismo.apriori_auto = apriori_auto
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
         símismo._apriori = MnjdrDists()
 
-        símismo.líms = símismo.cls_pariente.líms
-        símismo.inter = símismo.cls_pariente.inter
-        símismo.apriori_auto = símismo.cls_pariente.apriori
+        super().__init__(nombre, ramas=[], coso=coso)
 
     def verificar_activa(símismo, modelo, mód):
         return True  # Parámetros de una ecuación activa siempre están activados.
@@ -156,8 +161,8 @@ class ParámCoso(PlantillaRamaEcCoso):
             raise ValueError()
         símismo._apriori.borrar(índs)
 
-    def apriori(símismo, inter=None):
-        return símismo._apriori.obt_val(inter)
+    def apriori(símismo, heredar=True, inter=None):
+        return símismo._apriori.obt_val(inter, heredar=heredar)
 
     def calib_base(símismo):
         return DistAnalítica.de_líms(símismo.líms)
@@ -173,6 +178,19 @@ class ParámCoso(PlantillaRamaEcCoso):
             símismo._calibs[calib] = MnjdrDists.de_dic(
                 d_dist, mnjdr=símismo._calibs[calib] if calib in símismo._calibs else None
             )
+
+    def __copy__(símismo):
+        return ParámGeneral(símismo.nombre, símismo.coso, símismo.líms, símismo.inter, símismo.apriori_auto)
+
+
+class ParámCoso(ParámGeneral):
+    def __init__(símismo, cls_pariente, coso):
+        nombre = cls_pariente.nombre
+        líms = cls_pariente.líms
+        inter = cls_pariente.inter
+        apriori_auto = cls_pariente.apriori
+
+        super().__init__(nombre=nombre, coso=coso, líms=líms, inter=inter, apriori_auto=apriori_auto)
 
     def __copy__(símismo):
         return ParámCoso(símismo.cls_pariente, coso=símismo.coso)

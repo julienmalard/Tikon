@@ -2,17 +2,17 @@ import xarray as xr
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.móds.clima.res import ResultadoClima
-from tikon.result import EJE_TIEMPO, EJE_PARC, EJE_COORD
 # noinspection PyUnresolvedReferences
+from tikon.utils import EJE_PARC, EJE_TIEMPO, EJE_COORD
 from تقدیر.مقام import مقام
 
 
 class SimulClima(SimulMódulo):
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
-        centroides = símismo.simul_exper.exper.controles['centroides']
-        elev = símismo.simul_exper.exper.controles['elevación']
-        parcelas = símismo.simul_exper.exper.controles['parcelas']
-        eje_t = símismo.simul_exper.t.eje
+        centroides = simul_exper.exper.controles['centroides']
+        elev = simul_exper.exper.controles['elevaciones']
+        parcelas = simul_exper.exper.controles['parcelas']
+        eje_t = simul_exper.t.eje
         t_inic, t_final = eje_t[0], eje_t[-1]
 
         variables = {vr for fnt in mód.fuentes for vr in fnt}
