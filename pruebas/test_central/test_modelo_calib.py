@@ -128,7 +128,7 @@ class PruebaCalibInic(unittest.TestCase):
         modelo = gen['modelo']
         exper = gen['exper']
         modelo.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=30, paráms=exper)
+        modelo.calibrar('calib', exper, n_iter=50, paráms=exper)
         valid = modelo.simular('valid', exper, calibs=['calib']).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
