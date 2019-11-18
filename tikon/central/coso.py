@@ -46,6 +46,9 @@ class Coso(object):
     def borrar_calib(símismo, nombre):
         símismo.ecs.borrar_calib(nombre)
 
+    def renombrar_calib(símismo, nombre, nuevo):
+        símismo.ecs.renombrar_calib(nombre, nuevo)
+
     def cargar_calibs(símismo, archivo):
         if os.path.splitext(archivo) != '.json':
             archivo = os.path.join(archivo, símismo.nombre + '.json')

@@ -42,10 +42,10 @@ class PruebaApriorisCoso(unittest.TestCase):
         cs = EjemploCoso()
         apr = APrioriDens((0, 1), 0.95)
         cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a')
-        prm = cs.ecs['2']['2a']['Sencilla']['a'].cls_pariente
+        líms = cs.ecs['2']['2a']['Sencilla']['a'].líms
 
         dist_apriori = cs.ecs['2']['2a']['Sencilla']['a'].apriori()
-        ref = apr.dist(prm.líms)
+        ref = apr.dist(líms)
         npt.assert_equal(dist_apriori.aprox_líms(0.95), ref.aprox_líms(0.95))
 
     @staticmethod
@@ -53,10 +53,10 @@ class PruebaApriorisCoso(unittest.TestCase):
         cs = EjemploCoso()
         apr = APrioriDens((0, 1), 0.95)
         cs.espec_apriori(apr, categ='2', sub_categ='2a', ec='Sencilla', prm='a', índs=['soy', 'un'])
-        prm = cs.ecs['2']['2a']['Sencilla']['a'].cls_pariente
+        líms = cs.ecs['2']['2a']['Sencilla']['a'].líms
 
         dist_apriori = cs.ecs['2']['2a']['Sencilla']['a'].apriori(inter=['soy', 'un', 'índice'])
-        ref = apr.dist(prm.líms)
+        ref = apr.dist(líms)
         npt.assert_equal(dist_apriori.aprox_líms(0.95), ref.aprox_líms(0.95))
 
     def test_espec_apriori_líms_incompat(símismo):

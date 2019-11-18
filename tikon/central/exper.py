@@ -34,16 +34,22 @@ class Exper(object):
     def gen_paráms(símismo, sim_exper):
         return ParámsExper(símismo, sim_exper)
 
-    def guardar_calib(símismo, directorio=''):
-        archivo = os.path.join(directorio, símismo.nombre + '.json')
-        símismo.datos.guardar_calib(archivo)
+    def borrar_calib(símismo, nombre):
+        símismo.datos.borrar_calib(nombre)
 
-    def cargar_calib(símismo, directorio=''):
+    def renombrar_calib(símismo, nombre, nuevo):
+        símismo.datos.renombrar_calib(nombre, nuevo)
+
+    def guardar_calibs(símismo, directorio=''):
+        archivo = os.path.join(directorio, símismo.nombre + '.json')
+        símismo.datos.guardar_calibs(archivo)
+
+    def cargar_calibs(símismo, directorio=''):
         if os.path.splitext(directorio)[1] == '.json':
             archivo = directorio
         else:
             archivo = os.path.join(directorio, símismo.nombre + '.json')
-        símismo.datos.cargar_calib(archivo)
+        símismo.datos.cargar_calibs(archivo)
 
 
 def _extract_parcelas(parcelas):

@@ -17,8 +17,8 @@ class EspecCalibsCorrida(object):
         sin_aprioris = list(l_vals_prm)
         if símismo.aprioris:
             for prm in l_vals_prm:
-                if prm.apriori():
-                    prm.llenar_de_apriori()
+                if prm.apriori(heredar=símismo.heredar_inter):
+                    prm.llenar_de_apriori(heredar=símismo.heredar_inter)
                     sin_aprioris.remove(prm)
 
         símismo.filtrar_dists(sin_aprioris).llenar(n_reps)
@@ -102,9 +102,12 @@ class DistsFiltradas(object):
 
                 # Intentar preservar correspondencias como posible aunque `corresp` sea ``Falso``
                 for í, (nmb, dist) in enumerate(d_dists.items()):
+                    tmñ = dist.tmñ()
                     if nmb not in índs_dists:
-                        índs_dists[nmb] = np.random.randint(dist.tmñ(), size=n_por_dist[í])
-                prm.llenar_de_dists([(d_dists[nmb], índs_dists[nmb]) for nmb in d_dists])
+                        índs_dists[nmb] = {tmñ: np.random.randint(tmñ, size=n_por_dist[í])}
+                    elif tmñ not in índs_dists:
+                        índs_dists[nmb][tmñ] = np.random.randint(tmñ, size=n_por_dist[í])
+                prm.llenar_de_dists([(d_dists[nmb], índs_dists[nmb][tmñ]) for nmb in d_dists])
 
     def llenar_lista_calibs(símismo, lista, permitidas):
 

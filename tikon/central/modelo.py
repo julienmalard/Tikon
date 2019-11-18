@@ -2,10 +2,13 @@ import os
 from inspect import isclass
 
 from tikon.calibrador.spotpy_ import EVM
+from tikon.ecs import Parám
 from tikon.result.proc import ens, gen_proc
-from tikon.sensib import gen_anlzdr_sensib, SensSALib
+from tikon.sensib import SensSALib
 
 from .calibs import _gen_espec_calibs
+from .coso import Coso
+from .exper import Exper
 from .módulo import Módulo
 from .simul import Simulación
 
@@ -58,10 +61,9 @@ class Modelo(object):
             sim.correr()
             return sim.procesar_calib(proc)
 
-        espec_calibs_inic = _gen_espec_calibs(calibs, aprioris=False, heredar=True, corresp=True)
-
+        paráms_calib = símismo._filtar_paráms(sim.paráms, paráms)
         calibrador.calibrar(
-            nombre, func=func_opt, paráms=sim.paráms, calibs=calibs, n_iter=n_iter
+            nombre, func=func_opt, paráms=paráms_calib, calibs=calibs, n_iter=n_iter
         )
 
     def sensib(
@@ -70,19 +72,21 @@ class Modelo(object):
     ):
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
         analizador = analizador or SensSALib()
-        reps = {'estoc': n_rep_estoc, 'paráms': analizador.n}
+        muestrea = analizador.muestrear(dists)
+        reps = {'estoc': n_rep_estoc, 'paráms': muestrea.tmñ}
         sim = Simulación(
             nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
             vars_interés=vars_interés
         )
-
-        analizador.aplicar_muestrea(sim.paráms, calibs=calibs)
+        for v, v_prm in zip(muestrea, dists):
+            for vl in v_prm:
+                vl.poner_val(v)
 
         sim.iniciar()
         sim.correr()
         sim.cerrar()
 
-        return analizador.analizar(sim)
+        return analizador.analizar(sim, muestrea)
 
     def guardar_calibs(símismo, directorio=''):
         for m in símismo.módulos:
@@ -91,6 +95,22 @@ class Modelo(object):
     def cargar_calibs(símismo, directorio=''):
         for m in símismo.módulos:
             m.cargar_calibs(directorio=os.path.join(directorio, str(m)))
+
+    def _filtar_paráms(símismo, paráms, en):
+        if en is None:
+            return paráms
+        if isinstance(en, (str, Módulo, Coso, Parám, Exper)):
+            en = [en]
+        en = [next(m for m in símismo.módulos if m.nombre == x) if isinstance(x, str) else x for x in en]
+        return [
+            prm for prm in paráms
+            if any(
+                prm.prm.coso == x if isinstance(x, Coso)
+                else prm.prm == x if isinstance(x, Parám)
+                else prm.prm.coso == x if isinstance(x, Exper)
+                else prm.prm.coso in x
+                for x in en)
+        ]
 
 
 def _gen_reps(reps, calib=False):

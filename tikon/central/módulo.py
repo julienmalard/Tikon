@@ -35,7 +35,7 @@ class Módulo(object):
             símismo[c].borrar_aprioris()
 
     def inter(símismo, modelo, coso, tipo):
-        raise NotImplementedError('Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo))
+        raise ValueError('Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo))
 
     @property
     def nombre(símismo):
@@ -44,6 +44,9 @@ class Módulo(object):
     @property
     def cls_simul(símismo):
         raise NotImplementedError
+
+    def __contains__(símismo, itema):
+        return itema in símismo._cosos.values() or itema in símismo._cosos
 
     def __getitem__(símismo, itema):
         return símismo._cosos[itema]
