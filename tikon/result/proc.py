@@ -67,6 +67,8 @@ def _calc_conf(o, s):
 
 # Funciones combin vals
 def prom_vals(vals, pesos):
+    if np.sum(pesos) == 0:
+        pesos[:] = 1
     return np.average(vals, weights=pesos)
 
 
