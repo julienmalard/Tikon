@@ -34,17 +34,6 @@ class Modelo(object):
         simul.simular()
         return simul
 
-    def iniciar_estruc(símismo, días, f_inic, paso, exper, calibs, n_rep_estoc, n_rep_parám, vars_interés):
-
-        # para hacer: ¿más elegante en general?
-        símismo.exper.iniciar_estruc(
-            símismo.tiempo, símismo.mnjdr_móds, calibs, n_rep_estoc, n_rep_parám, parc, vars_interés
-        )
-
-        if llenar or True:  # para hacer: arreglar con calibraciones selectivas
-            # para hacer: reorganizar sin paráms y exper
-            símismo.mnjdr_móds.llenar_coefs(calibs, n_rep_parám=n_rep_parám)
-
     def calibrar(
             símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM(), proc=ens, calibs=None, reps=None,
             paráms=None
@@ -71,22 +60,28 @@ class Modelo(object):
             vars_interés=None
     ):
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
+        proc = gen_proc_sensib(proc)
+        sim0 = Simulación(
+            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=1,
+            vars_interés=vars_interés
+        )
+
         analizador = analizador or SensSALib()
-        muestrea = analizador.muestrear(dists)
-        reps = {'estoc': n_rep_estoc, 'paráms': muestrea.tmñ}
+        paráms0 = analizador.filtrar_paráms(sim0.paráms)
+        muestreo = analizador.muestrear(paráms0)
+
+        reps = {'estoc': n_rep_estoc, 'paráms': muestreo.tmñ}
         sim = Simulación(
             nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
             vars_interés=vars_interés
         )
-        for v, v_prm in zip(muestrea, dists):
-            for vl in v_prm:
-                vl.poner_val(v)
+        analizador.aplicar_muestreo(muestreo, sim)
 
         sim.iniciar()
         sim.correr()
         sim.cerrar()
 
-        return analizador.analizar(sim, muestrea)
+        return analizador.analizar(sim, muestreo, proc)
 
     def guardar_calibs(símismo, directorio=''):
         for m in símismo.módulos:
