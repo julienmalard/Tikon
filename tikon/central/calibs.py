@@ -64,11 +64,6 @@ def _gen_espec_calibs(calibs, aprioris, heredar, corresp):
         return EspecCalibsCorrida(calibs, aprioris=aprioris, corresp=corresp, heredar_inter=heredar)
 
 
-class GrupoDistsCalib(object):
-    def __init__(símismo):
-        símismo.dists = []
-
-
 class ConexPrmsDist(object):
     def __init__(símismo, prm, dist):
         símismo.dist = copy(dist)
