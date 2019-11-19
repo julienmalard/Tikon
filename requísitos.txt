@@ -5,7 +5,7 @@ SALib
 spotpy
 chardet
 pandas
-taqdir
+taqdir>=2.1
 bibtexparser
 shapely
 ennikkai
