@@ -7,11 +7,11 @@ import numpy.testing as npt
 import pandas as pd
 import xarray as xr
 import xarray.testing as xrt
+
 from pruebas.test_central.rcrs import tiempo_obs
 from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
-from tikon.utils import EJE_TIEMPO
-
+from tikon.utils import EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS
 from .rcrs import \
     var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
@@ -141,6 +141,35 @@ class PruebaModelo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         with símismo.assertRaises(ValueError):
             modelo.simular('sin tiempo o obs', exper)
+
+    @staticmethod
+    def test_reps_ent():
+        modelo = obt_valor.modelo
+        exper = obt_valor.exper
+        exper.controles['var'] = 2
+        res_mód = modelo.simular('valor control', exper=exper, t=2, reps=4)['exper']['módulo']['res 1']
+        npt.assert_equal(res_mód.datos[EJE_ESTOC], np.arange(4))
+        npt.assert_equal(res_mód.datos[EJE_PARÁMS], np.arange(4))
+
+    @staticmethod
+    def test_espec_reps():
+        modelo = obt_valor.modelo
+        exper = obt_valor.exper
+        exper.controles['var'] = 2
+        res_mód = modelo.simular(
+            'valor control', exper=exper, t=2, reps={'estoc': 4, 'paráms': 3}
+        )['exper']['módulo']['res 1']
+        npt.assert_equal(res_mód.datos[EJE_ESTOC], np.arange(4))
+        npt.assert_equal(res_mód.datos[EJE_PARÁMS], np.arange(3))
+
+    def test_error_reps(símismo):
+        modelo = obt_valor.modelo
+        exper = obt_valor.exper
+        exper.controles['var'] = 2
+        with símismo.assertRaises(ValueError):
+            modelo.simular(
+                'valor control', exper=exper, t=2, reps={'estoc': 4, 'no soy opción': 3}
+            )
 
 
 class PruebaGraficar(unittest.TestCase):
