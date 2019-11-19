@@ -141,7 +141,7 @@ class ModSpotPy(object):
 
     def simulation(símismo, x):
         for v, d in zip(x, símismo.dists):
-            d.prm.val = d.dist.transf_vals(v)
+            d.aplicar_val(v)
 
         return símismo.func()
 
