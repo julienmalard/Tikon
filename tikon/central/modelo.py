@@ -55,34 +55,6 @@ class Modelo(object):
             nombre, func=func_opt, paráms=paráms_calib, calibs=calibs, n_iter=n_iter
         )
 
-    def sensib(
-            símismo, nombre, exper, t=None, analizador=None, proc=None, calibs=None, n_rep_estoc=30,
-            vars_interés=None
-    ):
-        calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
-        proc = gen_proc_sensib(proc)
-        sim0 = Simulación(
-            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=1,
-            vars_interés=vars_interés
-        )
-
-        analizador = analizador or SensSALib()
-        paráms0 = analizador.filtrar_paráms(sim0.paráms)
-        muestreo = analizador.muestrear(paráms0)
-
-        reps = {'estoc': n_rep_estoc, 'paráms': muestreo.tmñ}
-        sim = Simulación(
-            nombre=nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps,
-            vars_interés=vars_interés
-        )
-        analizador.aplicar_muestreo(muestreo, sim)
-
-        sim.iniciar()
-        sim.correr()
-        sim.cerrar()
-
-        return analizador.analizar(sim, muestreo, proc)
-
     def guardar_calibs(símismo, directorio=''):
         for m in símismo.módulos:
             m.guardar_calibs(directorio=os.path.join(directorio, str(m)))
