@@ -41,7 +41,7 @@ class Modelo(object):
 
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=False)
 
-        reps = _gen_reps(reps, calib=True)
+        reps = _gen_reps(reps, calib=True, paráms=paráms)
         sim = Simulación(nombre, modelo=símismo, exper=exper, t=t, calibs=calibs, reps=reps, vars_interés=None)
         proc = gen_proc(proc)
 
@@ -108,9 +108,12 @@ class Modelo(object):
         ]
 
 
-def _gen_reps(reps, calib=False):
+def _gen_reps(reps, calib=False, paráms=None):
     if calib:
-        base = {'paráms': 1, 'estoc': 30}
+        if paráms:
+            base = {'paráms': 15, 'estoc': 5}
+        else:
+            base = {'paráms': 1, 'estoc': 30}
     else:
         base = {'paráms': 15, 'estoc': 5}
     if reps is None:
