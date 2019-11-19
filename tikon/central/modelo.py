@@ -4,7 +4,6 @@ from inspect import isclass
 from tikon.calibrador.spotpy_ import EVM
 from tikon.ecs import Parám
 from tikon.result.proc import ens, gen_proc
-from tikon.sensib import SensSALib
 
 from .calibs import _gen_espec_calibs
 from .coso import Coso
