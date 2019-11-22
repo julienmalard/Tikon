@@ -88,8 +88,15 @@ class Módulo2(Módulo):
 
 coso1 = CosoParám('hola')
 coso2 = CosoParám('salut')
-obs = Obs(
-    mód='módulo', var='res', datos=xr.DataArray(
+
+
+class MiObs(Obs):
+    mód = 'módulo'
+    var = 'res'
+
+
+obs = MiObs(
+    datos=xr.DataArray(
         np.arange(10),
         coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
     ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso1]})
