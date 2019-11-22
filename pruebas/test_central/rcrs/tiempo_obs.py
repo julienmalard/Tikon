@@ -34,8 +34,13 @@ f_inic = '2019-01-01'
 f_final = '2019-02-01'
 tiempo = pd.date_range(f_inic, f_final, freq='D')
 
-obs = Obs(
-    mód='módulo', var='res',
+
+class MiObs(Obs):
+    mód = 'módulo'
+    var = 'res'
+
+
+obs = MiObs(
     datos=xr.DataArray(const, coords={'mi eje': np.arange(5), EJE_TIEMPO: tiempo}, dims=['mi eje', EJE_TIEMPO])
 )
 
