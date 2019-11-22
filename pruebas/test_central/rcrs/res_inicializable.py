@@ -28,7 +28,12 @@ class MóduloResInic(Módulo):
     cls_simul = SimulMóduloInic
 
 
-obs = Obs(mód='módulo', var='res', datos=xr.DataArray(const, coords={'mi eje': np.arange(5)}, dims=['mi eje']))
+class MiObs(Obs):
+    mód = 'módulo'
+    var = 'res'
+
+
+obs = MiObs(datos=xr.DataArray(const, coords={'mi eje': np.arange(5)}, dims=['mi eje']))
 
 exper = Exper('exper', Parcela('parcela'))
 exper.datos.espec_inic(const, mód='módulo', var='res')

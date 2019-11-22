@@ -22,7 +22,7 @@ class PruebaCalibEcs(unittest.TestCase):
         otro_exper = otro['exper']
         otro_modelo.cargar_calibs(símismo.dir_)
         valid = otro_modelo.simular('valid', otro_exper, calibs=['calib']).validar()
-        símismo.assertGreater(valid['ens'], 0.99)
+        símismo.assertGreater(valid['ens'], 0.95)
 
     def test_calib_paráms_mód(símismo):
         from .rcrs.modelo_calib_mód import modelo, exper, módulo1, coso1, coso2

@@ -34,8 +34,13 @@ class MóduloValid(Módulo):
     cls_simul = SimulMóduloValid
 
 
-obs = Obs(
-    mód='módulo', var='res', datos=xr.DataArray(
+class MiObs(Obs):
+    mód = 'módulo'
+    var = 'res'
+
+
+obs = MiObs(
+    datos=xr.DataArray(
         np.arange(10),
         coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
     ).expand_dims({EJE_PARC: ['parcela'], **crds})
