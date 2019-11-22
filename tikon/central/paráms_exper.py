@@ -5,6 +5,8 @@ from tikon.ecs.paráms import ValsParámCoso, ValsParámCosoInter, MatrParám
 from tikon.ecs.árb_coso import ParámCoso
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
+from .datos import DatosVar, DatosMód
+
 
 class PlantillaParámsExper(dict):
     def __init__(símismo, nombre, exper, sim, datos, n_reps):
@@ -88,9 +90,10 @@ class ParámsExperMód(PlantillaParámsExper):
 
         for var in símismo.sim:
             if símismo.sim[var].inicializable:
-                if símismo.datos and var in símismo.datos:
-                    datos = símismo.datos[var]
-                    símismo[var] = ParámsExperVar(var, exper, símismo.sim[var], datos=datos, n_reps=n_reps)
+                if var not in símismo.datos:
+                    símismo.datos[var] = DatosVar(var)
+                datos = símismo.datos[var]
+                símismo[var] = ParámsExperVar(var, exper, símismo.sim[var], datos=datos, n_reps=n_reps)
 
 
 class ParámsExper(PlantillaParámsExper):
@@ -100,9 +103,10 @@ class ParámsExper(PlantillaParámsExper):
 
         símismo.exper = exper
         for mód in símismo.sim:
-            if símismo.datos and mód in símismo.datos:
-                datos = símismo.datos[mód]
-                símismo[mód] = ParámsExperMód(mód, exper, símismo.sim[mód], datos=datos, n_reps=símismo.n_reps)
+            if mód not in símismo.datos:
+                símismo.datos[mód] = DatosMód(mód)
+            datos = símismo.datos[mód]
+            símismo[mód] = ParámsExperMód(mód, exper, símismo.sim[mód], datos=datos, n_reps=símismo.n_reps)
 
 
 class ParámInic(ParámCoso):
