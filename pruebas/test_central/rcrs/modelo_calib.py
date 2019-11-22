@@ -79,10 +79,15 @@ class MóduloValid(Módulo):
     eje_coso = 'coso'
 
 
+class MisObs(Obs):
+    mód = 'módulo'
+    var = 'res'
+
+
 def generar():
     coso = CosoParám('hola')
-    obs = Obs(
-        mód='módulo', var='res', datos=xr.DataArray(
+    obs = MisObs(
+        datos=xr.DataArray(
             np.arange(10),
             coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
         ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso]})
