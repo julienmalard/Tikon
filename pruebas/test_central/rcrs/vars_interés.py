@@ -46,8 +46,13 @@ class Módulo2(Módulo):
     cls_simul = SimulMódulo2
 
 
-obs_1_1 = Obs(
-    mód='módulo 1', var='res 1_1', datos=xr.DataArray(
+class MiObs(Obs):
+    mód = 'módulo 1'
+    var = 'res 1_1'
+
+
+obs_1_1 = MiObs(
+    datos=xr.DataArray(
         1.5, coords={EJE_TIEMPO: pd.date_range(date.today(), periods=10, freq='D')}, dims=[EJE_TIEMPO]
     )
 )
