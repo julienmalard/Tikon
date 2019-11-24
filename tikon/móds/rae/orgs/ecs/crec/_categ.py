@@ -1,10 +1,10 @@
 import numpy as np
-from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
-from tikon.móds.rae.orgs.ecs.utils import ECS_CREC
-from tikon.móds.rae.red.utils import RES_CREC
 
 from .ec import EcuaciónCrec
 from .modif import ModifCrec
+from .._plntll import CategEcOrg
+from ..utils import ECS_CREC
+from tikon.móds.rae.utils import RES_CREC
 
 
 class EcsCrec(CategEcOrg):

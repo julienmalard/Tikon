@@ -26,7 +26,7 @@ datos = obt_datos('Perera et al 1988/Oarenosella_A.csv')
 # Se trata de observaciones de poblaciones (y no de otro variable, como depredación).
 pobs = ObsPobs.de_csv(
     datos,
-    col_tiempo='Día',
+    tiempo='Día',
     corresp={
         'Estado 1': Oarenosella['juvenil_1'],
         'Estado 2': Oarenosella['juvenil_2'],

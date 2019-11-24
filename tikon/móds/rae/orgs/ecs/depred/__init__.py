@@ -1,1 +1,1 @@
-from ._categ import EcsDepred
+from ._categ import EcsDepred, EcDepred

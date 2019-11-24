@@ -71,7 +71,7 @@ class TipoIIHasselVarley(EcuaciónDepred):
        f(P,D) = a*P/(D^m) / (P/(D^m) + b)
     """
 
-    nombre = 'Tipo I_Hassell-Varley'
+    nombre = 'Tipo II_Hassell-Varley'
     cls_ramas = [ATipoII, BTipoII, MTipoII]
 
     def eval(símismo, paso, sim):
@@ -113,7 +113,7 @@ class TipoIIIHasselVarley(EcuaciónDepred):
 
     """
 
-    nombre = 'Tipo I_Hassell-Varley'
+    nombre = 'Tipo III_Hassell-Varley'
     cls_ramas = [ATipoIII, BTipoIII, MTipoIII]
 
     def eval(símismo, paso, sim):

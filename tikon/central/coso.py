@@ -24,8 +24,8 @@ class Coso(object):
     def desactivar_ec(símismo, categ, subcateg=None):
         símismo.ecs.desactivar_ec(categ=categ, subcateg=subcateg)
 
-    def categ_activa(símismo, categ, modelo):
-        return símismo.ecs[categ].verificar_activa(modelo)
+    def categ_activa(símismo, categ, modelo, mód, exper):
+        return símismo.ecs[categ].activa(modelo, mód, exper)
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, inter=índs)
@@ -35,9 +35,6 @@ class Coso(object):
 
     def verificar(símismo):
         símismo.ecs.verificar()
-
-    def requísitos(símismo, controles=False):
-        return símismo.ecs.requísitos(controles)
 
     def guardar_calibs(símismo, directorio=''):
         arch = os.path.join(directorio, símismo.nombre + '.json')

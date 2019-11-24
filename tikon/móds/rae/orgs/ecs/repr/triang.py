@@ -30,7 +30,7 @@ class C(Parám):
 class Triang(EcuaciónReprCoh):
     nombre = 'Triang'
     cls_ramas = [N, A, B, C]
-    _cls_dist = estad.norm
+    _cls_dist = estad.triang
 
     def _prms_scipy(símismo):
         cf = símismo.cf

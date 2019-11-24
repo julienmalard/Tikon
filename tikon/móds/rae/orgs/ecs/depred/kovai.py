@@ -1,7 +1,7 @@
 import numpy as np
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.utils import probs_conj
-from tikon.móds.rae.red.utils import EJE_VÍCTIMA
+from tikon.móds.rae.utils import EJE_VÍCTIMA
 
 from ._plntll_ec import EcuaciónDepred
 

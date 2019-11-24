@@ -1,5 +1,5 @@
-from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
-from tikon.móds.rae.orgs.insectos.ins import Insecto
+from ..ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
+from .ins import Insecto
 
 
 class Sencillo(Insecto):
@@ -16,7 +16,7 @@ class Sencillo(Insecto):
             ECS_EDAD: {'Ecuación': 'Nada'},
             ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
 
         super().__init__(
@@ -51,7 +51,7 @@ class MetamCompleta(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
 
         tipo_ec['pupa'] = {
@@ -72,7 +72,7 @@ class MetamCompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
-                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }
         else:
             tipo_ec['pupa'][ECS_REPR]['Prob'] = 'Normal'
@@ -110,7 +110,7 @@ class MetamIncompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
-                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }
 
         if adulto:
@@ -121,7 +121,7 @@ class MetamIncompleta(Insecto):
                 ECS_EDAD: {'Ecuación': 'Días'},
                 ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
-                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }
         else:
             tipo_ec['juvenil']['Reproducción']['Prob'] = 'Constante'

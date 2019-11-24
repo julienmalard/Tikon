@@ -80,7 +80,7 @@ class MóduloEcInter(Módulo):
     def inter(símismo, modelo, coso, tipo):
         for tp in tipo:
             if tp == 'otro':
-                return Inter(coso.interacciones, eje='otro')
+                return Inter(coso.interacciones, eje='otro', coords=símismo._cosos.values())
 
 
 exper = Exper('exper', Parcela('parcela'))

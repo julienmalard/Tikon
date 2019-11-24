@@ -115,7 +115,7 @@ class ParámInic(ParámCoso):
         símismo.prm_espejo = prm_espejo
         nombre = prm_espejo.nombre
         atribs = {'nombre': nombre, 'unids': unids, 'líms': líms, 'apriori': apriori}
-        super().__init__(cls_pariente=type(nombre, (Parám,), atribs), coso=exper)
+        super().__init__(pariente=type(nombre, (Parám,), atribs), coso=exper)
 
     def agregar_calib(símismo, id_cal, dist, inter=None):
         símismo.prm_espejo.agregar_calib(id_cal, dist, inter)

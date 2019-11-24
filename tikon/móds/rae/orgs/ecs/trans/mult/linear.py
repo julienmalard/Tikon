@@ -1,5 +1,5 @@
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.red.utils import RES_TRANS
+from tikon.móds.rae.utils import RES_TRANS
 
 from ..._plntll import EcuaciónOrg
 

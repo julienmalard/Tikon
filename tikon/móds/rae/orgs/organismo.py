@@ -1,9 +1,8 @@
 from typing import List
 
 from tikon.central.coso import Coso
-from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
-
 from .ecs import EcsOrgs
+from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
 
 
 class Organismo(Coso):
@@ -16,7 +15,7 @@ class Organismo(Coso):
 
         símismo._etapas = []  # type: List[Etapa]
         símismo._rels_presas = []  # type: List[RelaciónPresa]
-        símismo._rels_paras = []  # type: List[RelaciónParas]
+        símismo._rels_parás = []  # type: List[RelaciónParas]
 
     def añadir_etapa(símismo, nombre, pos=None):
 
@@ -68,16 +67,16 @@ class Organismo(Coso):
         obj_rel = RelaciónParas(
             huésped=huésped, etps_entra=etps_entra, etp_depred=etp_símismo, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
-        símismo._rels_paras.append(obj_rel)
+        símismo._rels_parás.append(obj_rel)
 
     def noparasita(símismo, huésped, etps_entra=None, etps_símismo=None):
 
         etps_entra = símismo.resolver_etapas(etps_entra)
         etps_símismo = símismo.resolver_etapas(etps_símismo)
 
-        for rel in list(símismo._rels_paras):
+        for rel in list(símismo._rels_parás):
             if rel.huésped is huésped and rel.etps_entra in etps_entra and rel.etp_depred in etps_símismo:
-                símismo._rels_paras.remove(rel)
+                símismo._rels_parás.remove(rel)
 
     def resolver_etapas(símismo, etapas):
         if etapas is None:
@@ -91,7 +90,7 @@ class Organismo(Coso):
     def etapas(símismo, fantasmas_de=None):
 
         if fantasmas_de:
-            etps_fant = [f for r_p in símismo._rels_paras for f in r_p.fantasmas if f.org_hués in fantasmas_de]
+            etps_fant = [f for r_p in símismo._rels_parás for f in r_p.fantasmas if f.org_hués in fantasmas_de]
         else:
             etps_fant = []
 
@@ -117,10 +116,10 @@ class Organismo(Coso):
         -------
 
         """
-        return [e_h for rel in símismo._rels_paras for e_h in rel.etps_entra if (etp is None or rel.etp_depred == etp)]
+        return [e_h for rel in símismo._rels_parás for e_h in rel.etps_entra if (etp is None or rel.etp_depred == etp)]
 
     def fantasmas(símismo):
-        return [rel.fantasmas[í] for rel in símismo._rels_paras for í in range(len(rel.etps_entra))]
+        return [rel.fantasmas[í] for rel in símismo._rels_parás for í in range(len(rel.etps_entra))]
 
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
@@ -132,6 +131,9 @@ class Organismo(Coso):
         for etp in símismo:
             if etp.nombre in calibs:
                 etp._ecs_de_json(calibs[etp.nombre])
+
+    def __len__(símismo):
+        return len(símismo._etapas)
 
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
@@ -166,8 +168,8 @@ class Etapa(Coso):
     def huéspedes(símismo):
         return símismo.org.huéspedes(símismo)
 
-    def con_cohortes(símismo):
-        return símismo.categ_activa(ECS_EDAD, mód=símismo)
+    def con_cohortes(símismo, exper):
+        return símismo.categ_activa(ECS_EDAD, modelo=None, mód=símismo, exper=exper)
 
     def siguiente(símismo):
         índice = símismo.org.índice(símismo)
@@ -227,7 +229,7 @@ class RelaciónParas(object):
         símismo.etp_recip = etp_recip
 
         símismo.fantasmas = []
-        etps_en_hués = range(min(huésped.índice(etps_entra)), huésped.índice(etp_emerg) + 1)
+        etps_en_hués = range(min(huésped.índice(etp) for etp in etps_entra), huésped.índice(etp_emerg) + 1)
 
         for í_etp in reversed(etps_en_hués):
             símismo.fantasmas.append(EtapaFantasma(

@@ -1,6 +1,7 @@
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg, CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_MRTE
+from tikon.móds.rae.utils import RES_MRTE
 
 from .constante import Constante
 from .lognorm_temp import LogNormTemp
@@ -14,9 +15,9 @@ class EcMuerte(SubcategEcOrg):
 
 
 class EcsMuerte(CategEcOrg):
-    nombre = 'Muertes'
+    nombre = ECS_MRTE
     cls_ramas = [EcMuerte]
-    _nombre_res = ECS_MRTE
+    _nombre_res = RES_MRTE
 
     def postproc(símismo, paso, sim):
         """

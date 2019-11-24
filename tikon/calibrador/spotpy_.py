@@ -146,7 +146,7 @@ class ModSpotPy(object):
         return símismo.func()
 
     def evaluation(símismo):
-        return  # símismo.res
+        pass
 
     def objectivefunction(símismo, simulation, evaluation, params=None):
         return -simulation if símismo.inversar else simulation

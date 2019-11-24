@@ -1,4 +1,4 @@
-from tikon.móds.rae.red.utils import RES_MRTE
+from tikon.móds.rae.utils import RES_MRTE
 
 from .._plntll import EcuaciónOrg
 

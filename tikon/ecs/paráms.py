@@ -111,13 +111,14 @@ class ValsParámCoso(MatrParám):
 
 
 class Inter(object):
-    def __init__(símismo, itemas, eje):
+    def __init__(símismo, itemas, eje, coords):
+        símismo.coords = coords
         símismo.itemas = itemas
         símismo.eje = eje
 
     def __iter__(símismo):
-        for i in símismo.itemas:
-            yield i
+        for c in símismo.coords:
+            yield c
 
     def __bool__(símismo):
         return len(símismo.itemas) > 0

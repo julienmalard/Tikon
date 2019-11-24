@@ -5,7 +5,7 @@ import xarray as xr
 from tikon.central import Parcela, GrupoParcelas
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
-from tikon.result import EJE_PARC
+from tikon.utils import EJE_PARC
 
 
 class ParcelasCultivoExterno(GrupoParcelas):

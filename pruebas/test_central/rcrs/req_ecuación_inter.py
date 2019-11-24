@@ -17,7 +17,8 @@ class EcuaciónReq(Ecuación):
     def eval(símismo, paso, sim):
         pass
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if controles:
             return ['requísito control']
 
@@ -68,7 +69,7 @@ class MóduloReqEcInter(Módulo):
     def inter(símismo, modelo, coso, tipo):
         for tp in tipo:
             if tp == 'otro':
-                return Inter(coso.interacciones, eje='eje interacción')
+                return Inter(coso.interacciones, eje='eje interacción', coords=símismo._cosos.values())
 
 
 exper = Exper('exper', Parcela('parcela'))

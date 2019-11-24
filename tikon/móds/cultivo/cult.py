@@ -4,8 +4,8 @@ from tikon.móds.clima.clima import Clima
 from tikon.móds.cultivo.res import RES_BIOMASA
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.móds.rae.red import RedAE
-from tikon.móds.rae.red.utils import RES_DEPR, EJE_VÍCTIMA, EJE_ETAPA, RES_POBS
-from tikon.result import EJE_PARC
+from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA, EJE_ETAPA, RES_POBS
+from tikon.utils import EJE_PARC
 
 from . import res
 
@@ -53,7 +53,9 @@ class SimulCultivo(SimulMódulo):
         super().cerrar()
 
     def requísitos(símismo, controles=False):
-        return {req for prc in símismo for req in símismo[prc].requísitos(controles)}
+        reqs_externos = {req for prc in símismo for req in símismo[prc].requísitos(controles)}
+        req_adicional = {'superficies'} if controles else {'red.depred'}
+        return reqs_externos.union(req_adicional)
 
 
 class Cultivo(Módulo):

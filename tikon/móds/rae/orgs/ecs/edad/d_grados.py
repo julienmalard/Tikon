@@ -28,9 +28,10 @@ class PlantillaFuncDíasGrados(EcuaciónOrg):
         temp_mín = símismo.obt_valor_extern(sim, 'clima.temp_mín')
         return días_grados(temp_máx, temp_mín, umbrales=(cf['mín'], cf['máx']), **símismo._args()) * paso
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
-            return ['clima.temp_máx', 'clima.temp_mín']
+            return {'clima.temp_máx', 'clima.temp_mín'}
 
     def _args(símismo):
         raise NotImplementedError

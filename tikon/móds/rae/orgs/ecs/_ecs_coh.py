@@ -1,12 +1,11 @@
-from tikon.móds.rae.red.utils import RES_EDAD
-
 from ._plntll import EcuaciónOrg
+from ...utils import RES_EDAD, RES_COHORTES
 
 
 class EcuaciónConCohorte(EcuaciónOrg):
 
-    def __init__(símismo, modelo, cosos, n_reps, ecs):
-        super().__init__(modelo, cosos, n_reps, ecs)
+    def __init__(símismo, modelo, mód, exper, cosos, n_reps, ecs):
+        super().__init__(modelo, mód, exper, cosos=cosos, n_reps=n_reps, ecs=ecs)
 
         símismo.dist = None
 
@@ -19,11 +18,11 @@ class EcuaciónConCohorte(EcuaciónOrg):
 
     @staticmethod
     def trans_cohortes(sim, cambio_edad, dist):
-        return sim.cohortes.trans(cambio_edad, dist)
+        return sim[RES_COHORTES].trans(cambio_edad, dist)
 
     @staticmethod
     def dens_dif(sim, cambio_edad, dist):
-        return sim.cohortes.dens_dif(cambio_edad, dist=dist)
+        return sim[RES_COHORTES].dens_dif(cambio_edad, dist=dist)
 
     @property
     def _cls_dist(símismo):

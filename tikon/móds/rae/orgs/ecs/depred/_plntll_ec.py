@@ -1,4 +1,4 @@
-from tikon.móds.rae.red.utils import RES_DEPR
+from tikon.móds.rae.utils import RES_DEPR
 
 from .._plntll import EcuaciónOrg
 
@@ -7,7 +7,7 @@ class EcuaciónDepred(EcuaciónOrg):
     _nombre_res = RES_DEPR
 
     def dens_pobs(símismo, sim, filtrar=True):
-        pobs = símismo.pobs(filtrar)
+        pobs = símismo.pobs(sim, filtrar=filtrar)
         superficies = sim.obt_valor_control('superficies')
         return pobs / superficies
 

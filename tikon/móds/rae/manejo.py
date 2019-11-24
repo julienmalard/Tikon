@@ -1,8 +1,25 @@
 import xarray as xr
 from tikon.móds.manejo.acciones import Acción
+from tikon.móds.manejo.conds import CondVariable
 
+from .orgs.organismo import Etapa, SumaEtapas, Organismo
 from .red import RedAE
-from .red.utils import RES_POBS, EJE_ETAPA
+from tikon.móds.rae.utils import RES_POBS, EJE_ETAPA
+
+
+class CondPoblación(CondVariable):
+    def __init__(símismo, etapas, prueba, func=xr.DataArray.sum, espera=14):
+        etapas = [etapas] if isinstance(etapas, (Etapa, SumaEtapas, Organismo)) else etapas
+        etapas_final = []
+        for etp in etapas:
+            if isinstance(etp, Etapa):
+                etapas_final.append(etp)
+            else:
+                etapas_final += [e for e in etp]
+
+        super().__init__(
+            mód=RedAE.nombre, var=RES_POBS, prueba=prueba, espera=espera, func=func, coords={EJE_ETAPA: etapas}
+        )
 
 
 class AgregarPob(Acción):

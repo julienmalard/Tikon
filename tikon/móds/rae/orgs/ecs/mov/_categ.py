@@ -1,7 +1,7 @@
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_MOV
-from tikon.móds.rae.red.utils import RES_MOV
-from tikon.result import EJE_PARC, EJE_DEST
+from tikon.móds.rae.utils import RES_MOV
+from tikon.utils import EJE_DEST, EJE_PARC
 
 from .atr import Atracción
 from .dstn import Distancia
@@ -21,3 +21,7 @@ class EcsMov(CategEcOrg):
         migr = imigr - emigr
 
         símismo.ajust_pobs(sim, migr)
+
+    @classmethod
+    def activa(cls, modelo, mód, exper):
+        return any(len(exp.parcelas) > 1 for exp in exper)

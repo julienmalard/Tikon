@@ -74,7 +74,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def test_obt_y_poner_valor():
         from .rcrs import ec_obt_poner_valor
         modelo = ec_obt_poner_valor.mi_modelo
-        exper = ec_obt_poner_valor.exper
+        exper = ec_obt_poner_valor.mi_exper
         res = modelo.simular('ec obt valor', exper, t=10, vars_interés=True)['exper']['módulo']
         xrt.assert_equal(res['res 1'].datos_t[1:], res['res 2'].datos_t[1:] + 1)
 
@@ -82,7 +82,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def test_obt_valor_control():
         from .rcrs import ec_valor_control
         modelo = ec_valor_control.mi_modelo
-        exper = ec_valor_control.exper
+        exper = ec_valor_control.mi_exper
         valor = 34
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor control', exper, t=2)['exper']['módulo']['res']
@@ -92,7 +92,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def test_obt_valor_extern():
         from .rcrs import ec_obt_valor_extern
         modelo = ec_obt_valor_extern.mi_modelo
-        exper = ec_obt_valor_extern.exper
+        exper = ec_obt_valor_extern.mi_exper
         valor = ec_obt_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
@@ -101,20 +101,20 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     @staticmethod
     def test_poner_valor_extern():
         from .rcrs import ec_poner_valor_extern
-        modelo, exper, valor = ec_poner_valor_extern.mi_modelo, ec_poner_valor_extern.exper, ec_poner_valor_extern.valor
+        modelo, exper, valor = ec_poner_valor_extern.mi_modelo, ec_poner_valor_extern.mi_exper, ec_poner_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['otro módulo']['res 2']
         npt.assert_equal(res.datos.values, valor)
 
     def test_parám(símismo):
         from .rcrs import ec_parám
-        modelo, exper, rango = ec_parám.mi_modelo, ec_parám.exper, ec_parám.rango
+        modelo, exper, rango = ec_parám.mi_modelo, ec_parám.mi_exper, ec_parám.rango
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
         símismo._verif_en(res, rango)
 
     def test_apriori_auto(símismo):
         from .rcrs import ec_apriori_auto
-        modelo, exper, rango = ec_apriori_auto.mi_modelo, ec_apriori_auto.exper, ec_apriori_auto.rango
+        modelo, exper, rango = ec_apriori_auto.mi_modelo, ec_apriori_auto.mi_exper, ec_apriori_auto.rango
 
         with símismo.subTest('apriori auto'):
             res = modelo.simular('apriori auto', exper, t=2)['exper']['módulo']['res']
@@ -128,7 +128,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     def test_apriori_coso(símismo):
         from .rcrs import ec_parám
-        exper = ec_parám.exper
+        exper = ec_parám.mi_exper
         coso = ec_parám.CosoParám('hola')
         modelo = Modelo(ec_parám.MóduloParám([coso]))
         coso.espec_apriori(apriori=APrioriDist(uniform(3, 1)), categ='categ', sub_categ='subcateg', ec='ec', prm='a')
@@ -138,7 +138,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
     def test_borrar_apriori(símismo):
         from .rcrs import ec_parám
-        exper = ec_parám.exper
+        exper = ec_parám.mi_exper
         coso = ec_parám.CosoParám('hola')
         módulo = ec_parám.MóduloParám([coso])
         modelo = Modelo(módulo)

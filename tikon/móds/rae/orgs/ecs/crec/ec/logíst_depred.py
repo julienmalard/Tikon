@@ -1,5 +1,5 @@
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.red.utils import EJE_VÍCTIMA, RES_DEPR
+from tikon.móds.rae.utils import EJE_VÍCTIMA, RES_DEPR
 
 from ._plntll_ec import EcuaciónCrec
 

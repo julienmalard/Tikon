@@ -5,13 +5,15 @@ from .dists import DistAnalítica, MnjdrDists
 
 
 class PlantillaRamaEcCoso(dict):
-    def __init__(símismo, nombre, ramas, coso):
+    def __init__(símismo, pariente, ramas, coso):
         símismo.coso = coso
-        símismo.nombre = nombre
+        símismo.nombre = pariente.nombre
+        símismo.pariente = pariente
         super().__init__(**{str(r): r for r in ramas})
 
-    def verificar_activa(símismo, modelo, mód):
-        return any(símismo[rm].verificar_activa(modelo, mód) for rm in símismo)
+    def activa(símismo, modelo, mód, exper):
+        return any(símismo[rm].activa(modelo, mód, exper) for rm in símismo) \
+               and símismo.pariente.activa(modelo, mód, exper)
 
     def de_dic(símismo, dic):
         for rm in símismo:
@@ -78,15 +80,15 @@ class CategEcCoso(PlantillaRamaEcCoso):
 
 
 class SubcategEcCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, nombre, ramas, coso):
-        super().__init__(nombre, ramas, coso)
+    def __init__(símismo, pariente, ramas, coso):
+        super().__init__(pariente, ramas, coso)
 
         símismo._activada = ramas[0]
 
         símismo._activada.activada = True
 
-    def verificar_activa(símismo, modelo, mód):
-        return símismo.ec_activa().verificar_activa(modelo, mód)
+    def activa(símismo, modelo, mód, exper):
+        return símismo.ec_activa().activa(modelo, mód, exper)
 
     def activar_ec(símismo, ec):
         try:
@@ -108,12 +110,12 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
 
 class EcuaciónCoso(PlantillaRamaEcCoso):
-    def __init__(símismo, nombre, ramas, coso):
-        super().__init__(nombre, ramas, coso)
+    def __init__(símismo, pariente, ramas, coso):
+        super().__init__(pariente, ramas, coso)
         símismo.activada = False
 
-    def verificar_activa(símismo, modelo, mód):
-        if símismo.activada and str(símismo) != 'Nada':
+    def activa(símismo, modelo, mód, exper):
+        if símismo.activada and símismo.pariente.activa(modelo, mód, exper):
             inters = símismo.inter()
             if inters:
                 return all(mód.inter(modelo, símismo.coso, tipo=intr) for intr in inters)
@@ -127,17 +129,17 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         }
 
 
-class ParámGeneral(PlantillaRamaEcCoso):
-    def __init__(símismo, nombre, coso, líms, inter, apriori_auto):
-        símismo.líms = líms
-        símismo.inter = inter
-        símismo.apriori_auto = apriori_auto
+class ParámCoso(PlantillaRamaEcCoso):
+    def __init__(símismo, pariente, coso):
+        símismo.líms = pariente.líms
+        símismo.inter = pariente.inter
+        símismo.apriori_auto = pariente.apriori
         símismo._calibs = {}  # type: Dict[str, MnjdrDists]
         símismo._apriori = MnjdrDists()
 
-        super().__init__(nombre, ramas=[], coso=coso)
+        super().__init__(pariente, ramas=[], coso=coso)
 
-    def verificar_activa(símismo, modelo, mód):
+    def activa(símismo, modelo, mód, exper):
         return True  # Parámetros de una ecuación activa siempre están activados.
 
     def agregar_calib(símismo, id_cal, dist, inter=None):
@@ -180,17 +182,4 @@ class ParámGeneral(PlantillaRamaEcCoso):
             )
 
     def __copy__(símismo):
-        return ParámGeneral(símismo.nombre, símismo.coso, símismo.líms, símismo.inter, símismo.apriori_auto)
-
-
-class ParámCoso(ParámGeneral):
-    def __init__(símismo, cls_pariente, coso):
-        nombre = cls_pariente.nombre
-        líms = cls_pariente.líms
-        inter = cls_pariente.inter
-        apriori_auto = cls_pariente.apriori
-
-        super().__init__(nombre=nombre, coso=coso, líms=líms, inter=inter, apriori_auto=apriori_auto)
-
-    def __copy__(símismo):
-        return ParámCoso(símismo.cls_pariente, coso=símismo.coso)
+        return ParámCoso(símismo.nombre, símismo.coso)

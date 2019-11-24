@@ -73,9 +73,9 @@ class MóduloParám(Módulo):
         símismo.l_cosos = cosos
         super().__init__(cosos)
 
-    def gen_ecs(símismo, modelo, mód, n_reps):
-        return EcsParám(modelo, mód, cosos=símismo.l_cosos, n_reps=n_reps)
+    def gen_ecs(símismo, modelo, mód, exper, n_reps):
+        return EcsParám(modelo, mód, exper, cosos=símismo.l_cosos, n_reps=n_reps)
 
 
-exper = Exper('exper', Parcela('parcela'))
+mi_exper = Exper('exper', Parcela('parcela'))
 mi_modelo = Modelo(MóduloParám([coso]))

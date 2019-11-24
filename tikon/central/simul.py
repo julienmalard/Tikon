@@ -2,6 +2,7 @@ import os
 import threading
 
 import numpy as np
+import xarray as xr
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
@@ -67,12 +68,12 @@ class Simulación(PlantillaSimul):
 
         exper = [exper] if isinstance(exper, Exper) else exper
 
-        símismo.ecs = {m: m.gen_ecs(modelo, mód=m, n_reps=reps['paráms']) for m in modelo.módulos}
+        símismo.ecs = {m: m.gen_ecs(modelo, mód=m, exper=exper, n_reps=reps['paráms']) for m in modelo.módulos}
 
         super().__init__(
             nombre,
             subs=[
-                SimulExper(modelo.módulos, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
+                SimulExper(modelo, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
                 for exp in exper
             ]
         )
@@ -117,7 +118,7 @@ class Simulación(PlantillaSimul):
 
         # Verificar si hubo error
         if errores:
-            raise ChildProcessError('Hubo error en los módulos siguientes: {móds}'.format(móds=', '.join(errores)))
+            raise ChildProcessError('Hubo error en los experimentos siguientes: {exp}'.format(exp=', '.join(errores)))
 
     def validar(símismo, proc=ens):
         proc = gen_proc_valid(proc)
@@ -128,14 +129,15 @@ class Simulación(PlantillaSimul):
 
 
 class SimulExper(PlantillaSimul):
-    def __init__(símismo, módulos, exper, t, reps, ecs, vars_interés):
+    def __init__(símismo, modelo, exper, t, reps, ecs, vars_interés):
+        símismo.modelo = modelo
         símismo.exper = exper
         símismo.t = exper.gen_t(t)
         símismo.ecs = ecs
         símismo.reps = reps
         super().__init__(
             nombre=exper.nombre,
-            subs=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in módulos]
+            subs=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in modelo.módulos]
         )
 
         símismo.verificar_reqs()
@@ -225,7 +227,11 @@ class SimulMódulo(PlantillaSimul):
 
     def poner_valor(símismo, var, val, rel=False):
         if rel:
-            símismo[var].datos += val
+            if isinstance(val, xr.DataArray):
+                val = val.broadcast_like(símismo[var].datos.loc[val.coords])
+                símismo[var].datos.loc[val.coords] += val
+            else:
+                símismo[var].datos += val
         else:
             símismo[var].datos = val
 

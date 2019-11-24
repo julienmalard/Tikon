@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from tikon.móds.rae import Organismo
-from tikon.móds.rae.orgs.organismo import SumaEtapas, Etapa
-from tikon.móds.rae.red import RedAE
-from tikon.móds.rae.red.utils import EJE_ETAPA, RES_POBS
 
 
-class SuperiorOIgual(object):
+class PruebaCond(object):
+    def __call__(símismo, x):
+        raise NotImplementedError
+
+
+class SuperiorOIgual(PruebaCond):
     def __init__(símismo, v):
         símismo.v = v
 
@@ -15,7 +16,7 @@ class SuperiorOIgual(object):
         return np.greater_equal(x, símismo.v)
 
 
-class InferiorOIgual(object):
+class InferiorOIgual(PruebaCond):
     def __init__(símismo, v):
         símismo.v = v
 
@@ -23,7 +24,7 @@ class InferiorOIgual(object):
         return np.less_equal(x, símismo.v)
 
 
-class Superior(object):
+class Superior(PruebaCond):
     def __init__(símismo, v):
         símismo.v = v
 
@@ -31,7 +32,7 @@ class Superior(object):
         return np.greater(x, símismo.v)
 
 
-class Inferior(object):
+class Inferior(PruebaCond):
     def __init__(símismo, v):
         símismo.v = v
 
@@ -39,7 +40,7 @@ class Inferior(object):
         return np.less(x, símismo.v)
 
 
-class Igual(object):
+class Igual(PruebaCond):
     def __init__(símismo, v):
         símismo.v = v
 
@@ -47,7 +48,7 @@ class Igual(object):
         return np.equal(x, símismo.v)
 
 
-class EntreInclusivo(object):
+class EntreInclusivo(PruebaCond):
     def __init__(símismo, mín, máx):
         símismo.líms = (mín, máx)
 
@@ -57,7 +58,7 @@ class EntreInclusivo(object):
         return np.logical_and(np.less_equal(x, máx), np.greater_equal(x, mín))
 
 
-class EntreExclusivo(object):
+class EntreExclusivo(PruebaCond):
     def __init__(símismo, mín, máx):
         símismo.líms = (mín, máx)
 
@@ -67,7 +68,7 @@ class EntreExclusivo(object):
         return np.logical_and(np.less(x, máx), np.greater(x, mín))
 
 
-class Incluye(object):
+class Incluye(PruebaCond):
     def __init__(símismo, lista):
         símismo.lista = lista
 
@@ -75,7 +76,7 @@ class Incluye(object):
         return np.isin(x, símismo.lista)
 
 
-class Cada(object):
+class Cada(PruebaCond):
     def __init__(símismo, cada):
         símismo.cada = cada
 
@@ -87,6 +88,31 @@ class Condición(object):
 
     def __call__(símismo, sim, paso, f):
         raise NotImplementedError
+
+    def requísitos(símismo, controles=False):
+        pass
+
+
+class CondY(Condición):
+    def __init__(símismo, conds):
+        símismo.conds = conds
+
+    def __call__(símismo, sim, paso, f):
+        return np.logical_and.reduce([c(sim, paso, f) for c in símismo.conds])
+
+    def requísitos(símismo, controles=False):
+        return {req for c in símismo.conds for req in (c.requísitos(controles) or {})}
+
+
+class CondO(Condición):
+    def __init__(símismo, conds):
+        símismo.conds = conds
+
+    def __call__(símismo, sim, paso, f):
+        return np.logical_or.reduce([c(sim, paso, f) for c in símismo.conds])
+
+    def requísitos(símismo, controles=False):
+        return {req for c in símismo.conds for req in (c.requísitos(controles) or {})}
 
 
 class CondFecha(Condición):
@@ -104,7 +130,7 @@ class CondDía(Condición):
         símismo.prueba = prueba(umbral)
 
     def __call__(símismo, sim, paso, f):
-        n_día = sim.simul_exper.t.n_día
+        n_día = sim.t.n_día
         return símismo.prueba(n_día)
 
 
@@ -114,17 +140,19 @@ class CondCada(CondDía):
 
 
 class CondVariable(Condición):
-    def __init__(símismo, mód, var, prueba, espera, f=xr.DataArray.sum, coords=None):
+    def __init__(símismo, mód, var, prueba, espera, func=xr.DataArray.sum, coords=None):
         símismo.mód = mód
         símismo.var = var
         símismo.prueba = prueba
-        símismo.f = f
+        símismo.func = func
         símismo.coords = coords or {}
         símismo.espera = espera
         símismo.mem = None
 
     def __call__(símismo, sim, paso, f):
-        val_var = f(sim[símismo.mód].obt_valor(símismo.var).loc[símismo.coords], dim=list(símismo.coords))
+        val_var = símismo.func(
+            sim[símismo.mód].obt_valor(símismo.var).loc[símismo.coords], dim=list(símismo.coords)
+        )
         cond_verdad = símismo.prueba(val_var)
 
         if símismo.mem is None:
@@ -133,37 +161,6 @@ class CondVariable(Condición):
 
         final = np.logical_and(listos, cond_verdad)
         símismo.mem = símismo.mem.where(símismo.mem == 0, símismo.mem + 1)
-        símismo.mem[final] = 1
+        símismo.mem = símismo.mem.where(~final, 1)
 
         return final
-
-
-class CondPoblación(CondVariable):
-    def __init__(símismo, etapas, prueba, f=xr.DataArray.sum, espera=14):
-        etapas = [etapas] if isinstance(etapas, (Etapa, SumaEtapas, Organismo)) else etapas
-        etapas_final = []
-        for etp in etapas:
-            if isinstance(etp, Etapa):
-                etapas_final.append(etp)
-            else:
-                etapas_final += [e for e in etp]
-
-        super().__init__(
-            mód=RedAE.nombre, var=RES_POBS, prueba=prueba, espera=espera, f=f, coords={EJE_ETAPA: etapas}
-        )
-
-
-class CondY(Condición):
-    def __init__(símismo, conds):
-        símismo.conds = conds
-
-    def __call__(símismo, sim, paso, f):
-        return np.logical_and.reduce([c(sim, paso, f) for c in símismo.conds])
-
-
-class CondO(Condición):
-    def __init__(símismo, conds):
-        símismo.conds = conds
-
-    def __call__(símismo, sim, paso, f):
-        return np.logical_or.reduce([c(sim, paso, f) for c in símismo.conds])

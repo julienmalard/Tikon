@@ -44,7 +44,7 @@ El_Encanto = Exper()
 #       Elevation on Coffee Leafminer Leucoptera Coffeella (Lepidoptera: Lyonetiidae) Population Dynamics and
 #       Natural Enemies.” Crop Protection 29 (9): 1039–48. doi:10.1016/j.cropro.2010.03.007.
 pobs = ObsPobs.de_csv(
-    archivo='Suconusco_Chiapas.csv', col_tiempo='Día',
+    archivo='Suconusco_Chiapas.csv', tiempo='Día',
     corresp={
         'Juvenil': L_coffeella['juvenil'],
         'Para_larva': Parasitoide_larvas['juvenil']
