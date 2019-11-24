@@ -1,6 +1,6 @@
 import numpy as np
 from tikon.central.res import Resultado
-from tikon.móds.rae.red.utils import EJE_ETAPA
+from tikon.móds.rae.utils import EJE_ETAPA
 
 RES_BIOMASA = 'biomasa'
 RES_HUMSUELO = 'humedad suelo'

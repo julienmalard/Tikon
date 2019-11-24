@@ -1,1 +1,1 @@
-from ._categ import EcsMuerte
+from ._categ import EcsMuerte, EcMuerte

@@ -1,1 +1,1 @@
-from ._categ import EcsRepr
+from ._categ import EcsRepr, ProbRepr

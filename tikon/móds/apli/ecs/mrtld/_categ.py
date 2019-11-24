@@ -2,7 +2,7 @@ from tikon.ecs.árb_mód import CategEc, SubcategEc, EcuaciónVacía
 from tikon.móds.apli.ecs.utils import ECS_MRTLD
 from tikon.móds.apli.utils import EJE_PRODUCTO, RES_MRTLD
 from tikon.móds.rae.red import RedAE
-from tikon.móds.rae.red.utils import RES_POBS
+from tikon.móds.rae.utils import RES_POBS
 
 from .logíst import Logística
 

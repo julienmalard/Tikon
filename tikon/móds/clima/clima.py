@@ -27,7 +27,7 @@ class SimulClima(SimulMódulo):
         }
         símismo.datos = xr.Dataset({
             res: xr.DataArray(
-                [d_datos[prc][_vr_tikon_a_taqdir(res)] for prc in parcelas],
+                [d_datos[prc][res if res in d_datos[prc] else _vr_tikon_a_taqdir(res)] for prc in parcelas],
                 coords={EJE_PARC: parcelas, EJE_TIEMPO: eje_t},
                 dims=[EJE_PARC, EJE_TIEMPO]
             ) for res in variables
@@ -48,7 +48,7 @@ class SimulClima(SimulMódulo):
 
     def requísitos(símismo, controles=False):
         if controles:
-            return ['centroides', 'elevaciones']
+            return {'centroides', 'elevaciones'}
 
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)

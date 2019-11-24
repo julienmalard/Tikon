@@ -42,7 +42,7 @@ class Parasitoide(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
 
         super().__init__(
@@ -92,7 +92,7 @@ class Esfécido(Insecto):
             ECS_EDAD: {'Ecuación': 'Días'},
             ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Depredación'},
-            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Decaimiento Exponencial'}
+            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         },
 
             'juvenil': {

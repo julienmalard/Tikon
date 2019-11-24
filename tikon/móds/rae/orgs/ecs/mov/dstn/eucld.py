@@ -8,6 +8,7 @@ class Euclidiana(EcuaciónOrg):
         # Devolvemos distancia cuadrada
         return símismo.obt_valor_control(sim, 'distancias') ** 2
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if controles:
-            return ['distancias']
+            return {'distancias'}

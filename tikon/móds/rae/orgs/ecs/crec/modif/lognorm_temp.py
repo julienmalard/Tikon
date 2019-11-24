@@ -15,9 +15,15 @@ class P(Parám):
     unids = None
 
 
+class R(Parám):
+    nombre = 'r'
+    líms = (0, None)
+    unids = None
+
+
 class LogNormTemp(EcuaciónOrg):
     nombre = 'Log Normal Temperatura'
-    cls_ramas = [T, P]
+    cls_ramas = [T, P, R]
 
     def eval(símismo, paso, sim):
         # r responde a la temperatura con una ecuación log normal.
@@ -26,6 +32,7 @@ class LogNormTemp(EcuaciónOrg):
 
         return cf['r'] * paso * np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2)
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
-            return ['clima.temp_máx']
+            return {'clima.temp_máx'}

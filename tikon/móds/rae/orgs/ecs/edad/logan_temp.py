@@ -32,7 +32,7 @@ class FuncLoganTemperatura(EcuaciónOrg):
        Otiorhynchus sulcatus (Coleoptera: Curculionidae). Agricultural and Forest Entomology 7(3): 201–209.
     """
     nombre = 'Logan Temperatura'
-    cls_ramas = [PrDeltaLT, PrTLetalLT]
+    cls_ramas = [PrRhoLT, PrDeltaLT, PrTLetalLT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
@@ -42,6 +42,7 @@ class FuncLoganTemperatura(EcuaciónOrg):
                 np.exp(cf['rho'] * cf['t_letal'] - (cf['t_letal'] - temp_prom) / cf['delta'])
                 ) * paso
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
-            return ['clima.temp_prom']
+            return {'clima.temp_prom'}

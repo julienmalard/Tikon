@@ -29,6 +29,7 @@ class SigmoidalTemperatura(EcuaciónOrg):
         sobrevivencia = 1 / (1 + np.exp((temp_máx - cf['a']) / cf['b']))
         return 1 - sobrevivencia
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
-            return ['clima.temp_máx']
+            return {'clima.temp_máx'}

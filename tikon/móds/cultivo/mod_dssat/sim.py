@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tikon.móds.cultivo.extrn import SimulCultivoExterno, InstanciaSimulCultivo
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
-from tikon.móds.rae.red.utils import EJE_ETAPA
+from tikon.móds.rae.utils import EJE_ETAPA
 from tikon.result import EJE_COORD, EJE_PARC
 
 

@@ -1,30 +1,22 @@
-import pandas as pd
-import xarray as xr
-from tikon.móds.rae.red.utils import EJE_ETAPA, RES_POBS, RES_CREC, RES_DEPR, RES_MOV, RES_MRTE, RES_REPR, RES_TRANS, \
-    EJE_VÍCTIMA
-from tikon.result import EJE_PARC, EJE_TIEMPO, EJE_DEST
+from tikon.móds.rae.utils import EJE_ETAPA, EJE_VÍCTIMA, RES_POBS, RES_CREC, RES_DEPR, RES_MOV, RES_MRTE, RES_REPR, \
+    RES_TRANS
 from tikon.result import Obs
-
+from tikon.utils import EJE_PARC, EJE_DEST
 from .red import RedAE
 
 
 class ObsRAE(Obs):
-    var = None
-
-    def __init__(símismo, datos):
-        super().__init__(mód=RedAE.nombre, var=símismo.var, datos=datos)
+    mód = RedAE.nombre
 
     @classmethod
-    def de_csv(cls, archivo, col_tiempo, corresp, parc, factor=1):
-        csv_pd = pd.read_csv(archivo, encoding='utf8')
+    def de_pandas(cls, datos_pd, corresp, coords=None, tiempo=None, parc=None, factor=1, **argsll):
+        return super().de_pandas(
+            datos_pd, corresp=corresp, eje_principal=EJE_ETAPA, parc=parc, tiempo=tiempo, coords=coords, factor=factor
+        )
 
-        coords = {
-            EJE_PARC: [parc],
-            EJE_ETAPA: list(corresp.values()),
-            EJE_TIEMPO: csv_pd[col_tiempo]
-        }
-        datos = xr.DataArray(csv_pd[list(corresp)] * factor, coords=coords, dims=list(coords))
-        return cls(datos=datos)
+    @property
+    def var(símismo):
+        raise NotImplementedError
 
 
 class ObsPobs(ObsRAE):
@@ -39,12 +31,21 @@ class ObsRepr(ObsRAE):
     var = RES_REPR
 
 
+class ObsTrans(ObsRAE):
+    var = RES_TRANS
+
+
 class ObsMov(ObsRAE):
     var = RES_MOV
 
-
-class ObsTrans(ObsRAE):
-    var = RES_TRANS
+    @classmethod
+    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, dest=None, factor=1, **argsll):
+        coords = {
+            EJE_DEST: dest or EJE_DEST,
+        }
+        return super().de_pandas(
+            datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=parc, factor=factor
+        )
 
 
 class ObsEmigr(ObsTrans):
@@ -58,6 +59,16 @@ class ObsImigr(ObsTrans):
     def proc_res(símismo, res):
         return res.sum(dim=EJE_PARC).squeeze(EJE_PARC)
 
+    @classmethod
+    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, factor=1, **argsll):
+        coords = {
+            EJE_PARC: None,
+            EJE_DEST: parc
+        }
+        return super().de_pandas(
+            datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=None, factor=factor
+        )
+
 
 class ObsMuerte(ObsRAE):
     var = RES_MRTE
@@ -67,14 +78,10 @@ class ObsDepred(ObsRAE):
     var = RES_DEPR
 
     @classmethod
-    def de_csv(cls, archivo, col_tiempo, corresp, parc, factor=1):
-        csv_pd = pd.read_csv(archivo, encoding='utf8')
-
+    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, víctima=None, factor=1, **argsll):
         coords = {
-            EJE_PARC: [parc],
-            EJE_ETAPA: list(corresp.values()),
-            EJE_TIEMPO: csv_pd[col_tiempo],
-            EJE_VÍCTIMA: NotImplemented,
+            EJE_VÍCTIMA: víctima,
         }
-        datos = xr.DataArray(csv_pd[list(corresp)] * factor, coords=coords, dims=list(coords))
-        return cls(datos=datos)
+        return super().de_pandas(
+            datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=parc, factor=factor
+        )

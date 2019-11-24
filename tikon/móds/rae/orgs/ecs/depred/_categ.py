@@ -2,7 +2,7 @@ import numpy as np
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_DEPR, probs_conj
-from tikon.móds.rae.red.utils import RES_DEPR, EJE_ETAPA, RES_COHORTES, EJE_VÍCTIMA
+from tikon.móds.rae.utils import RES_DEPR, EJE_ETAPA, RES_COHORTES, EJE_VÍCTIMA
 
 from .bed_deang import BedDeAng
 from .dep_presa import TipoIDP, TipoIIDP, TipoIIIDP
@@ -49,7 +49,9 @@ class EcsDepred(CategEcOrg):
         depred = depred * símismo.pobs(sim) * paso
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        depred = probs_conj(depred, pesos=1, máx=símismo.pobs(sim, filtrar=False), dim=EJE_ETAPA)
+        depred = probs_conj(
+            depred, pesos=1, máx=símismo.pobs(sim, filtrar=False).rename({EJE_ETAPA: EJE_VÍCTIMA}), dim=EJE_ETAPA
+        )
 
         depred = np.floor(depred.fillna(0))
 
@@ -57,7 +59,7 @@ class EcsDepred(CategEcOrg):
         símismo.poner_valor_res(sim, depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
-        depred_por_presa = depred.sum(dim=EJE_ETAPA)
+        depred_por_presa = depred.sum(dim=EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
 
         # Actualizar la matriz de poblaciones
         símismo.ajust_pobs(sim, pobs=-depred_por_presa)
@@ -67,12 +69,14 @@ class EcsDepred(CategEcOrg):
         depr_sin_parás = depred.where(~sim.máscara_parás, 0)
 
         # Para las depredaciones normales, es fácil quitarlas de los cohortes
-        cohortes.quitar(depr_sin_parás.sum(dim=EJE_ETAPA))
+        cohortes.quitar(depr_sin_parás.sum(dim=EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA}))
 
         # Para cada parasitoide...
         for parás, (l_hués, l_fants) in sim.parás_hués:
-            pob_parasitada = depr_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués}].squeeze(EJE_ETAPA)
+            pob_parasitada = depr_parás.loc[
+                {EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués}
+            ].drop(EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
 
             cohortes.quitar(pob_parasitada, recips=l_fants)
-            pob_parasitada[EJE_VÍCTIMA] = l_fants
+            pob_parasitada[EJE_ETAPA] = l_fants
             símismo.ajust_pobs(sim, pob_parasitada)

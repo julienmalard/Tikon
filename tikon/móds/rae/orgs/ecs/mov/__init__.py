@@ -1,1 +1,1 @@
-from ._categ import EcsMov
+from ._categ import EcsMov, Distancia, Atracción

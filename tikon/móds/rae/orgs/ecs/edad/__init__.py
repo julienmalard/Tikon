@@ -1,1 +1,1 @@
-from ._categ import EcsEdad
+from ._categ import EcsEdad, EcuaciónEdad

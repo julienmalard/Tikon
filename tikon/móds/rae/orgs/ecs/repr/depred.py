@@ -1,6 +1,6 @@
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
-from tikon.móds.rae.red.utils import RES_DEPR, EJE_VÍCTIMA
+from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA
 
 
 class N(Parám):
@@ -13,7 +13,7 @@ class Depred(EcuaciónOrg):
     """
     Reproducciones en función de la depredación (útil para avispas esfécidas)
     """
-    nombre = 'Depred'
+    nombre = 'Depredación'
     cls_ramas = [N]
 
     def eval(símismo, paso, sim):

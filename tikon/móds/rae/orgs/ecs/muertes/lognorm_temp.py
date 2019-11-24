@@ -50,6 +50,7 @@ class LogNormTemp(EcuaciónOrg):
 
         return 1 - sobrevivencia
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
-            return ['clima.temp_máx']
+            return {'clima.temp_máx'}

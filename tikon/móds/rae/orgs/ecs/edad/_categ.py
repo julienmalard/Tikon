@@ -1,7 +1,7 @@
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD
-from tikon.móds.rae.red.utils import RES_EDAD
+from tikon.móds.rae.utils import RES_EDAD
 
 from .brr_no_lín_temp import FuncBrièreNoLinearTemperatura
 from .brr_temp import FuncBrièreTemperatura

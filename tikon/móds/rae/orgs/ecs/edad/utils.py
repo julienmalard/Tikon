@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 
 
 def días_grados(mín, máx, umbrales, método, corte):
@@ -8,8 +9,8 @@ def días_grados(mín, máx, umbrales, método, corte):
 
     Parameters
     ----------
-    mín: float
-    máx: float
+    mín: xr.DataArray
+    máx: xr.DataArray
     umbrales: tuple
     método: str
     corte: str
@@ -24,25 +25,29 @@ def días_grados(mín, máx, umbrales, método, corte):
     umbr_mín, umbr_máx = umbrales
     if método == 'triangular':
         # Método triangular único
-        sup_arriba = max(12 * (máx - umbr_máx) ** 2 / (máx - mín), 0) / 24
-        sup_centro = max(12 * (umbr_máx - umbr_mín) ** 2 / (umbr_máx - mín), 0) / 24
-        sup_lados = max(24 * (máx - umbr_máx) * (umbrales[1 - umbrales[0]]) / (máx - mín), 0) / 24
+        sup_arriba = np.max(12 * (máx - umbr_máx) ** 2 / (máx - mín), 0) / 24
+        sup_centro = np.max(12 * (umbr_máx - umbr_mín) ** 2 / (umbr_máx - mín), 0) / 24
+        sup_lados = np.max(24 * (máx - umbr_máx) * (umbrales[1] - umbrales[0]) / (máx - mín), 0) / 24
 
     elif método == 'sinusoidal':
         # Método sinusoidal único
         amp = (máx - mín) / 2
         prom = (máx + mín) / 2
-        if umbr_máx >= máx:
-            intersect_máx = 0
-            sup_arriba = 0
-        else:
-            intersect_máx = 24 * np.arccos((umbr_máx - prom) / amp)
-            sup_arriba = 2 * (intersect_máx * (prom - máx) + 2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_máx))
+        sup = umbr_máx >= máx
+        intersect_máx = xr.zeros_like(sup).where(
+            umbr_máx >= máx,
+            24 * np.arccos((umbr_máx - prom) / amp)
+        )
+        sup_arriba = xr.zeros_like(sup).where(
+            umbr_máx >= máx,
+            2 * (intersect_máx * (prom - máx) + 2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_máx))
+        )
 
-        if umbr_mín <= mín:
-            intersect_mín = intersect_máx
-        else:
-            intersect_mín = 24 * np.arccos((umbr_mín - prom) / amp)
+        intersect_mín = xr.where(
+            umbr_mín <= mín,
+            intersect_máx,
+            24 * np.arccos((umbr_mín - prom) / amp)
+        )
 
         sup_centro = 2 * intersect_máx * (máx - mín)
         sup_lados = 2 * (2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_mín) -
@@ -62,6 +67,6 @@ def días_grados(mín, máx, umbrales, método, corte):
     elif corte == 'ninguno':
         días_grd = sup_lados + sup_centro + sup_arriba
     else:
-        raise ValueError
+        raise ValueError(corte)
 
     return días_grd

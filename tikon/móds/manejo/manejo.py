@@ -2,12 +2,18 @@ from copy import deepcopy
 
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.móds.manejo.acciones import Acción
 
 
 class Regla(object):
     def __init__(símismo, condición, acción):
         símismo.condición = deepcopy(condición)
-        símismo.acción = [acción] if callable(acción) else acción
+        símismo.acción = [acción] if isinstance(acción, Acción) else acción
+
+    def requísitos(símismo, controles):
+        reqs_cond = símismo.condición.requísitos(controles) or {}
+        reqs_acción = {req for a in símismo.acción for req in (a.requísitos(controles) or {})}
+        return reqs_acción.union(reqs_cond)
 
     def __call__(símismo, sim, paso, f):
         cond_verdad = símismo.condición(sim, paso, f)
@@ -28,7 +34,7 @@ class SimulManejo(SimulMódulo):
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)
         for r in símismo.reglas:
-            r(sim=símismo, paso=paso, f=f)
+            r(sim=símismo.simul_exper, paso=paso, f=f)
 
 
 class Manejo(Módulo):

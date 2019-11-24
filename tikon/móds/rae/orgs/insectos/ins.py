@@ -1,11 +1,12 @@
-from tikon.móds.rae.orgs.organismo import Organismo, Etapa
+from ..organismo import Organismo, Etapa
 
 JUVENIL = 'juvenil'
 
 
 class Insecto(Organismo):
     """
-    La clase pariente para cada tipo de insecto.
+    La clase
+    pariente para cada tipo de insecto.
     """
 
     def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None):

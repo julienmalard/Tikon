@@ -53,8 +53,8 @@ class TipoIIDP(EcuaciónDepred):
 
     """
 
-    nombre = 'Tipo I_Dependiente presa'
-    cls_ramas = [ATipoII]
+    nombre = 'Tipo II_Dependiente presa'
+    cls_ramas = [ATipoII, BTipoII]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf

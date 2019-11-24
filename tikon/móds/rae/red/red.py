@@ -3,13 +3,13 @@ import xarray as xr
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.ecs.paráms import Inter
-from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS, ECS_REPR
-from tikon.móds.rae.orgs.insectos import Parasitoide
-from tikon.móds.rae.red.res.cohortes import ResCohortes
-from tikon.móds.rae.red.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA
+from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA
 
+from .res.cohortes import ResCohortes
 from ..orgs.ecs import EcsOrgs
-from ..orgs.organismo import EtapaFantasma
+from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR
+from ..orgs.insectos import Parasitoide
+from ..orgs.organismo import EtapaFantasma, Etapa
 from ..red.res import res as res_red
 
 
@@ -23,49 +23,42 @@ class SimulRed(SimulMódulo):
 
         símismo.etapas = mód.etapas
         símismo.orgs = mód.orgs
+        exper = simul_exper.exper
+        símismo.víctimas = list(set(pr for pr in mód.presas()).union(
+            set(h for h in mód.huéspedes())
+        ))
 
-        símismo.víctimas = set(pr for etp in símismo.etapas for pr in etp.presas()).union(
-            set(h for etp in símismo.etapas for h in mód.huéspedes(etp))
-        )
-
-        símismo.etps_repr = [
-            etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, símismo)
+        símismo.recip_repr = [
+            etp.org[0] for etp in símismo.etapas
+            if etp.categ_activa(ECS_REPR, simul_exper.modelo, mód=símismo, exper=exper)
         ]
         símismo.recip_trans = [
-            (etp, etp.siguiente()) for etp in símismo.etapas if etp.categ_activa(ECS_TRANS, símismo) and etp.siguiente()
+            (etp, etp.siguiente()) for etp in símismo.etapas
+            if etp.categ_activa(ECS_TRANS, simul_exper.modelo, símismo, exper=exper) and etp.siguiente()
         ]
 
         símismo.parás_hués = [
-            (etp, mód.huéspedes(etp), símismo.fantasmas(etp))
-            for etp in símismo.etapas if isinstance(etp.org, Parasitoide)
+            (etp, (mód.huéspedes(etp), mód.fantasmas(etp)))
+            for etp in símismo.etapas if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto'
         ]
 
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
         # depredación
+        depredadores = [
+            etp for etp in símismo.etapas if any(pr in símismo.etapas for pr in etp.presas()+etp.huéspedes())
+        ]
         símismo.máscara_parás = xr.DataArray(
-            False, coords={EJE_ETAPA: símismo.etapas, EJE_VÍCTIMA: símismo.víctimas}
+            False, coords={EJE_ETAPA: depredadores, EJE_VÍCTIMA: símismo.víctimas}, dims=[EJE_ETAPA, EJE_VÍCTIMA]
         )
         for parás, hués_fants in símismo.parás_hués:
             símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
 
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
-    def requísitos(símismo, controles=False):
-        return {req for etp in símismo.etapas for req in etp.requísitos(símismo, controles)}
-
-    def fantasmas(símismo, etp):
-        return [pr for pr in etp.org.fantasmas() if pr in símismo.etapas]
-
-    def iniciar(símismo):
-        símismo[RES_COHORTES].agregar(símismo[RES_POBS].valores())
-        super().iniciar()
-
     def poner_valor(símismo, var, val, rel=False):
         if var == RES_POBS:
             cambio = val if rel else val - símismo[RES_POBS].datos
             símismo[RES_COHORTES].ajustar(cambio)
-        else:
-            raise ValueError('No se puede cambiar el valor de {} durante una simulación.'.format(var))
 
         super().poner_valor(var, val, rel)
 
@@ -100,7 +93,7 @@ class RedAE(Módulo):
 
     @property
     def etapas(símismo):
-        return [etp for org in símismo for etp in símismo[org].etapas(fants_de=símismo._cosos)]
+        return [etp for org in símismo for etp in símismo[org].etapas(fantasmas_de=símismo._cosos.values())]
 
     @property
     def orgs(símismo):
@@ -120,28 +113,41 @@ class RedAE(Módulo):
             tipo = [tipo]
 
         etps_inter = set()
+        coords = set()
         for tp in tipo:
             if tp == 'presa':
                 etps_inter.update(símismo.presas(coso))
+                coords.update(símismo.presas())
             elif tp == 'huésped':
                 etps_inter.update(símismo.huéspedes(coso))
+                coords.update(símismo.huéspedes())
             else:
                 raise ValueError(tipo)
-        inter = [[str(etp.org), str(etp)] for etp in etps_inter]
-        if len(inter):
-            return Inter(inter, eje=EJE_VÍCTIMA)
+        if len(etps_inter):
+            return Inter(etps_inter, eje=EJE_VÍCTIMA, coords=coords)
 
-    def presas(símismo, etp):
-        presas = [pr for pr in etp.presas() if pr in símismo]
+    def presas(símismo, etps=None):
+        if isinstance(etps, Etapa):
+            etps = [etps]
+        elif etps is None:
+            etps = símismo.etapas
+        presas = [pr for etp in etps for pr in etp.presas() if pr in símismo.etapas]
 
         # Incluir los fantasmas de las presas
         fants_presas = [etp for etp in símismo.etapas if isinstance(etp, EtapaFantasma) and etp.etp_hués in presas]
 
         return presas + fants_presas
 
-    def huéspedes(símismo, etp):
+    def huéspedes(símismo, etps=None):
         """Huéspedes que pueden ser directamente infectados por parasitoide `etp`."""
-        return [pr for pr in etp.huéspedes() if pr in símismo.etapas]
+        if isinstance(etps, Etapa):
+            etps = [etps]
+        elif etps is None:
+            etps = símismo.etapas
+        return [pr for etp in etps for pr in etp.huéspedes() if pr in símismo.etapas]
 
-    def gen_ecs(símismo, modelo, mód, n_reps):
-        return EcsOrgs(modelo, mód, cosos=símismo.etapas, n_reps=n_reps)
+    def fantasmas(símismo, etp):
+        return [pr for pr in etp.org.fantasmas() if pr.etp_espejo in símismo.etapas]
+
+    def gen_ecs(símismo, modelo, mód, exper, n_reps):
+        return EcsOrgs(modelo, mód, exper, cosos=símismo.etapas, n_reps=n_reps)

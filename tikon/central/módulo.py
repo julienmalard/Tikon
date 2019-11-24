@@ -15,9 +15,9 @@ class Módulo(object):
 
         símismo._cosos = {str(c): c for c in cosos}
 
-    def gen_ecs(símismo, modelo, mód, n_reps):
+    def gen_ecs(símismo, modelo, mód, exper, n_reps):
         if símismo.cls_ecs:
-            return símismo.cls_ecs(modelo, mód, cosos=list(símismo._cosos.values()), n_reps=n_reps)
+            return símismo.cls_ecs(modelo, mód, exper, cosos=list(símismo._cosos.values()), n_reps=n_reps)
 
     def guardar_calibs(símismo, directorio=''):
         for c in símismo:

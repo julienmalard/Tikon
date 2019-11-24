@@ -8,7 +8,8 @@ class EcuaciónReqFalta(Ecuación):
     def eval(símismo, paso, sim):
         pass
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if not controles:
             return ['otro modelo.no existo']
 
@@ -19,7 +20,8 @@ class EcuaciónReqControlesFalta(Ecuación):
     def eval(símismo, paso, sim):
         pass
 
-    def requísitos(símismo, controles=False):
+    @classmethod
+    def requísitos(cls, controles=False):
         if controles:
             return ['no existo']
 
