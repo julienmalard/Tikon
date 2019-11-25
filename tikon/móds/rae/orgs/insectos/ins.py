@@ -26,12 +26,12 @@ class Insecto(Organismo):
 
             # Establecer el nombre de la etapa juvenil
             if njuvenil == 1:
-                nombre = JUVENIL
+                nombre_juv = JUVENIL
             else:
-                nombre = f'{JUVENIL} {i + 1}'
+                nombre_juv = f'{JUVENIL} {i + 1}'
 
             # Agregar la etapa
-            etapas.append(nombre)
+            etapas.append(nombre_juv)
 
         if pupa:
             etapas.append('pupa')
