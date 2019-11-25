@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from tikon.central import Modelo
 from tikon.móds.clima import Clima
 
@@ -17,9 +16,12 @@ def gen_modelo_reqs_clima(ec, exper, módulos, t):
         lat, lon = exper.controles['centroides'][0].values
         elev = exper.controles['elevaciones'][0].values
 
+        datos = {'tiempo': t.eje, **{vr: np.random.random(len(t)) for vr in reqs_clima}}
+        if 'temp_máx' in datos and 'temp_mín' in datos:
+            datos['temp_máx'] = datos['temp_máx'] + datos['temp_mín']
+
         fuente = fnt_json(
-            {'tiempo': t.eje,
-             **{vr: np.random.random(len(t)) for vr in reqs_clima}}, lat, lon, elev,
+            datos, lat, lon, elev,
             تبديل_عمودی_ستون={'tiempo': 'تاریخ'}
         )
         modelo = Modelo([módulos, Clima(fuentes=(fuente,))])
