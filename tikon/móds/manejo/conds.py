@@ -118,7 +118,7 @@ class CondO(Condición):
 class CondFecha(Condición):
     def __init__(símismo, umbral, prueba=Igual):
         símismo.umbral = pd.Timestamp(umbral)
-        símismo.prueba = prueba(umbral)
+        símismo.prueba = prueba(símismo.umbral)
 
     def __call__(símismo, sim, paso, f):
         return símismo.prueba(f)
@@ -134,9 +134,15 @@ class CondDía(Condición):
         return símismo.prueba(n_día)
 
 
-class CondCada(CondDía):
-    def __init__(símismo, cada):
-        super().__init__(umbral=cada, prueba=Cada)
+class CondCadaDía(Condición):
+    def __init__(símismo, cada, desfase=0):
+        símismo.cada = cada
+        símismo.desfase = desfase
+        símismo.prueba = Cada(cada)
+
+    def __call__(símismo, sim, paso, f):
+        n_día = sim.t.n_día
+        return símismo.prueba(n_día - símismo.desfase)
 
 
 class CondVariable(Condición):
