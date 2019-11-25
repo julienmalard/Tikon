@@ -7,11 +7,11 @@ import numpy.testing as npt
 import pandas as pd
 import xarray as xr
 import xarray.testing as xrt
-
 from pruebas.test_central.rcrs import tiempo_obs
 from tikon.central import Modelo
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.utils import EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS
+
 from .rcrs import \
     var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
@@ -141,6 +141,14 @@ class PruebaModelo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         with símismo.assertRaises(ValueError):
             modelo.simular('sin tiempo o obs', exper)
+
+    @unittest.skip('implementar')
+    def test_múltiples_exper(símismo):
+        pass
+
+    @unittest.skip('implementar')
+    def test_error_exper_indénticos(símismo):
+        pass
 
     @staticmethod
     def test_reps_ent():

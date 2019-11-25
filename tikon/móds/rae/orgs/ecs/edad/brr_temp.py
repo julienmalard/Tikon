@@ -40,7 +40,11 @@ class FuncBrièreTemperatura(EcuaciónOrg):
         cf = símismo.cf
         temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
 
-        return (temp_prom * (temp_prom - cf['t_dev_mín']) * np.sqrt(cf['t_letal'] - temp_prom)) * paso
+        return np.maximum(
+            temp_prom * (temp_prom - cf['t_dev_mín']), 0
+        ) * np.sqrt(
+            np.maximum(cf['t_letal'] - temp_prom, 0)
+        ) * paso
 
     @classmethod
     def requísitos(cls, controles=False):

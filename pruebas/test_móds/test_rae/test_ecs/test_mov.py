@@ -7,10 +7,10 @@ from tikon.móds.rae.orgs.ecs.utils import ECS_MOV
 from tikon.móds.rae.orgs.insectos import MetamCompleta
 from tikon.móds.rae.red import RedAE
 
-exper = Exper('exper', [Parcela('parc'), Parcela('parc', geom=GeomParcela(centroide=(11.0025001, 76.9656001)))])
+exper = Exper('exper', [Parcela('parc'), Parcela('parc 2', geom=GeomParcela(centroide=(11.0025001, 76.9656001)))])
 
 
-class PruebaMuertes(unittest.TestCase):
+class PruebaMovimiento(unittest.TestCase):
     def test_atr(símismo):
         insecto = MetamCompleta('metam completa')
         f_inic, f_final = '2000-01-01', '2000-01-10'

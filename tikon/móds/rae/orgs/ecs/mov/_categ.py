@@ -1,3 +1,4 @@
+import numpy as np
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_MOV
 from tikon.móds.rae.utils import RES_MOV
@@ -13,7 +14,7 @@ class EcsMov(CategEcOrg):
     _nombre_res = RES_MOV
 
     def postproc(símismo, paso, sim):
-        mov = símismo.obt_valor_res(sim).floor()
+        mov = np.floor(símismo.obt_valor_res(sim))
         símismo.poner_valor_res(sim, mov)
 
         emigr = mov.sum(dim=EJE_DEST)
