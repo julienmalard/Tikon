@@ -21,7 +21,7 @@ class InstanciaDSSAT(InstanciaSimulCultivo):
 
         parc = str(sim.parcelas[0])
         clima = símismo.sim.sim.clima
-        bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop(EJE_PARC).to_dataframe()
+        bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop_vars(EJE_PARC).to_dataframe()
 
     def _gen_modelo(símismo):
         símismo.proceso = ProcesoDSSAT()

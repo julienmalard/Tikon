@@ -27,7 +27,7 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         elev = símismo.sim.sim.simul_exper.controles['elevaciones'].loc[{EJE_PARC: parc}]
 
         clima = símismo.sim.sim.clima
-        bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop(EJE_PARC).to_dataframe()
+        bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop_vars(EJE_PARC).to_dataframe()
         símismo._proveedor_meteo = ProveedorMeteoPCSEPandas(bd_pandas, lat=lat, lon=lon, elev=elev)
 
         símismo.modelo = símismo._gen_modelo()

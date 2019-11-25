@@ -44,7 +44,7 @@ class ResCohortes(ResultadoRed):
         # Los cohortes que tienen la diferencia mínima con las nuevas edades.
         # Si hay más que un cohorte con la diferencia mínima, tomará el primero.
         dif_edades = np.abs(edades - edad).where(pobs > 0, 0)
-        datos_dif_mín = datos[{EJE_COH: dif_edades.argmin(EJE_COH)}].drop(EJE_COH)
+        datos_dif_mín = datos[{EJE_COH: dif_edades.argmin(EJE_COH)}].drop_vars(EJE_COH)
 
         eds_mín = datos_dif_mín.loc[{'comp': 'edad'}]
         pobs_corresp = datos_dif_mín.loc[{'comp': 'pobs'}]
@@ -128,7 +128,7 @@ class ResCohortes(ResultadoRed):
         símismo.datos -= n_cambian
 
         # Devolver el total de transiciones por etapa
-        return n_cambian.sum(dim=EJE_COH).drop('comp')
+        return n_cambian.sum(dim=EJE_COH).drop_vars('comp')
 
     def dens_dif(símismo, cambio_edad, dist):
 
@@ -143,4 +143,4 @@ class ResCohortes(ResultadoRed):
         dens_con_cambio = dist.cdf((edades + cambio_edad).transpose(*dims))
         dens = xr.DataArray(dens_con_cambio - dens_cum_eds, coords=pobs.coords, dims=dims)
 
-        return (pobs * dens).sum(dim=EJE_COH).drop('comp')  # Devolver en formato xarray
+        return (pobs * dens).sum(dim=EJE_COH).drop_vars('comp')  # Devolver en formato xarray

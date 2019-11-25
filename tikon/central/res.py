@@ -34,7 +34,7 @@ class Resultado(PlantillaSimul):
 
     @property
     def datos(símismo):
-        return símismo._datos.drop(EJE_TIEMPO)
+        return símismo._datos.drop_vars(EJE_TIEMPO)
 
     @datos.setter
     def datos(símismo, val):
