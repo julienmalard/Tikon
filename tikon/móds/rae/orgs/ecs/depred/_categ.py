@@ -75,7 +75,7 @@ class EcsDepred(CategEcOrg):
         for parás, (l_hués, l_fants) in sim.parás_hués:
             pob_parasitada = depr_parás.loc[
                 {EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués}
-            ].drop(EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
+            ].drop_vars(EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
 
             cohortes.quitar(pob_parasitada, recips=l_fants)
             pob_parasitada[EJE_ETAPA] = l_fants

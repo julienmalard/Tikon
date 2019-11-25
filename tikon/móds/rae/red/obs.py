@@ -51,13 +51,13 @@ class ObsMov(ObsRAE):
 class ObsEmigr(ObsTrans):
 
     def proc_res(símismo, res):
-        return res.sum(dim=EJE_DEST).squeeze(EJE_DEST)
+        return res.sum(dim=EJE_DEST).squeeze(EJE_DEST, drop=True)
 
 
 class ObsImigr(ObsTrans):
 
     def proc_res(símismo, res):
-        return res.sum(dim=EJE_PARC).squeeze(EJE_PARC)
+        return res.sum(dim=EJE_PARC).squeeze(EJE_PARC, drop=True)
 
     @classmethod
     def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, factor=1, **argsll):
