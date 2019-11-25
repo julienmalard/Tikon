@@ -21,6 +21,10 @@ class PruebaExperParc(unittest.TestCase):
         exp = Exper('mi experimento', parcelas=[Parcela('una'), GrupoParcelas([Parcela('y'), Parcela('otra')])])
         símismo.assertEqual(len(exp.parcelas), 3)
 
+    def test_parecelas_idénticas(símismo):
+        with símismo.assertRaises(ValueError):
+            Exper('mi experimento', parcelas=[Parcela('una'), GrupoParcelas([Parcela('y'), Parcela('una')])])
+
     def test_controles(símismo):
         exp = Exper('mi experimento', parcelas=[Parcela('una'), Parcela('otra')])
         símismo.assertListEqual(exp.controles['parcelas'], ['una', 'otra'])

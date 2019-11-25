@@ -28,13 +28,16 @@ class SimulRed(SimulMódulo):
             set(h for h in mód.huéspedes())
         ))
 
+        modelo = simul_exper.modelo
         símismo.recip_repr = [
             etp.org[0] for etp in símismo.etapas
-            if etp.categ_activa(ECS_REPR, simul_exper.modelo, mód=símismo, exper=exper)
+            if etp.categ_activa(
+                ECS_REPR, modelo, mód=mód, exper=exper
+            )
         ]
         símismo.recip_trans = [
             (etp, etp.siguiente()) for etp in símismo.etapas
-            if etp.categ_activa(ECS_TRANS, simul_exper.modelo, símismo, exper=exper) and etp.siguiente()
+            if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper) and etp.siguiente()
         ]
 
         símismo.parás_hués = [
@@ -45,7 +48,7 @@ class SimulRed(SimulMódulo):
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
         # depredación
         depredadores = [
-            etp for etp in símismo.etapas if any(pr in símismo.etapas for pr in etp.presas()+etp.huéspedes())
+            etp for etp in símismo.etapas if any(pr in símismo.etapas for pr in etp.presas() + etp.huéspedes())
         ]
         símismo.máscara_parás = xr.DataArray(
             False, coords={EJE_ETAPA: depredadores, EJE_VÍCTIMA: símismo.víctimas}, dims=[EJE_ETAPA, EJE_VÍCTIMA]

@@ -2,25 +2,21 @@ import unittest
 
 from pruebas.test_móds.test_rae.test_ecs.utils import gen_modelo_reqs_clima
 from tikon.central import Parcela, Exper, Tiempo
-from tikon.ecs import EcuaciónVacía
-from tikon.móds.rae.orgs.ecs.edad import EcuaciónEdad
-from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD
-from tikon.móds.rae.orgs.insectos import MetamCompleta
+from tikon.móds.rae.orgs.ecs.estoc import DistEstoc
+from tikon.móds.rae.orgs.ecs.utils import ECS_ESTOC
+from tikon.móds.rae.orgs.insectos import Sencillo
 from tikon.móds.rae.red import RedAE
 
 exper = Exper('exper', Parcela('parc'))
 
 
-class PruebaEdad(unittest.TestCase):
-    def test_ecs(símismo):
-        insecto = MetamCompleta('metam completa')
+class PruebaEstoc(unittest.TestCase):
+    def test_dist(símismo):
+        insecto = Sencillo('sencillo')
         f_inic, f_final = '2000-01-01', '2000-01-10'
         t = Tiempo(f_inic, f_final)
-
-        for ec in EcuaciónEdad.cls_ramas:
-            if ec is EcuaciónVacía:
-                continue
+        for ec in DistEstoc.cls_ramas:
             with símismo.subTest(ec.nombre):
-                insecto.activar_ec(ECS_EDAD, subcateg='Ecuación', ec=ec.nombre)
+                insecto.activar_ec(ECS_ESTOC, subcateg='Dist', ec=ec.nombre)
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE(insecto), t=t)
                 mod.simular(str(ec), exper=exper, t=t)

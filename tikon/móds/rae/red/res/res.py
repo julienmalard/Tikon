@@ -29,17 +29,17 @@ class ResultadoRed(Resultado):
             fantasmas = [e for e in símismo.datos_t[eje].values if isinstance(e, EtapaFantasma)]
 
             for etp in fantasmas:
-                # val = símismo.datos_t.loc[índs={nmb: etp}]
+                val = símismo.datos_t.loc[{eje: etp}]
 
                 # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
-                if etp.etp_espejo in eje:  # para hacer: arreglar para ecuaciones no activadas en etapas espejos
-                    fants_espejo = [f for f in fantasmas if f.etp_espejo == etp.etp_espejo]
-                    rel = etp is not fants_espejo[0]
-                    símismo.matr_t.poner_valor(val, rel=rel, índs={nmb: etp.etp_espejo})
+                if etp.etp_espejo in símismo.datos_t[eje]:
+                    val[EJE_ETAPA] = [etp.etp_espejo]
+                    símismo.datos_t += val
 
                 # Agregamos etapas fantasmas a las etapas originales de los huéspedes
                 if etp.etp_hués in eje:
-                    símismo.matr_t.poner_valor(val, rel=True, índs={nmb: etp.etp_hués})
+                    val[EJE_ETAPA] = [etp.etp_hués]
+                    símismo.datos_t += val
 
 
 class ResPobs(ResultadoRed):
