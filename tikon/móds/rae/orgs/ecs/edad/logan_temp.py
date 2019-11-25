@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.stats as estad
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
 from .._plntll import EcuaciónOrg
@@ -20,11 +22,15 @@ class PrTLetalLT(Parám):
     nombre = 't_letal'
     líms = (None, None)
     unids = 'C'
+    apriori = APrioriDist(estad.uniform(-10, 60))
 
 
 class FuncLoganTemperatura(EcuaciónOrg):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
+
+    .. math::
+        f(T) = \exp{\rho*T}-\exp{(\rho*T_l-(T_l-T)/\delta*T)}
 
     References
     ----------
@@ -38,9 +44,11 @@ class FuncLoganTemperatura(EcuaciónOrg):
         cf = símismo.cf
 
         temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
-        return (np.exp(cf['rho'] * temp_prom) -
-                np.exp(cf['rho'] * cf['t_letal'] - (cf['t_letal'] - temp_prom) / cf['delta'])
-                ) * paso
+        return np.maximum(
+            np.exp(cf['rho'] * temp_prom) -
+            np.exp(cf['rho'] * cf['t_letal'] - (cf['t_letal'] - temp_prom) / cf['delta']),
+            0
+        ) * paso
 
     @classmethod
     def requísitos(cls, controles=False):

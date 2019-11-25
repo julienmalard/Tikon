@@ -1,3 +1,5 @@
+from math import pi as π
+
 import numpy as np
 import xarray as xr
 
@@ -23,37 +25,64 @@ def días_grados(mín, máx, umbrales, método, corte):
     método = método.lower()
     corte = corte.lower()
     umbr_mín, umbr_máx = umbrales
+
     if método == 'triangular':
         # Método triangular único
-        sup_arriba = np.max(12 * (máx - umbr_máx) ** 2 / (máx - mín), 0) / 24
-        sup_centro = np.max(12 * (umbr_máx - umbr_mín) ** 2 / (umbr_máx - mín), 0) / 24
-        sup_lados = np.max(24 * (máx - umbr_máx) * (umbrales[1] - umbrales[0]) / (máx - mín), 0) / 24
+        dif = máx - umbr_máx
+        sup_arriba = xr.where(dif > 0, dif ** 2 / (máx - mín) + np.maximum(mín - umbr_máx, 0), 0)
+        sup_centro = xr.where(dif > 0, (1 - np.maximum((umbr_máx - mín) / (máx - mín), 0)) * (umbr_máx - umbr_mín), 0)
+
+        altura = np.minimum(umbr_máx, máx) - np.maximum(umbr_mín, mín)
+        sup_lados = xr.where(
+            altura > 0,
+            0.5 * altura * xr.where(
+                dif > 0,
+                (umbr_máx - umbr_mín) / (máx - mín),
+                1 - np.maximum((umbr_mín - mín) / (máx - mín), 0)
+            ) + np.maximum(mín - umbr_mín, 0) * xr.where(
+                dif > 0,
+                1 - (umbr_máx - mín) / (máx - mín),
+                1
+            ),
+            0
+        )
 
     elif método == 'sinusoidal':
         # Método sinusoidal único
         amp = (máx - mín) / 2
-        prom = (máx + mín) / 2
-        sup = umbr_máx >= máx
-        intersect_máx = xr.zeros_like(sup).where(
-            umbr_máx >= máx,
-            24 * np.arccos((umbr_máx - prom) / amp)
-        )
-        sup_arriba = xr.zeros_like(sup).where(
-            umbr_máx >= máx,
-            2 * (intersect_máx * (prom - máx) + 2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_máx))
-        )
+        ubic = mín + 1
+        umbr_máx_nrm, umbr_mín_nrm = umbr_máx / amp - ubic, umbr_mín / amp - ubic
 
-        intersect_mín = xr.where(
-            umbr_mín <= mín,
-            intersect_máx,
-            24 * np.arccos((umbr_mín - prom) / amp)
+        intr_máx = np.arccos(
+            xr.where(np.logical_or(umbr_máx_nrm < -1, umbr_máx_nrm > 1), 1, -umbr_máx_nrm)
         )
+        i_máx = intr_máx, (2 * π - intr_máx)
+        intr_mín = np.arccos(
+                xr.where(np.logical_or(umbr_mín_nrm < -1, umbr_mín_nrm > 1), 1, -umbr_mín_nrm)
+            )
+        i_mín = intr_mín, (2 * π - intr_mín)
 
-        sup_centro = 2 * intersect_máx * (máx - mín)
-        sup_lados = 2 * (2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_mín) -
-                         2 * np.pi / 24 * np.sin(2 * np.pi / 24 * intersect_máx) +
-                         (intersect_mín - intersect_máx) * (umbr_mín - prom)
-                         )
+        dif = 1 - umbr_máx_nrm
+        sup_arriba = xr.where(
+            dif > 0,
+            -np.sin(i_máx[1]) + np.sin(i_máx[0]) + np.maximum(0, -1 - umbr_máx_nrm) * 2 * π,
+            0
+        ) / (2 * π) * amp
+        sup_centro = xr.where(dif > 0, (i_máx[1] - i_máx[0]) * (umbr_máx_nrm - umbr_mín_nrm), 0) / (2 * π) * amp
+
+        lados = np.logical_or(umbr_máx_nrm < -1, umbr_mín_nrm > 1)
+        sup_lados = xr.where(
+            lados,
+            xr.where(
+                dif > 0,
+                2 * (
+                        np.sin(i_mín[0]) - np.sin(i_máx[0])
+                        + (i_máx[0] - i_mín[0]) * np.maximum(-1 - umbr_mín_nrm, 0)
+                ),
+                np.sin(i_mín[0]) - np.sin(i_mín[1])
+            ),
+            0
+        ) / (2 * π) * amp
 
     else:
         raise ValueError(método)
@@ -61,7 +90,7 @@ def días_grados(mín, máx, umbrales, método, corte):
     if corte == 'horizontal':
         días_grd = sup_centro + sup_lados
     elif corte == 'intermediario':
-        días_grd = sup_centro + sup_lados - sup_arriba
+        días_grd = np.max(sup_centro - sup_arriba, 0) + sup_lados
     elif corte == 'vertical':
         días_grd = sup_lados
     elif corte == 'ninguno':
@@ -69,4 +98,4 @@ def días_grados(mín, máx, umbrales, método, corte):
     else:
         raise ValueError(corte)
 
-    return días_grd
+    return días_grd.where(días_grd >= 0, 0)

@@ -8,7 +8,7 @@ class PlantillaEcDifusión(EcuaciónOrg):
         d = símismo.cf['d']
         pobs = símismo.pobs(sim)
 
-        atr = sim.calc_atr(paso, sim)
+        atr = símismo.calc_atr(paso, sim)
 
         dsnt = símismo.obt_valor_res(sim)
         atr_ajust = (atr * d / dsnt).fillna(1)  # Atracción ajustada por distancia. 1 = no atracción neta

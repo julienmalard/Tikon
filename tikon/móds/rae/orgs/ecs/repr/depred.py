@@ -7,6 +7,7 @@ class N(Parám):
     nombre = 'n'
     líms = (0, 1)
     unids = None
+    inter = ['presa']
 
 
 class Depred(EcuaciónOrg):

@@ -10,9 +10,9 @@ class PrMínDG(Parám):
     unids = 'C'
 
 
-class PrMáxDG(Parám):
-    nombre = 'máx'
-    líms = (None, None)
+class PrDifDG(Parám):
+    nombre = 'dif'
+    líms = (0, None)
     unids = 'C'
 
 
@@ -20,18 +20,22 @@ class PlantillaFuncDíasGrados(EcuaciónOrg):
     """
     Edad calculada por días grados.
     """
-    cls_ramas = [PrMínDG, PrMáxDG]
+    cls_ramas = [PrMínDG, PrDifDG]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
         temp_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
         temp_mín = símismo.obt_valor_extern(sim, 'clima.temp_mín')
-        return días_grados(temp_máx, temp_mín, umbrales=(cf['mín'], cf['máx']), **símismo._args()) * paso
+        return días_grados(temp_máx, temp_mín, umbrales=(cf['mín'], cf['mín'] + cf['dif']), **símismo._args()) * paso
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
             return {'clima.temp_máx', 'clima.temp_mín'}
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
 
     def _args(símismo):
         raise NotImplementedError

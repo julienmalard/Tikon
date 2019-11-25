@@ -48,7 +48,12 @@ class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
     def eval(símismo, paso, sim):
         cf = símismo.cf
         temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
-        return (temp_prom * (temp_prom - cf['t_dev_mín']) * np.power(cf['t_letal'] - temp_prom, 1 / cf['m'])) * paso
+        return np.maximum(
+            temp_prom * (temp_prom - cf['t_dev_mín']), 0
+        ) * np.power(
+            np.maximum(cf['t_letal'] - temp_prom, 0),
+            1 / cf['m']
+        ) * paso
 
     @classmethod
     def requísitos(cls, controles=False):

@@ -3,6 +3,7 @@ import unittest
 from tikon.central import Modelo
 from tikon.móds.manejo import Manejo, Regla
 from tikon.móds.manejo.conds import CondVariable, Igual
+
 from .rcrs.mod_incr import MiMódulo, exper, EstabRes2
 
 
@@ -34,8 +35,12 @@ class PruebaManejo(unittest.TestCase):
 
 
 class PruebaConds(unittest.TestCase):
-    pass
+    @unittest.skip('implementar')
+    def test_conds(símismo):
+        pass
 
 
 class PruebaPruebas(unittest.TestCase):
-    pass
+    @unittest.skip('implementar')
+    def test_pruebas(símismo):
+        pass
