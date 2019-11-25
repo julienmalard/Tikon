@@ -1,6 +1,7 @@
 from typing import List
 
 from tikon.central.coso import Coso
+
 from .ecs import EcsOrgs
 from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
 
@@ -10,20 +11,16 @@ class Organismo(Coso):
     Un organismo es la clase pariente para cualquier especie en una red agroecológica.
     """
 
-    def __init__(símismo, nombre):
+    def __init__(símismo, nombre, etapas):
         super().__init__(nombre, ecs=EcsOrgs)
 
-        símismo._etapas = []  # type: List[Etapa]
+        if isinstance(etapas, Etapa):
+            etapas = [etapas]
+        etapas = [e if isinstance(e, Etapa) else Etapa(e, símismo) for e in etapas]
+
+        símismo._etapas = etapas
         símismo._rels_presas = []  # type: List[RelaciónPresa]
         símismo._rels_parás = []  # type: List[RelaciónParas]
-
-    def añadir_etapa(símismo, nombre, pos=None):
-
-        etapa = Etapa(nombre, símismo)
-        if pos is None:
-            símismo._etapas.append(etapa)
-        else:
-            símismo._etapas.insert(pos, etapa)
 
     def activar_ec(símismo, categ, subcateg, ec, etapas=None):
         etapas = símismo.resolver_etapas(etapas)

@@ -11,14 +11,13 @@ class Insecto(Organismo):
 
     def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None):
 
-        super().__init__(nombre=nombre)
-
         if tipo_ecs is None:
             tipo_ecs = {}
 
         # Añadir las etapas
+        etapas = []
         if huevo:
-            símismo.añadir_etapa('huevo')
+            etapas.append('huevo')
 
         if njuvenil < 0:
             raise ValueError('El número de juveniles no puede ser inferior a 0.')
@@ -29,17 +28,18 @@ class Insecto(Organismo):
             if njuvenil == 1:
                 nombre = JUVENIL
             else:
-                nombre = f'{JUVENIL}_{i + 1}'
+                nombre = f'{JUVENIL} {i + 1}'
 
             # Agregar la etapa
-            símismo.añadir_etapa(nombre)
+            etapas.append(nombre)
 
         if pupa:
-            símismo.añadir_etapa('pupa')
+            etapas.append('pupa')
 
         if adulto:
-            símismo.añadir_etapa('adulto')
+            etapas.append('adulto')
 
+        super().__init__(nombre=nombre, etapas=etapas)
         símismo.activar_ecs(tipo_ecs)
 
     def resolver_etapas(símismo, etapas):

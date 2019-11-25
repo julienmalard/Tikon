@@ -24,7 +24,6 @@ class Planta(Organismo):
         """
 
         símismo.variedad = variedad
-        super().__init__(nombre=nombre)
 
         etapas = []
         if raíz:
@@ -53,10 +52,10 @@ class Planta(Organismo):
         }
 
         for etp in etapas:
-            símismo.añadir_etapa(etp)
             if etp not in tipo_ecs:
                 tipo_ecs[etp] = ecs_base
 
+        super().__init__(nombre=nombre, etapas=etapas)
         símismo.activar_ecs(tipo_ecs)
 
     def fijar_dens(símismo, apriori, etapas=None):
