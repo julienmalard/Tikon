@@ -15,6 +15,10 @@ class Exper(object):
         símismo.datos = DatosExper(nombre)
 
         símismo.parcelas = _extract_parcelas(parcelas)
+        if len(símismo.parcelas) != len({str(p) for p in símismo.parcelas}):
+            raise ValueError(
+                'Parcelas con nombres idénticos en "{p}".'.format(p=', '.join([str(p) for p in símismo.parcelas]))
+            )
         símismo.controles = ControlesExper(símismo.parcelas)
 
         if obs:

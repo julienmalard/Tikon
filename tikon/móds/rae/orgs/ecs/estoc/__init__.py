@@ -1,1 +1,1 @@
-from ._categ import EcsEstoc
+from ._categ import EcsEstoc, DistEstoc

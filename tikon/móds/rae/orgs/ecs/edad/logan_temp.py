@@ -36,6 +36,8 @@ class FuncLoganTemperatura(EcuaciónOrg):
     ----------
     .. [1] Youngsoo Son y Lewis, Edwin E. 2005. Modelling temperature-dependent development and survival of
        Otiorhynchus sulcatus (Coleoptera: Curculionidae). Agricultural and Forest Entomology 7(3): 201–209.
+    .. [2] Logan, J.A., Wollkind, D.J., Hoyt, S.C. & Tanigoshi, L.K. 1976. An analytical model for description of
+       temperature dependent rate phenomena in arthropods. Environmental Entomology, 5:1133–1140.
     """
     nombre = 'Logan Temperatura'
     cls_ramas = [PrRhoLT, PrDeltaLT, PrTLetalLT]

@@ -51,7 +51,7 @@ class EspecCalibsCorrida(object):
             ]
             if comunes:
                 dists_disp = [{nmb: dist for nmb, dist in prm.items() if nmb in comunes} for prm in dists_disp]
-            else:
+            elif any(len(d) for d in dists_disp):
                 avisar('No se pudo guardar correspondencia entre calibraciones.')
 
         return DistsFiltradas(l_vals_prm, dists_disp)

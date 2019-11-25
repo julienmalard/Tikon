@@ -15,6 +15,8 @@ class PlantillaSimul(object):
     def __init__(símismo, nombre, subs):
         símismo.nombre = nombre
         símismo._subs = {str(s): s for s in subs}
+        if len(símismo._subs) != len(subs):
+            raise ValueError('Nombres duplicadoes en "{s}"'.format(s=', '.join([str(s) for s in subs])))
 
     def iniciar(símismo):
         for s in símismo:

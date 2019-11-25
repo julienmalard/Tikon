@@ -8,7 +8,7 @@ import pandas as pd
 import xarray as xr
 import xarray.testing as xrt
 from pruebas.test_central.rcrs import tiempo_obs
-from tikon.central import Modelo
+from tikon.central import Modelo, Parcela, Exper
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.utils import EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS
 
@@ -142,13 +142,17 @@ class PruebaModelo(unittest.TestCase):
         with símismo.assertRaises(ValueError):
             modelo.simular('sin tiempo o obs', exper)
 
-    @unittest.skip('implementar')
     def test_múltiples_exper(símismo):
-        pass
+        modelo = poner_valor.modelo
+        expers = [Exper('exper', Parcela('parcela')), Exper('exper 2', Parcela('parcela'))]
+        res = modelo.simular('valor control', exper=expers, t=10, vars_interés=True)
+        símismo.assertSetEqual({'exper', 'exper 2'}, set(res))
 
-    @unittest.skip('implementar')
     def test_error_exper_indénticos(símismo):
-        pass
+        modelo = poner_valor.modelo
+        expers = [Exper('exper', Parcela('parcela')), Exper('exper', Parcela('parcela'))]
+        with símismo.assertRaises(ValueError):
+            modelo.simular('valor control', exper=expers, t=10, vars_interés=True)
 
     @staticmethod
     def test_reps_ent():

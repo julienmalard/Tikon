@@ -1,8 +1,10 @@
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+from tikon.móds.rae.utils import RES_MOV
 from tikon.utils import EJE_DEST
 
 
 class PlantillaEcDifusión(EcuaciónOrg):
+    _nombre_res = RES_MOV
 
     def eval(símismo, paso, sim):
         d = símismo.cf['d']
