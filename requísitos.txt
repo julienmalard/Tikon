@@ -1,11 +1,11 @@
-numpy
+numpy>=1.17.3
 matplotlib
-scipy
+scipy>=1.3.3
 SALib
 spotpy
 chardet
 pandas
-taqdir>=2.1
+taqdir>=2.1.3
 bibtexparser
 shapely
 ennikkai
