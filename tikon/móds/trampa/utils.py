@@ -1,5 +1,5 @@
 EJE_TRAMPA = 'trampa'
 
-RES_DECAI = 'Decaimiento'
-RES_PODER = 'Poder'
-RES_MRTLD = 'Mortalidad'
+RES_DESCOMP = 'Descomposición'
+RES_DENS = 'Densidad'
+RES_CAPTURA = 'Captura'

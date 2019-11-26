@@ -1,11 +1,11 @@
 from tikon.ecs import ÁrbolEcs
 
-from .decai import EcsDecai
-from .mrtld import EcsMortalidad
+from .descomp import EcsDescomp
+from .captura import EcsCaptura
 
 
 class EcsTrampa(ÁrbolEcs):
     nombre = 'trampa'
 
     # ¡Este órden queda muy importante!
-    cls_ramas = [EcsDecai, EcsMortalidad]
+    cls_ramas = [EcsDescomp, EcsCaptura]
