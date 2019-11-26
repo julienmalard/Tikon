@@ -1,6 +1,7 @@
-from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MOV, ECS_MRTE, ECS_TRANS, ECS_REPR
+from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MOV, ECS_MRTE, ECS_TRANS, ECS_REPR, \
+    ECS_ESTOC
 
-from ..organismo import Organismo
+from ..organismo import Organismo, Etapa
 
 
 class Planta(Organismo):
@@ -24,7 +25,7 @@ class Planta(Organismo):
         """
 
         símismo.variedad = variedad
-
+        tipo_ecs = tipo_ecs or {}
         etapas = []
         if raíz:
             etapas.append('raíz')  # kg
@@ -46,6 +47,7 @@ class Planta(Organismo):
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},
+            ECS_ESTOC: {'Dist': 'Nada'},
             ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
@@ -62,6 +64,9 @@ class Planta(Organismo):
 
         if etapas is None:
             etapas = símismo.etapas()
+        if isinstance(etapas, (str, Etapa)):
+            etapas = [etapas]
+        etapas = [e if isinstance(e, str) else e.nombre for e in etapas]
 
         símismo.activar_ec(ECS_CREC, 'Modif', 'Nada', etapas=etapas)
         símismo.activar_ec(ECS_CREC, 'Ecuación', 'Constante', etapas=etapas)
