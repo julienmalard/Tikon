@@ -10,7 +10,7 @@ from .utils import RES_DESCOMP, RES_CONC, RES_MRTLD, EJE_PRODUCTO
 
 class ResultadoApli(Resultado):
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {EJE_PRODUCTO: sim.productos, **coords}
+        coords = {EJE_PRODUCTO: sim.mód.productos, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
     @property
