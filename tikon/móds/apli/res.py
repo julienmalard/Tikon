@@ -15,11 +15,15 @@ class ResultadoApli(Resultado):
     def nombre(símismo):
         raise NotImplementedError
 
+    @property
+    def unids(símismo):
+        raise NotImplementedError
+
 
 class ResDescomp(Resultado):
-    líms = (0, np.nan)
     nombre = RES_DESCOMP
     unids = 'kg / ha / día'
+    líms = (0, np.nan)
 
 
 class ResConcentración(Resultado):
