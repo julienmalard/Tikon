@@ -39,7 +39,7 @@ class ResConcentración(ResultadoApli):
 class ResMortalidad(ResultadoApli):
     líms = (0, 1)
     nombre = RES_MRTLD
-    unids = 'individuos'
+    unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
         coords = {

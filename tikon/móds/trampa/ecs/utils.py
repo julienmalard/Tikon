@@ -1,2 +1,2 @@
-ECS_DECAI = 'Decaimiento'
-ECS_MRTLD = 'Mortalidad'
+ECS_DESCOMP = 'Descomposición'
+ECS_CAPTURA = 'Mortalidad'
