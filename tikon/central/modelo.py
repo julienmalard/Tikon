@@ -19,7 +19,7 @@ class Modelo(object):
             módulos = [módulos]
         módulos = [m() if isclass(m) else m for m in módulos]
 
-        símismo.módulos = módulos
+        símismo.módulos = {str(m): m for m in módulos}
 
     def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
 
@@ -55,19 +55,19 @@ class Modelo(object):
         )
 
     def guardar_calibs(símismo, directorio=''):
-        for m in símismo.módulos:
-            m.guardar_calibs(directorio=os.path.join(directorio, str(m)))
+        for m in símismo:
+            símismo[m].guardar_calibs(directorio=os.path.join(directorio, str(m)))
 
     def cargar_calibs(símismo, directorio=''):
-        for m in símismo.módulos:
-            m.cargar_calibs(directorio=os.path.join(directorio, str(m)))
+        for m in símismo:
+            símismo[m].cargar_calibs(directorio=os.path.join(directorio, str(m)))
 
     def _filtar_paráms(símismo, paráms, en):
         if en is None:
             return paráms
         if isinstance(en, (str, Módulo, Coso, Parám, Exper)):
             en = [en]
-        en = [next(m for m in símismo.módulos if m.nombre == x) if isinstance(x, str) else x for x in en]
+        en = [next(m for nmbr, m in símismo.módulos.items() if nmbr == x) if isinstance(x, str) else x for x in en]
         return [
             prm for prm in paráms
             if any(
@@ -77,6 +77,16 @@ class Modelo(object):
                 else prm.prm.coso in x
                 for x in en)
         ]
+
+    def __getitem__(símismo, itema):
+        return símismo.módulos[itema]
+
+    def __iter__(símismo):
+        for m in símismo.módulos:
+            yield m
+
+    def __contains__(símismo, itema):
+        return itema in símismo.módulos
 
 
 def _gen_reps(reps, calib=False, paráms=None):

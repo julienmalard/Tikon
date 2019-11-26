@@ -1,5 +1,7 @@
 import numpy as np
+from scipy.stats import expon
 from tikon.central.res import Resultado
+from tikon.ecs.aprioris import APrioriDist
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.utils import EJE_ETAPA
 
@@ -23,14 +25,27 @@ class ResultadoApli(Resultado):
 class ResDescomp(Resultado):
     nombre = RES_DESCOMP
     unids = 'kg / ha / día'
-    líms = (0, np.nan)
+    líms = (0, np.inf)
+
+    def __init__(símismo, sim, coords, vars_interés):
+        coords = {
+            EJE_PRODUCTO: sim.mód.productos, **coords
+        }
+        super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class ResConcentración(Resultado):
     nombre = RES_CONC
     unids = 'kg / ha'
-    líms = (0, np.nan)
+    líms = (0, np.inf)
+    apriori = APrioriDist(expon(scale=5))
     inicializable = True
+
+    def __init__(símismo, sim, coords, vars_interés):
+        coords = {
+            EJE_PRODUCTO: sim.mód.productos, **coords
+        }
+        super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class ResMortalidad(Resultado):
@@ -39,5 +54,8 @@ class ResMortalidad(Resultado):
     unids = 'individuos'
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {EJE_ETAPA: sim.simul_exper[RedAE.nombre].etapas, **coords}
+        coords = {
+            EJE_PRODUCTO: sim.mód.productos,
+            EJE_ETAPA: sim.simul_exper.modelo[RedAE.nombre].etapas, **coords
+        }
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)

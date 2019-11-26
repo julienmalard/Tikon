@@ -1,5 +1,7 @@
 import numpy as np
+from scipy.stats import expon
 from tikon.central.res import Resultado
+from tikon.ecs.aprioris import APrioriDist
 from tikon.móds.rae.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RES_CREC, RES_REPR, RES_MRTE, RES_TRANS, \
     RES_MOV, \
     RES_ESTOC, EJE_ETAPA
@@ -44,6 +46,7 @@ class ResPobs(ResultadoRed):
     nombre = RES_POBS
     unids = 'individuos'
     inicializable = True
+    apriori = APrioriDist(expon(scale=3e6))
 
     def __init__(símismo, sim, coords, vars_interés):
         coords = {EJE_ETAPA: sim.etapas, **coords}

@@ -8,6 +8,7 @@ from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
 from tikon.ecs.utils import líms_compat
 from tikon.utils import proc_líms
 
+from .dibs import dibujar_dist
 from .utils import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist
 
 
@@ -52,6 +53,9 @@ class DistAnalítica(Dist):
             vals = símismo._transf.transf(vals)
 
         return vals
+
+    def dibujar(símismo, nombre=None, ejes=None, argsll=None):
+        return dibujar_dist(símismo, nombre=nombre or símismo.nombre_dist, ejes=ejes, argsll=argsll)
 
     def a_dic(símismo):
         return {
