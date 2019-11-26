@@ -1,10 +1,10 @@
-from tikon.móds.rae.utils import RES_CREC
+from tikon.ecs import Ecuación
 
-from ..._plntll import EcuaciónOrg
+from ..utils import EJE_PRODUCTO
 
 
-class EcuaciónCrec(EcuaciónOrg):
-    _nombre_res = RES_CREC
+class EcuaciónProd(Ecuación):
+    eje_cosos = EJE_PRODUCTO
 
     @property
     def nombre(símismo):

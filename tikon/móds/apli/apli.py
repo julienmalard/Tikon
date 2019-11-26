@@ -1,9 +1,12 @@
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.ecs.paráms import Inter
-from tikon.móds.apli.res import ResConcentración, ResDescomp, ResMortalidad
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.utils import EJE_ETAPA
+
+from .ecs import EcsProducto
+from .res import ResConcentración, ResDescomp, ResMortalidad
+from .utils import EJE_PRODUCTO
 
 
 class SimulAplicaciones(SimulMódulo):
@@ -16,6 +19,8 @@ class SimulAplicaciones(SimulMódulo):
 class Aplicaciones(Módulo):
     nombre = 'aplicaciones'
     cls_simul = SimulAplicaciones
+    cls_ecs = EcsProducto
+    eje_coso = EJE_PRODUCTO
 
     def __init__(símismo, productos):
         super().__init__(productos)
@@ -35,4 +40,4 @@ class Aplicaciones(Módulo):
             else:
                 raise ValueError(tipo)
         if len(etps_inter):
-            return Inter(etps_inter, eje=EJE_ETAPA)
+            return Inter(etps_inter, eje=EJE_ETAPA, coords=etps_inter)

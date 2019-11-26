@@ -38,7 +38,7 @@ class ParámsExperVar(PlantillaParámsExper):
             máx = min(líms[1], np.max([o_.datos.values.max() for o_ in símismo.datos.obs]))
             apriori = APrioriDens((mín, máx), 0.55)
         else:
-            apriori = None
+            apriori = sim.apriori
 
         símismo.prm = ParámInic(símismo.datos.prm, exper=exper, unids=sim.unids, líms=sim.líms, apriori=apriori)
         índs = list(sim.iter_índs(datos=sim.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]))

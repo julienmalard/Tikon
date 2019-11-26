@@ -1,1 +1,1 @@
-from ._categ import EcsDescomp
+from ._categ import EcsDescomp, EcDescomp

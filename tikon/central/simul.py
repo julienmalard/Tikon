@@ -70,7 +70,9 @@ class Simulación(PlantillaSimul):
 
         exper = [exper] if isinstance(exper, Exper) else exper
 
-        símismo.ecs = {m: m.gen_ecs(modelo, mód=m, exper=exper, n_reps=reps['paráms']) for m in modelo.módulos}
+        símismo.ecs = {
+            m: modelo[m].gen_ecs(modelo, mód=modelo[m], exper=exper, n_reps=reps['paráms']) for m in modelo
+        }
 
         super().__init__(
             nombre,
@@ -139,7 +141,7 @@ class SimulExper(PlantillaSimul):
         símismo.reps = reps
         super().__init__(
             nombre=exper.nombre,
-            subs=[m.gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in modelo.módulos]
+            subs=[modelo[m].gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in modelo]
         )
 
         símismo.verificar_reqs()

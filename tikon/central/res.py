@@ -12,6 +12,7 @@ from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 class Resultado(PlantillaSimul):
     líms = None
     inicializable = False
+    apriori = None
 
     def __init__(símismo, sim, coords, vars_interés):
         if '.' in símismo.nombre:
@@ -49,8 +50,7 @@ class Resultado(PlantillaSimul):
 
         if símismo.inicializable:
             inic = símismo.sim.simul_exper.paráms_exper[str(símismo.sim)][str(símismo)]
-            if inic is not None:
-                símismo.datos = inic.matr.val
+            símismo.datos = inic.matr.val
 
     def incrementar(símismo, paso, f):
         if símismo.t is not None:

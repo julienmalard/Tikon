@@ -8,7 +8,7 @@ class Expon(EcuaciónCrec):
 
     nombre = 'Exponencial'
 
-    # El exponencial no tiene parámetros a parte de r
+    # El exponencial no tiene parámetros además de r
 
     def eval(símismo, paso, sim):
         return símismo.obt_valor_res(sim) * símismo.pobs(sim)
