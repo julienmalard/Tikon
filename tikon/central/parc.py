@@ -6,6 +6,7 @@ import xarray as xr
 from geopy.distance import distance
 from shapely.geometry import Polygon
 from shapely.ops import transform
+
 from tikon.utils import EJE_PARC, EJE_DEST, EJE_COORD
 
 
@@ -22,6 +23,10 @@ class Parcela(object):
 class GrupoParcelas(object):
     def __init__(símismo, parcelas):
         símismo.parcelas = parcelas
+
+    def __iter__(símismo):
+        for prc in símismo.parcelas:
+            yield prc
 
 
 class GeomParcela(object):

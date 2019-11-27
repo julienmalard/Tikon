@@ -5,12 +5,12 @@ import xarray as xr
 from tikon.central import Parcela, GrupoParcelas
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
-from tikon.utils import EJE_PARC
+from tikon.utils import EJE_PARÁMS, EJE_ESTOC
 
 
 class ParcelasCultivoExterno(GrupoParcelas):
 
-    def __init__(símismo, parcelas, combin=('estoc', 'parám')):
+    def __init__(símismo, parcelas, combin=(EJE_ESTOC, EJE_PARÁMS)):
         parcelas = [parcelas] if isinstance(parcelas, Parcela) else parcelas
         super().__init__(parcelas=parcelas)
 
@@ -37,12 +37,11 @@ class SimulCultivoExterno(object):
         símismo.combin = parcelas.combin
         símismo.reps = sim.simul_exper.reps
 
-        nombres_parcelas = [str(prc) for prc in parcelas]
-        símismo.instancias = [símismo.cls_instancia(
-            sim=símismo, índs={EJE_PARC: nombres_parcelas, **índs}
-        ) for índs in símismo.combin.índs(símismo.reps)]
-
-        símismo.llenar_vals()
+        símismo.instancias = [
+            símismo.cls_instancia(
+                sim=símismo, índs=índs, reps=símismo.reps
+            ) for índs in símismo.combin.índs(símismo.reps)
+        ]
 
     @property
     def cls_instancia(símismo):
@@ -71,6 +70,7 @@ class SimulCultivoExterno(object):
     def iniciar(símismo):
         for inst in símismo.instancias:
             inst.iniciar()
+        símismo.llenar_vals()
 
     def incrementar(símismo, paso, f):
         for inst in símismo.instancias:
@@ -79,10 +79,10 @@ class SimulCultivoExterno(object):
 
     def llenar_vals(símismo):
         datos = símismo.combin.desagregar(
-            xr.merge([inst.obt_datos() for inst in símismo.instancias]), coords=símismo.reps
+            xr.merge([inst.datos for inst in símismo.instancias]), coords=símismo.reps
         )
-        for var, val in datos.items():
-            símismo.sim.poner_valor(var=var, val=val)
+        for var in datos:
+            símismo.sim.poner_valor(var=var, val=datos[var])
 
     def aplicar_daño(símismo, daño):
         daño = símismo.combin.agregar(daño)
@@ -98,7 +98,7 @@ class CombinSimsCult(object):
     def __init__(símismo, transf=None):
         transf = transf or {}
         if isinstance(transf, str):
-            transf = []
+            transf = [transf]
         if not isinstance(transf, dict):
             transf = {eje: xr.DataArray.median for eje in transf}
         símismo.transf = transf
@@ -106,21 +106,29 @@ class CombinSimsCult(object):
     def agregar(símismo, ingreso):
         for eje, func in símismo.transf.items():
             ingreso = func(ingreso, dim=[eje])
+        return ingreso
 
     def índs(símismo, reps):
         dims = [dim for dim in reps if dim not in símismo.transf]
-        for índs in product(*[crds for dim, crds in reps.items()]):
+        for índs in product(*[range(crds) for dim, crds in reps.items() if dim in dims]):
             yield dict(zip(dims, índs))
 
-    @staticmethod
-    def desagregar(egreso, coords):
-        return egreso.expand_dims(coords)
+    def desagregar(símismo, egreso, coords):
+        return egreso.expand_dims({ll: range(v) for ll, v in coords.items() if ll in símismo.transf})
 
 
 class InstanciaSimulCultivo(object):
-    def __init__(símismo, sim, vars_, índs):
+    def __init__(símismo, sim, índs, reps):
         símismo.sim = sim
-        símismo.datos = xr.Dataset({vr: xr.DataArray(0., coords=índs, dims=list(índs)) for vr in vars_})
+        símismo.índs = índs
+        res = [sim.sim[r] for r in sim.sim]
+        símismo.datos = xr.Dataset(
+            {str(vr): xr.DataArray(
+                0.,
+                coords={**{dim: vr.datos[dim] for dim in vr.datos.dims if dim not in reps}, **índs},
+                dims=[dim for dim in vr.datos.dims if dim not in reps]
+            ) for vr in res}
+        )
         símismo.llenar_vals()
 
     def iniciar(símismo):
@@ -135,11 +143,11 @@ class InstanciaSimulCultivo(object):
     def aplicar_daño(símismo, daño):
         raise NotImplementedError
 
-    def cerrar(símismo, paso, f):
+    def cerrar(símismo):
         raise NotImplementedError
 
 
 _cls_cultivos = {
-    clt.cultivo: clt for clt in inspect.getmembers(plt_externas, inspect.isclass)
-    if issubclass(clt, plt_externas.CultivoExterno)
+    clt[1].cultivo: clt[1] for clt in inspect.getmembers(plt_externas, inspect.isclass)
+    if issubclass(clt[1], plt_externas.CultivoExterno) and clt[1] != plt_externas.CultivoExterno
 }

@@ -1,5 +1,5 @@
 from pcse.engine import Engine
-from tikon.exper.parc import Parcela, GeomParcela
+from tikon.central.parc import Parcela, GeomParcela
 from tikon.móds.cultivo.extrn import ParcelasCultivoExterno
 
 from .sim import SimulPCSE

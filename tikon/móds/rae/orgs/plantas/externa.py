@@ -8,7 +8,7 @@ class CultivoExterno(Planta):
     def __init__(símismo, nombre=None, variedad=None):
         nombre = nombre or símismo.cultivo
         base = {
-            ECS_CREC: {'Modif': 'Ninguna', 'Ecuación': 'Nada'},
+            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},

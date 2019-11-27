@@ -7,7 +7,7 @@ RES_HUMSUELO = 'humedad suelo'
 
 
 class ResBiomasa(Resultado):
-    líms = (0, np.nan)
+    líms = (0, np.inf)
     nombre = RES_BIOMASA
     unids = '[kg o m2] / ha'
 
@@ -17,6 +17,6 @@ class ResBiomasa(Resultado):
 
 
 class ResHumedadSuelo(Resultado):
-    líms = (0, np.nan)
+    líms = (0, np.inf)
     nombre = RES_HUMSUELO
     unids = 'cm3 / cm3'

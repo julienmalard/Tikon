@@ -17,8 +17,8 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         'fruta': ('WSO', 1 / 10000)
     }
 
-    def __init__(símismo, sim, índs):
-        super().__init__(sim=sim, vars_=[RES_HUMSUELO, RES_BIOMASA], índs=índs)
+    def __init__(símismo, sim, índs, reps):
+        super().__init__(sim=sim, índs=índs, reps=reps)
         símismo.f_inic_modelo = pd.Timestamp(símismo.modelo.agromanager.start_date)
 
         parc = str(sim.parcelas[0])
@@ -76,7 +76,7 @@ class InstanciaPCSE(InstanciaSimulCultivo):
                 continue
             símismo.modelo.set_variable(var, daño.loc[{EJE_ETAPA: etp}] / conv)
 
-    def cerrar(símismo, paso, f):
+    def cerrar(símismo):
         pass
 
 
