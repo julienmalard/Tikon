@@ -33,7 +33,7 @@ class InstanciaDSSAT(InstanciaSimulCultivo):
             avisar("Modelo PCSE terminó simulación antes de la simulación completa de Tiko'n.")
         símismo.llenar_vals()
 
-    def cerrar(símismo, paso, f):
+    def cerrar(símismo):
         pass
 
 

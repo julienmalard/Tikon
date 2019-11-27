@@ -248,6 +248,9 @@ class SimulMódulo(PlantillaSimul):
         if símismo.ecs:
             return símismo.ecs.requísitos(controles=controles)
 
+    def __str__(símismo):
+        return símismo.nombre
+
 
 def _únicos(lista):
     final = []

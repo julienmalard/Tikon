@@ -26,8 +26,10 @@ class EcsCaptura(CategEc):
         dens = símismo.obt_valor_mód(sim, RES_DENS)
         prob_escape = 1 - prob_captura
         prob_captura_final = probs_conj(1 - prob_escape ** dens ** paso, dim=EJE_TRAMPA)
-        símismo.poner_valor_res(sim, prob_captura_final)
 
-        prob_captura_final = prob_captura_final.sum(dim=EJE_TRAMPA)
         pobs = símismo.obt_valor_extern(sim, RES_POBS, mód=RedAE.nombre)
-        símismo.poner_valor_extern(sim, var=RES_POBS, mód=RedAE.nombre, val=pobs * prob_captura_final)
+        captura_final = pobs * prob_captura_final
+        símismo.poner_valor_res(sim, captura_final)
+
+        captura_por_etapa = captura_final.sum(dim=EJE_TRAMPA)
+        símismo.poner_valor_extern(sim, var=RES_POBS, mód=RedAE.nombre, val=captura_por_etapa)

@@ -14,7 +14,7 @@ class Exper(object):
         símismo.nombre = nombre
         símismo.datos = DatosExper(nombre)
 
-        símismo.parcelas = _extract_parcelas(parcelas)
+        símismo.parcelas, símismo.grupos_parc = _extract_parcelas(parcelas)
         if len(símismo.parcelas) != len({str(p) for p in símismo.parcelas}):
             raise ValueError(
                 'Parcelas con nombres idénticos en "{p}".'.format(p=', '.join([str(p) for p in símismo.parcelas]))
@@ -59,9 +59,11 @@ class Exper(object):
 def _extract_parcelas(parcelas):
     parcelas = [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas
     l_prcs = []
+    l_grupos = []
     for prc in parcelas:
         if isinstance(prc, Parcela):
             l_prcs.append(prc)
         else:
             l_prcs += prc.parcelas
-    return l_prcs
+            l_grupos.append(prc)
+    return l_prcs, l_grupos
