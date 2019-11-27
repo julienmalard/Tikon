@@ -34,7 +34,10 @@ class SimulCultivo(SimulMódulo):
 
     @property
     def clima(símismo):
-        return símismo.simul_exper[Clima.nombre]
+        if Clima.nombre in símismo.simul_exper:
+            return símismo.simul_exper[Clima.nombre]
+        else:
+            return None
 
     def iniciar(símismo):
         super().iniciar()
