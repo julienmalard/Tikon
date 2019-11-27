@@ -56,7 +56,6 @@ class SimulCultivoExterno(object):
         if cultivo in símismo.parcelas.conv_cultivos:
             orgs_potenciales = símismo.parcelas.conv_cultivos[cultivo]
         else:
-            # noinspection PyTypeHints
             orgs_potenciales = [org for org in símismo.sim.orgs if isinstance(org, _cls_apropiada)]
         if variedad:
             return next(
@@ -79,7 +78,7 @@ class SimulCultivoExterno(object):
 
     def llenar_vals(símismo):
         datos = símismo.combin.desagregar(
-            xr.merge([inst.datos for inst in símismo.instancias]), coords=símismo.reps
+            xr.merge([inst.datos for inst in símismo.instancias]), reps=símismo.reps
         )
         for var in datos:
             símismo.sim.poner_valor(var=var, val=datos[var])
@@ -113,20 +112,20 @@ class CombinSimsCult(object):
         for índs in product(*[range(crds) for dim, crds in reps.items() if dim in dims]):
             yield dict(zip(dims, índs))
 
-    def desagregar(símismo, egreso, coords):
-        return egreso.expand_dims({ll: range(v) for ll, v in coords.items() if ll in símismo.transf})
+    def desagregar(símismo, egreso, reps):
+        return egreso.expand_dims({ll: range(v) for ll, v in reps.items() if ll in símismo.transf})
 
 
 class InstanciaSimulCultivo(object):
     def __init__(símismo, sim, índs, reps):
         símismo.sim = sim
-        símismo.índs = índs
+        símismo.índs = {ll: [v] if isinstance(v, int) else v for ll, v in índs.items()}
         res = [sim.sim[r] for r in sim.sim]
         símismo.datos = xr.Dataset(
             {str(vr): xr.DataArray(
                 0.,
-                coords={**{dim: vr.datos[dim] for dim in vr.datos.dims if dim not in reps}, **índs},
-                dims=[dim for dim in vr.datos.dims if dim not in reps]
+                coords={**{dim: vr.datos[dim] for dim in vr.datos.dims if dim not in reps}, **símismo.índs},
+                dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs)
             ) for vr in res}
         )
         símismo.llenar_vals()
