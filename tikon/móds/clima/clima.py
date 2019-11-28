@@ -32,7 +32,7 @@ class SimulClima(SimulMódulo):
                 dims=[EJE_PARC, EJE_TIEMPO]
             ) for res in variables
         })
-        if 'temp_prom' in símismo.datos.data_vars:
+        if all(x in símismo.datos.data_vars for x in ('temp_prom', 'temp_máx', 'temp_mín')):
             símismo.datos['temp_prom'] = símismo.datos['temp_prom'].fillna(
                 (símismo.datos['temp_máx'] + símismo.datos['temp_mín']) / 2
             )
