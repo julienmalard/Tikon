@@ -16,13 +16,6 @@ from pruebas.test_móds.test_cultivo.rcrs.pcse import prov_paráms, prov_meteo, 
 
 class PruebaPCSE(unittest.TestCase):
 
-    def _prueba_parc(símismo, parc):
-        npt.assert_equal(res[Cultivo.nombre][RES_BIOMASA].datos_t.values, símismo.biomasa)
-        npt.assert_equal(res[Cultivo.nombre][RES_HUMSUELO].datos_t.values, símismo.hum_suelo)
-        npt.assert_equal(
-            res[RedAE.nombre][RES_POBS].datos_t.loc[{EJE_ETAPA: símismo.tomate.etapas()}].values, símismo.biomasa
-        )
-
     def test_pcse(símismo):
         gusanito = Sencillo('soy gusano')
         remolacha = RemolachaAzucarera()
