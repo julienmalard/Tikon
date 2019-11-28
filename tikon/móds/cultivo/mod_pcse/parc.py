@@ -1,4 +1,3 @@
-from pcse.engine import Engine
 from tikon.central.parc import Parcela, GeomParcela
 from tikon.móds.cultivo.extrn import ParcelasCultivoExterno
 
@@ -7,30 +6,23 @@ from .sim import SimulPCSE
 
 class ParcelasCultivoPCSE(ParcelasCultivoExterno):
 
-    def __init__(símismo, nombre, modelo, geom=None, combin=None):
-        """
-
-        Parameters
-        ----------
-        nombre
-        modelo: Engine
-        geom
-        """
+    def __init__(símismo, nombre, modelo, prov_paráms, prov_meteo, agromanejo, geom=None, combin=None):
         símismo.nombre = nombre
-        símismo.cls_modelo = modelo.__class__
-        símismo._proveedor_parámetros = modelo.parameterprovider
-        símismo._agromanejo = modelo.agromanager
+        símismo.cls_modelo = modelo
+        símismo._proveedor_parámetros = prov_paráms
+        símismo._agromanejo = agromanejo
 
-        pdm = modelo.weatherdataprovider
+        símismo._pdm_orig = prov_meteo
         geom = geom or GeomParcela(
-            centroide=(float(pdm.latitude), float(pdm.longitude)), elev=float(pdm.elev)
+            centroide=(float(prov_meteo.latitude), float(prov_meteo.longitude)), elev=float(prov_meteo.elevation)
         )
 
         super().__init__(Parcela(nombre, geom=geom), combin=combin)
 
     def gen_modelo_pcse(símismo, proveedor_meteo):
+        proveedor_meteo = proveedor_meteo or símismo._pdm_orig
         return símismo.cls_modelo(
-            parameterprovider=símismo._proveedor_parámetros, agromanager=símismo._agromanejo,
+            parameterprovider=símismo._proveedor_parámetros, agromanagement=símismo._agromanejo,
             weatherdataprovider=proveedor_meteo
         )
 

@@ -17,3 +17,4 @@ pcse
 tradssat
 pyshp
 pillow
+babel

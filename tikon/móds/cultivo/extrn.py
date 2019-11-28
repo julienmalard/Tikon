@@ -10,7 +10,8 @@ from tikon.utils import EJE_PARÁMS, EJE_ESTOC
 
 class ParcelasCultivoExterno(GrupoParcelas):
 
-    def __init__(símismo, parcelas, combin=(EJE_ESTOC, EJE_PARÁMS)):
+    def __init__(símismo, parcelas, combin=None):
+        combin = combin if combin is not None else (EJE_ESTOC, EJE_PARÁMS)
         parcelas = [parcelas] if isinstance(parcelas, Parcela) else parcelas
         super().__init__(parcelas=parcelas)
 
@@ -29,7 +30,7 @@ class ParcelasCultivoExterno(GrupoParcelas):
 
 
 class SimulCultivoExterno(object):
-    _trads_cultivos = {}
+    trads_cultivos = {}
 
     def __init__(símismo, sim, parcelas):
         símismo.sim = sim
@@ -49,17 +50,18 @@ class SimulCultivoExterno(object):
 
     def obt_org(símismo, cultivo, variedad=None):
         cultivo = cultivo.lower()
-        if cultivo in símismo._trads_cultivos:
-            cultivo = símismo._trads_cultivos[cultivo]
+        if cultivo in símismo.trads_cultivos:
+            cultivo = símismo.trads_cultivos[cultivo]
 
-        _cls_apropiada = símismo.parcelas.cls_cultivos[cultivo.lower()]
         if cultivo in símismo.parcelas.conv_cultivos:
             orgs_potenciales = símismo.parcelas.conv_cultivos[cultivo]
         else:
-            orgs_potenciales = [org for org in símismo.sim.orgs if isinstance(org, _cls_apropiada)]
+            _cls_apropriada = _cls_cultivos[cultivo.lower()]
+            orgs_potenciales = [org for org in símismo.sim.orgs if isinstance(org, _cls_apropriada)]
         if variedad:
             return next(
-                (clt for clt in orgs_potenciales if clt.variedad.lower() == variedad.lower()), orgs_potenciales[0]
+                (clt for clt in orgs_potenciales if clt.variedad and clt.variedad.lower() == variedad.lower()),
+                orgs_potenciales[0]
             )
         return orgs_potenciales[0]
 
@@ -128,7 +130,6 @@ class InstanciaSimulCultivo(object):
                 dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs)
             ) for vr in res}
         )
-        símismo.llenar_vals()
 
     def iniciar(símismo):
         símismo.llenar_vals()
