@@ -166,3 +166,7 @@ class Tabaco(CultivoExterno):
 
 class Trigo(CultivoExterno):
     cultivo = 'trigo'
+
+
+class TrigoInvierno(CultivoExterno):
+    cultivo = 'trigo de invierno'

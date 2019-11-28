@@ -3,38 +3,42 @@ import pandas as pd
 from pcse.base import WeatherDataProvider, WeatherDataContainer
 from pcse.db import NASAPowerWeatherDataProvider
 from pcse.util import reference_ET
-from tikon.result import EJE_TIEMPO
+
+conv_nombres = {
+    'temp_máx': 'TMAX', 'temp_mín': 'TMIN', 'precip': 'RAIN', 'temp_prom': 'TEMP', 'cob_nieve': 'SNOWDEPTH',
+    'rad_solar': 'IRRAD', 'vap': 'VAP', 'veloc_viento': 'WIND', 'hum_rel': 'RHUM'
+}
+conv_inv = {v: ll for ll, v in conv_nombres.items()}
+convs_unids = {
+    "rad_solar": 1000,  # kJ/m2/día -> J/m2/día
+    "vap": 10,  # kPa -> hPa
+    "precip": 0.10,  # mm -> cm
+}
 
 
 class ProveedorMeteoPCSEPandas(NASAPowerWeatherDataProvider):
-    _convs = {
-        "IRRAD": 1000,  # kJ/m2/día -> J/m2/día
-        "VAP": 10,  # kPa -> hPa
-        "RAIN": 0.10,  # mm -> cm
-    }
-    _conv_nombres = {
-        'temp_máx': 'TMAX', 'temp_mín': 'TMIN', 'precip': 'RAIN', 'temp_prom': 'TEMP', 'cob_nieve': 'SNOWDEPTH',
-        'rad_solar': 'IRRAD', 'vap': 'VAP', 'veloc_viento': 'WIND', 'hum_rel': 'RHUM'
-    }
     angstA = 0.29
     angstB = 0.49
 
     def __init__(símismo, bd_pandas, lat, lon, elev):
         WeatherDataProvider.__init__(símismo)
 
-        bd_pandas = bd_pandas.rename({vr: vr_pcse for vr, vr_pcse in símismo._conv_nombres.items() if vr in bd_pandas})
+        bd_pandas = bd_pandas.rename({vr: vr_pcse for vr, vr_pcse in conv_nombres.items() if vr in bd_pandas})
 
         if 'WIND' not in bd_pandas:
             bd_pandas['WIND'] = 1  # en m/s; valor automático consistente con DSSAT
-        if 'VAP' not in bd_pandas:
-            bd_pandas['VAP'] = _calc_vap(bd_pandas)  # kPa
+        if 'vap' not in bd_pandas:
+            bd_pandas['vap'] = _calc_vap(bd_pandas)  # kPa
 
-        for var, conv in símismo._convs:
+        for var, conv in convs_unids.items():
             bd_pandas[var] *= conv
 
-        for f in bd_pandas[EJE_TIEMPO]:
+        for f in bd_pandas.index:
             día = pd.to_datetime(f)
-            fila = {"DAY": día, **{vr: bd_pandas[vr].loc[{'fecha': f}] for vr in bd_pandas.colnames}}
+            fila = {
+                "DAY": día,
+                **{conv_nombres[vr] if vr in conv_nombres else vr: bd_pandas[vr][f] for vr in bd_pandas.columns}
+            }
 
             # Reference ET in mm/day
             e0, es0, et0 = reference_ET(
@@ -58,9 +62,9 @@ def _calc_vap(bd):
 
 def _calc_t_rocío(bd):
     # Ecuación de DSSAT (CALC_TDEW)
-    t_mín = bd['TMIN']
-    if 'RHUM' in bd:  # fraccional, y no en % como en DSSAT
-        r_hum = bd['RHUM']
+    t_mín = bd['temp_mín']
+    if 'hum_rel' in bd:  # fraccional, y no en % como en DSSAT
+        r_hum = bd['hum_rel']
         if r_hum.max() > 1:
             r_hum /= 100
         a, b, c = 0.61078, 17.269, 237.3
