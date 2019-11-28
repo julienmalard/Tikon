@@ -32,6 +32,9 @@ class SimulClima(SimulMódulo):
                 dims=[EJE_PARC, EJE_TIEMPO]
             ) for res in variables
         })
+        símismo.datos['temp_prom'] = símismo.datos['temp_prom'].fillna(
+            (símismo.datos['temp_máx'] + símismo.datos['temp_mín']) / 2
+        )
         for vr in símismo.datos.data_vars:
             if símismo.datos[vr].isnull().any():
                 raise ValueError('Faltan datos en {vr}.'.format(vr=vr))

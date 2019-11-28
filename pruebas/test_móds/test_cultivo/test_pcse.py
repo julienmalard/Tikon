@@ -6,6 +6,7 @@ from tikon.móds.clima import Clima
 from tikon.móds.cultivo.cult import Cultivo
 from tikon.móds.cultivo.mod_pcse.clima import FuenteMeteoPCSE
 from tikon.móds.cultivo.mod_pcse.parc import ParcelasCultivoPCSE
+from tikon.móds.cultivo.res import RES_HUMSUELO
 from tikon.móds.rae.orgs.insectos import Sencillo
 from tikon.móds.rae.orgs.plantas.externa import RemolachaAzucarera
 from tikon.móds.rae.red import RedAE

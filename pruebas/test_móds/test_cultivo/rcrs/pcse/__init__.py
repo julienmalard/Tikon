@@ -2,7 +2,7 @@ import os
 
 from pcse.base import ParameterProvider
 from pcse.db import NASAPowerWeatherDataProvider
-from pcse.fileinput import CABOFileReader, YAMLAgroManagementReader
+from pcse.fileinput import CABOFileReader, YAMLAgroManagementReader, ExcelWeatherDataProvider
 from pcse.util import WOFOST71SiteDataProvider
 
 dir_base = os.path.split(__file__)[0]
@@ -12,4 +12,4 @@ prov_paráms = ParameterProvider(
     cropdata=CABOFileReader(os.path.join(dir_base, 'sug0601.crop'))
 )
 agromanejo = YAMLAgroManagementReader(os.path.join(dir_base, 'sugarbeet_calendar.agro'))
-prov_meteo = NASAPowerWeatherDataProvider(latitude=52, longitude=5)
+prov_meteo = ExcelWeatherDataProvider(os.path.join(dir_base, 'nl1.xlsx'))
