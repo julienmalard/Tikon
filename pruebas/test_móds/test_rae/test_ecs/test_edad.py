@@ -18,9 +18,10 @@ class PruebaEdad(unittest.TestCase):
         t = Tiempo(f_inic, f_final)
 
         for ec in EcuaciónEdad.cls_ramas:
+            print(ec.nombre)
             if ec is EcuaciónVacía:
                 continue
             with símismo.subTest(ec.nombre):
                 insecto.activar_ec(ECS_EDAD, subcateg='Ecuación', ec=ec.nombre)
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE(insecto), t=t)
-                mod.simular(str(ec), exper=exper, t=t)
+                mod.simular(str(ec), exper=exper, t=t, depurar=True)

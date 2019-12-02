@@ -1,7 +1,8 @@
+from datetime import timedelta
+
 from scipy.stats import uniform
 from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDist
-
 from tikon.ecs.dists import Dist, DistAnalítica
 from tikon.ecs.árb_coso import ParámCoso
 from tikon.result import Obs
@@ -16,18 +17,23 @@ class PlantillaDatosVals(dict):
 
     def fechas(símismo):
         f_inic = f_final = None
+        d_final = 0
         for dato in símismo:
-            otra_inic, otra_final = símismo[dato].fechas()
+            (otra_inic, otra_final), otro_d_final = símismo[dato].fechas()
+
             if (otra_inic is not None) and (f_inic is not None):
                 f_inic = min(otra_inic, f_inic)
             else:
                 f_inic = f_inic or otra_inic
+
             if (otra_final is not None) and (f_final is not None):
                 f_final = max(otra_final, f_final)
             else:
                 f_final = f_final or otra_final
 
-        return f_inic, f_final
+            d_final = max(d_final, otro_d_final)
+
+        return (f_inic, f_final), int(d_final)
 
     def a_dic(símismo):
         dic = {ll: v.a_dic() for ll, v in símismo.items()}

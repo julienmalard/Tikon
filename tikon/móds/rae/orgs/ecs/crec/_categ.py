@@ -13,7 +13,7 @@ class EcsCrec(CategEcOrg):
     _nombre_res = RES_CREC
 
     def postproc(símismo, paso, sim):
-        crec = símismo.obt_valor_res(sim)
+        crec = símismo.obt_valor_res(sim).round()
         pobs = símismo.pobs(sim)
 
         # Evitar pérdidas de poblaciones superiores a la población.

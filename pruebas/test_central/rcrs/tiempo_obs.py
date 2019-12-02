@@ -49,4 +49,10 @@ exper.datos.agregar_obs(obs)
 
 exper_sin_obs = Exper('exper', Parcela('parcela'))
 
+obs_t_numérico = MiObs(
+    datos=xr.DataArray(const, coords={'mi eje': np.arange(5), EJE_TIEMPO: np.arange(5)}, dims=['mi eje', EJE_TIEMPO])
+)
+exper_obs_numérico = Exper('exper', Parcela('parcela'))
+exper_obs_numérico.datos.agregar_obs(obs_t_numérico)
+
 modelo = Modelo(MóduloResInic())

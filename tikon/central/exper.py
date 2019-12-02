@@ -1,12 +1,11 @@
 import os
-from datetime import timedelta
 
 from .control import ControlesExper
 from .datos import DatosExper
 from .parc import GrupoParcelas
 from .parc import Parcela
 from .paráms_exper import ParámsExper
-from .tiempo import Tiempo, gen_tiempo
+from .tiempo import gen_tiempo
 
 
 class Exper(object):
@@ -25,15 +24,7 @@ class Exper(object):
             símismo.datos.agregar_obs(obs)
 
     def gen_t(símismo, t):
-        f_inic, f_final = símismo.datos.fechas()
-        if t is None:
-            if not f_inic:
-                raise ValueError('Debes especificar fecha inicial y final para simulaciones sin observaciones.')
-            return Tiempo(f_inic=f_inic, f_final=f_final)
-
-        if isinstance(t, int) and f_inic:
-            return Tiempo(f_inic, f_inic + timedelta(days=t))
-        return gen_tiempo(t)
+        return gen_tiempo(t, símismo.datos)
 
     def gen_paráms(símismo, sim_exper):
         return ParámsExper(símismo, sim_exper)

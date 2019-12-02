@@ -1,7 +1,7 @@
 import numpy as np
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.utils import probs_conj
-from tikon.móds.rae.utils import EJE_VÍCTIMA
+from tikon.móds.rae.utils import EJE_VÍCTIMA, EJE_ETAPA
 
 from ._plntll_ec import EcuaciónDepred
 
@@ -40,7 +40,7 @@ class Kovai(EcuaciónDepred):
     cls_ramas = [PrAKovai, PrBKovai]
 
     def eval(símismo, paso, sim):
-        dens = símismo.dens_pobs(sim, filtrar=False)
+        dens = símismo.dens_pobs(sim, filtrar=False).rename({EJE_ETAPA: EJE_VÍCTIMA})
         cf = símismo.cf
 
         # La población de esta etapa (depredador)

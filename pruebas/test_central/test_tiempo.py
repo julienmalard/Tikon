@@ -16,24 +16,6 @@ class PruebaGenerarTiempo(unittest.TestCase):
     def _verif_igual(símismo, t):
         pdt.assert_index_equal(t.eje, símismo.ref)
 
-    def test_auto_int(símismo):
-        t = gen_tiempo(10)
-        símismo.assertEqual(t.fecha, pd.Timestamp(date.today()))
-        símismo.assertEqual(len(t), 10 + 1)
-
-    def test_auto_ya_tiempo(símismo):
-        t = Tiempo('2000-01-01', '2000-02-01')
-        símismo.assertIs(t, gen_tiempo(t))
-
-    def test_auto_texto(símismo):
-        t = gen_tiempo('2000-01-01')
-        símismo.assertEqual(len(t), 30 + 1)
-        símismo.assertEqual(t.fecha, pd.Timestamp(date(2000, 1, 1)))
-
-    def test_auto_error_tipo(símismo):
-        with símismo.assertRaises(TypeError):
-            gen_tiempo(123.456)
-
     def test_de_fecha(símismo):
         t = Tiempo(date(2000, 1, 1), date(2000, 1, 10))
         símismo._verif_igual(t)

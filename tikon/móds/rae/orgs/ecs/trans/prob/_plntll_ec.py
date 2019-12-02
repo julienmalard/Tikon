@@ -1,3 +1,5 @@
+from tikon.móds.rae.utils import RES_POBS
+
 from ..._ecs_coh import EcuaciónConCohorte
 
 

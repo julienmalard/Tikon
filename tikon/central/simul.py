@@ -2,7 +2,6 @@ import os
 import threading
 
 import numpy as np
-import xarray as xr
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
@@ -85,9 +84,9 @@ class Simulación(PlantillaSimul):
         símismo.paráms = símismo.vals_paráms()
         calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
 
-    def simular(símismo):
+    def simular(símismo, depurar=False):
         símismo.iniciar()
-        símismo.correr()
+        símismo.correr(depurar=depurar)
         símismo.cerrar()
 
     def iniciar(símismo):
@@ -97,7 +96,12 @@ class Simulación(PlantillaSimul):
 
         super().iniciar()
 
-    def correr(símismo):
+    def correr(símismo, depurar=False):
+
+        if len(símismo._subs) < 2:
+            for exp in símismo:
+                símismo[exp].correr(depurar=depurar)
+            return
 
         # Un diccionario para comunicar errores
         errores = []
@@ -182,9 +186,15 @@ class SimulExper(PlantillaSimul):
         símismo.paráms_exper.iniciar()
         super().iniciar()
 
-    def correr(símismo):
+    def correr(símismo, depurar=False):
+        if depurar:
+            símismo.verificar_estado()
+
         for f in símismo.t.avanzar():
             símismo.incrementar(símismo.t.paso, f)
+
+            if depurar:
+                símismo.verificar_estado()
 
 
 class SimulMódulo(PlantillaSimul):
@@ -230,14 +240,7 @@ class SimulMódulo(PlantillaSimul):
         return símismo.exper.controles[var]
 
     def poner_valor(símismo, var, val, rel=False):
-        if rel:
-            if isinstance(val, xr.DataArray):
-                val = val.broadcast_like(símismo[var].datos.loc[val.coords])
-                símismo[var].datos.loc[val.coords] += val
-            else:
-                símismo[var].datos += val
-        else:
-            símismo[var].datos = val
+        símismo[var].poner_valor(val, rel=rel)
 
     def poner_valor_extern(símismo, var, val, mód=None, rel=False):
         if not mód:

@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import norm, expon
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
 from .._plntll import EcuaciónOrg
@@ -8,12 +10,14 @@ class PrTDevMínBT(Parám):
     nombre = 't_dev_mín'
     líms = (None, None)
     unids = 'C'
+    apriori = APrioriDist(norm(20, 10))
 
 
-class PrTLetalBT(Parám):
-    nombre = 't_letal'
-    líms = (None, None)
+class PrDeltaTLetalBT(Parám):
+    nombre = 'delta_t_letal'
+    líms = (0, None)
     unids = 'C'
+    apriori = APrioriDist(expon(scale=10))
 
 
 class FuncBrièreTemperatura(EcuaciónOrg):
@@ -34,7 +38,7 @@ class FuncBrièreTemperatura(EcuaciónOrg):
         Eur. J. Entomol. 107: 681–685.
     """
     nombre = 'Brière Temperatura'
-    cls_ramas = [PrTDevMínBT, PrTLetalBT]
+    cls_ramas = [PrTDevMínBT, PrDeltaTLetalBT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
@@ -43,7 +47,7 @@ class FuncBrièreTemperatura(EcuaciónOrg):
         return np.maximum(
             temp_prom * (temp_prom - cf['t_dev_mín']), 0
         ) * np.sqrt(
-            np.maximum(cf['t_letal'] - temp_prom, 0)
+            np.maximum(cf['delta_t_letal'] + cf['t_dev_mín'] - temp_prom, 0)
         ) * paso
 
     @classmethod

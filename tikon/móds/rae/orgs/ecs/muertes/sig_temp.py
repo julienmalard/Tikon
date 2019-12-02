@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import norm, expon
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 
@@ -7,12 +9,14 @@ class A(Parám):
     nombre = 'a'
     líms = (None, None)
     unids = 'C'
+    apriori = APrioriDist(norm(20, 10))
 
 
 class B(Parám):
     nombre = 'b'
     líms = (0, None)
     unids = 'C'
+    apriori = APrioriDist(expon(scale=10))
 
 
 class SigmoidalTemperatura(EcuaciónOrg):

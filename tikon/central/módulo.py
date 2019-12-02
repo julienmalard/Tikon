@@ -14,6 +14,8 @@ class Módulo(object):
             cosos = [cosos]
 
         símismo._cosos = {str(c): c for c in cosos}
+        if len(símismo._cosos) != len(cosos):
+            raise ValueError('Nombres duplicados en {}.'.format(', '.join(cosos)))
 
     def gen_ecs(símismo, modelo, mód, exper, n_reps):
         if símismo.cls_ecs:

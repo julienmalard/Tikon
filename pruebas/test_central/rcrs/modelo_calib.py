@@ -84,12 +84,18 @@ class MisObs(Obs):
     var = 'res'
 
 
-def generar():
+def generar(fechas=True):
     coso = CosoParám('hola')
+
+    if fechas:
+        tiempos = pd.date_range(f_inic, periods=10, freq='D')
+    else:
+        tiempos = np.arange(10)
+
     obs = MisObs(
         datos=xr.DataArray(
             np.arange(10),
-            coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
+            coords={EJE_TIEMPO: tiempos}, dims=[EJE_TIEMPO]
         ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso]})
     )
     exper = Exper('exper', Parcela('parcela'), obs=obs)

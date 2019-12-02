@@ -1,3 +1,4 @@
+import numpy as np
 from tikon.ecs.árb_mód import Parám
 
 from ._plntll_ec import EcuaciónCrec
@@ -24,6 +25,6 @@ class LogístPresa(EcuaciónCrec):
         pobs_presas = símismo.pobs(sim, filtrar=False)
         pobs = símismo.pobs(sim)
 
-        k = (pobs_presas * símismo.cf['K']).sum(dim=['víctima'])  # Calcular la capacidad de carga
+        k = np.maximum(1, (pobs_presas * símismo.cf['K']).sum(dim=['víctima']))  # Calcular la capacidad de carga
 
         return crec_etps * pobs * (1 - pobs / k)  # Ecuación logística sencilla

@@ -58,7 +58,7 @@ class SimulClima(SimulMódulo):
         super().incrementar(paso, f)
         diarios = símismo.datos.loc[{EJE_TIEMPO: f}].drop_vars(EJE_TIEMPO)
         for res in símismo:
-            símismo[res].datos = diarios[str(res)]
+            símismo[res].poner_valor(diarios[str(res)])
 
 
 class Clima(Módulo):
