@@ -8,6 +8,6 @@ from .dif import DifusiónAleatoria
 class Atracción(SubcategEcOrg):
     nombre = 'Atracción'
     cls_ramas = [
-        EcuaciónVacía, DifusiónAleatoria
+        DifusiónAleatoria, EcuaciónVacía
     ]
     _nombre_res = RES_MOV

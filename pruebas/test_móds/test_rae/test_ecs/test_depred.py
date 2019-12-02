@@ -27,4 +27,4 @@ class PruebaDepred(unittest.TestCase):
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE([presa, depred, depred_2]), t=t)
                 depred.activar_ec(ECS_DEPR, subcateg='Ecuación', ec=ec.nombre)
                 depred_2.activar_ec(ECS_DEPR, subcateg='Ecuación', ec=ec.nombre)
-                mod.simular(str(ec), exper=exper, t=10)
+                mod.simular(str(ec), exper=exper, t=10, depurar=True)

@@ -11,7 +11,7 @@ class ResultadoClima(Resultado):
         super().iniciar()
         f_inic = símismo.sim.simul_exper.t.fecha
         inic = símismo.sim.datos[símismo.nombre].loc[{EJE_TIEMPO: f_inic}].drop_vars(EJE_TIEMPO)
-        símismo.datos = inic
+        símismo.poner_valor(inic)
 
     @property
     def nombre(símismo):

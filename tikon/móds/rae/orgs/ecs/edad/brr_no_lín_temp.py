@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import norm, expon
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
 from .._plntll import EcuaciónOrg
@@ -8,18 +10,21 @@ class PrTDevMínBNLT(Parám):
     nombre = 't_dev_mín'
     líms = (None, None)
     unids = 'C'
+    apriori = APrioriDist(norm(20, 10))
 
 
-class PrTLetalBNLT(Parám):
-    nombre = 't_letal'
-    líms = (None, None)
+class PrDeltaTLetalBNLT(Parám):
+    nombre = 'delta_t_letal'
+    líms = (0, None)
     unids = 'C'
+    apriori = APrioriDist(expon(scale=10))
 
 
 class PrMBNLT(Parám):
     nombre = 'm'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(expon(scale=10))
 
 
 class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
@@ -43,7 +48,7 @@ class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
     """
 
     nombre = 'Brière No Linear Temperatura'
-    cls_ramas = [PrTDevMínBNLT, PrTLetalBNLT, PrMBNLT]
+    cls_ramas = [PrTDevMínBNLT, PrDeltaTLetalBNLT, PrMBNLT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
@@ -51,7 +56,7 @@ class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
         return np.maximum(
             temp_prom * (temp_prom - cf['t_dev_mín']), 0
         ) * np.power(
-            np.maximum(cf['t_letal'] - temp_prom, 0),
+            np.maximum(cf['t_dev_mín'] + cf['delta_t_letal'] - temp_prom, 0),
             1 / cf['m']
         ) * paso
 

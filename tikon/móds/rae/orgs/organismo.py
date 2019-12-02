@@ -14,6 +14,9 @@ class Organismo(Coso):
     def __init__(símismo, nombre, etapas):
         super().__init__(nombre, ecs=EcsOrgs)
 
+        if ':' in símismo.nombre:
+            raise ValueError('Nombre de organismo no puede contener ":".')
+
         if isinstance(etapas, Etapa):
             etapas = [etapas]
         etapas = [e if isinstance(e, Etapa) else Etapa(e, símismo) for e in etapas]
@@ -33,6 +36,10 @@ class Organismo(Coso):
             etps = símismo.resolver_etapas(etp)
             for e in etps:
                 e.activar_ecs(d_etp)
+
+    def desactivar_ec(símismo, categ, subcateg=None):
+        for etp in símismo:
+            etp.desactivar_ec(categ=categ, subcateg=subcateg)
 
     def secome(símismo, presa, etps_presa=None, etps_símismo=None):
         etps_presa = presa.resolver_etapas(etps_presa)
@@ -153,6 +160,10 @@ class Organismo(Coso):
 class Etapa(Coso):
     def __init__(símismo, nombre, org):
         super().__init__(nombre, EcsOrgs)
+
+        if ':' in símismo.nombre:
+            raise ValueError('Nombre de etapa no puede contener ":".')
+
         símismo.org = org
 
     @property
@@ -177,12 +188,12 @@ class Etapa(Coso):
         return SumaEtapas([símismo, otro])
 
     def __str__(símismo):
-        return str(símismo.org) + ' ' + símismo.nombre
+        return str(símismo.org) + ' : ' + símismo.nombre
 
 
 class EtapaFantasma(Etapa):
     def __init__(símismo, org, etp, org_hués, etp_hués, sig):
-        nombre = f'{etp.nombre} en {etp_hués}'
+        nombre = f'{etp.nombre} en {etp_hués.org}, {etp_hués.nombre}'
         super().__init__(nombre, org)
 
         símismo.etp_espejo = etp

@@ -22,7 +22,7 @@ class PrTLetalLT(Parám):
     nombre = 't_letal'
     líms = (None, None)
     unids = 'C'
-    apriori = APrioriDist(estad.uniform(-10, 60))
+    apriori = APrioriDist(estad.norm(20, 10))
 
 
 class FuncLoganTemperatura(EcuaciónOrg):

@@ -105,10 +105,12 @@ class DistAnalítica(Dist):
             if líms[1] == np.inf:
                 transf = None
             else:
-                transf = TransfDist('LnExp', ubic=líms[1], escl=-1)
+                escl = (líms[1] - líms_dens[1]) or ((líms[1] - líms_dens[0]) if líms_dens[0] != -np.inf else 1)
+                transf = TransfDist('LnExp', ubic=líms[1], escl=-escl)
 
         elif líms[1] == np.inf:
-            transf = TransfDist('LnExp', ubic=líms[0])
+            escl = (líms_dens[0] - líms[0]) or ((líms_dens[1] - líms[0]) if líms_dens[1] != np.inf else 1)
+            transf = TransfDist('LnExp', ubic=líms[0], escl=escl)
         else:
             transf = TransfDist('Expit', ubic=líms[0], escl=líms[1] - líms[0])
 
@@ -270,7 +272,7 @@ def lnexp(x):
 
 
 def invlnexp(x):
-    return np.log(np.exp(x) - 1)
+    return np.where(x >= 50, x, np.log(np.exp(x) - 1))
 
 
 def _líms_compat_teor(líms, ref):

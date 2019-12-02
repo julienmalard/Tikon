@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import expon
+from tikon.ecs.aprioris import APrioriDist
 
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
@@ -8,12 +10,14 @@ class T(Parám):
     nombre = 't'
     líms = (0, None)
     unids = 'C'
+    apriori = APrioriDist(expon(10, scale=20))
 
 
 class Rho(Parám):
     nombre = 'rho'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(expon(scale=10))
 
 
 class K(Parám):

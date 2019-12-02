@@ -49,9 +49,9 @@ class EcsDepred(CategEcOrg):
         depred = depred * símismo.pobs(sim) * paso
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        depred = probs_conj(
-            depred, pesos=1, máx=símismo.pobs(sim, filtrar=False).rename({EJE_ETAPA: EJE_VÍCTIMA}), dim=EJE_ETAPA
-        )
+        máx = símismo.pobs(sim, filtrar=False).rename({EJE_ETAPA: EJE_VÍCTIMA})
+        depred = np.minimum(depred, máx)
+        depred = probs_conj(depred, pesos=1, máx=máx, dim=EJE_ETAPA)
 
         depred = np.floor(depred.fillna(0))
 

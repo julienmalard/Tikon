@@ -21,7 +21,7 @@ class Modelo(object):
 
         símismo.módulos = {str(m): m for m in módulos}
 
-    def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None):
+    def simular(símismo, nombre, exper, t=None, calibs=None, reps=None, vars_interés=None, depurar=False):
 
         calibs = _gen_espec_calibs(calibs, aprioris=True, heredar=True, corresp=True)
         reps = _gen_reps(reps)
@@ -30,7 +30,7 @@ class Modelo(object):
             nombre=nombre, modelo=símismo, t=t, exper=exper, calibs=calibs, reps=reps,
             vars_interés=vars_interés
         )
-        simul.simular()
+        simul.simular(depurar=depurar)
         return simul
 
     def calibrar(
@@ -47,6 +47,7 @@ class Modelo(object):
         def func_opt():
             sim.iniciar()
             sim.correr()
+            sim.cerrar()
             return sim.procesar_calib(proc)
 
         paráms_calib = símismo._filtar_paráms(sim.paráms, paráms)

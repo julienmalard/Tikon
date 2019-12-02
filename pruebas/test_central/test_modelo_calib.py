@@ -42,7 +42,7 @@ class PruebaCalibEcs(unittest.TestCase):
 
         coso.renombrar_calib('calib', 'otro nombre')
         valid = modelo.simular('valid', exper, calibs=['otro nombre']).validar()
-        símismo.assertGreater(valid['ens'], 0.99)
+        símismo.assertGreater(valid['ens'], 0.95)
 
     def test_borrar_calib(símismo):
         from .rcrs.modelo_calib import generar
@@ -59,6 +59,17 @@ class PruebaCalibEcs(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.dir_)
+
+
+class PruebaCalibTiempo(unittest.TestCase):
+    def test_obs_tiempo_numérico(símismo):
+        from .rcrs.modelo_calib import generar
+        gen = generar(fechas=False)
+        modelo = gen['modelo']
+        exper = gen['exper']
+        modelo.calibrar('calib', exper, n_iter=30)
+        valid = modelo.simular('valid', exper).validar()
+        símismo.assertGreater(valid['ens'], 0.95)
 
 
 class PruebaCalibInic(unittest.TestCase):

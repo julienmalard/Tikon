@@ -1,5 +1,5 @@
-from ..ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
 from .ins import Insecto
+from ..ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
 
 
 class Sencillo(Insecto):
@@ -14,7 +14,7 @@ class Sencillo(Insecto):
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},
-            ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
+            ECS_TRANS: {'Prob': 'Nada', 'Deter': 'Nada', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
@@ -39,7 +39,7 @@ class MetamCompleta(Insecto):
                 ECS_DEPR: {'Ecuación': 'Nada'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
                 ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
             }
@@ -49,7 +49,7 @@ class MetamCompleta(Insecto):
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
@@ -59,7 +59,7 @@ class MetamCompleta(Insecto):
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
         }
@@ -70,7 +70,7 @@ class MetamCompleta(Insecto):
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Nada'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
                 ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }
@@ -97,7 +97,7 @@ class MetamIncompleta(Insecto):
                 ECS_DEPR: {'Ecuación': 'Nada'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
                 ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
             }
@@ -108,7 +108,7 @@ class MetamIncompleta(Insecto):
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
                 ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }
@@ -119,7 +119,7 @@ class MetamIncompleta(Insecto):
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Nada'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Deter': 'Nada', 'Mult': 'Nada'},
                 ECS_REPR: {'Prob': 'Normal'},
                 ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
             }

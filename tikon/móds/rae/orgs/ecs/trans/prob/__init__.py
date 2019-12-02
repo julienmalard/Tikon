@@ -1,1 +1,1 @@
-from ._subcateg import ProbTrans
+from ._subcateg import TransProb

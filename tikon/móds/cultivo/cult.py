@@ -55,7 +55,7 @@ class SimulCultivo(SimulMódulo):
         depred = símismo.red.obt_valor(RES_DEPR)
 
         # Daño total (de todos herbívoros) por etapa de planta, por m2
-        daño = depred.loc[{EJE_VÍCTIMA: símismo.etapas}].sum(dim=EJE_ETAPA) / símismo.superficies
+        daño = depred.loc[{EJE_VÍCTIMA: [str(x) for x in símismo.etapas]}].sum(dim=EJE_ETAPA) / símismo.superficies
 
         for prc in símismo.simuls_parcelas:
             prc.aplicar_daño(daño.loc[{EJE_PARC: [str(p) for p in prc.parcelas]}])

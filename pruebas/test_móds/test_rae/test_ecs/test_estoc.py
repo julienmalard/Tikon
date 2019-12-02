@@ -19,4 +19,4 @@ class PruebaEstoc(unittest.TestCase):
             with símismo.subTest(ec.nombre):
                 insecto.activar_ec(ECS_ESTOC, subcateg='Dist', ec=ec.nombre)
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE(insecto), t=t)
-                mod.simular(str(ec), exper=exper, t=t)
+                mod.simular(str(ec), exper=exper, t=t, depurar=True)

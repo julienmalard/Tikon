@@ -2,6 +2,7 @@ from tikon.móds.rae.utils import EJE_ETAPA, EJE_VÍCTIMA, RES_POBS, RES_CREC, R
     RES_TRANS
 from tikon.result import Obs
 from tikon.utils import EJE_PARC, EJE_DEST
+
 from .red import RedAE
 
 
@@ -9,8 +10,8 @@ class ObsRAE(Obs):
     mód = RedAE.nombre
 
     @classmethod
-    def de_pandas(cls, datos_pd, corresp, coords=None, tiempo=None, parc=None, factor=1, **argsll):
-        return super().de_pandas(
+    def de_cuadro(cls, datos_pd, corresp, coords=None, tiempo=None, parc=None, factor=1, **argsll):
+        return super().de_cuadro(
             datos_pd, corresp=corresp, eje_principal=EJE_ETAPA, parc=parc, tiempo=tiempo, coords=coords, factor=factor
         )
 
@@ -39,11 +40,11 @@ class ObsMov(ObsRAE):
     var = RES_MOV
 
     @classmethod
-    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, dest=None, factor=1, **argsll):
+    def de_cuadro(cls, datos_pd, corresp, tiempo=None, parc=None, dest=None, factor=1, **argsll):
         coords = {
             EJE_DEST: dest or EJE_DEST,
         }
-        return super().de_pandas(
+        return super().de_cuadro(
             datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=parc, factor=factor
         )
 
@@ -51,21 +52,23 @@ class ObsMov(ObsRAE):
 class ObsEmigr(ObsTrans):
 
     def proc_res(símismo, res):
+        res = super().proc_res(res)
         return res.sum(dim=EJE_DEST).squeeze(EJE_DEST, drop=True)
 
 
 class ObsImigr(ObsTrans):
 
     def proc_res(símismo, res):
+        res = super().proc_res(res)
         return res.sum(dim=EJE_PARC).squeeze(EJE_PARC, drop=True)
 
     @classmethod
-    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, factor=1, **argsll):
+    def de_cuadro(cls, datos_pd, corresp, tiempo=None, parc=None, factor=1, **argsll):
         coords = {
             EJE_PARC: None,
             EJE_DEST: parc
         }
-        return super().de_pandas(
+        return super().de_cuadro(
             datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=None, factor=factor
         )
 
@@ -78,10 +81,10 @@ class ObsDepred(ObsRAE):
     var = RES_DEPR
 
     @classmethod
-    def de_pandas(cls, datos_pd, corresp, tiempo=None, parc=None, víctima=None, factor=1, **argsll):
+    def de_cuadro(cls, datos_pd, corresp, tiempo=None, parc=None, víctima=None, factor=1, **argsll):
         coords = {
             EJE_VÍCTIMA: víctima,
         }
-        return super().de_pandas(
+        return super().de_cuadro(
             datos_pd, corresp=corresp, coords=coords, tiempo=tiempo, parc=parc, factor=factor
         )

@@ -1,3 +1,5 @@
+from scipy.stats import expon
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA
@@ -5,9 +7,10 @@ from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA
 
 class N(Parám):
     nombre = 'n'
-    líms = (0, 1)
+    líms = (0, None)
     unids = None
     inter = ['presa']
+    apriori = APrioriDist(expon(scale=10))
 
 
 class Depred(EcuaciónOrg):

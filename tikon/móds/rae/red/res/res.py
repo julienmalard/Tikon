@@ -17,7 +17,7 @@ class ResultadoRed(Resultado):
 
     def __init__(símismo, sim, coords, vars_interés):
         if EJE_ETAPA not in coords:  # Hay que verificar porque `Cohortes` lo implementa sí mismo
-            coords = {EJE_ETAPA: sim.ecs.cosos_en_categ(símismo.nombre), **coords}
+            coords = {EJE_ETAPA: [x for x in sim.ecs.cosos_en_categ(símismo.nombre)], **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
     @property
@@ -25,6 +25,7 @@ class ResultadoRed(Resultado):
         raise NotImplementedError
 
     def cerrar(símismo):
+        super().cerrar()
         for eje in símismo.ejes_etps:
             fantasmas = [e for e in símismo.datos_t[eje].values if isinstance(e, EtapaFantasma)]
 
@@ -54,7 +55,7 @@ class ResPobs(ResultadoRed):
 
     def iniciar(símismo):
         super().iniciar()
-        símismo.datos = np.round(símismo.datos)
+        símismo.poner_valor(np.round(símismo.datos))
 
 
 class ResDepred(ResultadoRed):
@@ -72,7 +73,7 @@ class ResEdad(ResultadoRed):
     unids = 'días equivalentes'
 
     def cerrar(símismo):
-        pass
+        Resultado.cerrar(símismo)
 
 
 class ResCrec(ResultadoRed):

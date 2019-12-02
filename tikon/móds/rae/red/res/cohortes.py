@@ -8,15 +8,17 @@ from .res import ResultadoRed
 
 class ResCohortes(ResultadoRed):
     nombre = RES_COHORTES
+    líms = (0, None)
 
     def __init__(símismo, sim, coords, vars_interés):
         símismo.n_coh = sim.exper.controles['n_cohortes']
         coords = {
-            EJE_ETAPA: [etp for etp in sim.etapas if etp.con_cohortes(exper=sim.simul_exper.exper)],
+            EJE_ETAPA: [str(etp) for etp in sim.etapas if etp.con_cohortes(exper=sim.simul_exper.exper)],
             EJE_COH: range(símismo.n_coh),
             'comp': ['pobs', 'edad'],
             **coords
         }
+        símismo.activa = len(coords[EJE_ETAPA]) > 0
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
         símismo.pobs = símismo.datos.loc[{'comp': 'pobs'}]
@@ -27,27 +29,32 @@ class ResCohortes(ResultadoRed):
         símismo.agregar(símismo.sim[RES_POBS].datos)
 
     def agregar(símismo, nuevos, edad=0):
+        if not símismo.activa:
+            return
 
         # Limpiar edades de cohortes
-        símismo.edad[:] = símismo.edad.where(símismo.pobs == 0, 0)
+        símismo.edad.variable[:] = símismo.edad.where(símismo.pobs == 0, 0)
 
-        etps_nuevos = [x for x in nuevos[EJE_ETAPA].values if x in símismo.datos[EJE_ETAPA]]
-        if not etps_nuevos:
+        etps_nuevos = símismo._índices_etp(nuevos[EJE_ETAPA].values)
+        if not etps_nuevos.size:
             return
-        índ = {EJE_ETAPA: etps_nuevos}
 
+        símismo._agregar(nuevos.variable, etps_nuevos, edad=edad)
+
+    def _agregar(símismo, nuevos, etps_nuevos, edad):
         # Las edades y poblaciones actuales de las etapas correspondientes
-        datos = símismo.datos.loc[índ]
-        edades = datos.loc[{'comp': 'edad'}]
-        pobs = datos.loc[{'comp': 'pobs'}]
+
+        edades = símismo.edad.variable[{EJE_ETAPA: etps_nuevos}]
+        pobs = símismo.pobs.variable[{EJE_ETAPA: etps_nuevos}]
 
         # Los cohortes que tienen la diferencia mínima con las nuevas edades.
         # Si hay más que un cohorte con la diferencia mínima, tomará el primero.
-        dif_edades = np.abs(edades - edad).where(pobs > 0, 0)
-        datos_dif_mín = datos[{EJE_COH: dif_edades.argmin(EJE_COH)}].drop_vars(EJE_COH)
+        if isinstance(edad, xr.DataArray):
+            edad = edad.variable
+        cohs = np.abs(edades - edad).where(pobs > 0, 0).argmin(EJE_COH)
 
-        eds_mín = datos_dif_mín.loc[{'comp': 'edad'}]
-        pobs_corresp = datos_dif_mín.loc[{'comp': 'pobs'}]
+        eds_mín = edades[{EJE_COH: cohs}]
+        pobs_corresp = pobs[{EJE_COH: cohs}]
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
         # cohorte si hay que combinarlo con un cohorte existente).
@@ -57,58 +64,69 @@ class ResCohortes(ResultadoRed):
         eds_prom = eds_mín * peso_ed_ya + edad * (1 - peso_ed_ya)
 
         # Guardar las poblaciones y edades actualizadas en los índices apropiados
-        símismo.datos = nuevos + pobs_corresp
-        símismo.datos = eds_prom
+        símismo.datos[{'comp': 0, EJE_ETAPA: etps_nuevos, EJE_COH: cohs}] = nuevos + pobs_corresp
+        símismo.datos[{'comp': 1, EJE_ETAPA: etps_nuevos, EJE_COH: cohs}] = eds_prom
 
     def quitar(símismo, para_quitar, recips=None):
-
-        etps_quitar = [x for x in para_quitar[EJE_ETAPA].values if x in símismo.datos[EJE_ETAPA]]
-        if not etps_quitar:
+        if not símismo.activa:
             return
-        índ = {EJE_ETAPA: etps_quitar}
 
-        pobs = símismo.pobs.loc[índ]
-        edades = símismo.edad.loc[índ]
+        etps_quitar = símismo._índices_etp(para_quitar[EJE_ETAPA].values)
+        if not etps_quitar.size:
+            return
+
+        pobs = símismo.pobs.variable[{EJE_ETAPA: etps_quitar}]
+
+        v_para_quitar = para_quitar.variable
 
         totales_pobs = pobs.sum(dim=EJE_COH)
-        quitar = np.floor(pobs * (para_quitar / totales_pobs))
+        quitar = np.floor(pobs * (v_para_quitar / totales_pobs))
         quitar = quitar.fillna(0)
 
         pobs = pobs - quitar
-        para_quitar = para_quitar - quitar.sum(dim=EJE_COH)
+        v_para_quitar = v_para_quitar - quitar.sum(dim=EJE_COH)
 
         cum_presente = (pobs > 0).cumsum(dim=EJE_COH)
-        quitar_res = xr.where((pobs > 0) & (cum_presente <= para_quitar), 1, 0)
+        quitar_res = xr.where((pobs > 0) & (cum_presente <= v_para_quitar), 1, 0)
 
-        símismo.datos = pobs - quitar_res
+        símismo.pobs.variable[{EJE_ETAPA: etps_quitar}] = pobs - quitar_res
 
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
             quitar += quitar_res
-            quitar[EJE_ETAPA] = recips
-            edades[EJE_ETAPA] = recips
+            edades = símismo.edad.variable[{EJE_ETAPA: etps_quitar}]
+
+            í_recips = símismo._índices_etp(recips)
 
             # Para cada cohorte...
             for í_coh in range(símismo.n_coh):
-                símismo.agregar(quitar[{EJE_COH: í_coh}], edad=edades[{EJE_COH: í_coh}])
+                símismo._agregar(quitar[{EJE_COH: í_coh}], etps_nuevos=í_recips, edad=edades[{EJE_COH: í_coh}])
 
     def ajustar(símismo, cambio):
+        if not símismo.activa:
+            return
         # Detectar dónde el cambio es positivo y dónde es negativo
         positivos = xr.where(cambio > 0, cambio, 0)
-        negativos = xr.where(cambio < 0, cambio, 0)
+        negativos = xr.where(cambio < 0, -cambio, 0)
 
         # Agregar los positivos...
-        símismo.agregar(positivos)
+        if positivos.sum():
+            símismo.agregar(positivos)
 
         # ...y quitar los negativos.
-        símismo.quitar(negativos)
+        if negativos.sum():
+            símismo.quitar(negativos)
 
     def trans(símismo, cambio_edad, dist):
 
+        etps_trans = símismo._índices_etp(cambio_edad[EJE_ETAPA].values)
+        if not etps_trans.size:
+            return
+
         # Las edades y las poblaciones actuales de las etapas que transicionan.
-        índ = cambio_edad.coords
-        edades = símismo.edad.loc[índ]
-        pobs = símismo.pobs.loc[índ]
+        datos = símismo.datos.variable[{EJE_ETAPA: etps_trans}]
+        edades = datos[{'comp': 1}]
+        pobs = datos[{'comp': 0}]
 
         # Calcular la probabilidad de transición. Cambiamos a numpy temporalmente
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
@@ -118,29 +136,39 @@ class ResCohortes(ResultadoRed):
         probs[np.isnan(probs)] = 1
 
         # Calcular el número que transicionan. Ya estamos con xarray de nuevo.
-        probs = xr.DataArray(probs, coords=pobs.coords, dims=dims)
+        probs = xr.Variable(dims, data=probs)
         n_cambian = (pobs * probs).round()
 
-        # Aplicar el cambio de edad.
-        símismo.datos += cambio_edad
-
-        # Quitar las etapas que transicionario.
-        símismo.datos -= n_cambian
+        # Aplicar el cambio de edad y quitar las etapas que transicionaron.
+        símismo.pobs.variable[{EJE_ETAPA: etps_trans}] -= n_cambian
+        símismo.edad.variable[{EJE_ETAPA: etps_trans}] += cambio_edad.variable
 
         # Devolver el total de transiciones por etapa
-        return n_cambian.sum(dim=EJE_COH).drop_vars('comp')
+        coords = {dim: símismo.datos.coords[dim] if dim != EJE_ETAPA else cambio_edad[EJE_ETAPA] for dim in pobs.dims}
+        return xr.DataArray(n_cambian, coords=coords).sum(dim=EJE_COH)
 
     def dens_dif(símismo, cambio_edad, dist):
 
         # Las edades y las poblaciones actuales de las etapas de interés.
-        índ = cambio_edad.coords
-        edades = símismo.edad.loc[índ]
-        pobs = símismo.pobs.loc[índ]
+        etps_dif = símismo._índices_etp(cambio_edad[EJE_ETAPA].values)
+        if not etps_dif.size:
+            return
+
+        # Las edades y las poblaciones actuales de las etapas que transicionan.
+        edades = símismo.edad[{EJE_ETAPA: etps_dif}]
+        pobs = símismo.pobs[{EJE_ETAPA: etps_dif}]
 
         # Calcular la densidad de probabilidad. Cambiamos a numpy temporalmented
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
         dens_cum_eds = dist.cdf(edades.transpose(*dims))
         dens_con_cambio = dist.cdf((edades + cambio_edad).transpose(*dims))
-        dens = xr.DataArray(dens_con_cambio - dens_cum_eds, coords=pobs.coords, dims=dims)
+        dens = xr.Variable(dims, data=dens_con_cambio - dens_cum_eds)
 
-        return (pobs * dens).sum(dim=EJE_COH).drop_vars('comp')  # Devolver en formato xarray
+        coords = {dim: símismo.datos.coords[dim] if dim != EJE_ETAPA else cambio_edad[EJE_ETAPA] for dim in pobs.dims}
+        return xr.DataArray(pobs * dens, coords=coords).sum(dim=EJE_COH)  # Devolver en formato xarray
+
+    def _índices_etp(símismo, etapas):
+        return np.array(
+            [np.argwhere(símismo.datos.indexes[EJE_ETAPA] == x)[0, 0] for x in etapas if
+             x in símismo.datos.indexes[EJE_ETAPA]]
+        )

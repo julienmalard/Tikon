@@ -10,6 +10,9 @@ class Tiempo(object):
         f_inic = _gen_fecha(f_inic)
         f_final = _gen_fecha(f_final)
 
+        if f_inic >= f_final:
+            raise ValueError('Fecha inicial {inic} superior a fecha final {fin}'.format(inic=f_inic, fin=f_final))
+
         símismo.paso = paso
         símismo._n_pasos = (f_final - f_inic).days // paso
 
@@ -36,16 +39,30 @@ class Tiempo(object):
         return len(símismo.eje)
 
 
-def gen_tiempo(t):
+def gen_tiempo(t, datos):
+    # Tiempos completamente especificados por el usuario tienen precedencia sobre datos
     if isinstance(t, Tiempo):
         return t
-    elif isinstance(t, int):
-        f_inic = date.today()
+
+    # Inferir tiempos de datos de observaciones
+    (f_inic, f_final), d_final = datos.fechas()
+    f_inic = f_inic or date.today()
+    if f_final:
+        f_final = max(f_final, f_inic + timedelta(days=d_final))
+
+    if isinstance(t, int):
         return Tiempo(f_inic=f_inic, f_final=f_inic + timedelta(days=t))
-    elif isinstance(t, str):
-        return Tiempo(f_inic=t, f_final=_gen_fecha(t) + timedelta(days=30))
+
+    d_final = d_final or 30
+    if t is not None:
+        f_inic = _gen_fecha(t)
+
+    if f_final:
+        f_final = max(f_final, f_inic + timedelta(days=d_final))
     else:
-        raise TypeError(type(t))
+        f_final = f_inic + timedelta(days=d_final)
+
+    return Tiempo(f_inic=f_inic, f_final=f_final)
 
 
 def _gen_fecha(f):
@@ -53,9 +70,12 @@ def _gen_fecha(f):
         return f
     if isinstance(f, str):
         return pd.Timestamp(
-            datetime.strptime('-'.join(உ(x, 'latin') for x in re.split(r'[-/\.]', f)), '%Y-%m-%d').date()
+            datetime.strptime('-'.join(உ(x, 'latin') for x in re.split(r'[-/.]', f)), '%Y-%m-%d').date()
         )
     if isinstance(f, date):
         return pd.Timestamp(f)
+
+    if isinstance(f, datetime):
+        return pd.Timestamp(f.date())
 
     raise TypeError(type(f))

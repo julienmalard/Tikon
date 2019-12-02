@@ -10,7 +10,7 @@ class Q(Parám):
 
 class Constante(EcuaciónOrg):
     """
-    Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da una decomposición
+    Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da un decaimiento
     exponencial.
     """
 

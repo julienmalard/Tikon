@@ -1,3 +1,5 @@
+from scipy.stats import norm, expon
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
 from .utils import días_grados
@@ -8,12 +10,14 @@ class PrMínDG(Parám):
     nombre = 'mín'
     líms = (None, None)
     unids = 'C'
+    apriori = APrioriDist(norm(20, 10))
 
 
 class PrDifDG(Parám):
     nombre = 'dif'
     líms = (0, None)
     unids = 'C'
+    apriori = APrioriDist(expon(scale=10))
 
 
 class PlantillaFuncDíasGrados(EcuaciónOrg):

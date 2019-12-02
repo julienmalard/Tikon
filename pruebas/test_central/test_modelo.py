@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from datetime import date
 
 import numpy as np
 import numpy.testing as npt
@@ -120,28 +121,6 @@ class PruebaModelo(unittest.TestCase):
             ).broadcast_like(datos_res)
         )
 
-    @staticmethod
-    def test_tiempo_de_obs():
-        exper = tiempo_obs.exper
-        modelo = tiempo_obs.modelo
-        f_inic, f_final = tiempo_obs.f_inic, tiempo_obs.f_final
-        res = modelo.simular('tiempo numérico', exper=exper)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, f_final, freq='D'))
-
-    @staticmethod
-    def test_tiempo_numérico_de_obs():
-        exper = tiempo_obs.exper
-        modelo = tiempo_obs.modelo
-        f_inic = tiempo_obs.f_inic
-        res = modelo.simular('tiempo numérico', exper=exper, t=10)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=11, freq='D'))
-
-    def test_no_obs_no_tiempo(símismo):
-        exper = tiempo_obs.exper_sin_obs
-        modelo = tiempo_obs.modelo
-        with símismo.assertRaises(ValueError):
-            modelo.simular('sin tiempo o obs', exper)
-
     def test_múltiples_exper(símismo):
         modelo = poner_valor.modelo
         expers = [Exper('exper', Parcela('parcela')), Exper('exper 2', Parcela('parcela'))]
@@ -182,6 +161,55 @@ class PruebaModelo(unittest.TestCase):
             modelo.simular(
                 'valor control', exper=exper, t=2, reps={'estoc': 4, 'no soy opción': 3}
             )
+
+
+class PruebaTiempo(unittest.TestCase):
+
+    @staticmethod
+    def test_tiempo_de_obs():
+        exper = tiempo_obs.exper
+        modelo = tiempo_obs.modelo
+        f_inic, f_final = tiempo_obs.f_inic, tiempo_obs.f_final
+        res = modelo.simular('tiempo numérico', exper=exper)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, f_final, freq='D'))
+
+    @staticmethod
+    def test_tiempo_numérico_de_obs():
+        exper = tiempo_obs.exper
+        modelo = tiempo_obs.modelo
+        f_inic = tiempo_obs.f_inic
+        res = modelo.simular('tiempo numérico', exper=exper, t=10)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=11, freq='D'))
+
+    @staticmethod
+    def test_obs_tiempo_numérico():
+        exper = tiempo_obs.exper_obs_numérico
+        modelo = tiempo_obs.modelo
+        f_inic = date.today()
+        res = modelo.simular('obs numérico', exper=exper)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
+
+    @staticmethod
+    def test_tiempo_fecha_de_obs_tiempo_numérico():
+        exper = tiempo_obs.exper_obs_numérico
+        modelo = tiempo_obs.modelo
+        f_inic = '2000-01-01'
+        res = modelo.simular('obs numérico', exper=exper, t=f_inic)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
+
+    @staticmethod
+    def test_tiempo_num_de_obs_tiempo_numérico():
+        exper = tiempo_obs.exper_obs_numérico
+        modelo = tiempo_obs.modelo
+        res = modelo.simular('obs numérico', exper=exper, t=10)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(date.today(), periods=11, freq='D'))
+
+    @staticmethod
+    def test_no_obs_no_tiempo():
+        exper = tiempo_obs.exper_sin_obs
+        modelo = tiempo_obs.modelo
+        res = modelo.simular('sin tiempo o obs', exper, vars_interés=True)['exper']['módulo']['res']
+        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(date.today(), periods=31, freq='D'))
 
 
 class PruebaGraficar(unittest.TestCase):

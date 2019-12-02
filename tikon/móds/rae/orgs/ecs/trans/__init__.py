@@ -1,1 +1,1 @@
-from ._categ import EcsTrans, ProbTrans, MultTrans
+from ._categ import EcsTrans, TransProb, TransDeter, MultTrans

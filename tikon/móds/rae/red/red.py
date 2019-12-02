@@ -30,18 +30,18 @@ class SimulRed(SimulMódulo):
 
         modelo = simul_exper.modelo
         símismo.recip_repr = [
-            etp.org[0] for etp in símismo.etapas
+            str(etp.org[0]) for etp in símismo.etapas
             if etp.categ_activa(
                 ECS_REPR, modelo, mód=mód, exper=exper
             )
         ]
         símismo.recip_trans = [
-            (etp, etp.siguiente()) for etp in símismo.etapas
+            (str(etp), str(etp.siguiente())) for etp in símismo.etapas
             if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper) and etp.siguiente()
         ]
 
         símismo.parás_hués = [
-            (etp, (mód.huéspedes(etp), mód.fantasmas(etp)))
+            (str(etp), ([str(x) for x in mód.huéspedes(etp)], [str(x) for x in mód.fantasmas(etp)]))
             for etp in símismo.etapas if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto'
         ]
 
@@ -51,7 +51,9 @@ class SimulRed(SimulMódulo):
             etp for etp in símismo.etapas if any(pr in símismo.etapas for pr in etp.presas() + etp.huéspedes())
         ]
         símismo.máscara_parás = xr.DataArray(
-            False, coords={EJE_ETAPA: depredadores, EJE_VÍCTIMA: símismo.víctimas}, dims=[EJE_ETAPA, EJE_VÍCTIMA]
+            False, coords={
+                EJE_ETAPA: [str(x) for x in depredadores], EJE_VÍCTIMA: [str(x) for x in símismo.víctimas]
+            }, dims=[EJE_ETAPA, EJE_VÍCTIMA]
         )
         for parás, hués_fants in símismo.parás_hués:
             símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
@@ -59,11 +61,11 @@ class SimulRed(SimulMódulo):
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def poner_valor(símismo, var, val, rel=False):
+        super().poner_valor(var, val, rel)
+
         if var == RES_POBS:
             cambio = val if rel else val - símismo[RES_POBS].datos
             símismo[RES_COHORTES].ajustar(cambio)
-
-        super().poner_valor(var, val, rel)
 
     def verificar_estado(símismo):
         super().verificar_estado()
@@ -71,17 +73,13 @@ class SimulRed(SimulMódulo):
         mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
         pobs = símismo[RES_POBS].datos
 
-        if np.any(np.not_equal(pobs.astype(int), pobs)):
+        if np.any(~np.equal(pobs.values, np.round(pobs.values))):
             raise ValueError('Población fraccional.\n{mnsg}'.format(mnsg=mnsg))
 
         if símismo[RES_COHORTES].datos.values.size:
-            pobs_coh = símismo[RES_COHORTES].datos['pobs']
-            if pobs_coh.min() < 0:
-                raise ValueError('Población de cohorte inferior a 0.\n{mnsg}'.format(mnsg=mnsg))
-            if np.any(np.not_equal(pobs_coh.astype(int), pobs_coh)):
+            pobs_coh = símismo[RES_COHORTES].datos[{'comp': 0}]
+            if np.any(~np.equal(pobs_coh, np.round(pobs_coh))):
                 raise ValueError('Población de cohorte fraccional.\n{mnsg}'.format(mnsg=mnsg))
-            if np.any(np.isnan(pobs_coh)):
-                raise ValueError('Población de cohorte "nan".\n{mnsg}'.format(mnsg=mnsg))
             if np.any(np.not_equal(pobs_coh.sum(dim=EJE_COH), pobs)):
                 raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))
 

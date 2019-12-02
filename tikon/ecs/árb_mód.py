@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter
@@ -55,11 +56,11 @@ class PlantillaRamaEc(object):
 
     def obt_valor_mód(símismo, sim, var, filtrar=True):
         if filtrar:
-            return sim.obt_valor(var).loc[{símismo.eje_cosos: símismo.cosos}]
+            return sim.obt_valor(var).loc[{símismo.eje_cosos: [str(x) for x in símismo.cosos]}]
         return sim.obt_valor(var)
 
     def poner_valor_res(símismo, sim, val, rel=False):
-        sim.poner_valor(símismo._nombre_res, val=val, rel=rel)
+        símismo.poner_valor_mód(sim, var=símismo._nombre_res, val=val, rel=rel)
 
     @classmethod
     def para_coso(cls, coso):
@@ -150,7 +151,7 @@ class SubcategEc(PlantillaRamaEc):
             res = ec.eval(paso, sim)
             if res is not None:
                 if not isinstance(res, xr.DataArray):
-                    res = xr.DataArray(res, coords={ec.eje_cosos: ec.cosos}, dims=[ec.eje_cosos])
+                    res = xr.DataArray(res, coords={ec.eje_cosos: [str(x) for x in ec.cosos]}, dims=[ec.eje_cosos])
                 símismo.poner_valor_res(sim, res)
 
         símismo.postproc(paso, sim=sim)
@@ -232,13 +233,13 @@ class Parám(PlantillaRamaEc):
         for coso, prm_cs in zip(símismo.cosos, símismo._prms_cosos):
             inters = símismo.obt_inter(modelo, mód=mód, coso=coso)
             if not inters:
-                vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=coso)
+                vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=str(coso))
             else:
                 vals = ValsParámCosoInter([
                     ValsParámCoso(
-                        tmñ=n_reps, prm_base=prm_cs, índice=inter, inter=inter.índices_inter
+                        tmñ=n_reps, prm_base=prm_cs, índice=str(inter), inter=inter.índices_inter
                     ) for inter in inters
-                ], eje=inters.eje, índice=coso)
+                ], eje=inters.eje, índice=str(coso))
 
             l_prms.append(vals)
         return MatrParám(l_prms, eje=mód.eje_coso, índice=None)

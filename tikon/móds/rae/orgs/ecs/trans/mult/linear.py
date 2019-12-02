@@ -1,3 +1,5 @@
+import scipy.stats as estad
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.utils import RES_TRANS
 
@@ -8,6 +10,7 @@ class A(Parám):
     nombre = 'a'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(estad.expon(scale=100))
 
 
 class Linear(EcuaciónOrg):

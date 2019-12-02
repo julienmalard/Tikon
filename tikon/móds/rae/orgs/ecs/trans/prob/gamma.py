@@ -1,4 +1,5 @@
 import scipy.stats as estad
+from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
 from ._plntll_ec import EcuaciónTransCoh
@@ -8,18 +9,21 @@ class U(Parám):
     nombre = 'u'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(estad.expon(scale=100))
 
 
 class A(Parám):
     nombre = 'a'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(estad.expon(scale=10))
 
 
 class F(Parám):
     nombre = 'f'
     líms = (0, None)
     unids = None
+    apriori = APrioriDist(estad.expon(scale=10))
 
 
 class Gamma(EcuaciónTransCoh):
