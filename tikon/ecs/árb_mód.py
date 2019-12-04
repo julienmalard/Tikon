@@ -1,7 +1,6 @@
-import numpy as np
 import xarray as xr
 
-from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter
+from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
 from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
 
 
@@ -19,7 +18,7 @@ class PlantillaRamaEc(object):
         for rm in símismo.cls_ramas:
             activos = list(zip(*[
                 (ec[rm.nombre], coso) for ec, coso in zip(ecs, cosos)
-                if ec[rm.nombre].activa(modelo=modelo, mód=mód, exper=exper)
+                if ec[rm.nombre].activa(modelo=modelo, mód=mód, exper=exper, coso=coso)
             ]))
             if activos:
                 ecs_activos, cosos_activos = activos
@@ -32,7 +31,7 @@ class PlantillaRamaEc(object):
         return {req for rm in símismo for req in (rm.requísitos(controles) or set())}
 
     def vals_paráms(símismo):
-        return [pr for rm in símismo for pr in rm.vals_paráms()]
+        return [pr for rm in símismo for pr in rm.vals_paráms() if pr]
 
     @classmethod
     def activa(cls, modelo, mód, exper):
@@ -55,9 +54,14 @@ class PlantillaRamaEc(object):
         return símismo.obt_valor_mód(sim, var=símismo._nombre_res, filtrar=filtrar)
 
     def obt_valor_mód(símismo, sim, var, filtrar=True):
-        if filtrar:
-            return sim.obt_valor(var).loc[{símismo.eje_cosos: [str(x) for x in símismo.cosos]}]
-        return sim.obt_valor(var)
+        val = sim.obt_valor(var)
+        if filtrar is not False:
+            filtrar = [str(x) for x in símismo.cosos] if filtrar is True else filtrar
+
+            crds = list(val.coords[símismo.eje_cosos].values)
+            índs = [crds.index(x) for x in filtrar]
+            return val[{símismo.eje_cosos: índs}]
+        return val
 
     def poner_valor_res(símismo, sim, val, rel=False):
         símismo.poner_valor_mód(sim, var=símismo._nombre_res, val=val, rel=rel)
@@ -66,9 +70,18 @@ class PlantillaRamaEc(object):
     def para_coso(cls, coso):
         return cls._cls_en_coso(cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
 
-    @staticmethod
-    def poner_valor_mód(sim, var, val, rel=False):
-        sim.poner_valor(var, val, rel=rel)
+    def poner_valor_mód(símismo, sim, var, val, rel=False):
+        if isinstance(val, xr.DataArray):
+            índs = val.coords[símismo.eje_cosos].values
+            datos = sim[var].datos
+            transpsd = val.transpose(*sorted(val.dims, key=datos.dims.index))
+            forma = tuple([transpsd.shape[transpsd.dims.index(d)] if d in transpsd.dims else 1 for d in datos.dims])
+            matr = transpsd.values.reshape(forma)
+        else:
+            matr = val
+            índs = [str(x) for x in símismo.cosos]
+
+        sim[var].poner_valor_matr(matr=matr, eje=símismo.eje_cosos, índs=índs, rel=rel)
 
     @staticmethod
     def obt_valor_extern(sim, var, mód=None):
@@ -150,9 +163,7 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso, sim)
             if res is not None:
-                if not isinstance(res, xr.DataArray):
-                    res = xr.DataArray(res, coords={ec.eje_cosos: [str(x) for x in ec.cosos]}, dims=[ec.eje_cosos])
-                símismo.poner_valor_res(sim, res)
+                ec.poner_valor_res(sim, val=res)
 
         símismo.postproc(paso, sim=sim)
 
@@ -238,7 +249,8 @@ class Parám(PlantillaRamaEc):
                 vals = ValsParámCosoInter([
                     ValsParámCoso(
                         tmñ=n_reps, prm_base=prm_cs, índice=str(inter), inter=inter.índices_inter
-                    ) for inter in inters
+                    ) if inter in inters.itemas else ValsParámCosoVacíos(tmñ=n_reps, índice=str(inter))
+                    for inter in inters
                 ], eje=inters.eje, índice=str(coso))
 
             l_prms.append(vals)

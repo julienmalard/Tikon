@@ -1,6 +1,11 @@
 from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MRTE, ECS_MOV, ECS_REPR, ECS_TRANS
-from tikon.móds.rae.orgs.insectos.ins import Insecto
-from tikon.móds.rae.orgs.organismo import Etapa
+
+from .ins import Insecto, JUVENIL
+from ..organismo import Etapa
+
+
+class EtapaJuvenilParasitoide(Etapa):
+    ecs_activas = False
 
 
 class Parasitoide(Insecto):
@@ -30,7 +35,7 @@ class Parasitoide(Insecto):
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear', 'Deter': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
         }
@@ -40,7 +45,7 @@ class Parasitoide(Insecto):
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada', 'Deter': 'Nada'},
             ECS_REPR: {'Prob': 'Nada'},
             ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         }
@@ -75,6 +80,11 @@ class Parasitoide(Insecto):
             huésped=huésped, etp_símismo=etp_símismo, etps_entra=etps_entra, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
 
+    def _gen_etapa(símismo, etp):
+        if etp == JUVENIL:
+            return EtapaJuvenilParasitoide(etp, símismo)
+        return super()._gen_etapa(etp)
+
 
 class Esfécido(Insecto):
     """
@@ -90,7 +100,7 @@ class Esfécido(Insecto):
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada', 'Deter': 'Nada'},
             ECS_REPR: {'Prob': 'Depredación'},
             ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
         },
@@ -100,7 +110,7 @@ class Esfécido(Insecto):
                 ECS_DEPR: {'Ecuación': 'Nada'},  # La comida 3 tiempos está incluida
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
-                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada', 'Deter': 'Nada'},
                 ECS_REPR: {'Prob': 'Nada'},
                 ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}  # Juveniles de esfécidos no se mueven
 

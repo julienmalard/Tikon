@@ -1,5 +1,6 @@
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+
+from .._plntll_ec import EcuaciónTrans
 
 
 class Q(Parám):
@@ -8,7 +9,7 @@ class Q(Parám):
     unids = None
 
 
-class Constante(EcuaciónOrg):
+class Constante(EcuaciónTrans):
     """
     Transiciones en proporción al tamaño de la población. Sin crecimiento, esto da un decaimiento
     exponencial.

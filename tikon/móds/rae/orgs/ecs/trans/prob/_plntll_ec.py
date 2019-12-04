@@ -1,9 +1,9 @@
-from tikon.móds.rae.utils import RES_POBS
+from .._plntll_ec import EcuaciónTrans
 
 from ..._ecs_coh import EcuaciónConCohorte
 
 
-class EcuaciónTransCoh(EcuaciónConCohorte):
+class EcuaciónTransCoh(EcuaciónTrans, EcuaciónConCohorte):
 
     def eval(símismo, paso, sim):
         return símismo.trans_cohortes(sim, símismo.cambio_edad(sim), dist=símismo.dist)

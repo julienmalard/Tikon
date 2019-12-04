@@ -1,8 +1,9 @@
 from scipy.stats import expon
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
 from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA
+
+from ._plntll_ec import EcuaciónRepr
 
 
 class N(Parám):
@@ -13,7 +14,7 @@ class N(Parám):
     apriori = APrioriDist(expon(scale=10))
 
 
-class Depred(EcuaciónOrg):
+class Depred(EcuaciónRepr):
     """
     Reproducciones en función de la depredación (útil para avispas esfécidas)
     """

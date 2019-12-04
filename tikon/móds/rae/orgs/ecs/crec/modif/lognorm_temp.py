@@ -1,6 +1,7 @@
 import numpy as np
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+
+from ._plntll_ec import ModCrec
 
 
 class T(Parám):
@@ -21,7 +22,7 @@ class R(Parám):
     unids = None
 
 
-class LogNormTemp(EcuaciónOrg):
+class LogNormTemp(ModCrec):
     nombre = 'Log Normal Temperatura'
     cls_ramas = [T, P, R]
 

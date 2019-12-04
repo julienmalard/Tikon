@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import uniform
 from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDens, APrioriDist
 from tikon.ecs.paráms import ValsParámCoso, ValsParámCosoInter, MatrParám
@@ -42,14 +43,24 @@ class ParámsExperVar(PlantillaParámsExper):
 
         símismo.prm = ParámInic(símismo.datos.prm, exper=exper, unids=sim.unids, líms=sim.líms, apriori=apriori)
         índs = list(sim.iter_índs(datos=sim.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]))
-        coords = {dim: sim.datos[dim].values for dim in sim.datos.dims if
-                  dim not in [EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]}
+        coords = {
+            dim: sim.datos[dim].values for dim in sim.datos.dims if dim not in [EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]
+        }
 
         for índ in índs:
             l_índ = list(índ.values())
             apriori_inic = símismo.datos.prm.apriori(inter=l_índ, heredar=True)
             if apriori_inic:
                 símismo.prm.espec_apriori(APrioriDist(apriori_inic), inter=l_índ)
+            # elif símismo.datos.obs:
+            #     try:
+            #         o_ = símismo.datos.obs[0].datos.copy()
+            #         o_['etapa'] = [str(x.item()) for x in o_['etapa']]
+            #         dat = o_.loc[índ][{EJE_TIEMPO: 0}].item()
+            #         símismo.prm.espec_apriori(APrioriDist(uniform(dat, 0)), inter=l_índ)
+            #     except KeyError:
+            #         pass
+
         símismo.prm.de_dic(símismo.datos.prm.a_dic())
 
         def _gen_matr_prm(crds, índs=None, inter=None):

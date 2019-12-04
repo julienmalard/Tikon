@@ -4,6 +4,7 @@ from tikon.utils import guardar_json, leer_json
 
 
 class Coso(object):
+    ecs_activas = True
 
     def __init__(símismo, nombre, ecs):
         símismo.nombre = nombre
@@ -25,7 +26,7 @@ class Coso(object):
         símismo.ecs.desactivar_ec(categ=categ, subcateg=subcateg)
 
     def categ_activa(símismo, categ, modelo, mód, exper):
-        return símismo.ecs[categ].activa(modelo, mód, exper)
+        return símismo.ecs[categ].activa(modelo, mód, exper, coso=símismo)
 
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, inter=índs)

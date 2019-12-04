@@ -4,17 +4,26 @@ from tikon.móds.rae.utils import RES_MOV
 from tikon.utils import EJE_DEST
 
 
-class PlantillaEcDifusión(EcuaciónOrg):
+class EcuaciónMov(EcuaciónOrg):
     _nombre_res = RES_MOV
 
     def eval(símismo, paso, sim):
-        d = símismo.cf['d']
+        raise NotImplementedError
+
+    @property
+    def nombre(símismo):
+        raise NotImplementedError
+
+
+class PlantillaEcDifusión(EcuaciónMov):
+
+    def eval(símismo, paso, sim):
         pobs = símismo.pobs(sim)
 
         atr = símismo.calc_atr(paso, sim)
 
         dsnt = símismo.obt_valor_res(sim)
-        atr_ajust = (atr * d / dsnt)  # Atracción ajustada por distancia. 1 = no atracción neta
+        atr_ajust = (atr / dsnt)  # Atracción ajustada por distancia. 1 = no atracción neta
         atr_ajust = atr_ajust.where(np.isfinite(atr_ajust), 1)
         probs = atr_ajust / atr_ajust.sum(dim=EJE_DEST)  # Normalizar probabilidades para sumar a 1
 

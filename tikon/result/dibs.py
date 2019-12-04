@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from pandas.plotting import register_matplotlib_converters
@@ -14,7 +15,7 @@ def graficar_res(
         etiq_x=None, etiq_y=None
 ):
     obs = obs or []
-    etiq_x = 'fecha' if etiq_x is None else etiq_x
+    etiq_x = 'Fecha' if etiq_x is None else etiq_x
     etiq_y = '{var} ({unids})'.format(var=simulado.name, unids=simulado.attrs['unids']) if etiq_y is None else etiq_y
     if not os.path.isdir(directorio):
         os.makedirs(directorio)
@@ -33,8 +34,14 @@ def graficar_res(
 
     # Si hay observaciones, mostrarlas también
     for o_ in obs:
-        ejes.plot(o_[EJE_TIEMPO], o_, 'o', color=color, label='Observaciones')
-        ejes.plot(o_[EJE_TIEMPO], o_, lw=1, color='#000000')
+        e_tiempo = o_[EJE_TIEMPO]
+
+        if not np.issubdtype(e_tiempo, np.datetime64):
+            e_tiempo = pd.TimedeltaIndex(e_tiempo.values, unit='D') + x[0]
+        másc = (x[0] <= e_tiempo) & (e_tiempo <= x[-1])
+
+        ejes.plot(e_tiempo[másc], o_[másc], 'o', color='#000000', label='Observaciones')
+        ejes.plot(e_tiempo[másc], o_[másc], lw=1, color='#000000')
 
     # Incluir el incertidumbre si necesario
     if incert is None:

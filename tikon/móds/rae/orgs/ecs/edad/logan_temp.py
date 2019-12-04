@@ -3,7 +3,7 @@ import scipy.stats as estad
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
-from .._plntll import EcuaciónOrg
+from ._plntll_ec import EcuaciónEdad
 
 
 class PrRhoLT(Parám):
@@ -25,7 +25,7 @@ class PrTLetalLT(Parám):
     apriori = APrioriDist(estad.norm(20, 10))
 
 
-class FuncLoganTemperatura(EcuaciónOrg):
+class FuncLoganTemperatura(EcuaciónEdad):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura Logan:
 

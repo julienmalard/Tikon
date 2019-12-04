@@ -1,6 +1,6 @@
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+from ._plntll_ec import ModCrec
 
 
 class R(Parám):
@@ -10,7 +10,7 @@ class R(Parám):
     apriori = APrioriDens((0, 0.1), 0.9)
 
 
-class Ninguna(EcuaciónOrg):
+class Ninguna(ModCrec):
     nombre = 'Ninguna'
     cls_ramas = [R]
 

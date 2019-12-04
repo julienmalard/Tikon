@@ -2,7 +2,7 @@ import unittest
 
 from pruebas.test_móds.test_rae.test_ecs.utils import gen_modelo_reqs_clima
 from tikon.central import Parcela, Exper, Tiempo
-from tikon.móds.rae.orgs.ecs.crec.ec import EcuaciónCrec
+from tikon.móds.rae.orgs.ecs.crec.ec import EcCrec
 from tikon.móds.rae.orgs.ecs.crec.modif import ModifCrec
 from tikon.móds.rae.orgs.ecs.utils import ECS_CREC
 from tikon.móds.rae.orgs.insectos import Sencillo
@@ -16,7 +16,7 @@ class PruebaCrec(unittest.TestCase):
         insecto = Sencillo('sencillo')
         f_inic, f_final = '2000-01-01', '2000-01-10'
         t = Tiempo(f_inic, f_final)
-        for ec in EcuaciónCrec.cls_ramas:
+        for ec in EcCrec.cls_ramas:
             with símismo.subTest(ec.nombre):
                 insecto.activar_ec(ECS_CREC, subcateg='Ecuación', ec=ec.nombre)
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE(insecto), t=t)

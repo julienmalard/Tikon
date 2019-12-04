@@ -2,12 +2,13 @@ from itertools import product
 
 import numpy as np
 import xarray as xr
-from .coso import Coso
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
 from tikon.result.dibs import graficar_res
 from tikon.result.valid import ValidÍnds, ValidRes
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
+
+from .coso import Coso
 
 
 class Resultado(PlantillaSimul):
@@ -40,6 +41,8 @@ class Resultado(PlantillaSimul):
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}].drop_vars(EJE_TIEMPO)
 
         símismo._textificar_ejes()
+        símismo.coords = {ll: list(v.values) for ll, v in símismo._datos.coords.items()}
+
         super().__init__(símismo.nombre, subs=[])
 
     @property
@@ -63,17 +66,30 @@ class Resultado(PlantillaSimul):
                 if rel:
                     símismo._datos.variable[:] += val  # Más rápido que _datos o _datos[:]
                 else:
-                    símismo._datos.variable[:] = val   # Más rápido que  _datos[:]
+                    símismo._datos.variable[:] = val  # Más rápido que  _datos[:]
         else:
             if rel:
-                símismo._datos += val
+                símismo._datos.values += val
             else:
-                símismo._datos.variable[:] = val
+                símismo._datos.values[:] = val
+
+    def poner_valor_matr(símismo, matr, eje, índs, rel=False):
+        rbnd = símismo._rebanar(eje, índs=índs)
+
+        if isinstance(matr, np.ndarray):
+            forma = tuple([*matr.shape, *[1] * (len(símismo.datos.values.shape) - len(matr.shape))])
+            val = matr.reshape(forma)
+        else:
+            val = matr
+        if rel:
+            símismo.datos.values[rbnd] += val
+        else:
+            símismo.datos.values[rbnd] = val
 
     def iniciar(símismo):
         símismo._textificar_ejes()
 
-        símismo.datos_t[:] = 0
+        símismo.datos_t.values[:] = 0
         símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}].drop_vars(EJE_TIEMPO)
 
         if símismo.inicializable:
@@ -83,7 +99,7 @@ class Resultado(PlantillaSimul):
     def incrementar(símismo, paso, f):
         if símismo.t is not None:
             símismo._datos = símismo.datos_t[{EJE_TIEMPO: símismo.t.i}].drop_vars(EJE_TIEMPO)
-            símismo._datos[:] = símismo.datos_t[{EJE_TIEMPO: símismo.t.i - 1}]
+            símismo._datos.values[:] = símismo.datos_t[{EJE_TIEMPO: símismo.t.i - 1}].values
 
     def cerrar(símismo):
         for dim, crds in símismo._corresp_coords.items():
@@ -125,7 +141,7 @@ class Resultado(PlantillaSimul):
         pesos = []
         for obs in símismo.obs:
             resultados = obs.proc_res(símismo.datos_t)
-            res_corresp = resultados.interp_like(obs.datos).dropna(EJE_TIEMPO)
+            res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(EJE_TIEMPO)
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
@@ -133,9 +149,8 @@ class Resultado(PlantillaSimul):
 
                 l_proc.append(proc.calc(obs_índs, res_corresp.loc[índs]))
                 pesos.append(proc.pesos(obs_índs))
-
+        if l_proc:
             return proc.combin(np.array(l_proc), pesos=pesos), proc.combin_pesos(pesos)
-
         return 0, 0
 
     def graficar(símismo, directorio='', argsll=None):
@@ -144,7 +159,13 @@ class Resultado(PlantillaSimul):
             for índs in símismo.iter_índs(símismo.datos_t, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
                 título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
 
-                obs_índs = [o_.datos.loc[índs] for o_ in símismo.obs]
+                obs_índs = []
+                for o_ in símismo.obs:
+                    try:
+                        obs_índs.append(o_.datos.loc[índs])
+                    except KeyError:
+                        pass
+
                 graficar_res(
                     título, directorio,
                     simulado=símismo.datos_t.loc[índs], obs=obs_índs, **argsll
@@ -169,8 +190,12 @@ class Resultado(PlantillaSimul):
 
     def _textificar_ejes(símismo):
         for dim, crds in símismo._corresp_coords.items():
-            símismo._datos[dim] = [str(x) for x in símismo._datos[dim].values]
-            símismo.datos_t[dim] = [str(x) for x in símismo.datos_t[dim].values]
+            símismo._datos[dim] = [str(x) for x in símismo._datos.coords[dim].values]
+            símismo.datos_t[dim] = [str(x) for x in símismo.datos_t.coords[dim].values]
+
+    def _rebanar(símismo, eje, índs):
+        índs = [símismo.coords[eje].index(í) for í in índs]
+        return tuple([slice(None)] * símismo.datos.dims.index(eje) + [índs])
 
     @property
     def nombre(símismo):

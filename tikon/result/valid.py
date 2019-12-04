@@ -24,9 +24,10 @@ class ValidRes(PlantillaValid):
     def __init__(símismo, valids, proc):
         símismo.valids = valids
         criterios = {
-            cr: proc.combin(vals=[v[cr] for v in valids], pesos=[v.peso for v in valids]) for cr in proc.criterios
+            cr: proc.combin(vals=[v[cr] for v in valids], pesos=[v.peso for v in valids]) if valids else None
+            for cr in proc.criterios
         }
-        peso = proc.combin_pesos([v.peso for v in valids])
+        peso = proc.combin_pesos([v.peso for v in valids]) if valids else 0
         super().__init__(criterios, peso)
 
 
@@ -34,7 +35,7 @@ class Valid(PlantillaValid):
     def __init__(símismo, ramas, proc):
         criterios = {
             cr: proc.combin(
-                vals=[v[cr] for v in ramas.values()], pesos=[v.peso for v in ramas.values()]
+                vals=[v[cr] for v in ramas.values() if v.peso], pesos=[v.peso for v in ramas.values() if v.peso]
             ) for cr in proc.criterios
         }
         peso = proc.combin_pesos([v.peso for v in ramas.values()])

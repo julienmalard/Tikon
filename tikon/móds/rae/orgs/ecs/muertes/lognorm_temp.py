@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.stats import expon
 from tikon.ecs.aprioris import APrioriDist
-
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+
+from ._plntll_ec import EcuaciónMuertes
 
 
 class T(Parám):
@@ -26,7 +26,7 @@ class K(Parám):
     unids = None
 
 
-class LogNormTemp(EcuaciónOrg):
+class LogNormTemp(EcuaciónMuertes):
     """
     Muertes dependientes en la temperatura, calculadas con la ecuación mencionada en [1]_.
 

@@ -2,8 +2,8 @@ from scipy.stats import norm, expon
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
+from ._plntll_ec import EcuaciónEdad
 from .utils import días_grados
-from .._plntll import EcuaciónOrg
 
 
 class PrMínDG(Parám):
@@ -20,7 +20,7 @@ class PrDifDG(Parám):
     apriori = APrioriDist(expon(scale=10))
 
 
-class PlantillaFuncDíasGrados(EcuaciónOrg):
+class PlantillaFuncDíasGrados(EcuaciónEdad):
     """
     Edad calculada por días grados.
     """
