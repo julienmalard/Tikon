@@ -25,6 +25,10 @@ class EcuaciónConCohorte(EcuaciónOrg):
         return sim[RES_COHORTES].dens_dif(cambio_edad, dist=dist)
 
     @property
+    def _nombre_res(símismo):
+        raise NotImplementedError
+
+    @property
     def _cls_dist(símismo):
         raise NotImplementedError
 

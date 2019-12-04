@@ -1,5 +1,5 @@
 from tikon.ecs.árb_mód import Ecuación, SubcategEc, CategEc
-from tikon.móds.rae.utils import EJE_ETAPA, RES_POBS
+from tikon.móds.rae.utils import EJE_ETAPA, RES_POBS, RES_COHORTES
 
 
 class CategEcOrg(CategEc):
@@ -10,6 +10,7 @@ class CategEcOrg(CategEc):
 
     def ajust_pobs(símismo, sim, pobs):
         símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs, rel=True)
+        sim[RES_COHORTES].ajustar(pobs)
 
     @property
     def nombre(símismo):
@@ -24,6 +25,7 @@ class SubcategEcOrg(SubcategEc):
 
     def ajust_pobs(símismo, sim, pobs):
         símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs, rel=True)
+        sim[RES_COHORTES].ajustar(pobs)
 
     @property
     def nombre(símismo):
@@ -41,4 +43,8 @@ class EcuaciónOrg(Ecuación):
 
     @property
     def nombre(símismo):
+        raise NotImplementedError
+
+    @property
+    def _nombre_res(símismo):
         raise NotImplementedError

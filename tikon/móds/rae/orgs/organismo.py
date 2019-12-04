@@ -19,7 +19,7 @@ class Organismo(Coso):
 
         if isinstance(etapas, Etapa):
             etapas = [etapas]
-        etapas = [e if isinstance(e, Etapa) else Etapa(e, símismo) for e in etapas]
+        etapas = [e if isinstance(e, Etapa) else símismo._gen_etapa(e) for e in etapas]
 
         símismo._etapas = etapas
         símismo._rels_presas = []  # type: List[RelaciónPresa]
@@ -128,6 +128,9 @@ class Organismo(Coso):
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
 
+    def _gen_etapa(símismo, etp):
+        return Etapa(etp, símismo)
+
     def _ecs_a_json(símismo):
         return {etp.nombre: etp._ecs_a_json() for etp in símismo}
 
@@ -191,6 +194,9 @@ class Etapa(Coso):
         return str(símismo.org) + ' : ' + símismo.nombre
 
 
+categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE]
+
+
 class EtapaFantasma(Etapa):
     def __init__(símismo, org, etp, org_hués, etp_hués, sig):
         nombre = f'{etp.nombre} en {etp_hués.org}, {etp_hués.nombre}'
@@ -208,7 +214,7 @@ class EtapaFantasma(Etapa):
         if isinstance(símismo.sig, EtapaFantasma):
             categs_de_prs = []
         else:
-            categs_de_prs = [ECS_TRANS, ECS_EDAD, ECS_MRTE]
+            categs_de_prs = categs_parás
         categs_de_hués = [str(ctg) for ctg in símismo.ecs if str(ctg) not in categs_de_prs]
 
         for ctg in categs_de_hués:

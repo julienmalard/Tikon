@@ -3,7 +3,7 @@ from scipy.stats import norm, expon
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
-from .._plntll import EcuaciónOrg
+from ._plntll_ec import EcuaciónEdad
 
 
 class PrTDevMínBNLT(Parám):
@@ -27,7 +27,7 @@ class PrMBNLT(Parám):
     apriori = APrioriDist(expon(scale=10))
 
 
-class FuncBrièreNoLinearTemperatura(EcuaciónOrg):
+class FuncBrièreNoLinearTemperatura(EcuaciónEdad):
     """
     Edad calculada con la taza de desarrollo de la ecuación de temperatura no linear de Brière.
 

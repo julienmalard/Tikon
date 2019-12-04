@@ -11,7 +11,7 @@ from .días import FuncDías
 from .logan_temp import FuncLoganTemperatura
 
 
-class EcuaciónEdad(SubcategEcOrg):
+class EcEdad(SubcategEcOrg):
     nombre = 'Ecuación'
     cls_ramas = [
         FuncDías,
@@ -25,4 +25,4 @@ class EcuaciónEdad(SubcategEcOrg):
 
 class EcsEdad(CategEcOrg):
     nombre = ECS_EDAD
-    cls_ramas = [EcuaciónEdad]
+    cls_ramas = [EcEdad]

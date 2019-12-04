@@ -22,8 +22,8 @@ class EcsEstoc(CategEcOrg):
         pobs = símismo.pobs(sim)
 
         # Verificar que no quitemos más que existen
-        estoc = estoc.where(-estoc < pobs, -pobs)
+        máscara = [-estoc.values > pobs.values]
+        estoc.values[máscara] = -pobs.values[máscara]
 
         símismo.poner_valor_res(sim, estoc)
         símismo.ajust_pobs(sim, estoc)
-        pass

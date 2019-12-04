@@ -1,7 +1,7 @@
-from .._plntll import EcuaciónOrg
+from ._plntll_ec import EcuaciónEdad
 
 
-class FuncDías(EcuaciónOrg):
+class FuncDías(EcuaciónEdad):
     """
     Edad por día.
     """

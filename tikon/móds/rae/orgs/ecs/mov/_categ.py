@@ -14,7 +14,8 @@ class EcsMov(CategEcOrg):
     _nombre_res = RES_MOV
 
     def postproc(símismo, paso, sim):
-        mov = np.floor(símismo.obt_valor_res(sim))
+        mov = símismo.obt_valor_res(sim)
+        mov.values[:] = np.floor(mov.values)
         símismo.poner_valor_res(sim, mov)
 
         emigr = mov.sum(dim=EJE_DEST)

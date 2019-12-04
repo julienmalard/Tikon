@@ -34,13 +34,11 @@ class ResultadoRed(Resultado):
 
                 # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
                 if etp.etp_espejo in símismo.datos_t[eje]:
-                    val[eje] = etp.etp_espejo
-                    símismo.datos_t += val
+                    símismo.datos_t.loc[{eje: etp.etp_espejo}] += val
 
                 # Agregamos etapas fantasmas a las etapas originales de los huéspedes
                 if etp.etp_hués in símismo.datos_t[eje]:
-                    val[eje] = etp.etp_hués
-                    símismo.datos_t += val
+                    símismo.datos_t.loc[{eje: etp.etp_hués}] += val
 
 
 class ResPobs(ResultadoRed):

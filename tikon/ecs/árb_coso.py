@@ -11,9 +11,10 @@ class PlantillaRamaEcCoso(dict):
         símismo.pariente = pariente
         super().__init__(**{str(r): r for r in ramas})
 
-    def activa(símismo, modelo, mód, exper):
-        return any(símismo[rm].activa(modelo, mód, exper) for rm in símismo) \
-               and símismo.pariente.activa(modelo, mód, exper)
+    def activa(símismo, modelo, mód, exper, coso):
+        return coso.ecs_activas \
+               and símismo.pariente.activa(modelo, mód, exper) \
+               and any(símismo[rm].activa(modelo, mód, exper, coso) for rm in símismo)
 
     def de_dic(símismo, dic):
         for rm in símismo:
@@ -87,8 +88,8 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
 
         símismo._activada.activada = True
 
-    def activa(símismo, modelo, mód, exper):
-        return símismo.ec_activa().activa(modelo, mód, exper)
+    def activa(símismo, modelo, mód, exper, coso):
+        return símismo.ec_activa().activa(modelo, mód, exper, coso)
 
     def activar_ec(símismo, ec):
         try:
@@ -114,7 +115,7 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         super().__init__(pariente, ramas, coso)
         símismo.activada = False
 
-    def activa(símismo, modelo, mód, exper):
+    def activa(símismo, modelo, mód, exper, coso):
         if símismo.activada and símismo.pariente.activa(modelo, mód, exper):
             inters = símismo.inter()
             if inters:
@@ -139,7 +140,7 @@ class ParámCoso(PlantillaRamaEcCoso):
 
         super().__init__(pariente, ramas=[], coso=coso)
 
-    def activa(símismo, modelo, mód, exper):
+    def activa(símismo, modelo, mód, exper, coso):
         return True  # Parámetros de una ecuación activa siempre están activados.
 
     def agregar_calib(símismo, id_cal, dist, inter=None):

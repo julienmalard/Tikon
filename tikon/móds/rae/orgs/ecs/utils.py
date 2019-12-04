@@ -31,11 +31,12 @@ def probs_conj(datos, dim, pesos=1, máx=1):
     """
 
     ajustados = datos / pesos
-    ratio = (ajustados / máx).fillna(0)
+    ratio = (ajustados / máx)
+    ratio.values[np.isnan(ratio.values)] = 0
 
     ajustados = ajustados * (1 - (1 - ratio).prod(dim=dim)) / ratio.sum(dim=dim)
 
-    ajustados = ajustados.fillna(0)
+    ajustados.values[np.isnan(ajustados.values)] = 0
 
     suma = ajustados.sum(dim=dim)
     extra = xr.where(suma > máx, suma - máx, 0)
@@ -43,3 +44,4 @@ def probs_conj(datos, dim, pesos=1, máx=1):
     ajustados *= 1 - (extra / suma)
 
     return ajustados * pesos
+

@@ -7,8 +7,12 @@ from எண்ணிக்கை import உரைக்கு as உ
 
 class Tiempo(object):
     def __init__(símismo, f_inic, f_final, paso=1):
+
         f_inic = _gen_fecha(f_inic)
-        f_final = _gen_fecha(f_final)
+        if isinstance(f_final, int):
+            f_final = f_inic + timedelta(days=f_final)
+        else:
+            f_final = _gen_fecha(f_final)
 
         if f_inic >= f_final:
             raise ValueError('Fecha inicial {inic} superior a fecha final {fin}'.format(inic=f_inic, fin=f_final))

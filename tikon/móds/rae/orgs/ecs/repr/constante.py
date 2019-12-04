@@ -2,7 +2,7 @@ import scipy.stats as estad
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 
-from .._plntll import EcuaciónOrg
+from ._plntll_ec import EcuaciónRepr
 
 
 class A(Parám):
@@ -12,7 +12,7 @@ class A(Parám):
     apriori = APrioriDist(estad.expon(scale=10))
 
 
-class Constante(EcuaciónOrg):
+class Constante(EcuaciónRepr):
     """
     Reproducciones en proporción al tamaño de la población.
     """

@@ -53,7 +53,7 @@ class ValsParámCoso(MatrParám):
     def __init__(símismo, tmñ, prm_base, índice, inter=None):
         símismo.tmñ = tmñ
         símismo.prm = prm_base
-        símismo._inter = inter
+        símismo.inter = inter
 
         super().__init__(subs=[], eje=EJE_PARÁMS, índice=índice)
 
@@ -67,10 +67,10 @@ class ValsParámCoso(MatrParám):
 
     @val.setter
     def val(símismo, val):
-        símismo._datos[:] = val
+        símismo._datos.values[:] = val
 
     def dists_disp(símismo, heredar):
-        return símismo.prm.dists_disp(símismo._inter, heredar)
+        return símismo.prm.dists_disp(símismo.inter, heredar)
 
     def dist_base(símismo):
         apriori_auto = símismo.prm.apriori_auto
@@ -82,7 +82,7 @@ class ValsParámCoso(MatrParám):
         símismo.val = símismo.dist_base().obt_vals(símismo.tmñ)
 
     def apriori(símismo, heredar=True):
-        return símismo.prm.apriori(inter=símismo._inter, heredar=heredar)
+        return símismo.prm.apriori(inter=símismo.inter, heredar=heredar)
 
     def llenar_de_apriori(símismo, heredar=True):
         símismo.val = símismo.apriori(heredar).obt_vals(símismo.tmñ)
@@ -107,7 +107,15 @@ class ValsParámCoso(MatrParám):
         yield símismo
 
     def guardar_calibs(símismo, dist, nombre):
-        símismo.prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo._inter)
+        símismo.prm.agregar_calib(id_cal=nombre, dist=dist, inter=símismo.inter)
+
+
+class ValsParámCosoVacíos(ValsParámCoso):
+    def __init__(símismo, tmñ, índice):
+        super().__init__(tmñ, prm_base=None, índice=índice, inter=None)
+
+    def vals_paráms(símismo):
+        yield None
 
 
 class Inter(object):

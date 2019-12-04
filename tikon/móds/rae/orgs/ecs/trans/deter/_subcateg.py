@@ -16,7 +16,7 @@ class TransDeter(SubcategEcOrg):
     _nombre_res = RES_TRANS
 
     def postproc(símismo, paso, sim):
-        trans = np.floor(símismo.obt_valor_res(sim))  # Redondear las transiciones calculadas
-
+        trans = símismo.obt_valor_res(sim)
+        trans.values[:] = np.floor(trans.values)  # Redondear las transiciones calculadas
         # Quitar los organismos que transicionaron
         símismo.ajust_pobs(sim, -trans)

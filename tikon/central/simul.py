@@ -30,7 +30,7 @@ class PlantillaSimul(object):
             símismo[s].cerrar()
 
     def vals_paráms(símismo):
-        return _únicos([prm for s in símismo for prm in símismo[s].vals_paráms()])
+        return [prm for s in símismo for prm in símismo[s].vals_paráms()]
 
     def verificar_estado(símismo):
         for s in símismo:
@@ -253,11 +253,3 @@ class SimulMódulo(PlantillaSimul):
 
     def __str__(símismo):
         return símismo.nombre
-
-
-def _únicos(lista):
-    final = []
-    for l in lista:
-        if l not in final:
-            final.append(l)
-    return final

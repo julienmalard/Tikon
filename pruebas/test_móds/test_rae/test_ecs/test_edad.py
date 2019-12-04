@@ -3,7 +3,7 @@ import unittest
 from pruebas.test_móds.test_rae.test_ecs.utils import gen_modelo_reqs_clima
 from tikon.central import Parcela, Exper, Tiempo
 from tikon.ecs import EcuaciónVacía
-from tikon.móds.rae.orgs.ecs.edad import EcuaciónEdad
+from tikon.móds.rae.orgs.ecs.edad import EcEdad
 from tikon.móds.rae.orgs.ecs.utils import ECS_EDAD
 from tikon.móds.rae.orgs.insectos import MetamCompleta
 from tikon.móds.rae.red import RedAE
@@ -17,7 +17,7 @@ class PruebaEdad(unittest.TestCase):
         f_inic, f_final = '2000-01-01', '2000-01-10'
         t = Tiempo(f_inic, f_final)
 
-        for ec in EcuaciónEdad.cls_ramas:
+        for ec in EcEdad.cls_ramas:
             print(ec.nombre)
             if ec is EcuaciónVacía:
                 continue

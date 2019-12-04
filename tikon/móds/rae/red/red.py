@@ -7,11 +7,11 @@ from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJ
 
 from .res.cohortes import ResCohortes
 from ..orgs.ecs import EcsOrgs
-from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR
+from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR, ECS_DEPR
 from ..orgs.insectos import Parasitoide
 from ..orgs.organismo import EtapaFantasma, Etapa
 from ..red.res import res as res_red
-
+xr.DataArray
 
 class SimulRed(SimulMódulo):
     resultados = [
@@ -35,14 +35,21 @@ class SimulRed(SimulMódulo):
                 ECS_REPR, modelo, mód=mód, exper=exper
             )
         ]
+
+        trans = [etp for etp in símismo.etapas if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper)]
         símismo.recip_trans = [
-            (str(etp), str(etp.siguiente())) for etp in símismo.etapas
+            (trans.index(etp), str(etp.siguiente())) for etp in símismo.etapas
             if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper) and etp.siguiente()
         ]
 
+        deprededores = [etp for etp in símismo.etapas if etp.categ_activa(ECS_DEPR, modelo, mód=mód, exper=exper)]
         símismo.parás_hués = [
-            (str(etp), ([str(x) for x in mód.huéspedes(etp)], [str(x) for x in mód.fantasmas(etp)]))
-            for etp in símismo.etapas if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto'
+            (
+                deprededores.index(etp),
+                ([símismo.víctimas.index(x) for x in mód.huéspedes(etp)], [str(x) for x in mód.fantasmas(etp)])
+            )
+            for etp in símismo.etapas
+            if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto' and mód.huéspedes(etp)
         ]
 
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
@@ -56,7 +63,7 @@ class SimulRed(SimulMódulo):
             }, dims=[EJE_ETAPA, EJE_VÍCTIMA]
         )
         for parás, hués_fants in símismo.parás_hués:
-            símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
+            símismo.máscara_parás[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
 
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
@@ -72,9 +79,6 @@ class SimulRed(SimulMódulo):
 
         mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
         pobs = símismo[RES_POBS].datos
-
-        if np.any(~np.equal(pobs.values, np.round(pobs.values))):
-            raise ValueError('Población fraccional.\n{mnsg}'.format(mnsg=mnsg))
 
         if símismo[RES_COHORTES].datos.values.size:
             pobs_coh = símismo[RES_COHORTES].datos[{'comp': 0}]

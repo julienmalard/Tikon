@@ -2,7 +2,8 @@ import numpy as np
 from scipy.stats import norm, expon
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
-from tikon.móds.rae.orgs.ecs._plntll import EcuaciónOrg
+
+from ._plntll_ec import EcuaciónMuertes
 
 
 class A(Parám):
@@ -19,7 +20,7 @@ class B(Parám):
     apriori = APrioriDist(expon(scale=10))
 
 
-class SigmoidalTemperatura(EcuaciónOrg):
+class SigmoidalTemperatura(EcuaciónMuertes):
     """
     Sobrevivencia que disminuye con temperatura creciente según relación sigmoidal.
     """

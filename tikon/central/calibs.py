@@ -28,13 +28,17 @@ class EspecCalibsCorrida(object):
 
         sin_aprioris = list(l_vals_prm)
         if símismo.aprioris:
-            for prm in l_vals_prm:
-                apriori = prm.apriori()
-                if apriori:
-                    if apriori.nombre_dist not in permitidas:
-                        raise ValueError(apriori.nombre_dist)
-                    l_dists.append(ConexPrmsDist(prm, apriori))
-                    sin_aprioris.remove(prm)
+            for val_prm in l_vals_prm:
+                try:
+                    existente = next(cnx for cnx in l_dists if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals))
+                    existente.vals.append(val_prm)
+                except StopIteration:
+                    apriori = val_prm.apriori()
+                    if apriori:
+                        if apriori.nombre_dist not in permitidas:
+                            raise ValueError(apriori.nombre_dist)
+                        l_dists.append(ConexPrmsDist(val_prm, apriori))
+                        sin_aprioris.remove(val_prm)
         símismo.filtrar_dists(sin_aprioris).llenar_lista_calibs(l_dists, permitidas=permitidas)
         return l_dists
 
@@ -65,16 +69,17 @@ def _gen_espec_calibs(calibs, aprioris, heredar, corresp):
 
 
 class ConexPrmsDist(object):
-    def __init__(símismo, prm, dist):
+    def __init__(símismo, val_prm, dist):
         símismo.dist = copy(dist)
-        símismo.prm = prm
+        símismo.vals = [val_prm]
 
     def aplicar_val(símismo, val):
-        símismo.prm.val = símismo.dist.transf_vals(val)
+        for v in símismo.vals:
+            v.val = símismo.dist.transf_vals(val)
 
     def guardar_traza(símismo, nombre, vals, pesos):
         dist = DistTraza(trz=símismo.dist.transf_vals(vals), pesos=pesos)
-        símismo.prm.guardar_calibs(dist, nombre=nombre)
+        símismo.vals[0].guardar_calibs(dist, nombre=nombre)
 
 
 class DistsFiltradas(object):
@@ -106,20 +111,30 @@ class DistsFiltradas(object):
 
     def llenar_lista_calibs(símismo, lista, permitidas):
 
-        for prm, d_dists in zip(símismo.vals_prms, símismo.dists_disp):
+        for val_prm, d_dists in zip(símismo.vals_prms, símismo.dists_disp):
+            try:
+                existente = next(cnx for cnx in lista if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals))
+                existente.vals.append(val_prm)
+                continue
+            except StopIteration:
+                pass
             l_dists = list(d_dists.values())
             n_dists = len(d_dists)
 
             if n_dists == 0:
-                dist_base = prm.dist_base()
+                dist_base = val_prm.dist_base()
                 if dist_base.nombre_dist not in permitidas:
                     raise ValueError('Distribución de base {nmbr} no permitida.'.format(nmbr=dist_base.nombre_dist))
-                lista.append(ConexPrmsDist(prm, dist=dist_base))
+                lista.append(ConexPrmsDist(val_prm, dist=dist_base))
 
             elif n_dists == 1 and (isinstance(l_dists[0], DistAnalítica) and l_dists[0].nombre_dist in permitidas):
-                lista.append(ConexPrmsDist(prm, dist=l_dists[0]))
+                lista.append(ConexPrmsDist(val_prm, dist=l_dists[0]))
             else:
                 traza = np.ravel((d.obt_vals(100) for d in d_dists.values()))
                 lista.append(
-                    ConexPrmsDist(prm, dist=DistAnalítica.de_traza(traza, líms=prm.líms, permitidas=permitidas))
+                    ConexPrmsDist(val_prm, dist=DistAnalítica.de_traza(traza, líms=val_prm.líms, permitidas=permitidas))
                 )
+
+
+def _vals_prms_iguales(v1, v2):
+    return (v1.prm is v2.prm) and (v1.inter == v2.inter)

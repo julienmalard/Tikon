@@ -1,1 +1,1 @@
-from ._subcateg import EcuaciónCrec
+from ._subcateg import EcCrec
