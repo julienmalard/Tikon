@@ -113,8 +113,8 @@ se podrían incluir clima, manejo, o cultivos también.
 Validación
 ----------
 En este ejemplo vamos a hacer trampa y validar con los mismos datos de calibración.
-Primero hacemos una simulación normal, y despues vamos a :func:`~tikon.result.res.ResultadosSimul.validar` los
-resultados. También los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`.
+Primero hacemos una simulación normal, y despues vamos a :func:`~tikon.datos.res.ResultadosSimul.validar` los
+resultados. También los podremos :func:`~tikon.datos.res.ResultadosSimul.graficar`.
 
 Las observaciones especificadas arriba quedaron vinculadas en los resultados y por eso se tomarán en cuenta
 en la validación y en los gráficos.

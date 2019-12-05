@@ -1,6 +1,6 @@
 import unittest
 
-from tikon.result import proc
+from tikon.datos import proc
 
 from .rcrs.modelo_valid import modelo, exper
 

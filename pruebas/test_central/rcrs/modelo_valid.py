@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela
 from tikon.central.res import Resultado
-from tikon.result import Obs
+from tikon.datos import Obs
 from tikon.utils import EJE_TIEMPO, EJE_PARC
 
 f_inic = '2000-01-01'

@@ -182,8 +182,8 @@ msgstr ""
 msgid ""
 "En este ejemplo vamos a hacer trampa y validar con los mismos datos de "
 "calibración. Primero hacemos una simulación normal, y despues vamos a "
-":func:`~tikon.result.res.ResultadosSimul.validar` los resultados. También "
-"los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`."
+":func:`~tikon.datos.res.ResultadosSimul.validar` los resultados. También "
+"los podremos :func:`~tikon.datos.res.ResultadosSimul.graficar`."
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:119

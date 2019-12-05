@@ -5,7 +5,7 @@ from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
 from tikon.central.res import Resultado
 from tikon.ecs import ÁrbolEcs, CategEc, EcuaciónVacía, SubcategEc, Ecuación, Parám
 from tikon.ecs.aprioris import APrioriDens
-from tikon.result import Obs
+from tikon.datos import Obs
 from tikon.utils import EJE_TIEMPO, EJE_PARC, EJE_ESTOC
 
 f_inic = '2000-01-01'

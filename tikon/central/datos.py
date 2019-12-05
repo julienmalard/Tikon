@@ -5,7 +5,7 @@ from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.dists import Dist, DistAnalítica
 from tikon.ecs.árb_coso import ParámCoso
-from tikon.result import Obs
+from tikon.datos import Obs
 from tikon.utils import guardar_json, leer_json
 
 
