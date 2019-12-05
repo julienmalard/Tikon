@@ -4,8 +4,8 @@ import numpy as np
 import xarray as xr
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
-from tikon.result.dibs import graficar_res
-from tikon.result.valid import ValidÍnds, ValidRes
+from tikon.datos.dibs import graficar_res
+from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 from .coso import Coso

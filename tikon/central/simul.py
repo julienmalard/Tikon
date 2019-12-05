@@ -5,8 +5,8 @@ import numpy as np
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
-from tikon.result.proc import ens
-from tikon.result.valid import Valid, gen_proc_valid
+from tikon.datos.proc import ens
+from tikon.datos.valid import Valid, gen_proc_valid
 
 
 class PlantillaSimul(object):

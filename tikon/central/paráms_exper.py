@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import uniform
+from scipy.stats import uniform, expon
 from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDens, APrioriDist
 from tikon.ecs.paráms import ValsParámCoso, ValsParámCosoInter, MatrParám
@@ -37,7 +37,10 @@ class ParámsExperVar(PlantillaParámsExper):
             líms = proc_líms(sim.líms)
             mín = líms[0]
             máx = min(líms[1], np.max([o_.datos.values.max() for o_ in símismo.datos.obs]))
-            apriori = APrioriDens((mín, máx), 0.55)
+            if líms == (0, np.inf):
+                apriori = APrioriDist(expon(0, máx / 5))
+            else:
+                apriori = APrioriDens((mín, máx), 0.90)
         else:
             apriori = sim.apriori
 

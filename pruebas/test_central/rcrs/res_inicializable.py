@@ -4,7 +4,7 @@ import numpy as np
 import xarray as xr
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela
 from tikon.central.res import Resultado
-from tikon.result import Obs
+from tikon.datos import Obs
 
 const = math.pi
 

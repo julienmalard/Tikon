@@ -1,4 +1,4 @@
-from tikon.result.proc import ens, n_existen, prom_vals, suma_pesos, Procesador
+from tikon.datos.proc import ens, n_existen, prom_vals, suma_pesos, Procesador
 
 
 def gen_proc_valid(proc):

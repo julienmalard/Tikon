@@ -33,11 +33,11 @@ Adentro de cada simulación, el modelo se va a :func:`~tikon.central.simulador.S
 
 Resultados
 ----------
-Los resultados de simulación tienen su propia clase (:class:`~tikon.result.res.ResultadosSimul`), la cual incluye
-los resultados (:class:`~tikon.result.res.ResultadosMódulo`) de cada módulo del simulador, los cuales en torno
-contienen los resultados (:class:`~tikon.result.res.Resultado`) de cada variable del módulo.
-Resultados se pueden :func:`~tikon.result.res.ResultadosSimul.validar` y también
-:func:`~tikon.result.res.ResultadosSimul.graficar`.
+Los resultados de simulación tienen su propia clase (:class:`~tikon.datos.res.ResultadosSimul`), la cual incluye
+los resultados (:class:`~tikon.datos.res.ResultadosMódulo`) de cada módulo del simulador, los cuales en torno
+contienen los resultados (:class:`~tikon.datos.res.Resultado`) de cada variable del módulo.
+Resultados se pueden :func:`~tikon.datos.res.ResultadosSimul.validar` y también
+:func:`~tikon.datos.res.ResultadosSimul.graficar`.
 
 Parámetros
 ----------
