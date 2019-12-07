@@ -8,11 +8,11 @@ import numpy.testing as npt
 import pandas as pd
 import xarray as xr
 import xarray.testing as xrt
+
 from pruebas.test_central.rcrs import tiempo_obs
 from tikon.central import Modelo, Parcela, Exper
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.utils import EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS
-
 from .rcrs import \
     var_con_punto, inic_modelo, obt_valor, poner_valor_extern, poner_valor, res_inicializable
 
@@ -65,7 +65,7 @@ class PruebaModelo(unittest.TestCase):
         exper = obt_valor.exper
         exper.controles['var'] = 2
         res_mód = modelo.simular('valor control', exper=exper, t=10)['exper']['módulo']
-        xrt.assert_equal(res_mód['res 1'].datos, res_mód['res 2'].datos)
+        xrt.assert_equal(res_mód['res 1'].res, res_mód['res 2'].res)
 
     def test_poner_valor(símismo):
         modelo = poner_valor.modelo
@@ -73,10 +73,10 @@ class PruebaModelo(unittest.TestCase):
         exper = poner_valor.exper
         with símismo.subTest(relativo=False):
             res = modelo.simular('valor control', exper=exper, t=10, vars_interés=True)
-            npt.assert_equal(res['exper']['módulo']['res'].datos.values, 1)
+            npt.assert_equal(res['exper']['módulo']['res'].res[{EJE_TIEMPO: slice(1, None)}].values, 1)
         with símismo.subTest(relativo=True):
             res = modelo_rel.simular('valor control', exper=exper, t=10, vars_interés=True)
-            datos_res = res['exper']['módulo']['res'].datos_t
+            datos_res = res['exper']['módulo']['res'].res
             xrt.assert_equal(
                 datos_res,
                 xr.DataArray(
@@ -91,7 +91,7 @@ class PruebaModelo(unittest.TestCase):
         exper = obt_valor_control.exper
         exper.controles['var'] = 2
         res = modelo.simular('valor control', exper=exper, t=10)
-        npt.assert_equal(res['exper']['módulo']['res'].datos.values, 2)
+        npt.assert_equal(res['exper']['módulo']['res'].res.values, 2)
 
     @staticmethod
     def test_obt_valor_extern():
@@ -99,7 +99,7 @@ class PruebaModelo(unittest.TestCase):
         modelo = obt_valor_extern.modelo
         exper = obt_valor_extern.exper
         res = modelo.simular('valor extern', exper=exper, t=10)
-        xrt.assert_equal(res['exper']['módulo 1']['res 1'].datos, res['exper']['módulo 2']['res 2'].datos)
+        xrt.assert_equal(res['exper']['módulo 1']['res 1'].res, res['exper']['módulo 2']['res 2'].res)
 
     @staticmethod
     def test_poner_valor_extern():
@@ -107,13 +107,13 @@ class PruebaModelo(unittest.TestCase):
         exper = poner_valor_extern.exper
         const = poner_valor_extern.const
         res = modelo.simular('valor extern', exper=exper, t=1)
-        npt.assert_equal(res['exper']['módulo 1']['res 1'].datos.values, const)
+        npt.assert_equal(res['exper']['módulo 1']['res 1'].res.values, const)
 
     @staticmethod
     def test_res_inicializable():
         modelo, exper, const = res_inicializable.modelo, res_inicializable.exper, res_inicializable.const
         res = modelo.simular('inicializado', exper=exper, t=1, vars_interés=True)
-        datos_res = res['exper']['módulo']['res'].datos_t
+        datos_res = res['exper']['módulo']['res'].res
         xrt.assert_equal(
             datos_res,
             xr.DataArray(
@@ -139,8 +139,8 @@ class PruebaModelo(unittest.TestCase):
         exper = obt_valor.exper
         exper.controles['var'] = 2
         res_mód = modelo.simular('valor control', exper=exper, t=2, reps=4)['exper']['módulo']['res 1']
-        npt.assert_equal(res_mód.datos[EJE_ESTOC], np.arange(4))
-        npt.assert_equal(res_mód.datos[EJE_PARÁMS], np.arange(4))
+        npt.assert_equal(res_mód.res[EJE_ESTOC], np.arange(4))
+        npt.assert_equal(res_mód.res[EJE_PARÁMS], np.arange(4))
 
     @staticmethod
     def test_espec_reps():
@@ -150,8 +150,8 @@ class PruebaModelo(unittest.TestCase):
         res_mód = modelo.simular(
             'valor control', exper=exper, t=2, reps={'estoc': 4, 'paráms': 3}
         )['exper']['módulo']['res 1']
-        npt.assert_equal(res_mód.datos[EJE_ESTOC], np.arange(4))
-        npt.assert_equal(res_mód.datos[EJE_PARÁMS], np.arange(3))
+        npt.assert_equal(res_mód.res[EJE_ESTOC], np.arange(4))
+        npt.assert_equal(res_mód.res[EJE_PARÁMS], np.arange(3))
 
     def test_error_reps(símismo):
         modelo = obt_valor.modelo
@@ -171,7 +171,7 @@ class PruebaTiempo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         f_inic, f_final = tiempo_obs.f_inic, tiempo_obs.f_final
         res = modelo.simular('tiempo numérico', exper=exper)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, f_final, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(f_inic, f_final, freq='D'))
 
     @staticmethod
     def test_tiempo_numérico_de_obs():
@@ -179,7 +179,7 @@ class PruebaTiempo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         f_inic = tiempo_obs.f_inic
         res = modelo.simular('tiempo numérico', exper=exper, t=10)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=11, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(f_inic, periods=11, freq='D'))
 
     @staticmethod
     def test_obs_tiempo_numérico():
@@ -187,7 +187,7 @@ class PruebaTiempo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         f_inic = date.today()
         res = modelo.simular('obs numérico', exper=exper)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
 
     @staticmethod
     def test_tiempo_fecha_de_obs_tiempo_numérico():
@@ -195,21 +195,21 @@ class PruebaTiempo(unittest.TestCase):
         modelo = tiempo_obs.modelo
         f_inic = '2000-01-01'
         res = modelo.simular('obs numérico', exper=exper, t=f_inic)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(f_inic, periods=5, freq='D'))
 
     @staticmethod
     def test_tiempo_num_de_obs_tiempo_numérico():
         exper = tiempo_obs.exper_obs_numérico
         modelo = tiempo_obs.modelo
         res = modelo.simular('obs numérico', exper=exper, t=10)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(date.today(), periods=11, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(date.today(), periods=11, freq='D'))
 
     @staticmethod
     def test_no_obs_no_tiempo():
         exper = tiempo_obs.exper_sin_obs
         modelo = tiempo_obs.modelo
         res = modelo.simular('sin tiempo o obs', exper, vars_interés=True)['exper']['módulo']['res']
-        npt.assert_equal(res.datos_t[EJE_TIEMPO].values, pd.date_range(date.today(), periods=31, freq='D'))
+        npt.assert_equal(res.res[EJE_TIEMPO].values, pd.date_range(date.today(), periods=31, freq='D'))
 
 
 class PruebaGraficar(unittest.TestCase):

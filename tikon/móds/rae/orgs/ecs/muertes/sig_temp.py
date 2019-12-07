@@ -31,7 +31,7 @@ class SigmoidalTemperatura(EcuaciónMuertes):
     def eval(símismo, paso, sim):
         cf = símismo.cf
         temp_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
-        sobrevivencia = 1 / (1 + np.exp((temp_máx - cf['a']) / cf['b']))
+        sobrevivencia = 1 / (1 + ((temp_máx - cf['a']) / cf['b']).fi(np.exp))
         return 1 - sobrevivencia
 
     @classmethod

@@ -14,13 +14,12 @@ class EcsTrans(CategEcOrg):
     _nombre_res = RES_TRANS
 
     def postproc(símismo, paso, sim):
-        trans = símismo.obt_valor_res(sim)  # Redondear las transiciones calculadas
-        trans.values[:] = np.floor(trans.values)
+        trans = símismo.obt_valor_res(sim).f(np.floor)  # Redondear las transiciones calculadas
 
         # Si no eran adultos muríendose por viejez, añadirlos a la próxima etapa también
         trans_de, trans_a = zip(*sim.recip_trans)
 
-        trans = trans[{EJE_ETAPA: list(trans_de)}]
-        trans[EJE_ETAPA] = list(trans_a)
+        trans = trans.loc[{EJE_ETAPA: list(trans_de)}]
+        trans.coords[EJE_ETAPA] = list(trans_a)
 
         símismo.ajust_pobs(sim, trans)

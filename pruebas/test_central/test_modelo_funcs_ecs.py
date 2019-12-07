@@ -14,12 +14,12 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
     def _verif_en(símismo, res, rango):
         if isinstance(res, Resultado):
             res = res.datos
-        símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.values, res.values <= rango[1])))
+        símismo.assertTrue(np.all(np.logical_and(rango[0] <= res.matr, res.matr <= rango[1])))
 
     def _verif_fuera_de(símismo, res, rango):
         if isinstance(res, Resultado):
             res = res.datos
-        símismo.assertTrue(np.any(np.logical_or(rango[0] > res.values, res.values > rango[1])))
+        símismo.assertTrue(np.any(np.logical_or(rango[0] > res.matr, res.matr > rango[1])))
 
     def test_req_ecuación_falta(símismo):
         from .rcrs import req_ecuación_falta
@@ -62,9 +62,9 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         coso_no_pp = ec_postproc.coso_no_pp
 
         res = modelo.simular('postproc', exper, t=2)['exper']['módulo']['res']
-        res_pp = res.datos.loc[{'coso': coso_pp}].values
-        res_pp_categ = res.datos.loc[{'coso': coso_pp_categ}].values
-        res_no_pp = res.datos.loc[{'coso': coso_no_pp}].values
+        res_pp = res.datos.loc[{'coso': coso_pp}].matr
+        res_pp_categ = res.datos.loc[{'coso': coso_pp_categ}].matr
+        res_no_pp = res.datos.loc[{'coso': coso_no_pp}].matr
 
         npt.assert_equal(res_no_pp, 0)
         npt.assert_equal(res_pp_categ, 1 + ec_postproc.agreg_postproc_categ)
@@ -76,7 +76,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         modelo = ec_obt_poner_valor.mi_modelo
         exper = ec_obt_poner_valor.mi_exper
         res = modelo.simular('ec obt valor', exper, t=10, vars_interés=True)['exper']['módulo']
-        xrt.assert_equal(res['res 1'].datos_t[1:], res['res 2'].datos_t[1:] + 1)
+        xrt.assert_equal(res['res 1'].res[1:], res['res 2'].res[1:] + 1)
 
     @staticmethod
     def test_obt_valor_control():
@@ -86,7 +86,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         valor = 34
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor control', exper, t=2)['exper']['módulo']['res']
-        npt.assert_equal(res.datos.values, valor)
+        npt.assert_equal(res.datos.matr, valor)
 
     @staticmethod
     def test_obt_valor_extern():
@@ -96,7 +96,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         valor = ec_obt_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['módulo']['res']
-        npt.assert_equal(res.datos.values, valor)
+        npt.assert_equal(res.datos.matr, valor)
 
     @staticmethod
     def test_poner_valor_extern():
@@ -104,7 +104,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         modelo, exper, valor = ec_poner_valor_extern.mi_modelo, ec_poner_valor_extern.mi_exper, ec_poner_valor_extern.valor
         exper.controles['var control'] = valor
         res = modelo.simular('ec obt valor extern', exper, t=2)['exper']['otro módulo']['res 2']
-        npt.assert_equal(res.datos.values, valor)
+        npt.assert_equal(res.datos.matr, valor)
 
     def test_parám(símismo):
         from .rcrs import ec_parám
@@ -185,7 +185,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
 
         with símismo.subTest('sin interacciones'):
             res = modelo.simular('sin interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            npt.assert_equal(res.datos.values, 0)
+            npt.assert_equal(res.datos.matr, 0)
 
         with símismo.subTest('con interacciones'):
             coso1.interactua_con([coso2, coso3])

@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+from tikon.datos.datos import Datos
 
 from tikon.utils import EJE_PARÁMS
 
@@ -25,7 +26,7 @@ class MatrParám(object):
 
         símismo.eje = eje
         símismo.índice = índice
-        símismo._datos = xr.DataArray(0., coords=símismo.coords, dims=list(símismo.coords))
+        símismo._datos = Datos(0., coords=símismo.coords, dims=list(símismo.coords))
 
     @property
     def coords(símismo):
@@ -67,7 +68,7 @@ class ValsParámCoso(MatrParám):
 
     @val.setter
     def val(símismo, val):
-        símismo._datos.values[:] = val
+        símismo._datos[:] = val
 
     def dists_disp(símismo, heredar):
         return símismo.prm.dists_disp(símismo.inter, heredar)

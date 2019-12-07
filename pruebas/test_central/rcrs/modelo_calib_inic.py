@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
 from tikon.central.res import Resultado
+from tikon.datos import Obs
+from tikon.datos.datos import Datos
 from tikon.ecs import ÁrbolEcs, CategEc, EcuaciónVacía, SubcategEc, Ecuación, Parám
 from tikon.ecs.aprioris import APrioriDens
-from tikon.datos import Obs
 from tikon.utils import EJE_TIEMPO, EJE_PARC, EJE_ESTOC
 
 f_inic = '2000-01-01'
@@ -27,8 +29,8 @@ class EcuaciónParám(Ecuación):
 
     def eval(símismo, paso, sim):
         ant = símismo.obt_valor_res(sim)
-        n_estoc = len(ant[EJE_ESTOC])
-        return ant + símismo.cf['a'] + xr.DataArray(
+        n_estoc = len(ant.coords[EJE_ESTOC])
+        return ant + símismo.cf['a'] + Datos(
             (np.random.random(n_estoc) - 0.5) * 0.1, coords={EJE_ESTOC: np.arange(n_estoc)}, dims=[EJE_ESTOC]
         )
 

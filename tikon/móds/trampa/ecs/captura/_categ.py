@@ -31,5 +31,5 @@ class EcsCaptura(CategEc):
         captura_final = pobs * prob_captura_final
         símismo.poner_valor_res(sim, captura_final)
 
-        captura_por_etapa = captura_final.sum(dim=EJE_TRAMPA)
+        captura_por_etapa = captura_final.suma(dim=EJE_TRAMPA)
         símismo.poner_valor_extern(sim, var=RES_POBS, mód=RedAE.nombre, val=captura_por_etapa)

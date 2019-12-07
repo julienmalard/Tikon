@@ -2,13 +2,13 @@ from itertools import product
 
 import numpy as np
 import xarray as xr
+
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
+from tikon.datos.datos import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
-
-from .coso import Coso
 
 
 class Resultado(PlantillaSimul):
@@ -29,19 +29,12 @@ class Resultado(PlantillaSimul):
             símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés
         ) else None
 
-        símismo._corresp_coords = {}
-        for dim in list(coords):
-            if any(isinstance(x, Coso) for x in coords[dim]):
-                símismo._corresp_coords[dim] = coords[dim]
-
-        símismo.datos_t = _gen_datos(símismo.nombre, coords, t=símismo.t)
-        símismo.datos_t.attrs['unids'] = símismo.unids
+        símismo._datos_t = _gen_datos(símismo.nombre, coords, t=símismo.t)
+        símismo._datos_t.atribs['unids'] = símismo.unids
 
         # Crear enlace dinámico entre resultados diarios y temporales
-        símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}].drop_vars(EJE_TIEMPO)
-
-        símismo._textificar_ejes()
-        símismo.coords = {ll: list(v.values) for ll, v in símismo._datos.coords.items()}
+        símismo._datos = símismo._datos_t[{EJE_TIEMPO: 0}]
+        símismo.res = None
 
         super().__init__(símismo.nombre, subs=[])
 
@@ -50,47 +43,21 @@ class Resultado(PlantillaSimul):
         return símismo._datos
 
     def poner_valor(símismo, val, rel=False):
-        if isinstance(val, xr.DataArray):
-            coords = {
-                ll: v for ll, v in val.indexes.items()
-                if v.shape != símismo._datos.indexes[ll].shape or np.any(v != símismo._datos.indexes[ll])
-            }
-            if coords:
-                val = val.broadcast_like(símismo._datos.loc[coords])
-                if rel:
-                    símismo._datos.loc[coords] += val
-                else:
-                    símismo._datos.loc[coords] = val
+        if isinstance(val, Datos):
+            if rel:
+                símismo._datos.loc[val] += val
             else:
-                val = val.broadcast_like(símismo._datos)
-                if rel:
-                    símismo._datos.variable[:] += val  # Más rápido que _datos o _datos[:]
-                else:
-                    símismo._datos.variable[:] = val  # Más rápido que  _datos[:]
+                símismo._datos.loc[val] = val
         else:
             if rel:
-                símismo._datos.values += val
+                símismo._datos += val
             else:
-                símismo._datos.values[:] = val
-
-    def poner_valor_matr(símismo, matr, eje, índs, rel=False):
-        rbnd = símismo._rebanar(eje, índs=índs)
-
-        if isinstance(matr, np.ndarray):
-            forma = tuple([*matr.shape, *[1] * (len(símismo.datos.values.shape) - len(matr.shape))])
-            val = matr.reshape(forma)
-        else:
-            val = matr
-        if rel:
-            símismo.datos.values[rbnd] += val
-        else:
-            símismo.datos.values[rbnd] = val
+                símismo._datos[:] = val
 
     def iniciar(símismo):
-        símismo._textificar_ejes()
 
-        símismo.datos_t.values[:] = 0
-        símismo._datos = símismo.datos_t[{EJE_TIEMPO: 0}].drop_vars(EJE_TIEMPO)
+        símismo._datos_t[:] = 0
+        símismo._datos = símismo._datos_t[{EJE_TIEMPO: 0}]
 
         if símismo.inicializable:
             inic = símismo.sim.simul_exper.paráms_exper[str(símismo.sim)][str(símismo)]
@@ -98,30 +65,28 @@ class Resultado(PlantillaSimul):
 
     def incrementar(símismo, paso, f):
         if símismo.t is not None:
-            símismo._datos = símismo.datos_t[{EJE_TIEMPO: símismo.t.i}].drop_vars(EJE_TIEMPO)
-            símismo._datos.values[:] = símismo.datos_t[{EJE_TIEMPO: símismo.t.i - 1}].values
+            símismo._datos = símismo._datos_t[{EJE_TIEMPO: símismo.t.i}]
+            símismo._datos[:] = símismo._datos_t[{EJE_TIEMPO: símismo.t.i - 1}]
 
     def cerrar(símismo):
-        for dim, crds in símismo._corresp_coords.items():
-            símismo._datos[dim] = crds
-            símismo.datos_t[dim] = crds
+        símismo.res = símismo._datos_t.a_xarray()
 
     def verificar_estado(símismo):
-        if np.any(~np.isfinite(símismo.datos)):
+        if np.any(~np.isfinite(símismo.datos.matr)):
             raise ValueError('{res}: Valor no numérico (p. ej., división por 0)'.format(res=símismo))
 
         if símismo.líms:
             mín, máx = proc_líms(símismo.líms)
 
-            if np.any(símismo.datos < mín) or np.any(símismo.datos > máx):
+            if np.any(símismo.datos.matr < mín) or np.any(símismo.datos.matr > máx):
                 raise ValueError(
-                    '{res}: Valor de afuera de los límites {líms}'.format(res=símismo, líms=repr(símismo.líms))
+                    '{res}: Valor fuera de los límites {líms}'.format(res=símismo, líms=repr(símismo.líms))
                 )
 
     def validar(símismo, proc):
         l_proc = []
         for obs in símismo.obs:
-            resultados = obs.proc_res(símismo.datos_t)
+            resultados = obs.proc_res(símismo.res)
             res_corresp = resultados.interp_like(obs.datos).dropna(EJE_TIEMPO)
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
@@ -140,7 +105,7 @@ class Resultado(PlantillaSimul):
         l_proc = []
         pesos = []
         for obs in símismo.obs:
-            resultados = obs.proc_res(símismo.datos_t)
+            resultados = obs.proc_res(símismo.res)
             res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(EJE_TIEMPO)
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
@@ -156,7 +121,7 @@ class Resultado(PlantillaSimul):
     def graficar(símismo, directorio='', argsll=None):
         if símismo.t is not None:
             argsll = argsll or {}
-            for índs in símismo.iter_índs(símismo.datos_t, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
+            for índs in símismo.iter_índs(símismo.res, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
                 título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
 
                 obs_índs = []
@@ -168,34 +133,27 @@ class Resultado(PlantillaSimul):
 
                 graficar_res(
                     título, directorio,
-                    simulado=símismo.datos_t.loc[índs], obs=obs_índs, **argsll
+                    simulado=símismo.res.loc[índs], obs=obs_índs, **argsll
                 )
 
     def a_dic(símismo):
         if símismo.t is not None:
             return {
                 'obs': símismo.obs.a_dic() if símismo.obs else None,
-                'preds': símismo.datos_t.to_dict(),
+                'preds': símismo.res.a_xarray().to_dict(),
             }
 
     @staticmethod
     def iter_índs(datos, excluir=None):
+        if isinstance(datos, xr.DataArray):
+            datos = Datos.de_xarray(datos)
         excluir = excluir or []
         if isinstance(excluir, str):
             excluir = [excluir]
 
         dims = [dim for dim in datos.dims if dim not in excluir]
-        for índs in product(*[datos[dim].values for dim in dims]):
+        for índs in product(*[datos.coords[dim] for dim in dims]):
             yield dict(zip(dims, índs))
-
-    def _textificar_ejes(símismo):
-        for dim, crds in símismo._corresp_coords.items():
-            símismo._datos[dim] = [str(x) for x in símismo._datos.coords[dim].values]
-            símismo.datos_t[dim] = [str(x) for x in símismo.datos_t.coords[dim].values]
-
-    def _rebanar(símismo, eje, índs):
-        índs = [símismo.coords[eje].index(í) for í in índs]
-        return tuple([slice(None)] * símismo.datos.dims.index(eje) + [índs])
 
     @property
     def nombre(símismo):
@@ -221,4 +179,4 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 
 def _gen_datos(nombre, coords, t):
     coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
-    return xr.DataArray(data=0., coords=coords, dims=list(coords), name=nombre)
+    return Datos(0., coords=coords, dims=list(coords), nombre=nombre)

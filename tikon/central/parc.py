@@ -6,7 +6,7 @@ import xarray as xr
 from geopy.distance import distance
 from shapely.geometry import Polygon
 from shapely.ops import transform
-
+from tikon.datos.datos import Datos
 from tikon.utils import EJE_PARC, EJE_DEST, EJE_COORD
 
 
@@ -59,19 +59,22 @@ class GeomParcela(object):
 def _controles_parc(parcelas):
     nombres = [prc.nombre for prc in parcelas]
 
-    superficies = xr.DataArray(
-        [prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'ha'}
+    superficies = Datos(
+        [prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], atribs={'unids': 'ha'}
     )
-    elevs = xr.DataArray(
-        [prc.geom.elev for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], attrs={'unids': 'm'}
+    elevs = Datos(
+        [prc.geom.elev for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], atribs={'unids': 'm'}
     )
-    cntrds = xr.DataArray(
+    cntrds = Datos(
         [prc.geom.centroide for prc in parcelas],
         coords={EJE_PARC: nombres, EJE_COORD: ['lat', 'lon']},
         dims=[EJE_PARC, EJE_COORD],
-        attrs={'unids': 'grados'}
+        atribs={'unids': 'grados'}
     )
-    distancias = xr.apply_ufunc(_dstn, cntrds, cntrds.rename({EJE_PARC: EJE_DEST}), input_core_dims=[[EJE_COORD]] * 2)
+    cntrds_xr = cntrds.a_xarray()
+    distancias = Datos.de_xarray(
+        xr.apply_ufunc(_dstn, cntrds_xr, cntrds_xr.rename({EJE_PARC: EJE_DEST}), input_core_dims=[[EJE_COORD]] * 2)
+    )
 
     return {
         'parcelas': nombres,

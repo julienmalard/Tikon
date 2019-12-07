@@ -28,6 +28,6 @@ class EcsMortalidad(CategEc):
         mortalidad = probs_conj(mortalidad, dim=EJE_PRODUCTO)
         símismo.poner_valor_res(sim, mortalidad)
 
-        mortalidad = mortalidad.sum(dim=EJE_PRODUCTO)
+        mortalidad = mortalidad.suma(dim=EJE_PRODUCTO)
         pobs = símismo.obt_valor_extern(sim, RES_POBS, mód=RedAE.nombre)
         símismo.poner_valor_extern(sim, var=RES_POBS, mód=RedAE.nombre, val=pobs * mortalidad)

@@ -47,7 +47,7 @@ class ParámsExperVar(PlantillaParámsExper):
         símismo.prm = ParámInic(símismo.datos.prm, exper=exper, unids=sim.unids, líms=sim.líms, apriori=apriori)
         índs = list(sim.iter_índs(datos=sim.datos, excluir=[EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]))
         coords = {
-            dim: sim.datos[dim].values for dim in sim.datos.dims if dim not in [EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]
+            dim: sim.datos.coords[dim] for dim in sim.datos.dims if dim not in [EJE_TIEMPO, EJE_PARÁMS, EJE_ESTOC]
         }
 
         for índ in índs:

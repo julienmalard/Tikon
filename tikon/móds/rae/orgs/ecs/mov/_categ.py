@@ -15,11 +15,11 @@ class EcsMov(CategEcOrg):
 
     def postproc(símismo, paso, sim):
         mov = símismo.obt_valor_res(sim)
-        mov.values[:] = np.floor(mov.values)
+        mov.fi(np.floor)
         símismo.poner_valor_res(sim, mov)
 
-        emigr = mov.sum(dim=EJE_DEST)
-        imigr = mov.sum(dim=EJE_PARC).rename({EJE_DEST: EJE_PARC})
+        emigr = mov.suma(dim=EJE_DEST)
+        imigr = mov.suma(dim=EJE_PARC).renombrar({EJE_DEST: EJE_PARC})
         migr = imigr - emigr
 
         símismo.ajust_pobs(sim, migr)

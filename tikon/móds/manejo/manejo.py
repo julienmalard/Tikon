@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.datos.datos import Datos
 from tikon.móds.manejo.acciones import Acción
 
 
@@ -17,7 +18,7 @@ class Regla(object):
 
     def __call__(símismo, sim, paso, f):
         cond_verdad = símismo.condición(sim, paso, f)
-        if cond_verdad.any():
+        if cond_verdad.qualquier() if isinstance(cond_verdad, Datos) else cond_verdad:
             for a in símismo.acción:
                 a(sim, donde=cond_verdad)
 

@@ -1,3 +1,4 @@
+from tikon.datos.datos import Datos
 from ._plntll import EcuaciónOrg
 from ...utils import RES_EDAD, RES_COHORTES
 
@@ -11,7 +12,9 @@ class EcuaciónConCohorte(EcuaciónOrg):
 
     def act_vals(símismo):
         super().act_vals()
-        símismo.dist = símismo._cls_dist(**símismo._prms_scipy())
+        símismo.dist = símismo._cls_dist(**{
+            ll: v.matr if isinstance(v, Datos) else v for ll, v in símismo._prms_scipy().items()
+        })
 
     def cambio_edad(símismo, sim):
         return símismo.obt_valor_mód(sim, RES_EDAD)

@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-import xarray as xr
+
+from tikon.datos.datos import Datos, lleno_como, f_numpy as fnp
 
 
 class PruebaCond(object):
@@ -13,7 +14,7 @@ class SuperiorOIgual(PruebaCond):
         símismo.v = v
 
     def __call__(símismo, x):
-        return np.greater_equal(x, símismo.v)
+        return fnp(np.greater_equal, x, símismo.v)
 
 
 class InferiorOIgual(PruebaCond):
@@ -21,7 +22,7 @@ class InferiorOIgual(PruebaCond):
         símismo.v = v
 
     def __call__(símismo, x):
-        return np.less_equal(x, símismo.v)
+        return fnp(np.less_equal, x, símismo.v)
 
 
 class Superior(PruebaCond):
@@ -29,7 +30,7 @@ class Superior(PruebaCond):
         símismo.v = v
 
     def __call__(símismo, x):
-        return np.greater(x, símismo.v)
+        return fnp(np.greater, x, símismo.v)
 
 
 class Inferior(PruebaCond):
@@ -37,7 +38,7 @@ class Inferior(PruebaCond):
         símismo.v = v
 
     def __call__(símismo, x):
-        return np.less(x, símismo.v)
+        return fnp(np.less, x, símismo.v)
 
 
 class Igual(PruebaCond):
@@ -45,7 +46,7 @@ class Igual(PruebaCond):
         símismo.v = v
 
     def __call__(símismo, x):
-        return np.equal(x, símismo.v)
+        return fnp(np.equal, x, símismo.v)
 
 
 class EntreInclusivo(PruebaCond):
@@ -55,7 +56,7 @@ class EntreInclusivo(PruebaCond):
     def __call__(símismo, x):
         (mín, máx) = símismo.líms
 
-        return np.logical_and(np.less_equal(x, máx), np.greater_equal(x, mín))
+        return fnp(np.logical_and, fnp(np.less_equal, x, máx), fnp(np.greater_equal, x, mín))
 
 
 class EntreExclusivo(PruebaCond):
@@ -65,7 +66,7 @@ class EntreExclusivo(PruebaCond):
     def __call__(símismo, x):
         (mín, máx) = símismo.líms
 
-        return np.logical_and(np.less(x, máx), np.greater(x, mín))
+        return fnp(np.logical_and, fnp(np.less, x, máx), fnp(np.greater, x, mín))
 
 
 class Incluye(PruebaCond):
@@ -73,7 +74,7 @@ class Incluye(PruebaCond):
         símismo.lista = lista
 
     def __call__(símismo, x):
-        return np.isin(x, símismo.lista)
+        return fnp(np.isin, x, símismo.lista)
 
 
 class Cada(PruebaCond):
@@ -81,7 +82,7 @@ class Cada(PruebaCond):
         símismo.cada = cada
 
     def __call__(símismo, x):
-        return np.equal(np.mod(x, símismo.cada), 0)
+        return fnp(np.equal, fnp(np.mod, x, símismo.cada), 0)
 
 
 class Condición(object):
@@ -146,7 +147,7 @@ class CondCadaDía(Condición):
 
 
 class CondVariable(Condición):
-    def __init__(símismo, mód, var, prueba, espera, func=xr.DataArray.sum, coords=None):
+    def __init__(símismo, mód, var, prueba, espera, func=Datos.suma, coords=None):
         símismo.mód = mód
         símismo.var = var
         símismo.prueba = prueba
@@ -162,11 +163,11 @@ class CondVariable(Condición):
         cond_verdad = símismo.prueba(val_var)
 
         if símismo.mem is None:
-            símismo.mem = xr.full_like(cond_verdad, 0, dtype='int')
-        listos = np.logical_or(np.greater_equal(símismo.mem, símismo.espera), np.equal(símismo.mem, 0))
+            símismo.mem = lleno_como(cond_verdad, 0, tipod='int')
+        listos = fnp(np.logical_or, fnp(np.greater_equal, símismo.mem, símismo.espera), fnp(np.equal, símismo.mem, 0))
 
-        final = np.logical_and(listos, cond_verdad)
-        símismo.mem = símismo.mem.where(símismo.mem == 0, símismo.mem + 1)
-        símismo.mem = símismo.mem.where(~final, 1)
+        verdad_final = fnp(np.logical_and, listos, cond_verdad)
+        símismo.mem = símismo.mem.donde(símismo.mem == 0, símismo.mem + 1)
+        símismo.mem = símismo.mem.donde(~verdad_final, 1)
 
-        return final
+        return verdad_final

@@ -1,4 +1,6 @@
 import numpy as np
+
+from tikon.datos.datos import máximo
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.estoc._plntll_ec import EcuaciónEstoc
@@ -21,7 +23,7 @@ class Normal(EcuaciónEstoc):
     def eval(símismo, paso, sim):
         pobs = símismo.pobs(sim)
 
-        estoc = np.maximum(1, pobs * símismo.cf['sigma'] * paso)
-        estoc.values[:] = np.random.normal(0, estoc.values)  # [:] necesario para mantener formato xr.DataArray
+        estoc = máximo(1, pobs * símismo.cf['sigma'] * paso)
+        estoc[:] = np.random.normal(0, estoc.matr)
 
         return estoc
