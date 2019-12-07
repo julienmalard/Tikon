@@ -1,5 +1,6 @@
 import xarray as xr
 
+from tikon.datos.datos import Datos
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
 from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
 
@@ -56,11 +57,8 @@ class PlantillaRamaEc(object):
     def obt_valor_mód(símismo, sim, var, filtrar=True):
         val = sim.obt_valor(var)
         if filtrar is not False:
-            filtrar = [str(x) for x in símismo.cosos] if filtrar is True else filtrar
-
-            crds = list(val.coords[símismo.eje_cosos].values)
-            índs = [crds.index(x) for x in filtrar]
-            return val[{símismo.eje_cosos: índs}]
+            filtrar = símismo.cosos if filtrar is True else filtrar
+            return val.loc[{símismo.eje_cosos: filtrar}]
         return val
 
     def poner_valor_res(símismo, sim, val, rel=False):
@@ -70,18 +68,9 @@ class PlantillaRamaEc(object):
     def para_coso(cls, coso):
         return cls._cls_en_coso(cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
 
-    def poner_valor_mód(símismo, sim, var, val, rel=False):
-        if isinstance(val, xr.DataArray):
-            índs = val.coords[símismo.eje_cosos].values
-            datos = sim[var].datos
-            transpsd = val.transpose(*sorted(val.dims, key=datos.dims.index))
-            forma = tuple([transpsd.shape[transpsd.dims.index(d)] if d in transpsd.dims else 1 for d in datos.dims])
-            matr = transpsd.values.reshape(forma)
-        else:
-            matr = val
-            índs = [str(x) for x in símismo.cosos]
-
-        sim[var].poner_valor_matr(matr=matr, eje=símismo.eje_cosos, índs=índs, rel=rel)
+    @staticmethod
+    def poner_valor_mód(sim, var, val, rel=False):
+        sim.poner_valor(var=var, val=val, rel=rel)
 
     @staticmethod
     def obt_valor_extern(sim, var, mód=None):
@@ -163,6 +152,8 @@ class SubcategEc(PlantillaRamaEc):
         for ec in símismo._ramas.values():
             res = ec.eval(paso, sim)
             if res is not None:
+                if not isinstance(res, Datos):
+                    res = Datos(res, coords={ec.eje_cosos: ec.cosos}, dims=[ec.eje_cosos])
                 ec.poner_valor_res(sim, val=res)
 
         símismo.postproc(paso, sim=sim)
@@ -244,14 +235,14 @@ class Parám(PlantillaRamaEc):
         for coso, prm_cs in zip(símismo.cosos, símismo._prms_cosos):
             inters = símismo.obt_inter(modelo, mód=mód, coso=coso)
             if not inters:
-                vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=str(coso))
+                vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=coso)
             else:
                 vals = ValsParámCosoInter([
                     ValsParámCoso(
-                        tmñ=n_reps, prm_base=prm_cs, índice=str(inter), inter=inter.índices_inter
-                    ) if inter in inters.itemas else ValsParámCosoVacíos(tmñ=n_reps, índice=str(inter))
+                        tmñ=n_reps, prm_base=prm_cs, índice=inter, inter=inter.índices_inter
+                    ) if inter in inters.itemas else ValsParámCosoVacíos(tmñ=n_reps, índice=inter)
                     for inter in inters
-                ], eje=inters.eje, índice=str(coso))
+                ], eje=inters.eje, índice=coso)
 
             l_prms.append(vals)
         return MatrParám(l_prms, eje=mód.eje_coso, índice=None)

@@ -26,4 +26,4 @@ class Depred(EcuaciónRepr):
         depred = símismo.obt_valor_mód(sim, RES_DEPR, filtrar=False)
 
         pobs = símismo.pobs(sim)  # Paso ya se tomó en cuenta con depredaciones
-        return (cf['n'] * depred).sum(dim=EJE_VÍCTIMA) * pobs
+        return (cf['n'] * depred).suma(dim=EJE_VÍCTIMA) * pobs

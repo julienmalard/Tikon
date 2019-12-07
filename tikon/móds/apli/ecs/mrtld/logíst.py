@@ -32,4 +32,4 @@ class Logística(EcuaciónMortalidad):
         cf = símismo.cf
         conc = símismo.obt_valor_mód(sim, RES_CONC, filtrar=False)
 
-        return 1 / (1 + np.exp(-cf['b'] * (conc - cf['l50'])))
+        return 1 / (1 + (-cf['b'] * (conc - cf['l50'])).fi(np.exp))

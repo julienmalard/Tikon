@@ -9,4 +9,4 @@ class DifusiónAleatoria(PlantillaEcDifusión):
         superficies = símismo.obt_valor_control(sim, 'superficies')
         pobs = símismo.pobs(sim)
         ratio = pobs / superficies
-        return ratio / ratio.rename({EJE_PARC: EJE_DEST})
+        return ratio / ratio.renombrar({EJE_PARC: EJE_DEST})

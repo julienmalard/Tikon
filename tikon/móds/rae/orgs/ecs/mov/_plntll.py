@@ -24,8 +24,8 @@ class PlantillaEcDifusión(EcuaciónMov):
 
         dsnt = símismo.obt_valor_res(sim)
         atr_ajust = (atr / dsnt)  # Atracción ajustada por distancia. 1 = no atracción neta
-        atr_ajust = atr_ajust.where(np.isfinite(atr_ajust), 1)
-        probs = atr_ajust / atr_ajust.sum(dim=EJE_DEST)  # Normalizar probabilidades para sumar a 1
+        atr_ajust = atr_ajust.donde(atr_ajust.f(np.isfinite), 1)
+        probs = atr_ajust / atr_ajust.suma(dim=EJE_DEST)  # Normalizar probabilidades para sumar a 1
 
         return probs * pobs
 

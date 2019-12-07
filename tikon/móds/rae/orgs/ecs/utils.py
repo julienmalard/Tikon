@@ -1,6 +1,8 @@
 import numpy as np
 import xarray as xr
 
+from tikon.datos.datos import donde
+
 ECS_EDAD = 'Edad'
 ECS_CREC = 'Crecimiento'
 ECS_DEPR = 'Depredación'
@@ -31,15 +33,14 @@ def probs_conj(datos, dim, pesos=1, máx=1):
     """
 
     ajustados = datos / pesos
-    ratio = (ajustados / máx)
-    ratio.values[np.isnan(ratio.values)] = 0
+    ratio = (ajustados / máx).llenar_nan(0)
 
-    ajustados = ajustados * (1 - (1 - ratio).prod(dim=dim)) / ratio.sum(dim=dim)
+    ajustados = ajustados * (1 - (1 - ratio).prod(dim=dim)) / ratio.suma(dim=dim)
 
-    ajustados.values[np.isnan(ajustados.values)] = 0
+    ajustados.llenar_nan(0)
 
-    suma = ajustados.sum(dim=dim)
-    extra = xr.where(suma > máx, suma - máx, 0)
+    suma = ajustados.suma(dim=dim)
+    extra = donde(suma > máx, suma - máx, 0)
 
     ajustados *= 1 - (extra / suma)
 

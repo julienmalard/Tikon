@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.stats import norm, expon
+
+from tikon.datos.datos import máximo
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
-
 from ._plntll_ec import EcuaciónEdad
 
 
@@ -44,11 +45,11 @@ class FuncBrièreTemperatura(EcuaciónEdad):
         cf = símismo.cf
         temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
 
-        return np.maximum(
+        return máximo(
             temp_prom * (temp_prom - cf['t_dev_mín']), 0
-        ) * np.sqrt(
-            np.maximum(cf['delta_t_letal'] + cf['t_dev_mín'] - temp_prom, 0)
-        ) * paso
+        ) * (
+                   máximo(cf['delta_t_letal'] + cf['t_dev_mín'] - temp_prom, 0)
+               ).fi(np.sqrt) * paso
 
     @classmethod
     def requísitos(cls, controles=False):

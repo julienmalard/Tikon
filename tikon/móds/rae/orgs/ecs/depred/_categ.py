@@ -1,4 +1,6 @@
 import numpy as np
+
+from tikon.datos.datos import mínimo
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_DEPR, probs_conj
@@ -34,14 +36,14 @@ class EcsDepred(CategEcOrg):
         depred = símismo.obt_valor_res(sim)
 
         # Reemplazar valores NaN con 0.
-        depred.values[np.isnan(depred.values)] = 0
+        depred.llenar_nan(0)
 
         # Arreglar errores de redondeo (negativos) en la computación
-        depred.values[depred.values < 0] = 0
+        depred.donde(depred < 0, 0)
 
         # Ajustar por superficies
         superficies = sim.obt_valor_control('superficies')
-        depred.values[:] = depred.values * superficies.values
+        depred = depred * superficies
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora está en unidades
@@ -49,37 +51,34 @@ class EcsDepred(CategEcOrg):
         depred = depred * símismo.pobs(sim) * paso
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        máx = símismo.pobs(sim, filtrar=depred.coords[EJE_VÍCTIMA].values).rename({EJE_ETAPA: EJE_VÍCTIMA})
-        depred.values[:] = np.minimum(depred.values, máx.broadcast_like(depred).values)
+        máx = símismo.pobs(sim, filtrar=depred.coords[EJE_VÍCTIMA]).renombrar({EJE_ETAPA: EJE_VÍCTIMA})
+        depred = mínimo(depred, máx)
         depred = probs_conj(depred, pesos=1, máx=máx, dim=EJE_ETAPA)
 
-        depred.values[:] = np.floor(depred.values)
-        depred.values[np.isnan(depred.values)] = 0
+        depred.fi(np.floor).llenar_nan(0)
 
         # Guardar la depredación final
         símismo.poner_valor_res(sim, depred)
 
         # Depredación únicamente por presa (todos los depredadores juntos)
-        depred_por_presa = depred.sum(dim=EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
+        depred_por_presa = depred.suma(dim=EJE_ETAPA).renombrar({EJE_VÍCTIMA: EJE_ETAPA})
 
         # Actualizar la matriz de poblaciones
-        símismo.poner_valor_mód(sim, RES_POBS, val=-depred_por_presa, rel=True)
+        sim[RES_POBS].poner_valor(-depred_por_presa, rel=True)
 
         # Dividir las depredaciones entre las de depredación normal y las de parasitismo
-        depr_parás = depred.copy()
-        depr_parás.values[~sim.máscara_parás.values] = 0
-        depr_sin_parás = depred.copy()
-        depr_sin_parás.values[sim.máscara_parás.values] = 0
+        depr_parás = depred.donde(sim.máscara_parás, 0)
+        depr_sin_parás = depred.donde(~sim.máscara_parás, 0)
 
         # Para las depredaciones normales, es fácil quitarlas de los cohortes
-        cohortes.quitar(depr_sin_parás.sum(dim=EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA}))
+        cohortes.quitar(depr_sin_parás.suma(dim=EJE_ETAPA).renombrar({EJE_VÍCTIMA: EJE_ETAPA}))
 
         # Para cada parasitoide...
         for parás, (l_hués, l_fants) in sim.parás_hués:
-            pob_parasitada = depr_parás[
+            pob_parasitada = depr_parás.loc[
                 {EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués}
-            ].drop_vars(EJE_ETAPA).rename({EJE_VÍCTIMA: EJE_ETAPA})
+            ].dejar(EJE_ETAPA).renombrar({EJE_VÍCTIMA: EJE_ETAPA})
 
             cohortes.quitar(pob_parasitada, recips=l_fants)
-            pob_parasitada[EJE_ETAPA] = l_fants
-            símismo.poner_valor_mód(sim, RES_POBS, pob_parasitada, rel=True)
+            pob_parasitada.coords[EJE_ETAPA] = l_fants
+            sim[RES_POBS].poner_valor(pob_parasitada, rel=True)

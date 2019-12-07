@@ -24,4 +24,4 @@ class DecaiExp(EcuaciónDescomp):
         cf = símismo.cf
         dens = símismo.obt_valor_mód(sim, RES_DENS)
         λ = mat.log(2) / cf['t50']
-        return dens * (1 - np.exp(-λ * paso))
+        return dens * (1 - (-λ * paso).fi(np.exp))

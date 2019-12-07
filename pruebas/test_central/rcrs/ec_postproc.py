@@ -20,6 +20,7 @@ class Res(Resultado):
 class EcuaciónPostProc(Ecuación):
     nombre = 'pp'
     eje_cosos = 'coso'
+    _nombre_res = 'res'
 
     def eval(símismo, paso, sim):
         return 1
@@ -28,6 +29,7 @@ class EcuaciónPostProc(Ecuación):
 class EcuaciónNoPostProc(Ecuación):
     nombre = 'npp'
     eje_cosos = 'coso'
+    _nombre_res = 'res'
 
     def eval(símismo, paso, sim):
         return 1
@@ -80,8 +82,10 @@ class SimulMóduloPostProc(SimulMódulo):
 
 
 coso_pp, coso_pp_categ, coso_no_pp = [CosoPostProc(str(i)) for i in range(1, 4)]
+
 coso_pp.activar_ec('categ', subcateg='pp', ec='pp')
 coso_pp.desactivar_ec('categ', subcateg='npp')
+
 coso_pp_categ.desactivar_ec('categ', subcateg='pp')
 coso_no_pp.desactivar_ec('categ')
 

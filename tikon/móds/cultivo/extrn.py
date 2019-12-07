@@ -1,8 +1,10 @@
 import inspect
 from itertools import product
 
-import xarray as xr
+import numpy as np
+
 from tikon.central import Parcela, GrupoParcelas
+from tikon.datos.datos import Datos, combinar
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.utils import EJE_PARÁMS, EJE_ESTOC
@@ -79,9 +81,13 @@ class SimulCultivoExterno(object):
         símismo.llenar_vals()
 
     def llenar_vals(símismo):
-        datos = símismo.combin.desagregar(
-            xr.merge([inst.datos for inst in símismo.instancias]), reps=símismo.reps
-        )
+        l_datos = [inst.datos for inst in símismo.instancias]
+        vrs = set(vr for d in l_datos for vr in d)
+        datos = {
+            vr: símismo.combin.desagregar(
+                combinar(*[d[vr] for d in l_datos]), reps=símismo.reps
+            ) for vr in vrs
+        }
         for var in datos:
             símismo.sim.poner_valor(var=var, val=datos[var])
 
@@ -101,12 +107,12 @@ class CombinSimsCult(object):
         if isinstance(transf, str):
             transf = [transf]
         if not isinstance(transf, dict):
-            transf = {eje: xr.DataArray.median for eje in transf}
+            transf = {eje: np.median for eje in transf}
         símismo.transf = transf
 
     def agregar(símismo, ingreso):
         for eje, func in símismo.transf.items():
-            ingreso = func(ingreso, dim=[eje])
+            ingreso = ingreso.f_eje(func, dim=eje)
         return ingreso
 
     def índs(símismo, reps):
@@ -115,7 +121,7 @@ class CombinSimsCult(object):
             yield dict(zip(dims, índs))
 
     def desagregar(símismo, egreso, reps):
-        return egreso.expand_dims({ll: range(v) for ll, v in reps.items() if ll in símismo.transf})
+        return egreso.expandir_dims({ll: range(v) for ll, v in reps.items() if ll in símismo.transf})
 
 
 class InstanciaSimulCultivo(object):
@@ -123,13 +129,13 @@ class InstanciaSimulCultivo(object):
         símismo.sim = sim
         símismo.índs = {ll: [v] if isinstance(v, int) else v for ll, v in índs.items()}
         res = [sim.sim[r] for r in sim.sim]
-        símismo.datos = xr.Dataset(
-            {str(vr): xr.DataArray(
+        símismo.datos = {
+            str(vr): Datos(
                 0.,
-                coords={**{dim: vr.datos[dim] for dim in vr.datos.dims if dim not in reps}, **símismo.índs},
+                coords={**{dim: vr.datos.coords[dim] for dim in vr.datos.dims if dim not in reps}, **símismo.índs},
                 dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs)
-            ) for vr in res}
-        )
+            ) for vr in res
+        }
 
     def iniciar(símismo):
         símismo.llenar_vals()

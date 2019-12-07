@@ -1,8 +1,9 @@
+import numpy as np
 import scipy.stats as estad
+
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.utils import RES_TRANS
-
 from .._plntll_ec import EcuaciónTrans
 
 
@@ -20,4 +21,4 @@ class Linear(EcuaciónTrans):
 
     def eval(símismo, paso, sim):
         trans = símismo.obt_valor_res(sim)
-        return (símismo.cf['a'] * trans).round()
+        return (símismo.cf['a'] * trans).fi(np.round)

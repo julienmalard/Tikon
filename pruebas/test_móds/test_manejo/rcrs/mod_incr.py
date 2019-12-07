@@ -1,6 +1,6 @@
-import xarray as xr
 from tikon.central import Módulo, SimulMódulo, Exper, Parcela
 from tikon.central.res import Resultado
+from tikon.datos.datos import donde as f_donde
 from tikon.móds.manejo import Acción
 from tikon.móds.manejo.conds import CondVariable
 
@@ -20,7 +20,7 @@ class EstabRes2(Acción):
         símismo.valor = valor
 
     def __call__(símismo, sim, donde):
-        cambio = xr.where(donde, símismo.valor, 0)
+        cambio = f_donde(donde, símismo.valor, 0)
         sim['módulo'].poner_valor(var='res 2', val=cambio)
 
 
@@ -29,9 +29,8 @@ class AgregarRes2(Acción):
         símismo.valor = valor
 
     def __call__(símismo, sim, donde):
-        cambio = xr.where(donde, símismo.valor, 0)
+        cambio = f_donde(donde, símismo.valor, 0)
         sim['módulo'].poner_valor(var='res 2', val=cambio, rel=True)
-
 
 
 class CondReq(CondVariable):

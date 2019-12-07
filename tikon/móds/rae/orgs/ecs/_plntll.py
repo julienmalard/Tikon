@@ -10,7 +10,6 @@ class CategEcOrg(CategEc):
 
     def ajust_pobs(símismo, sim, pobs):
         símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs, rel=True)
-        sim[RES_COHORTES].ajustar(pobs)
 
     @property
     def nombre(símismo):
@@ -25,7 +24,6 @@ class SubcategEcOrg(SubcategEc):
 
     def ajust_pobs(símismo, sim, pobs):
         símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs, rel=True)
-        sim[RES_COHORTES].ajustar(pobs)
 
     @property
     def nombre(símismo):

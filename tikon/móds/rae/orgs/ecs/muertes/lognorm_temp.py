@@ -50,7 +50,7 @@ class LogNormTemp(EcuaciónMuertes):
         cf = símismo.cf
 
         t_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
-        sobrevivencia = cf['k'] * np.exp(-0.5 * (np.log(t_máx / cf['t']) / cf['rho']) ** 2)
+        sobrevivencia = cf['k'] * (-0.5 * ((t_máx / cf['t']).fi(np.log) / cf['rho']) ** 2).fi(np.exp)
 
         return 1 - sobrevivencia
 

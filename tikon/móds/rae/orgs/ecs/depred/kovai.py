@@ -1,10 +1,10 @@
 import numpy as np
+
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.utils import probs_conj
 from tikon.móds.rae.utils import EJE_VÍCTIMA, EJE_ETAPA
-
 from ._plntll_ec import EcuaciónDepred
-from xarray import Variable
+
 
 class PrAKovai(Parám):
     nombre = 'a'
@@ -40,22 +40,17 @@ class Kovai(EcuaciónDepred):
     cls_ramas = [PrAKovai, PrBKovai]
 
     def eval(símismo, paso, sim):
-        dens = símismo.dens_pobs(sim, filtrar=False).rename({EJE_ETAPA: EJE_VÍCTIMA})
+        dens = símismo.dens_pobs(sim, filtrar=False).renombrar({EJE_ETAPA: EJE_VÍCTIMA})
         cf = símismo.cf
 
         # La población de esta etapa (depredador)
         dens_depred = símismo.dens_pobs(sim)
 
-        x = -dens / cf['b']
-        x.values[:] = np.exp(x.values)
-        u = 1 - x
+        u = 1 - (-dens / cf['b']).fi(np.exp)
 
-        ratio = (dens / dens_depred)
-        ratio.values[np.isnan(ratio.values)] = 0
+        ratio = (dens / dens_depred).llenar_nan(0)
 
-        x = -ratio * u / cf['a']
-        x.values[:] = np.exp(x.values)
-        depred_etp = cf['a'] * (1 - x)
+        depred_etp = cf['a'] * (1 - (-ratio * u / (cf['a'])).fi(np.exp))
 
         # Ajustar por la presencia de múltiples presas (según eje presas)
         depred_etp = probs_conj(depred_etp, dim=EJE_VÍCTIMA, pesos=cf['a'], máx=1)

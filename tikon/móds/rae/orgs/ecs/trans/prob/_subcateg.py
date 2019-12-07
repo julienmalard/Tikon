@@ -20,4 +20,4 @@ class TransProb(SubcategEcOrg):
         trans = símismo.obt_valor_res(sim)
 
         # Quitar los organismos que transicionaron directamente de las poblaciones (cohortes ya se actualizaron)
-        símismo.poner_valor_mód(sim, RES_POBS, -trans, rel=True)
+        sim[RES_POBS].poner_valor(-trans, rel=True)

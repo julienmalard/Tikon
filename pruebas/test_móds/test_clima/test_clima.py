@@ -21,8 +21,8 @@ class PruebaClima(unittest.TestCase):
         res = Modelo(clima).simular('clima', exper=Exper('exper', parc), t=Tiempo(f_inic, f_final), vars_interés=True)
         res_precip = res['exper']['clima']['precip']
         xrt.assert_equal(
-            res_precip.datos_t,
-            pd.DataFrame(datos).set_index('tiempo').to_xarray()['precip'].broadcast_like(res_precip.datos_t)
+            res_precip.res,
+            pd.DataFrame(datos).set_index('tiempo').to_xarray()['precip'].broadcast_like(res_precip.res)
         )
 
     def test_fecha_falta(símismo):

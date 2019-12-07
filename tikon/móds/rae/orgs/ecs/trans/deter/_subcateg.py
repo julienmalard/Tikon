@@ -1,8 +1,8 @@
 import numpy as np
+
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg
 from tikon.móds.rae.utils import RES_TRANS
-
 from .constante import Constante
 
 
@@ -17,6 +17,7 @@ class TransDeter(SubcategEcOrg):
 
     def postproc(símismo, paso, sim):
         trans = símismo.obt_valor_res(sim)
-        trans.values[:] = np.floor(trans.values)  # Redondear las transiciones calculadas
+        trans.fi(np.floor)  # Redondear las transiciones calculadas
+
         # Quitar los organismos que transicionaron
         símismo.ajust_pobs(sim, -trans)

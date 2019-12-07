@@ -1,5 +1,6 @@
 import numpy as np
 
+from tikon.datos.datos import máximo
 from .ec import EcCrec
 from .modif import ModifCrec
 from .._plntll import CategEcOrg
@@ -17,7 +18,7 @@ class EcsCrec(CategEcOrg):
         pobs = símismo.pobs(sim)
 
         # Evitar pérdidas de poblaciones superiores a la población.
-        crec.values[:] = np.maximum(crec.values, -pobs.values)
+        crec = máximo(crec, -pobs)
 
         símismo.poner_valor_res(sim, val=crec)
         símismo.ajust_pobs(sim, pobs=crec)

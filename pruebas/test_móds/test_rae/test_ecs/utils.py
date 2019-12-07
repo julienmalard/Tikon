@@ -4,6 +4,8 @@ from tikon.móds.clima import Clima
 
 from تقدیر.ذرائع import جےسن as fnt_json
 
+from tikon.utils import EJE_PARC
+
 
 def gen_modelo_reqs_clima(ec, exper, módulos, t):
     reqs_móds = ec.requísitos() or set()
@@ -13,8 +15,8 @@ def gen_modelo_reqs_clima(ec, exper, módulos, t):
         if mód == 'clima':
             reqs_clima.add(var)
     if reqs_clima:
-        lat, lon = exper.controles['centroides'][0].values
-        elev = exper.controles['elevaciones'][0].values
+        lat, lon = exper.controles['centroides'][{EJE_PARC: 0}].matr
+        elev = exper.controles['elevaciones'][{EJE_PARC: 0}].matr
 
         datos = {'tiempo': t.eje, **{vr: np.random.random(len(t)) for vr in reqs_clima}}
         if 'temp_máx' in datos and 'temp_mín' in datos:

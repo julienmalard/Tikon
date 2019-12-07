@@ -3,6 +3,8 @@ from math import pi as π
 import numpy as np
 import xarray as xr
 
+from tikon.datos.datos import f_numpy, donde, máximo, mínimo
+
 
 def días_grados(mín, máx, umbrales, método, corte):
     """
@@ -29,17 +31,17 @@ def días_grados(mín, máx, umbrales, método, corte):
     if método == 'triangular':
         # Método triangular único
         dif = máx - umbr_máx
-        sup_arriba = xr.where(dif > 0, dif ** 2 / (máx - mín) + np.maximum(mín - umbr_máx, 0), 0)
-        sup_centro = xr.where(dif > 0, (1 - np.maximum((umbr_máx - mín) / (máx - mín), 0)) * (umbr_máx - umbr_mín), 0)
+        sup_arriba = donde(dif > 0, dif ** 2 / (máx - mín) + máximo(mín - umbr_máx, 0), 0)
+        sup_centro = donde(dif > 0, (1 - máximo((umbr_máx - mín) / (máx - mín), 0)) * (umbr_máx - umbr_mín), 0)
 
-        altura = np.minimum(umbr_máx, máx) - np.maximum(umbr_mín, mín)
-        sup_lados = xr.where(
+        altura = mínimo(umbr_máx, máx) - máximo(umbr_mín, mín)
+        sup_lados = donde(
             altura > 0,
-            0.5 * altura * xr.where(
+            0.5 * altura * donde(
                 dif > 0,
                 (umbr_máx - umbr_mín) / (máx - mín),
-                1 - np.maximum((umbr_mín - mín) / (máx - mín), 0)
-            ) + np.maximum(mín - umbr_mín, 0) * xr.where(
+                1 - máximo((umbr_mín - mín) / (máx - mín), 0)
+            ) + máximo(mín - umbr_mín, 0) * donde(
                 dif > 0,
                 1 - (umbr_máx - mín) / (máx - mín),
                 1
@@ -53,33 +55,33 @@ def días_grados(mín, máx, umbrales, método, corte):
         ubic = mín + 1
         umbr_máx_nrm, umbr_mín_nrm = umbr_máx / amp - ubic, umbr_mín / amp - ubic
 
-        intr_máx = np.arccos(
-            xr.where(np.logical_or(umbr_máx_nrm < -1, umbr_máx_nrm > 1), 1, -umbr_máx_nrm)
+        intr_máx = f_numpy(
+            np.arccos, donde(f_numpy(np.logical_or, umbr_máx_nrm < -1, umbr_máx_nrm > 1), 1, -umbr_máx_nrm)
         )
         i_máx = intr_máx, (2 * π - intr_máx)
-        intr_mín = np.arccos(
-                xr.where(np.logical_or(umbr_mín_nrm < -1, umbr_mín_nrm > 1), 1, -umbr_mín_nrm)
-            )
+        intr_mín = f_numpy(
+            np.arccos, donde(f_numpy(np.logical_or, umbr_mín_nrm < -1, umbr_mín_nrm > 1), 1, -umbr_mín_nrm)
+        )
         i_mín = intr_mín, (2 * π - intr_mín)
 
         dif = 1 - umbr_máx_nrm
-        sup_arriba = xr.where(
+        sup_arriba = donde(
             dif > 0,
-            -np.sin(i_máx[1]) + np.sin(i_máx[0]) + np.maximum(0, -1 - umbr_máx_nrm) * 2 * π,
+            -i_máx[1].fi(np.sin) + i_máx[0].fi(np.sin) + máximo(0, -1 - umbr_máx_nrm) * 2 * π,
             0
         ) / (2 * π) * amp
-        sup_centro = xr.where(dif > 0, (i_máx[1] - i_máx[0]) * (umbr_máx_nrm - umbr_mín_nrm), 0) / (2 * π) * amp
+        sup_centro = donde(dif > 0, (i_máx[1] - i_máx[0]) * (umbr_máx_nrm - umbr_mín_nrm), 0) / (2 * π) * amp
 
-        lados = np.logical_or(umbr_máx_nrm < -1, umbr_mín_nrm > 1)
-        sup_lados = xr.where(
+        lados = f_numpy(np.logical_or, umbr_máx_nrm < -1, umbr_mín_nrm > 1)
+        sup_lados = donde(
             lados,
-            xr.where(
+            donde(
                 dif > 0,
                 2 * (
-                        np.sin(i_mín[0]) - np.sin(i_máx[0])
-                        + (i_máx[0] - i_mín[0]) * np.maximum(-1 - umbr_mín_nrm, 0)
+                        i_mín[0].fi(np.sin) - i_máx[0].fi(np.sin)
+                        + (i_máx[0] - i_mín[0]) * máximo(-1 - umbr_mín_nrm, 0)
                 ),
-                np.sin(i_mín[0]) - np.sin(i_mín[1])
+                i_mín[0].fi(np.sin) - i_mín[1].fi(np.sin)
             ),
             0
         ) / (2 * π) * amp
@@ -90,7 +92,7 @@ def días_grados(mín, máx, umbrales, método, corte):
     if corte == 'horizontal':
         días_grd = sup_centro + sup_lados
     elif corte == 'intermediario':
-        días_grd = np.max(sup_centro - sup_arriba, 0) + sup_lados
+        días_grd = máximo(sup_centro - sup_arriba, 0) + sup_lados
     elif corte == 'vertical':
         días_grd = sup_lados
     elif corte == 'ninguno':
@@ -98,4 +100,4 @@ def días_grados(mín, máx, umbrales, método, corte):
     else:
         raise ValueError(corte)
 
-    return días_grd.where(días_grd >= 0, 0)
+    return días_grd.donde(días_grd >= 0, 0)

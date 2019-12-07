@@ -31,7 +31,7 @@ class LogNormTemp(ModCrec):
         temp_máx = sim.obt_valor_extern('clima.temp_máx')
         cf = símismo.cf
 
-        return cf['r'] * paso * np.exp(-0.5 * (np.log(temp_máx / cf['t']) / cf['p']) ** 2)
+        return cf['r'] * paso * (-0.5 * ((temp_máx / cf['t']).f(np.log) / cf['p']) ** 2).f(np.exp)
 
     @classmethod
     def requísitos(cls, controles=False):

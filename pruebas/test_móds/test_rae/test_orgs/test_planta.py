@@ -32,6 +32,6 @@ class PruebaEnRed(unittest.TestCase):
         exper = Exper('exper', Parcela('parc'))
         res = Modelo(RedAE(plt)).simular(
             'dens fija', exper=exper, t=5, vars_interés='red.Pobs'
-        )['exper']['red']['Pobs'].datos_t[{EJE_TIEMPO: slice(1, None)}]
+        )['exper']['red']['Pobs'].res[{EJE_TIEMPO: slice(1, None)}]
         npt.assert_array_less(res.values, 3 + 1)
         npt.assert_array_less(3, res.values)

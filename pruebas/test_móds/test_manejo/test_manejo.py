@@ -28,8 +28,8 @@ class PruebaConds(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: pd.Timestamp('2000-01-02')}] == 0).all())
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: pd.Timestamp('2000-01-02')}] == 0).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
 
     def test_cond_o(símismo):
         f_inic, f_final = '2000-01-01', '2000-01-05'
@@ -44,7 +44,7 @@ class PruebaConds(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
 
     def test_cond_fecha(símismo):
         f_inic, f_final = '2000-01-01', '2000-01-05'
@@ -56,7 +56,7 @@ class PruebaConds(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond.umbral}] == 1).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond.umbral}] == 1).all())
 
     def test_cond_día(símismo):
         f_inic, f_final = '2000-01-01', '2000-01-05'
@@ -68,7 +68,7 @@ class PruebaConds(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: pd.Timestamp(f_inic) + timedelta(cond.umbral)}] == 1).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: pd.Timestamp(f_inic) + timedelta(cond.umbral)}] == 1).all())
 
     def test_cond_cada(símismo):
         f_inic, f_final = '2000-01-01', '2000-01-06'
@@ -84,8 +84,8 @@ class PruebaConds(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t[{EJE_TIEMPO: np.arange(0, 6, 2)}] == 0).all())
-        símismo.assertTrue((res.datos_t[{EJE_TIEMPO: np.arange(1, 6, 2)}] == 1).all())
+        símismo.assertTrue((res.res[{EJE_TIEMPO: np.arange(0, 6, 2)}] == 0).all())
+        símismo.assertTrue((res.res[{EJE_TIEMPO: np.arange(1, 6, 2)}] == 1).all())
 
 
 class PruebaPruebas(unittest.TestCase):
@@ -143,7 +143,7 @@ class PruebaManejo(unittest.TestCase):
         manejo = Manejo(reglas=regla)
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=5, vars_interés=True)['exper']['módulo']
-        símismo.assertTrue((res['res 2'].datos_t.where(res['res 1'].datos_t == 3).fillna(1) == 1).all())
+        símismo.assertTrue((res['res 2'].res.where(res['res 1'].res == 3).fillna(1) == 1).all())
 
     def test_requísitos_acción(símismo):
         acción = AcciónReq(3)
@@ -168,7 +168,7 @@ class PruebaManejo(unittest.TestCase):
         manejo = Manejo(reglas=regla)
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond.umbral}] == 2).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond.umbral}] == 2).all())
 
     def test_múltiples_reglas(símismo):
         f_inic, f_final = '2000-01-01', '2000-01-05'
@@ -184,5 +184,5 @@ class PruebaManejo(unittest.TestCase):
         modelo = Modelo([MiMódulo(), manejo])
         res = modelo.simular('manejo', exper, t=Tiempo(f_inic, f_final), vars_interés=True)['exper']['módulo']['res 2']
 
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
-        símismo.assertTrue((res.datos_t.loc[{EJE_TIEMPO: cond2.umbral}] == 2).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond1.umbral}] == 1).all())
+        símismo.assertTrue((res.res.loc[{EJE_TIEMPO: cond2.umbral}] == 2).all())

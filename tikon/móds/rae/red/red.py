@@ -1,7 +1,7 @@
 import numpy as np
-import xarray as xr
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.datos.datos import Datos
 from tikon.ecs.paráms import Inter
 from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA
 
@@ -11,7 +11,7 @@ from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR, ECS_DEPR
 from ..orgs.insectos import Parasitoide
 from ..orgs.organismo import EtapaFantasma, Etapa
 from ..red.res import res as res_red
-xr.DataArray
+
 
 class SimulRed(SimulMódulo):
     resultados = [
@@ -30,25 +30,16 @@ class SimulRed(SimulMódulo):
 
         modelo = simul_exper.modelo
         símismo.recip_repr = [
-            str(etp.org[0]) for etp in símismo.etapas
-            if etp.categ_activa(
-                ECS_REPR, modelo, mód=mód, exper=exper
-            )
+            etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, modelo, mód=mód, exper=exper)
         ]
 
-        trans = [etp for etp in símismo.etapas if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper)]
         símismo.recip_trans = [
-            (trans.index(etp), str(etp.siguiente())) for etp in símismo.etapas
+            (etp, etp.siguiente()) for etp in símismo.etapas
             if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper) and etp.siguiente()
         ]
 
-        deprededores = [etp for etp in símismo.etapas if etp.categ_activa(ECS_DEPR, modelo, mód=mód, exper=exper)]
         símismo.parás_hués = [
-            (
-                deprededores.index(etp),
-                ([símismo.víctimas.index(x) for x in mód.huéspedes(etp)], [str(x) for x in mód.fantasmas(etp)])
-            )
-            for etp in símismo.etapas
+            (etp, (mód.huéspedes(etp), mód.fantasmas(etp))) for etp in símismo.etapas
             if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto' and mód.huéspedes(etp)
         ]
 
@@ -57,13 +48,13 @@ class SimulRed(SimulMódulo):
         depredadores = [
             etp for etp in símismo.etapas if any(pr in símismo.etapas for pr in etp.presas() + etp.huéspedes())
         ]
-        símismo.máscara_parás = xr.DataArray(
+        símismo.máscara_parás = Datos(
             False, coords={
-                EJE_ETAPA: [str(x) for x in depredadores], EJE_VÍCTIMA: [str(x) for x in símismo.víctimas]
+                EJE_ETAPA: depredadores, EJE_VÍCTIMA: símismo.víctimas
             }, dims=[EJE_ETAPA, EJE_VÍCTIMA]
         )
         for parás, hués_fants in símismo.parás_hués:
-            símismo.máscara_parás[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
+            símismo.máscara_parás.loc[{EJE_ETAPA: parás, EJE_VÍCTIMA: hués_fants[0]}] = True
 
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
@@ -80,11 +71,12 @@ class SimulRed(SimulMódulo):
         mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
         pobs = símismo[RES_POBS].datos
 
-        if símismo[RES_COHORTES].datos.values.size:
+        if símismo[RES_COHORTES].activa:
             pobs_coh = símismo[RES_COHORTES].datos[{'comp': 0}]
-            if np.any(~np.equal(pobs_coh, np.round(pobs_coh))):
+            if np.any(~np.equal(pobs_coh.matr, np.round(pobs_coh.matr))):
                 raise ValueError('Población de cohorte fraccional.\n{mnsg}'.format(mnsg=mnsg))
-            if np.any(np.not_equal(pobs_coh.sum(dim=EJE_COH), pobs)):
+            pobs_corresp_coh = pobs.loc[{EJE_ETAPA: pobs_coh.coords[EJE_ETAPA]}]
+            if np.any(np.not_equal(pobs_coh.suma(dim=EJE_COH).matr, pobs_corresp_coh.matr)):
                 raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))
 
 

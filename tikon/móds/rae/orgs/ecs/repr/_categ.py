@@ -1,8 +1,9 @@
+import numpy as np
+
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg, CategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_REPR
 from tikon.móds.rae.utils import RES_REPR, EJE_ETAPA
-
 from .cauchy import Cauchy
 from .constante import Constante
 from .depred import Depred
@@ -26,8 +27,8 @@ class EcsRepr(CategEcOrg):
 
     def postproc(símismo, paso, sim):
         # Agregar las reproducciones a las poblaciones
-        reprod = símismo.obt_valor_res(sim).round()
+        reprod = símismo.obt_valor_res(sim).f(np.round)
         símismo.poner_valor_res(sim, reprod)
 
-        reprod[EJE_ETAPA] = sim.recip_repr
+        reprod.coords[EJE_ETAPA] = sim.recip_repr
         símismo.ajust_pobs(sim, reprod)
