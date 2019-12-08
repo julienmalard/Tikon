@@ -170,39 +170,39 @@ class Datos(object):
         return símismo
 
     def __add__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr + _num(y))
 
     def __sub__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr - _num(y))
 
     def __mul__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr * _num(y))
 
     def __mod__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr % _num(y))
 
     def __truediv__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr / _num(y))
 
     def __floordiv__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr // _num(y))
 
     def __pow__(símismo, pot, módulo=None):
-        x, y = alinear(símismo, pot)
+        x, y = alinear_2(símismo, pot)
         return x.nuevo_como(x.matr ** _num(y))
 
     def __and__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr & _num(y))
 
     def __or__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr | _num(y))
 
     def __radd__(símismo, otro):
@@ -235,27 +235,27 @@ class Datos(object):
         raise símismo | otro
 
     def __eq__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr == _num(y))
 
     def __gt__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr > _num(y))
 
     def __lt__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr < _num(y))
 
     def __ge__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr >= _num(y))
 
     def __le__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr <= _num(y))
 
     def __ne__(símismo, otro):
-        x, y = alinear(símismo, otro)
+        x, y = alinear_2(símismo, otro)
         return x.nuevo_como(x.matr != _num(y))
 
     def __iadd__(símismo, otro):
@@ -338,7 +338,7 @@ class Datos(object):
     def __setitem__(símismo, llave, valor):
         if isinstance(valor, Datos):
             como = símismo[llave] if isinstance(llave, dict) else símismo
-            valor = alinear_como(como, valor)[0].matr
+            valor = alinear_como_2(como, valor).matr
 
         if isinstance(llave, dict):
             símismo.matr[símismo._índices(llave)] = valor
@@ -389,13 +389,33 @@ def combinar(*matrs):
 
 
 def alinear(*datos):
-    dts = _intersec_coords(*datos)
+    dts = _intersec_datos(*datos)
     return _redimensionar(*dts)
 
 
+def alinear_2(dt1, dt2):
+    if isinstance(dt2, Datos):
+        dt1 = _expandir_dims(dt1, dims=dt2.dims, coords=dt2.coords)
+        dt2 = _expandir_dims(dt2, dims=dt1.dims, coords=dt1.coords)
+        if dt1.coords == dt2.coords:
+            return dt1, dt2.matr
+        else:
+            crds = _intersec_coords(dt1.coords, dt2.coords)
+            return dt1.loc[crds], dt2.loc[crds].matr
+    return dt1, dt2
+
+
 def alinear_como(como, *datos):
-    (cm, *dts) = _intersec_coords(como, *datos)
+    (cm, *dts) = _intersec_datos(como, *datos)
     return _redimensionar_como(cm, *dts)
+
+
+def alinear_como_2(como, otro):
+    otro = _expandir_dims(otro, dims=como.dims, coords=como.coords)
+    if otro.coords == como.coords:
+        return otro
+    else:
+        return otro.loc[como.coords]
 
 
 def _num(x):
@@ -415,20 +435,26 @@ def _redimensionar_como(plntll, *args):
     return [_expandir_dims(x, plntll.dims, plntll.coords) if isinstance(x, Datos) else x for x in args]
 
 
-def _intersec_coords(*args):
+def _intersec_datos(*args):
     datos = [x for x in args if isinstance(x, Datos)]
-    dims = set(dm for dt in datos for dm in dt.dims)
+
+    c_final = _intersec_coords(*[dt.coords for dt in datos])
+    return [
+        x.loc[{dm: c for dm, c in c_final.items() if dm in x.coords}] if isinstance(x, Datos) else x for x in args
+    ]
+
+
+def _intersec_coords(*args):
+    dims = set(dm for crd in args for dm in crd)
     c_final = {
         dm: list(dict.fromkeys([
-            c for dt in datos if dm in dt.coords for c in dt.coords[dm]
-            if all(c in dt_o.coords[dm] for dt_o in datos if dm in dt_o.coords)
+            c for crds in args if dm in crds for c in crds[dm]
+            if all(c in crds_o[dm] for crds_o in args if dm in crds_o)
         ]))
         for dm in dims
     }
 
-    return [
-        x.loc[{dm: c for dm, c in c_final.items() if dm in x.coords}] if isinstance(x, Datos) else x for x in args
-    ]
+    return c_final
 
 
 def _expandir_dims(datos, dims, coords):

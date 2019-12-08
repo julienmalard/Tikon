@@ -2,9 +2,10 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
+import xarray as xr
 import xarray.testing as xrt
 
-from tikon.datos.datos import Datos
+from tikon.datos.datos import Datos, lleno_como, combinar, máximo, mínimo, donde, f_numpy
 
 
 def _prb_igl(dts, mxr):
@@ -142,21 +143,30 @@ class PruebaDatos(unittest.TestCase):
         _prb_igl(dts.renombrar({'a': 'c'}), mxr.rename({'a': 'c'}))
 
     def test_llenar_nan(símismo):
-        raise NotImplementedError
+        dts = _datos(False)
+        dts.donde(dts < 4, np.nan)
+        mxr = dts.a_xarray()
+        dts.llenar_nan(-1)
+        _prb_igl(dts, mxr.fillna(-1))
 
     def test_nuevo_como(símismo):
         dts = _datos(False)
         _datos_igls(dts, dts.nuevo_como(dts.matr), símismo, meta=True)
 
     def test_expandir_dims(símismo):
-        raise NotImplementedError
+        dts, mxr = _datos()
+        dts.expandir_dims({'c': [1]})
+        mxr.expand_dims('c', 1)
+        _prb_igl(dts, mxr)
 
     def test_transposar(símismo):
         dts, mxr = _datos()
         _prb_igl(dts.transposar(['b', 'a']), mxr.transpose(*['b', 'a']))
 
     def test_dejar(símismo):
-        raise NotImplementedError
+        dts = _datos(False).loc[{'b': ['x']}]
+        mxr = dts.a_xarray()
+        _prb_igl(dts.dejar('b'), mxr.squeeze('b').drop_vars('b'))
 
     def test_dejar_no_unitario(símismo):
         with símismo.assertRaises(ValueError):
@@ -258,16 +268,17 @@ class PruebaLoc(unittest.TestCase):
     def test_loc_poner_val(símismo):
         dts, mxr = _datos()
         sel = {'b': ['x', 'z']}
+
         with símismo.subTest(rel=False):
             dts.loc[sel] = -1
             mxr.loc[sel] = -1
             _prb_igl(dts, mxr)
         dts, mxr = _datos()
+
         with símismo.subTest(rel=True):
             dts.loc[sel] -= 1
             mxr.loc[sel] -= 1
             _prb_igl(dts, mxr)
-
 
 
 class PruebaAritméticaLoc(unittest.TestCase):
@@ -280,19 +291,37 @@ class PruebaPruebaAritméticaAugLoc(unittest.TestCase):
 
 class PruebaFuncs(unittest.TestCase):
     def test_combin(símismo):
-        raise NotImplementedError
+        dts, mxr = _datos()
+        otro = dts.copiar()
+        otro.coords['b'] = ['u', 'v', 'w']
+        mxr_otro = mxr.copy()
+        mxr_otro.coords['b'] = ['u', 'v', 'w']
+        _prb_igl(combinar(otro, dts), mxr_otro.combine_first(mxr))
 
     def test_f_numpy(símismo):
-        raise NotImplementedError
+        dts = _datos(False)
+        dt1 = dts < 5
+        dt2 = dts > 2
+        _prb_igl(f_numpy(np.logical_or, dt1, dt2), np.logical_or(dt1.a_xarray(), dt2.a_xarray()))
 
     def test_máximo(símismo):
-        raise NotImplementedError
+        dts, mxr = _datos()
+        otro = dts + np.random.normal(size=dts.matr.shape)
+        mxr_otro = otro.a_xarray()
+        _prb_igl(máximo(dts, otro), np.maximum(mxr, mxr_otro))
 
     def test_mínimo(símismo):
-        raise NotImplementedError
+        dts, mxr = _datos()
+        otro = dts + np.random.normal(size=dts.matr.shape)
+        mxr_otro = otro.a_xarray()
+        _prb_igl(mínimo(dts, otro), np.minimum(mxr, mxr_otro))
 
     def test_donde(símismo):
-        raise NotImplementedError
+        dts, mxr = _datos()
+        _prb_igl(donde(dts > 4, dts, -1), xr.where(mxr > 4, mxr, -1))
 
     def test_lleno_como(símismo):
-        raise NotImplementedError
+        dts = _datos(False)
+        lleno = lleno_como(dts, 4)
+        dts[:] = 4
+        _datos_igls(lleno, dts, símismo, meta=True)
