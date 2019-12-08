@@ -1,12 +1,13 @@
 import numpy as np
 from scipy.stats import expon
+
 from tikon.central.res import Resultado
 from tikon.ecs.aprioris import APrioriDist
 from tikon.móds.rae.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RES_CREC, RES_REPR, RES_MRTE, RES_TRANS, \
     RES_MOV, \
     RES_ESTOC, EJE_ETAPA
 from tikon.utils import EJE_DEST
-
+from ...orgs.insectos.paras import EtapaJuvenilParasitoide
 from ...orgs.organismo import EtapaFantasma
 
 
@@ -25,20 +26,26 @@ class ResultadoRed(Resultado):
         raise NotImplementedError
 
     def cerrar(símismo):
-        super().cerrar()
         for eje in símismo.ejes_etps:
-            fantasmas = [e for e in símismo.res[eje] if isinstance(e, EtapaFantasma)]
+            fantasmas = [e for e in símismo._datos_t.coords[eje] if isinstance(e, EtapaFantasma)]
+            paras_juv = [e for e in símismo._datos_t.coords[eje] if isinstance(e, EtapaJuvenilParasitoide)]
+            if paras_juv:
+                símismo._datos_t.loc[{eje: paras_juv}] = 0
 
             for etp in fantasmas:
-                val = símismo.res.loc[{eje: etp}]
+                val = símismo._datos_t.loc[{eje: etp}]
 
                 # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
-                if etp.etp_espejo in símismo.res[eje]:
-                    símismo.res.loc[{eje: etp.etp_espejo}] += val
+                if etp.etp_espejo in símismo._datos_t.coords[eje]:
+                    val.coords[eje] = [etp.etp_espejo]
+                    símismo._datos_t += val
 
                 # Agregamos etapas fantasmas a las etapas originales de los huéspedes
-                if etp.etp_hués in símismo.res[eje]:
-                    símismo.res.loc[{eje: etp.etp_hués}] += val
+                if etp.etp_hués in símismo._datos_t.coords[eje]:
+                    val.coords[eje] = [etp.etp_hués]
+                    símismo._datos_t += val
+
+        super().cerrar()
 
 
 class ResPobs(ResultadoRed):

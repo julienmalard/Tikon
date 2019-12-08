@@ -2,6 +2,7 @@ import os
 import threading
 
 import numpy as np
+
 from tikon.central.errores import ErrorRequísitos, ErrorNombreInválido
 from tikon.central.exper import Exper
 from tikon.central.utils import gen_coords_base
@@ -186,6 +187,20 @@ class SimulExper(PlantillaSimul):
         símismo.paráms_exper.iniciar()
         super().iniciar()
 
+        for s in símismo:
+            símismo[s].post_iniciar()
+
+    def incrementar(símismo, paso, f):
+
+        # Este debe ir aquí porque se deben actualizar los datos *antes* de llamar las funciones `incrementar()` de los
+        # módulos en el caso que un módulo modifique el valor de un variable en otro módulo.
+        for s in símismo:
+            for r in símismo[s]:
+                símismo[s][r].avanzar_datos()
+
+        # Ahora sí podemos incrementar los módulos
+        super().incrementar(paso, f)
+
     def correr(símismo, depurar=False):
         if depurar:
             símismo.verificar_estado()
@@ -222,8 +237,10 @@ class SimulMódulo(PlantillaSimul):
     def vals_paráms(símismo):
         return símismo.ecs.vals_paráms() if símismo.ecs else []
 
+    def post_iniciar(símismo):
+        pass
+
     def incrementar(símismo, paso, f):
-        super().incrementar(paso, f)
         if símismo.ecs:
             símismo.ecs.eval(paso=paso, sim=símismo)
 

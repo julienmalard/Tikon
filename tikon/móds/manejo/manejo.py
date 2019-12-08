@@ -18,7 +18,7 @@ class Regla(object):
 
     def __call__(símismo, sim, paso, f):
         cond_verdad = símismo.condición(sim, paso, f)
-        if cond_verdad.qualquier() if isinstance(cond_verdad, Datos) else cond_verdad:
+        if cond_verdad.cualquier() if isinstance(cond_verdad, Datos) else cond_verdad:
             for a in símismo.acción:
                 a(sim, donde=cond_verdad)
 

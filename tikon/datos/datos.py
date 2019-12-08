@@ -52,11 +52,11 @@ class Datos(object):
             ll: list(v.values if not np.issubdtype(v.values.dtype, np.datetime64) else pd.to_datetime(v.values))
             for ll, v in datos.coords.items()
         }
-        return Datos(val=datos.values, dims=datos.dims, coords=coords, nombre=datos.name, atribs=datos.attrs)
+        return Datos(val=datos.values.copy(), dims=datos.dims, coords=coords, nombre=datos.name, atribs=datos.attrs)
 
     def a_xarray(símismo):
         return xr.DataArray(
-            símismo.matr, coords=símismo.coords, dims=símismo.dims, name=símismo.nombre, attrs=símismo.atribs
+            símismo.matr.copy(), coords=símismo.coords, dims=símismo.dims, name=símismo.nombre, attrs=símismo.atribs
         )
 
     def copiar(símismo):
@@ -95,12 +95,18 @@ class Datos(object):
         )
 
     def expandir_dims(símismo, coords):
-        return _expandir_dims(símismo, coords)
+        if isinstance(coords, Datos):
+            o_dims, o_coords = coords.dims, coords.coords
+        else:
+            o_coords = coords
+            o_dims = list(o_coords)
+        return _expandir_dims(símismo, dims=o_dims, coords=o_coords)
 
     def dejar(símismo, dim):
 
         if len(símismo.coords[dim]) != 1:
             raise ValueError('Dimensiones deben tener tamaño 1.')
+
         símismo.matr = símismo.matr.squeeze(símismo.dims.index(dim))
         símismo.dims = tuple(x for x in símismo.dims if x not in dim)
         símismo.coords = {dm: símismo.coords[dm] for dm in símismo.dims}
@@ -129,31 +135,16 @@ class Datos(object):
                 índices.append(slice(None))
         return tuple(índices)
 
-    def alinear(símismo, otro):
-        copia = símismo.copiar()
-        if isinstance(otro, Datos):
-            if copia.dims != otro.dims:
-                if set(copia.dims) != set(otro.dims):
-                    # Agregar dims
-                    copia = _expandir_dims(copia, otro)
-                    otro = _expandir_dims(otro, copia)
-                # Reordenar dims
-                otro = otro.transposar(copia.dims)
-
-            if copia.coords == otro.coords:
-                return copia, otro.matr
-            else:
-                c_final = {
-                    ll: [x for x in v if x in otro.coords[ll]] for ll, v in copia.coords.items() if ll in otro.coords
-                }
-                return copia.loc[c_final], otro.loc[c_final].matr
-
-        return copia, otro
+    def redond(símismo, n=None):
+        return símismo.nuevo_como(np.round(símismo.matr, decimals=n or 0))
 
     def f_eje(símismo, f, dim, *args, **argsll):
         if dim is not None:
             vals = f(símismo.matr, axis=símismo._í_dims(dim), *args, **argsll)
-            return símismo.nuevo_como(vals, excluir=dim if vals.shape != símismo.matr.shape else None)
+
+            # Algunas funciones como `np.take_along_axis` no destruyen el eje especificado
+            excluir = dim if vals.shape != símismo.matr.shape else None
+            return símismo.nuevo_como(vals, excluir=excluir)
         return f(símismo.matr)
 
     def prod(símismo, dim=None):
@@ -162,12 +153,12 @@ class Datos(object):
     def suma(símismo, dim=None):
         return símismo.f_eje(np.ndarray.sum, dim=dim)
 
-    def qualquier(símismo, dim=None):
+    def cualquier(símismo, dim=None):
         return símismo.f_eje(np.ndarray.any, dim=dim)
 
     def donde(símismo, cond, otro):
-        matrs = _extract_matrs(cond, símismo, otro)[1]
-        return símismo.nuevo_como(np.where(*matrs))
+        m_cond, m_otro = [x.matr if isinstance(x, Datos) else x for x in alinear_como(símismo, cond, otro)]
+        return símismo.nuevo_como(np.where(m_cond, símismo.matr, m_otro))
 
     def f(símismo, f, *args, **argsll):
         copia = símismo.copiar()
@@ -179,49 +170,40 @@ class Datos(object):
         return símismo
 
     def __add__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr += y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr + _num(y))
 
     def __sub__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr -= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr - _num(y))
 
     def __mul__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr *= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr * _num(y))
 
     def __mod__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr %= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr % _num(y))
 
     def __truediv__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr /= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr / _num(y))
 
     def __floordiv__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr //= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr // _num(y))
 
     def __pow__(símismo, pot, módulo=None):
-        x, y = símismo.alinear(pot)
-        x.matr **= y
-        return x
+        x, y = alinear(símismo, pot)
+        return x.nuevo_como(x.matr ** _num(y))
 
     def __and__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr &= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr & _num(y))
 
     def __or__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr |= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr | _num(y))
 
     def __radd__(símismo, otro):
         return símismo + otro
@@ -232,92 +214,108 @@ class Datos(object):
     def __rmul__(símismo, otro):
         return símismo * otro
 
+    def __rmod__(símismo, otro):
+        otro = símismo.nuevo_como(otro)
+        return otro % símismo
+
     def __rtruediv__(símismo, otro):
         return símismo.nuevo_como(1 / símismo.matr) * otro
 
     def __rfloordiv__(símismo, otro):
         return (otro / símismo).f(np.floor)
 
+    def __rpow__(símismo, otro):
+        otro = símismo.nuevo_como(otro)
+        return otro % símismo
+
+    def __rand__(símismo, otro):
+        return símismo & otro
+
+    def __ror__(símismo, otro):
+        raise símismo | otro
+
     def __eq__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr == y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr == _num(y))
 
     def __gt__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr > y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr > _num(y))
 
     def __lt__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr < y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr < _num(y))
 
     def __ge__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr >= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr >= _num(y))
 
     def __le__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr <= y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr <= _num(y))
 
     def __ne__(símismo, otro):
-        x, y = símismo.alinear(otro)
-        x.matr = x.matr != y
-        return x
+        x, y = alinear(símismo, otro)
+        return x.nuevo_como(x.matr != _num(y))
 
     def __iadd__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo + otro
-        símismo.matr += otro
+            res = símismo + otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr += otro
         return símismo
 
     def __isub__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo - otro
-        símismo.matr -= otro
+            res = símismo - otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr -= otro
         return símismo
 
     def __imul__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo * otro
-        símismo.matr *= otro
+            res = símismo * otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr *= otro
         return símismo
 
     def __imod__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo % otro
-        símismo.matr %= otro
+            res = símismo % otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr %= otro
         return símismo
 
     def __itruediv__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo / otro
-        símismo.matr /= otro
+            res = símismo / otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr /= otro
         return símismo
 
     def __ifloordiv__(símismo, otro):
         if isinstance(otro, Datos):
-            return símismo // otro
-        símismo.matr //= otro
+            res = símismo // otro
+            símismo.loc[res] = res
+        else:
+            símismo.matr //= otro
         return símismo
 
     def __ipow__(símismo, pot, módulo=None):
         if isinstance(pot, Datos):
-            return símismo ** pot
-        símismo.matr **= pot
+            res = símismo ** pot
+            símismo.loc[res] = res
+        else:
+            símismo.matr **= pot
         return símismo
 
     def __abs__(símismo):
         return símismo.nuevo_como(np.abs(símismo.matr))
-
-    def __floor__(símismo):
-        return símismo.nuevo_como(np.floor(símismo.matr))
-
-    def __ceil__(símismo):
-        return símismo.nuevo_como(np.ceil(símismo.matr))
 
     def __neg__(símismo):
         return símismo.nuevo_como(-símismo.matr)
@@ -339,25 +337,23 @@ class Datos(object):
 
     def __setitem__(símismo, llave, valor):
         if isinstance(valor, Datos):
-            if valor.dims != símismo.dims:
-                if set(símismo.dims) != set(valor.dims):
-                    # Agregar dims
-                    valor = _expandir_dims(valor, símismo[llave])
-                # Reordenar dims
-                valor = valor.transposar(símismo.dims)
-            valor = valor.matr
+            como = símismo[llave] if isinstance(llave, dict) else símismo
+            valor = alinear_como(como, valor)[0].matr
+
         if isinstance(llave, dict):
             símismo.matr[símismo._índices(llave)] = valor
         else:
             símismo.matr[llave] = valor
 
 
-def f_numpy(f, *args, **argsll):
-    plntll, matrs = _extract_matrs(*args)
+def f_numpy(f, *datos, **argsll):
+    dts = alinear(*datos)
+    plntll = next((dt for dt in dts if isinstance(dt, Datos)), None)
+    args = [dt.matr if isinstance(dt, Datos) else dt for dt in dts]
     if plntll:
-        return plntll.nuevo_como(f(*matrs, **argsll))
+        return plntll.nuevo_como(f(*args, **argsll))
     else:
-        return f(*matrs, **argsll)
+        return f(*dts, **argsll)
 
 
 def máximo(x, y):
@@ -372,7 +368,7 @@ def donde(cond, x, y):
     return f_numpy(np.where, cond, x, y)
 
 
-def lleno_como(otro, valor, tipod='int'):
+def lleno_como(otro, valor, tipod=None):
     return otro.nuevo_como(np.full(otro.matr.shape, valor, dtype=tipod))
 
 
@@ -392,32 +388,65 @@ def combinar(*matrs):
     return final
 
 
-def _extract_matrs(*args):
-    l_datos = [x for x in args if isinstance(x, Datos)]
-    # Por el momento tomamos la matriz con más coordinadas como plantilla. Para ser más universal tendríamos que
-    # alinear todas las matrices.
-    plntll = sorted(l_datos, key=lambda x: -len(x.dims))[0] if l_datos else None
-    if plntll:
-        matrs = [plntll.alinear(x)[1] if isinstance(x, Datos) else x for x in args]
-    else:
-        matrs = [x.matr if isinstance(x, Datos) else x for x in args]
-    return plntll, matrs
+def alinear(*datos):
+    dts = _intersec_coords(*datos)
+    return _redimensionar(*dts)
 
 
-def _expandir_dims(princ, otra):
-    if isinstance(otra, Datos):
-        o_dims, o_coords = otra.dims, otra.coords
-    else:
-        o_coords = otra
-        o_dims = list(o_coords)
+def alinear_como(como, *datos):
+    (cm, *dts) = _intersec_coords(como, *datos)
+    return _redimensionar_como(cm, *dts)
 
-    d_final = tuple([*princ.dims, *(d for d in o_dims if d not in princ.dims)])
-    c_final = {dm: princ.coords[dm] if dm in princ.coords else o_coords[dm] for dm in d_final}
-    frm_matr = tuple(len(v) if ll in princ.coords else 1 for ll, v in c_final.items())
-    frm_final = tuple(len(v) for v in c_final.values())
 
-    # Copia de `broadcast_to` necesaria para evitar error Numpy con Datos.matr += V después
-    return Datos(
-        np.broadcast_to(princ.matr.reshape(frm_matr), frm_final).copy(), d_final,
-        coords=c_final, nombre=princ.nombre, atribs=princ.atribs
-    )
+def _num(x):
+    return x.matr if isinstance(x, Datos) else x
+
+
+def _redimensionar(*args):
+    datos = [x for x in args if isinstance(x, Datos)]
+
+    dims = list(dict.fromkeys(dm for dt in datos for dm in dt.dims))
+    coords = {dm: next(dt.coords[dm] for dt in datos if dm in dt.coords) for dm in dims}
+
+    return [_expandir_dims(x, dims, coords) if isinstance(x, Datos) else x for x in args]
+
+
+def _redimensionar_como(plntll, *args):
+    return [_expandir_dims(x, plntll.dims, plntll.coords) if isinstance(x, Datos) else x for x in args]
+
+
+def _intersec_coords(*args):
+    datos = [x for x in args if isinstance(x, Datos)]
+    dims = set(dm for dt in datos for dm in dt.dims)
+    c_final = {
+        dm: list(dict.fromkeys([
+            c for dt in datos if dm in dt.coords for c in dt.coords[dm]
+            if all(c in dt_o.coords[dm] for dt_o in datos if dm in dt_o.coords)
+        ]))
+        for dm in dims
+    }
+
+    return [
+        x.loc[{dm: c for dm, c in c_final.items() if dm in x.coords}] if isinstance(x, Datos) else x for x in args
+    ]
+
+
+def _expandir_dims(datos, dims, coords):
+    d_final = tuple([*dims, *(d for d in datos.dims if d not in dims)])
+
+    if datos.dims != d_final:
+        if set(datos.dims) != set(d_final):
+            # Agregar dims
+            c_final = {dm: datos.coords[dm] if dm in datos.coords else coords[dm] for dm in d_final}
+            frm_matr = tuple(len(v) if ll in datos.coords else 1 for ll, v in c_final.items())
+            frm_final = tuple(len(v) for v in c_final.values())
+
+            # Copia de `broadcast_to` necesaria para evitar error Numpy con Datos.matr += V después
+            datos = Datos(
+                np.broadcast_to(datos.matr.reshape(frm_matr), frm_final).copy(), d_final,
+                coords=c_final, nombre=datos.nombre, atribs=datos.atribs
+            )
+        # Reordenar dims
+        datos = datos.transposar(d_final)
+
+    return datos

@@ -16,7 +16,7 @@ class Mu(Parám):
     nombre = 'mu'
     líms = (0, None)
     unids = None
-    apriori = APrioriDist(estad.expon(scale=100))
+    apriori = APrioriDist(estad.expon(scale=20))
 
 
 class Sigma(Parám):

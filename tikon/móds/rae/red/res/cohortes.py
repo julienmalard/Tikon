@@ -48,14 +48,15 @@ class ResCohortes(ResultadoRed):
         etps_nuevos = [x for x in nuevos.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]]
         if not etps_nuevos:
             return
-        índ = {EJE_ETAPA: etps_nuevos}
+        índs = {EJE_ETAPA: etps_nuevos}
+        nuevos = nuevos.loc[índs]
 
         # Limpiar edades de cohortes
-        símismo.edad = donde(símismo.pobs == 0, símismo.edad, 0)
+        símismo.edad = donde(símismo.pobs == 0, 0, símismo.edad)
 
         # Las edades y poblaciones actuales de las etapas correspondientes
-        edades = símismo.edad.loc[índ]
-        pobs = símismo.pobs.loc[índ]
+        edades = símismo.edad.loc[índs]
+        pobs = símismo.pobs.loc[índs]
 
         # Los cohortes que tienen la diferencia mínima con las nuevas edades.
         # Si hay más que un cohorte con la diferencia mínima, tomará el primero.
@@ -90,9 +91,10 @@ class ResCohortes(ResultadoRed):
         etps_quitar = [x for x in para_quitar.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]]
         if not etps_quitar:
             return
-        índ = {EJE_ETAPA: etps_quitar}
-        pobs = símismo.pobs.loc[índ]
-        edades = símismo.edad.loc[índ]
+        índs = {EJE_ETAPA: etps_quitar}
+        para_quitar = para_quitar.loc[índs]
+        pobs = símismo.pobs.loc[índs]
+        edades = símismo.edad.loc[índs]
 
         totales_pobs = pobs.suma(dim=EJE_COH)
         quitar = (pobs * (para_quitar / totales_pobs)).fi(np.floor).llenar_nan(0)
@@ -103,7 +105,7 @@ class ResCohortes(ResultadoRed):
         cum_presente = (pobs > 0).f_eje(np.cumsum, dim=EJE_COH)
         quitar_res = donde((pobs > 0) & (cum_presente <= para_quitar), 1, 0)
 
-        símismo.pobs.loc[índ] = pobs - quitar_res
+        símismo.pobs.loc[índs] = pobs - quitar_res
 
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
@@ -162,7 +164,7 @@ class ResCohortes(ResultadoRed):
         edades = símismo.edad.loc[índ]
         pobs = símismo.pobs.loc[índ]
 
-        # Calcular la densidad de probabilidad. Cambiamos a numpy temporalmented
+        # Calcular la densidad de probabilidad. Cambiamos a numpy temporalmente
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
         dens_cum_eds = dist.cdf(edades.transposar(dims).matr)
         dens_con_cambio = dist.cdf((edades + cambio_edad).transposar(dims).matr)
