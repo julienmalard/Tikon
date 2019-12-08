@@ -55,13 +55,10 @@ def días_grados(mín, máx, umbrales, método, corte):
         ubic = mín + 1
         umbr_máx_nrm, umbr_mín_nrm = umbr_máx / amp - ubic, umbr_mín / amp - ubic
 
-        intr_máx = f_numpy(
-            np.arccos, donde(f_numpy(np.logical_or, umbr_máx_nrm < -1, umbr_máx_nrm > 1), 1, -umbr_máx_nrm)
-        )
+        intr_máx = donde(f_numpy(np.logical_or, umbr_máx_nrm < -1, umbr_máx_nrm > 1), 1, -umbr_máx_nrm).fi(np.arccos)
+
         i_máx = intr_máx, (2 * π - intr_máx)
-        intr_mín = f_numpy(
-            np.arccos, donde(f_numpy(np.logical_or, umbr_mín_nrm < -1, umbr_mín_nrm > 1), 1, -umbr_mín_nrm)
-        )
+        intr_mín = donde(f_numpy(np.logical_or, umbr_mín_nrm < -1, umbr_mín_nrm > 1), 1, -umbr_mín_nrm).fi(np.arccos)
         i_mín = intr_mín, (2 * π - intr_mín)
 
         dif = 1 - umbr_máx_nrm
