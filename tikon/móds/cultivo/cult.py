@@ -41,6 +41,8 @@ class SimulCultivo(SimulMódulo):
         super().iniciar()
         for s in símismo.simuls_parcelas:
             s.iniciar()
+
+    def post_iniciar(símismo):
         símismo.mandar_biomasa()
 
     def incrementar(símismo, paso, f):

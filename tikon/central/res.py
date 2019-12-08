@@ -34,6 +34,7 @@ class Resultado(PlantillaSimul):
 
         # Crear enlace dinámico entre resultados diarios y temporales
         símismo._datos = símismo._datos_t[{EJE_TIEMPO: 0}]
+        símismo.activada = símismo._datos.matr.size != 0
         símismo.res = None
 
         super().__init__(símismo.nombre, subs=[])
@@ -55,7 +56,8 @@ class Resultado(PlantillaSimul):
                 símismo._datos[:] = val
 
     def iniciar(símismo):
-
+        if not símismo.activada:
+            return
         símismo._datos_t[:] = 0
         símismo._datos = símismo._datos_t[{EJE_TIEMPO: 0}]
 
@@ -63,8 +65,8 @@ class Resultado(PlantillaSimul):
             inic = símismo.sim.simul_exper.paráms_exper[str(símismo.sim)][str(símismo)]
             símismo.poner_valor(inic.matr.val)
 
-    def incrementar(símismo, paso, f):
-        if símismo.t is not None:
+    def avanzar_datos(símismo):
+        if símismo.activada and símismo.t is not None:
             símismo._datos = símismo._datos_t[{EJE_TIEMPO: símismo.t.i}]
             símismo._datos[:] = símismo._datos_t[{EJE_TIEMPO: símismo.t.i - 1}]
 
@@ -72,6 +74,8 @@ class Resultado(PlantillaSimul):
         símismo.res = símismo._datos_t.a_xarray()
 
     def verificar_estado(símismo):
+        if not símismo.activada:
+            return
         if np.any(~np.isfinite(símismo.datos.matr)):
             raise ValueError('{res}: Valor no numérico (p. ej., división por 0)'.format(res=símismo))
 

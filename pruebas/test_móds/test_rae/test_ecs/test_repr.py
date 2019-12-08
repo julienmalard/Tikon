@@ -18,5 +18,5 @@ class PruebaRepr(unittest.TestCase):
         for ec in ProbRepr.cls_ramas:
             with símismo.subTest(ec.nombre):
                 mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=RedAE(insecto), t=t)
-                insecto.activar_ec(ECS_REPR, subcateg='Prob', ec=ec.nombre)
+                insecto['adulto'].activar_ec(ECS_REPR, subcateg='Prob', ec=ec.nombre)
                 mod.simular(str(ec), exper=exper, t=10, depurar=True)

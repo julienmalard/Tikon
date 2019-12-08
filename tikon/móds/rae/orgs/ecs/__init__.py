@@ -17,5 +17,8 @@ class EcsOrgs(ÁrbolEcs):
     cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
 
     def verificar(símismo):
-        # Si crec Ec es
+        # Si crec Ec está activada, solamente Depred y Estoc se pueden activar
+        # No repr en etapas otras que adulto
+        # Etapa sin crec y con Trans que falta
+        # Etapa con cohortes sin edad
         pass  # para hacer

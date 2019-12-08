@@ -9,14 +9,14 @@ class A(Parám):
     nombre = 'a'
     líms = (0, None)
     unids = None
-    apriori = APrioriDist(estad.expon(scale=100))
+    apriori = APrioriDist(estad.expon(scale=20))
 
 
 class B(Parám):
     nombre = 'b'
     líms = (0, None)
     unids = None
-    apriori = APrioriDist(estad.expon(scale=100))
+    apriori = APrioriDist(estad.expon(scale=10))
 
 
 class C(Parám):

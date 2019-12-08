@@ -9,7 +9,7 @@ class U(Parám):
     nombre = 'u'
     líms = (0, None)
     unids = None
-    apriori = APrioriDist(estad.expon(scale=100))
+    apriori = APrioriDist(estad.expon(scale=20))
 
 
 class F(Parám):
