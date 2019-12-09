@@ -2,11 +2,11 @@ import numpy as np
 from scipy.stats import expon, uniform
 
 from tikon.central.res import Resultado
-from tikon.ecs.aprioris import APrioriDist
+from tikon.ecs.aprioris import APrioriDist, APrioriDens
 from tikon.móds.rae.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RES_CREC, RES_REPR, RES_MRTE, RES_TRANS, \
     RES_MOV, \
     RES_ESTOC, EJE_ETAPA
-from tikon.utils import EJE_DEST
+from tikon.utils import EJE_DEST, EJE_TIEMPO
 from ...orgs.insectos.paras import EtapaJuvenilParasitoide
 from ...orgs.organismo import EtapaFantasma
 
@@ -66,23 +66,25 @@ class ResPobs(ResultadoRed):
                 índ_e = {EJE_ETAPA: e, **{ll: v for ll, v in índ.items() if ll != EJE_ETAPA}}
             else:
                 índ_e = índ
-            datos_obs = [o_.datos.loc[índ_e] for o_ in obs if índ_e in o_]
-            return np.nanmax([o_.max() for o_ in datos_obs]) if datos_obs else None
+            datos_obs = [o_.datos.loc[índ_e].dropna(EJE_TIEMPO)[{EJE_TIEMPO: 0}] for o_ in obs if índ_e in o_]
+            return (np.mean(datos_obs), max(np.std(datos_obs), np.mean(datos_obs)*.05, 1)) if datos_obs else None
 
         ref = _extr_ref()
 
         if isinstance(etp, EtapaJuvenilParasitoide):
             return APrioriDist(uniform(0, 1))
         if ref:
-            return APrioriDist(expon(0, ref / 4))
+            mín = max(0, ref[0] - ref[1])
+            return APrioriDens((mín, ref[0] + ref[1]), .80)
         if isinstance(etp, EtapaFantasma):
             ref_espejo = _extr_ref(etp.etp_espejo)
             ref_huésped = _extr_ref(etp.etp_hués)
 
             co_huéspedes = símismo.sim.mód.huéspedes(etp.org)
-            ref_espejo /= len(co_huéspedes)
-            ref = min(ref_espejo, ref_huésped)
-            return APrioriDist(expon(0, ref / 4))
+            ref_espejo = (ref_espejo[0]/len(co_huéspedes), ref_espejo[1]/len(co_huéspedes))
+            ref_mín = sorted([ref_espejo, ref_huésped])[0]
+            mín = max(0, ref_mín[0] - ref_mín[1])
+            return APrioriDens((mín, ref_mín[0] + ref_mín[1]), .80)
 
     def iniciar(símismo):
         super().iniciar()
