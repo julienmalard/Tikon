@@ -8,6 +8,7 @@ from tikon.central.simul import PlantillaSimul
 from tikon.datos.datos import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
+from tikon.ecs.aprioris import APrioriDens
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 
@@ -42,6 +43,15 @@ class Resultado(PlantillaSimul):
     @property
     def datos(símismo):
         return símismo._datos
+
+    def apriori_de_obs(símismo, obs, índ):
+        datos_obs = [o_.datos.loc[índ] for o_ in obs if índ in o_]
+        líms = proc_líms(símismo.líms)
+        if datos_obs:
+            mín, máx = np.nanmin([o_.min() for o_ in datos_obs]), np.nanmax([o_.max() for o_ in datos_obs])
+            mín = max(mín, líms[0])
+            máx = min(máx, líms[1])
+            return APrioriDens((mín, máx), 0.5)
 
     def poner_valor(símismo, val, rel=False):
         if isinstance(val, Datos):

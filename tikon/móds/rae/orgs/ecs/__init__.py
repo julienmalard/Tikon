@@ -16,9 +16,15 @@ class EcsOrgs(ÁrbolEcs):
     # ¡Este órden queda muy importante!
     cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
 
-    def verificar(símismo):
+    def verificar(símismo, org):
         # Si crec Ec está activada, solamente Depred y Estoc se pueden activar
         # No repr en etapas otras que adulto
         # Etapa sin crec y con Trans que falta
-        # Etapa con cohortes sin edad
+        # Etapa con cohortes sin edad -> activar edad días
+        # Etapa con mult pero no prob o deter para trans
+        # Etapa con trans prob y deter activados
+        # Org con múltiples etapas sin trans
+        # Mov atr pero no mov dstn -> activar dstn Euclidiana
+        # Crec modif pero no ec
+        # Crec ec pero no modif -> activar modif Ninguna
         pass  # para hacer

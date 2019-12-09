@@ -62,3 +62,7 @@ class Obs(object):
             datos.loc[índs] = vals * factor
 
         return cls(datos)
+
+    def __contains__(símismo, itema):
+        coords = {ll: v.values for ll, v in símismo.datos.coords.items()}
+        return all(ll in coords and v in coords[ll] for ll, v in itema.items())
