@@ -39,7 +39,7 @@ class SimulRed(SimulMódulo):
         ]
 
         símismo.parás_hués = [
-            (etp, (mód.huéspedes(etp), mód.fantasmas(etp))) for etp in símismo.etapas
+            (etp, ([etp.etp_hués for etp in mód.fantasmas(etp)], mód.fantasmas(etp))) for etp in símismo.etapas
             if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto' and mód.huéspedes(etp)
         ]
 
