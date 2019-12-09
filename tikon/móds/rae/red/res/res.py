@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import expon
+from scipy.stats import expon, uniform
 
 from tikon.central.res import Resultado
 from tikon.ecs.aprioris import APrioriDist
@@ -57,6 +57,32 @@ class ResPobs(ResultadoRed):
     def __init__(símismo, sim, coords, vars_interés):
         coords = {EJE_ETAPA: sim.etapas, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
+
+    def apriori_de_obs(símismo, obs, índ):
+        etp = índ[EJE_ETAPA]
+
+        def _extr_ref(e=None):
+            if e:
+                índ_e = {EJE_ETAPA: e, **{ll: v for ll, v in índ.items() if ll != EJE_ETAPA}}
+            else:
+                índ_e = índ
+            datos_obs = [o_.datos.loc[índ_e] for o_ in obs if índ_e in o_]
+            return np.nanmax([o_.max() for o_ in datos_obs]) if datos_obs else None
+
+        ref = _extr_ref()
+
+        if isinstance(etp, EtapaJuvenilParasitoide):
+            return APrioriDist(uniform(0, 1))
+        if ref:
+            return APrioriDist(expon(0, ref / 4))
+        if isinstance(etp, EtapaFantasma):
+            ref_espejo = _extr_ref(etp.etp_espejo)
+            ref_huésped = _extr_ref(etp.etp_hués)
+
+            co_huéspedes = símismo.sim.mód.huéspedes(etp.org)
+            ref_espejo /= len(co_huéspedes)
+            ref = min(ref_espejo, ref_huésped)
+            return APrioriDist(expon(0, ref / 4))
 
     def iniciar(símismo):
         super().iniciar()

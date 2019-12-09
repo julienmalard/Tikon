@@ -250,6 +250,7 @@ class RelaciónParas(object):
                 etp_depred.org, etp=etp_depred.org[0], org_hués=huésped, etp_hués=huésped[í_etp],
                 sig=símismo.fantasmas[-1] if símismo.fantasmas else etp_recip
             ))
+        símismo.fantasmas.reverse()
 
 
 class SumaEtapas(object):

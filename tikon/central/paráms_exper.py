@@ -33,14 +33,14 @@ class ParámsExperVar(PlantillaParámsExper):
 
     def __init__(símismo, nombre, exper, sim, datos, n_reps):
         super().__init__(nombre, exper, sim=sim, datos=datos, n_reps=n_reps)
+        líms = proc_líms(sim.líms)
         if símismo.datos.obs:
-            líms = proc_líms(sim.líms)
             mín = líms[0]
-            máx = min(líms[1], np.max([o_.datos.values.max() for o_ in símismo.datos.obs]))
+            ref = min(líms[1], np.nanmax([o_.datos.values.max() for o_ in símismo.datos.obs]))
             if líms == (0, np.inf):
-                apriori = APrioriDist(expon(0, máx / 3))
+                apriori = APrioriDist(expon(0, ref))
             else:
-                apriori = APrioriDens((mín, máx), 0.90)
+                apriori = APrioriDens((mín, ref), 0.90)
         else:
             apriori = sim.apriori
 
@@ -55,31 +55,27 @@ class ParámsExperVar(PlantillaParámsExper):
             apriori_inic = símismo.datos.prm.apriori(inter=l_índ, heredar=True)
             if apriori_inic:
                 símismo.prm.espec_apriori(APrioriDist(apriori_inic), inter=l_índ)
-            # elif símismo.datos.obs:
-            #     try:
-            #         o_ = símismo.datos.obs[0].datos.copy()
-            #         o_['etapa'] = [str(x.item()) for x in o_['etapa']]
-            #         dat = o_.loc[índ][{EJE_TIEMPO: 0}].item()
-            #         símismo.prm.espec_apriori(APrioriDist(uniform(dat, 0)), inter=l_índ)
-            #     except KeyError:
-            #         pass
+            else:
+                apriori = sim.apriori_de_obs(símismo.datos.obs, índ)
+                if apriori:
+                    símismo.prm.espec_apriori(apriori, inter=l_índ)
 
         símismo.prm.de_dic(símismo.datos.prm.a_dic())
 
-        def _gen_matr_prm(crds, índs=None, inter=None):
-            índs = [] if índs is None else índs
+        def _gen_matr_prm(crds, índs_=None, inter=None):
+            índs_ = [] if índs_ is None else índs_
             inter = inter or []
             if crds:
                 eje = list(crds)[0]
                 crds = dict(crds)
-                índs = crds.pop(eje)
-                cls = MatrParám if índs is None else ValsParámCosoInter
+                índs_ = crds.pop(eje)
+                cls = MatrParám if índs_ is None else ValsParámCosoInter
                 return cls([
-                    _gen_matr_prm(crds=crds, índs=í, inter=inter + [í]) for í in índs
+                    _gen_matr_prm(crds=crds, índs_=í, inter=inter + [í]) for í in índs_
                 ], eje=eje, índice=inter[-1] if len(inter) else None
                 )
             else:
-                return ValsParámCoso(tmñ=símismo.n_reps, prm_base=símismo.prm, índice=índs, inter=inter)
+                return ValsParámCoso(tmñ=símismo.n_reps, prm_base=símismo.prm, índice=índs_, inter=inter)
 
         símismo.matr = _gen_matr_prm(coords)
 

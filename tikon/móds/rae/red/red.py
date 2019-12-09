@@ -1,13 +1,13 @@
 import numpy as np
+
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.datos.datos import Datos
 from tikon.ecs.paráms import Inter
 from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA
-
 from .res.cohortes import ResCohortes
 from ..orgs.ecs import EcsOrgs
-from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR, ECS_DEPR
+from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from ..orgs.insectos import Parasitoide
 from ..orgs.organismo import EtapaFantasma, Etapa
 from ..red.res import res as res_red
@@ -23,12 +23,11 @@ class SimulRed(SimulMódulo):
 
         símismo.etapas = mód.etapas
         símismo.orgs = mód.orgs
-        exper = simul_exper.exper
-        símismo.víctimas = list(set(pr for pr in mód.presas()).union(
-            set(h for h in mód.huéspedes())
-        ))
+        presas = mód.presas()
+        símismo.víctimas = presas + [h for h in mód.huéspedes() if h not in presas]
 
         modelo = simul_exper.modelo
+        exper = simul_exper.exper
         símismo.recip_repr = [
             etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, modelo, mód=mód, exper=exper)
         ]
