@@ -282,11 +282,15 @@ class PruebaLoc(unittest.TestCase):
 
 
 class PruebaAritméticaLoc(unittest.TestCase):
-    pass
+    @unittest.skip('implementar')
+    def test_aritméticaloc(símisom):
+        pass
 
 
 class PruebaPruebaAritméticaAugLoc(unittest.TestCase):
-    pass
+    @unittest.skip('implementar')
+    def test_aritméticaaugloc(símisom):
+        pass
 
 
 class PruebaFuncs(unittest.TestCase):

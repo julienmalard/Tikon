@@ -38,7 +38,7 @@ class ParámsExperVar(PlantillaParámsExper):
             mín = líms[0]
             máx = min(líms[1], np.max([o_.datos.values.max() for o_ in símismo.datos.obs]))
             if líms == (0, np.inf):
-                apriori = APrioriDist(expon(0, máx / 5))
+                apriori = APrioriDist(expon(0, máx / 3))
             else:
                 apriori = APrioriDens((mín, máx), 0.90)
         else:
