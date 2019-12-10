@@ -46,6 +46,9 @@ class Exper(object):
             archivo = os.path.join(directorio, símismo.nombre + '.json')
         símismo.datos.cargar_calibs(archivo)
 
+    def __str__(símismo):
+        return símismo.nombre
+
 
 def _extract_parcelas(parcelas):
     parcelas = [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas
