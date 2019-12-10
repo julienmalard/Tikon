@@ -1,11 +1,11 @@
 import numpy as np
-from scipy.stats import uniform, expon
+from scipy.stats import expon
+
 from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDens, APrioriDist
 from tikon.ecs.paráms import ValsParámCoso, ValsParámCosoInter, MatrParám
 from tikon.ecs.árb_coso import ParámCoso
 from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
-
 from .datos import DatosVar, DatosMód
 
 

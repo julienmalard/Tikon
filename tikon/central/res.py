@@ -9,7 +9,7 @@ from tikon.datos.datos import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.ecs.aprioris import APrioriDens
-from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
+from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO, guardar_json, asegurar_dir_existe, asegurar_ext
 
 
 class Resultado(PlantillaSimul):
@@ -101,7 +101,7 @@ class Resultado(PlantillaSimul):
         l_proc = []
         for obs in símismo.obs:
             resultados = obs.proc_res(símismo.res)
-            res_corresp = resultados.interp_like(obs.datos).dropna(EJE_TIEMPO)
+            res_corresp = resultados.interp_like(obs.datos).dropna(EJE_TIEMPO, how='all')
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
@@ -109,7 +109,7 @@ class Resultado(PlantillaSimul):
                 obs_índs = obs_corresp.loc[índs]
                 l_proc.append(
                     ValidÍnds(
-                        criterios=proc.calc(obs_índs, datos_índs), peso=proc.pesos(obs_índs)
+                        criterios=proc.calc(obs_índs, datos_índs), peso=proc.pesos(obs_índs), índs=índs
                     )
                 )
 
@@ -120,7 +120,7 @@ class Resultado(PlantillaSimul):
         pesos = []
         for obs in símismo.obs:
             resultados = obs.proc_res(símismo.res)
-            res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(EJE_TIEMPO)
+            res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(EJE_TIEMPO, how='all')
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
@@ -156,6 +156,26 @@ class Resultado(PlantillaSimul):
                 'obs': símismo.obs.a_dic() if símismo.obs else None,
                 'preds': símismo.res.a_xarray().to_dict(),
             }
+
+    def guardar(símismo, archivo, formato='netcdf'):
+
+        res = símismo.res.copy()
+        for dim, crds in res.coords.items():
+            res.coords[dim] = [
+                str(x) if not (np.issubdtype(crds.dtype, np.int) or np.issubdtype(crds.dtype, np.datetime64))
+                else x for x in crds.values
+            ]
+
+        formato = formato.lower()
+        if formato == 'netcdf':
+            archivo = asegurar_ext(archivo, '.nc')
+            asegurar_dir_existe(archivo)
+            res.to_netcdf(archivo, mode='w')
+        elif formato == 'json':
+            archivo = asegurar_ext(archivo, '.json')
+            guardar_json(res.to_dict(), archivo=archivo)
+        else:
+            raise ValueError(formato)
 
     @staticmethod
     def iter_índs(datos, excluir=None):

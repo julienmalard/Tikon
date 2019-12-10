@@ -5,6 +5,7 @@ import pandas as pd
 from matplotlib.backends.backend_agg import FigureCanvasAgg as TelaFigura
 from matplotlib.figure import Figure as Figura
 from pandas.plotting import register_matplotlib_converters
+
 from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
 
 register_matplotlib_converters()
@@ -40,7 +41,7 @@ def graficar_res(
             e_tiempo = pd.TimedeltaIndex(e_tiempo.values, unit='D') + x[0]
         másc = (x[0] <= e_tiempo) & (e_tiempo <= x[-1])
 
-        ejes.plot(e_tiempo[másc], o_[másc], 'o', color='#000000', label='Observaciones')
+        ejes.plot(e_tiempo[másc], o_[másc], marker='o', markersize=3, color='#000000', label='Observaciones')
         ejes.plot(e_tiempo[másc], o_[másc], lw=1, color='#000000')
 
     # Incluir el incertidumbre si necesario

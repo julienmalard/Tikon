@@ -22,13 +22,6 @@ class PruebaDistAnalítica(unittest.TestCase):
         símismo.assertTrue(líms[0] <= trz.min() and trz.max() <= líms[1])
 
     @staticmethod
-    def test_de_texto():
-        dist = DistAnalítica('gamma', {'a': 2, 'loc': 1, 'scale': 2})
-        líms = dist.aprox_líms(0.80)
-        d_sp = estad.gamma(a=2, loc=1, scale=2)
-        npt.assert_allclose(líms, [d_sp.ppf(0.1), d_sp.ppf(0.9)])
-
-    @staticmethod
     def test_de_scipy():
         d_sp = estad.gamma(a=2, loc=1, scale=2)
         dist = DistAnalítica(d_sp)
@@ -153,8 +146,8 @@ class PruebaDistAnalítica(unittest.TestCase):
                         DistAnalítica.de_dens(1, líms_dens=v, líms=(2, 8))
 
     @staticmethod
-    def test_conv_dic_texto():
-        dist = DistAnalítica('T', paráms={'df': 3}, transf=TransfDist('expit', ubic=1, escl=2))
+    def test_conv_dic_transf():
+        dist = DistAnalítica(estad.t(df=3), transf=TransfDist('expit', ubic=1, escl=2))
         dist2 = Dist.de_dic(dist.a_dic())
         npt.assert_allclose(dist.aprox_líms(95), dist2.aprox_líms(95))
 

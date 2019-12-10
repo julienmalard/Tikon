@@ -65,6 +65,7 @@ class MnjdrDists(object):
 
         if índs is None or not índs:
             símismo.val = None
+            símismo.índs = {}
         else:
             í = str(índs.pop(0))
             símismo.índs[í].borrar(índs)
