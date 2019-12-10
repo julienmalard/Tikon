@@ -11,10 +11,7 @@ def guardar_archivo(texto, archivo):
     with tempfile.NamedTemporaryFile('w', encoding='UTF-8', delete=False) as arch_temp:
         arch_temp.write(texto)
 
-        dir_ = os.path.split(archivo)[0]
-        if dir_ and not os.path.isdir(dir_):  # pragma: sin cobertura
-            os.makedirs(os.path.split(archivo)[0])
-
+    asegurar_dir_existe(archivo)
     if os.path.splitdrive(arch_temp.name)[0] == os.path.splitdrive(archivo)[0]:
         os.replace(arch_temp.name, archivo)
     else:
@@ -34,8 +31,23 @@ def guardar_json(dic, archivo):
 
     """
 
-    txt = json.dumps(jsonificar(dic), ensure_ascii=False, sort_keys=True, indent=2)
+    txt = json.dumps(jsonificar(dic), ensure_ascii=False, sort_keys=True, indent=2, default=str)
     guardar_archivo(txt, archivo)
+
+
+def asegurar_dir_existe(archivo):
+    dir_ = os.path.split(archivo)[0]
+    if dir_ and not os.path.isdir(dir_):  # pragma: sin cobertura
+        os.makedirs(os.path.split(archivo)[0])
+
+
+def asegurar_ext(archivo, ext):
+    if ext[0] != '.':
+        ext = f'.{ext}'
+    ext_ant = os.path.splitext(archivo)[1]
+    if ext_ant != ext:
+        archivo = archivo + ext
+    return archivo
 
 
 def leer_json(archivo, numpy=True):

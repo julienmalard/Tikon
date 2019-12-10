@@ -15,9 +15,21 @@ class PlantillaValid(object):
     def __getitem__(símismo, itema):
         return símismo.criterios[itema]
 
+    def a_dic(símismo):
+        return {'crits': símismo.criterios, 'peso': símismo.peso}
+
+    def __repr__(símismo):
+        return repr(símismo.a_dic())
+
 
 class ValidÍnds(PlantillaValid):
-    pass
+
+    def __init__(símismo, criterios, peso, índs):
+        símismo.índs = índs
+        super().__init__(criterios, peso)
+
+    def a_dic(símismo):
+        return {'índs': {ll: str(v) for ll, v in símismo.índs.items()} , **super().a_dic()}
 
 
 class ValidRes(PlantillaValid):
@@ -29,6 +41,9 @@ class ValidRes(PlantillaValid):
         }
         peso = proc.combin_pesos([v.peso for v in valids]) if valids else 0
         super().__init__(criterios, peso)
+
+    def a_dic(símismo):
+        return {'valids': [v.a_dic() for v in símismo.valids], **super().a_dic()}
 
 
 class Valid(PlantillaValid):
@@ -42,6 +57,9 @@ class Valid(PlantillaValid):
         símismo.ramas = ramas
 
         super().__init__(criterios, peso)
+
+    def a_dic(símismo):
+        return {**{ll: v.a_dic() for ll, v in símismo.ramas.items()}, **super().a_dic()}
 
     def __getitem__(símismo, itema):
         return símismo.criterios[itema]

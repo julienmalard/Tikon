@@ -41,6 +41,28 @@ class Organismo(Coso):
         for etp in símismo:
             etp.desactivar_ec(categ=categ, subcateg=subcateg)
 
+    def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None, etapas=None):
+        etapas = símismo.resolver_etapas(etapas)
+        for etp in etapas:
+            etp.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
+
+    def borrar_aprioris(símismo, categ=None, sub_categ=None, ec=None, prm=None, índs=None, etapas=None):
+        etapas = símismo.resolver_etapas(etapas)
+        for etp in etapas:
+            etp.borrar_aprioris(categ, sub_categ, ec, prm, índs=índs)
+
+    def verificar(símismo):
+        for etp in símismo._etapas:
+            etp.ecs.verificar()
+
+    def borrar_calib(símismo, nombre):
+        for etp in símismo._etapas:
+            etp.borrar_calib(nombre)
+
+    def renombrar_calib(símismo, nombre, nuevo):
+        for etp in símismo._etapas:
+            etp.renombrar_calib(nombre, nuevo)
+
     def secome(símismo, presa, etps_presa=None, etps_símismo=None):
         etps_presa = presa.resolver_etapas(etps_presa)
         etps_símismo = símismo.resolver_etapas(etps_símismo)

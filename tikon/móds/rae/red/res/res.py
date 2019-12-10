@@ -81,10 +81,15 @@ class ResPobs(ResultadoRed):
             ref_huésped = _extr_ref(etp.etp_hués)
 
             co_huéspedes = símismo.sim.mód.huéspedes(etp.org)
-            ref_espejo = (ref_espejo[0]/len(co_huéspedes), ref_espejo[1]/len(co_huéspedes))
-            ref_mín = sorted([ref_espejo, ref_huésped])[0]
-            mín = max(0, ref_mín[0] - ref_mín[1])
-            return APrioriDens((mín, ref_mín[0] + ref_mín[1]), .80)
+            if ref_espejo:
+                ref_espejo = (ref_espejo[0]/len(co_huéspedes), ref_espejo[1]/len(co_huéspedes))
+            if ref_espejo and ref_huésped:
+                ref_mín = sorted([ref_espejo, ref_huésped])[0]
+            else:
+                ref_mín = ref_espejo or ref_huésped
+            if ref_mín:
+                mín = max(0, ref_mín[0] - ref_mín[1])
+                return APrioriDens((mín, ref_mín[0] + ref_mín[1]), .80)
 
     def iniciar(símismo):
         super().iniciar()
