@@ -21,36 +21,51 @@ class CondPoblación(CondVariable):
         )
 
 
-class AgregarPob(Acción):
+class AcciónPob(Acción):
+    def __init__(símismo, etapa):
+        símismo.etapa = etapa
+
+    def _proc_pobs(símismo, pobs):
+        if isinstance(pobs, Datos):
+            return pobs.expandir_dims(coords={EJE_ETAPA: [símismo.etapa]})
+        return Datos(pobs.item(), coords={EJE_ETAPA: [símismo.etapa]}, dims=[EJE_ETAPA])
+
+    def __call__(símismo, sim, donde):
+        raise NotImplementedError
+
+
+class AgregarPob(AcciónPob):
     def __init__(símismo, etapa, valor):
         símismo.etapa = etapa
         símismo.valor = valor
+        super().__init__(etapa)
 
     def __call__(símismo, sim, donde):
         cambio = donde_(donde, símismo.valor, 0)
-        if isinstance(cambio, Datos):
-            cambio = cambio.expandir_dims(coords={EJE_ETAPA: símismo.etapa})
-        else:
-            cambio = Datos(cambio.item(), coords={EJE_ETAPA: [símismo.etapa]}, dims=[EJE_ETAPA])
+        cambio = símismo._proc_pobs(cambio)
         sim[RedAE.nombre].poner_valor(var=RES_POBS, val=cambio, rel=True)
 
 
-class PonerPob(Acción):
+class PonerPob(AcciónPob):
     def __init__(símismo, etapa, valor):
         símismo.etapa = etapa
         símismo.valor = valor
+        super().__init__(etapa)
 
     def __call__(símismo, sim, donde):
-        nuevas = donde_(donde, símismo.valor, 0).expandir_dims(dim={EJE_ETAPA: símismo.etapa})
+        nuevas = donde_(donde, símismo.valor, 0)
+        nuevas = símismo._proc_pobs(nuevas)
         sim[RedAE.nombre].poner_valor(var=RES_POBS, val=nuevas)
 
 
-class MultPob(Acción):
+class MultPob(AcciónPob):
     def __init__(símismo, etapa, valor):
         símismo.etapa = etapa
         símismo.valor = valor
+        super().__init__(etapa)
 
     def __call__(símismo, sim, donde):
         pobs = sim[RedAE.nombre].obt_valor(var=RES_POBS).loc[{EJE_ETAPA: símismo.etapa}]
         nuevas = donde_(donde, símismo.valor * pobs, 0)
+        nuevas = símismo._proc_pobs(nuevas)
         sim[RedAE.nombre].poner_valor(var=RES_POBS, val=nuevas)

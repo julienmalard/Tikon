@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
@@ -8,7 +8,9 @@ from tikon.móds.manejo.acciones import Acción
 
 class Regla(object):
     def __init__(símismo, condición, acción):
-        símismo.condición = deepcopy(condición)
+        # **NO** utilizar `deepcopy` aquí porque ésta quebra la conexión entre cosos coords de la condición y los mismos
+        # cosos en el modelo.
+        símismo.condición = copy(condición)
         símismo.acción = [acción] if isinstance(acción, Acción) else acción
 
     def requísitos(símismo, controles):
