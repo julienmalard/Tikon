@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.datos.datos import donde, Datos
+from tikon.datos.datos import donde, Datos, alinear_como
 from tikon.móds.rae.utils import EJE_COH, EJE_ETAPA, RES_COHORTES, RES_POBS
 from tikon.utils import EJE_PARÁMS
 from .res import ResultadoRed
@@ -69,7 +69,7 @@ class ResCohortes(ResultadoRed):
         pobs_corresp = pobs.nuevo_como(
             np.take_along_axis(pobs.matr, indices=cohs, axis=í_eje_coh).squeeze(í_eje_coh), excluir=EJE_COH
         )
-        nuevos = nuevos.transposar(pobs_corresp.dims)  # Necesario para `put_along_axis` después.
+        nuevos = alinear_como(como=pobs_corresp, otro=nuevos)  # Necesario para `put_along_axis` después.
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
         # cohorte si hay que combinarlo con un cohorte existente).
