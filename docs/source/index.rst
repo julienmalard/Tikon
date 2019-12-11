@@ -3,8 +3,8 @@
    :alt: Logo de Tiko'n
    :align: center
 
-¡Bienvenidoas a la documentación de Tiko'n!
-===========================================
+¡Bienvenides a la documentación de Tiko'n!
+==========================================
 
 .. image:: https://travis-ci.org/julienmalard/Tikon.svg?branch=master
    :target: https://travis-ci.org/julienmalard/Tikon
