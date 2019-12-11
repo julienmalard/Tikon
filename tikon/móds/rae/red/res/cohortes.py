@@ -69,6 +69,7 @@ class ResCohortes(ResultadoRed):
         pobs_corresp = pobs.nuevo_como(
             np.take_along_axis(pobs.matr, indices=cohs, axis=í_eje_coh).squeeze(í_eje_coh), excluir=EJE_COH
         )
+        nuevos = nuevos.transposar(pobs_corresp.dims)  # Necesario para `put_along_axis` después.
 
         # Calcular el peso de las edades existentes, según sus poblaciones existentes (para combinar con el nuevo
         # cohorte si hay que combinarlo con un cohorte existente).
