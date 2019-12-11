@@ -58,11 +58,11 @@ class SimulRed(SimulMódulo):
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
     def poner_valor(símismo, var, val, rel=False):
-        super().poner_valor(var, val, rel)
-
         if var == RES_POBS:
             cambio = val if rel else val - símismo[RES_POBS].datos
             símismo[RES_COHORTES].ajustar(cambio)
+
+        super().poner_valor(var, val, rel)  # **Debe** venir después de ajustar cohortes sino `rel` no funciona
 
     def verificar_estado(símismo):
         super().verificar_estado()
