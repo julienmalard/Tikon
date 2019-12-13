@@ -23,7 +23,7 @@ class Loc(object):
 
 
 class Datos(object):
-    def __init__(símismo, val, dims, coords, nombre=None, atribs=None):
+    def __init__(símismo, val, dims, coords, nombre=None, atribs=None, verif=True):
 
         if not isinstance(val, np.ndarray):
             if isinstance(val, (list, tuple)):
@@ -32,19 +32,20 @@ class Datos(object):
                 val = np.full(shape=tuple(len(coords[dm]) for dm in dims), fill_value=val)
 
         símismo.matr = val
-        símismo.dims = tuple(dims)
-        símismo.coords = {ll: list(v) for ll, v in coords.items()}
-
-        if set(símismo.dims) != set(símismo.coords):
-            raise ValueError(set(símismo.dims), set(símismo.coords))
-        frm = tuple(len(símismo.coords[dm]) for dm in símismo.dims)
-        if frm != val.shape:
-            raise ValueError(frm, val.shape)
+        símismo.dims = tuple(dims) if verif else dims
+        símismo.coords = {ll: list(v) for ll, v in coords.items()} if verif else coords.copy()
 
         símismo.atribs = (atribs or {}).copy()
         símismo.nombre = nombre
 
         símismo.loc = Loc(símismo)
+
+        if verif:
+            if set(símismo.dims) != set(símismo.coords):
+                raise ValueError(set(símismo.dims), set(símismo.coords))
+            frm = tuple(len(símismo.coords[dm]) for dm in símismo.dims)
+            if frm != val.shape:
+                raise ValueError(frm, val.shape)
 
     @classmethod
     def de_xarray(cls, datos):
@@ -61,7 +62,8 @@ class Datos(object):
 
     def copiar(símismo):
         return Datos(
-            símismo.matr.copy(), dims=símismo.dims, coords=símismo.coords, nombre=símismo.nombre, atribs=símismo.atribs
+            símismo.matr.copy(), dims=símismo.dims, coords=símismo.coords, nombre=símismo.nombre, atribs=símismo.atribs,
+            verif=False
         )
 
     def renombrar(símismo, cambios):
@@ -75,6 +77,10 @@ class Datos(object):
         símismo.matr[np.isnan(símismo.matr)] = val
         return símismo
 
+    def llenar_inf(símismo, val):
+        símismo.matr[np.isinf(símismo.matr)] = val
+        return símismo
+
     def nuevo_como(símismo, vals, excluir=None):
         coords = símismo.coords
         dims = símismo.dims
@@ -85,13 +91,13 @@ class Datos(object):
             coords = {ll: v for ll, v in coords.items() if ll not in excluir}
             dims = tuple(dm for dm in dims if dm not in excluir)
 
-        return Datos(vals, dims=dims, coords=coords, nombre=símismo.nombre, atribs=símismo.atribs)
+        return Datos(vals, dims=dims, coords=coords, nombre=símismo.nombre, atribs=símismo.atribs, verif=False)
 
     def transposar(símismo, dims):
         orden = [símismo.dims.index(d) for d in dims]
         return Datos(
             np.transpose(símismo.matr, orden), dims=dims, coords=símismo.coords,
-            nombre=símismo.nombre, atribs=símismo.atribs
+            nombre=símismo.nombre, atribs=símismo.atribs, verif=False
         )
 
     def expandir_dims(símismo, coords):
@@ -336,7 +342,7 @@ class Datos(object):
             dims, coords = símismo._proc_llave(itema)
             return Datos(
                 símismo.matr[símismo._índices(itema)], dims=dims, coords=coords,
-                nombre=símismo.nombre, atribs=símismo.atribs
+                nombre=símismo.nombre, atribs=símismo.atribs, verif=False
             )
         raise TypeError(type(itema))
 
