@@ -55,14 +55,14 @@ def graficar_res(
         # Los niveles de confianza para mostrar
         centiles = [.50, .75, .95, .99]
 
-        # Mínimo y máximo del percentil anterior
+        # Mínimo y máximo del centil anterior
         máx_perc_ant = mín_perc_ant = simulado.median(dim=(EJE_ESTOC, EJE_PARÁMS))
 
-        # Para cada percentil...
-        for n, p in enumerate(centiles):
+        # Para cada centil...
+        for n, c in enumerate(centiles):
             # Percentiles máximos y mínimos
-            máx_perc = simulado.quantile(0.50 + p / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
-            mín_perc = simulado.quantile((1 - p) / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
+            máx_perc = simulado.quantile(0.50 + c / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
+            mín_perc = simulado.quantile((1 - c) / 2, dim=(EJE_ESTOC, EJE_PARÁMS))
 
             # Calcular el % de opacidad y dibujar
             op_máx = 0.6
@@ -71,7 +71,7 @@ def graficar_res(
 
             ejes.fill_between(
                 x, máx_perc_ant, máx_perc,
-                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color, label='IC {} %'.format(p)
+                facecolor=color, alpha=opacidad, linewidth=0.5, edgecolor=color, label='IC {} %'.format(int(c * 100))
             )
             ejes.fill_between(
                 x, mín_perc, mín_perc_ant,
@@ -118,6 +118,7 @@ def graficar_res(
 
     ejes.legend(loc=2)
 
+    fig.autofmt_xdate()
     if os.path.splitext(directorio)[1] != '.jpg':
         directorio = os.path.join(directorio, título + '.jpg')
     fig.savefig(directorio)
