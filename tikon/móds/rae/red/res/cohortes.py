@@ -1,8 +1,11 @@
-import numpy as np
+import math as mat
 
+import numpy as np
 from tikon.datos.datos import donde, Datos, alinear_como
+from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS
 from tikon.móds.rae.utils import EJE_COH, EJE_ETAPA, RES_COHORTES, RES_POBS
 from tikon.utils import EJE_PARÁMS
+
 from .res import ResultadoRed
 
 
@@ -41,7 +44,20 @@ class ResCohortes(ResultadoRed):
 
     def iniciar(símismo):
         super().iniciar()
-        símismo.agregar(símismo.sim[RES_POBS].datos)
+        pobs = símismo.sim[RES_POBS].datos
+        n = mat.ceil(símismo.n_coh / 2)
+        for ec_prob in símismo.sim.simul_exper.ecs['red'][ECS_TRANS]['Prob']:
+            máx = ec_prob.dist.ppf(0.99)
+            cosos = ec_prob.cosos
+            pobs_etps = pobs.loc[{EJE_ETAPA: cosos}]
+            pobs_n = pobs_etps // n
+            extras = pobs_etps % n
+            for í, ed in enumerate(np.linspace(0, máx, num=n)):
+                edades = Datos(
+                    ed, dims=[EJE_ETAPA, EJE_PARÁMS],
+                    coords={EJE_ETAPA: cosos, EJE_PARÁMS: range(símismo.sim.simul_exper.reps['paráms'])}
+                )
+                símismo.agregar(pobs_n + (í < extras), edad=edades)
 
     def agregar(símismo, nuevos, edad=0):
 
@@ -172,3 +188,6 @@ class ResCohortes(ResultadoRed):
         dens = Datos(dens_con_cambio - dens_cum_eds, coords=pobs.coords, dims=dims)
 
         return (pobs * dens).suma(dim=EJE_COH)  # Devolver en formato Datos
+
+    def cerrar(símismo):
+        pass

@@ -1,8 +1,8 @@
 import numpy as np
-
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.utils import probs_conj
 from tikon.móds.rae.utils import EJE_VÍCTIMA, EJE_ETAPA
+
 from ._plntll_ec import EcuaciónDepred
 
 
@@ -46,7 +46,7 @@ class Kovai(EcuaciónDepred):
         dens_depred = símismo.dens_pobs(sim)
 
         b_sobre_dens = (cf['b'] / dens).llenar_inf(0).llenar_nan(0)
-        u = (1 - b_sobre_dens * (1 - (-1/b_sobre_dens).f(np.exp)))
+        u = (1 - b_sobre_dens * (1 - (-1 / b_sobre_dens).fi(np.exp)))
 
         ratio = (dens / dens_depred).llenar_nan(0)
 

@@ -12,35 +12,35 @@ def n_existen(x):
 
 # Funciones criterios
 def ens(o, s):
-    return of.nashsutcliffe(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return of.nashsutcliffe(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def rcep(o, s):
-    return -of.rmse(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return -of.rmse(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def corresp(o, s):
-    return of.agreementindex(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return of.agreementindex(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def ekg(o, s):
-    return of.kge(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return of.kge(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def r2(o, s):
-    return of.rsquared(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return of.rsquared(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def rcnep(o, s):
-    return -of.rrmse(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return -of.rrmse(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def log_p(o, s):
-    return of.log_p(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return of.log_p(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 def verosimil_gaus(o, s):
-    return gaussianLikelihoodMeasErrorOut(o.values, s.mean(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return gaussianLikelihoodMeasErrorOut(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
 
 
 # Funciones criterios incertidumbre
