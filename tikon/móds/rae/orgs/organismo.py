@@ -3,7 +3,7 @@ from typing import List
 from tikon.central.coso import Coso
 
 from .ecs import EcsOrgs
-from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS
+from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS, ECS_ESTOC
 
 
 class Organismo(Coso):
@@ -216,7 +216,7 @@ class Etapa(Coso):
         return str(símismo.org) + ' : ' + símismo.nombre
 
 
-categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE]
+categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE, ECS_ESTOC]
 
 
 class EtapaFantasma(Etapa):

@@ -28,10 +28,10 @@ def graficar_res(
     # El vector de días
     x = simulado[EJE_TIEMPO].values
 
-    # Si necesario, incluir el promedio de todas las repeticiones (estocásticas y paramétricas)
-    prom_simul = simulado.mean(dim=(EJE_ESTOC, EJE_PARÁMS))
+    # Si necesario, incluir el mediano de todas las repeticiones (estocásticas y paramétricas)
+    med_simul = simulado.median(dim=(EJE_ESTOC, EJE_PARÁMS))
     if promedio:
-        ejes.plot(x, prom_simul, lw=2, color=color, label='Promedio')
+        ejes.plot(x, med_simul, lw=2, color=color, label='Mediano')
 
     # Si hay observaciones, mostrarlas también
     for o_ in obs:
@@ -102,7 +102,7 @@ def graficar_res(
         incert_parám = rango_total * frac_des_est_parám
 
         # Límites de la región de incertidumbre paramétrica en el gráfico
-        mín_parám = (np.maximum(mín_total, prom_simul - incert_parám / 2)).values
+        mín_parám = (np.maximum(mín_total, med_simul - incert_parám / 2)).values
         máx_parám = (mín_parám + incert_parám).values
 
         ejes.fill_between(x, máx_parám, mín_parám, facecolor=color, alpha=0.5, label='Incert paramétrico')

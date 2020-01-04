@@ -67,7 +67,7 @@ class ResPobs(ResultadoRed):
             else:
                 índ_e = índ
             datos_obs = [o_.datos.loc[índ_e].dropna(EJE_TIEMPO)[{EJE_TIEMPO: 0}] for o_ in obs if índ_e in o_]
-            return (np.mean(datos_obs), max(np.std(datos_obs), np.mean(datos_obs)*.05, 1)) if datos_obs else None
+            return (np.mean(datos_obs), max(np.std(datos_obs), np.mean(datos_obs)*.15, 1)) if datos_obs else None
 
         ref = _extr_ref()
 
