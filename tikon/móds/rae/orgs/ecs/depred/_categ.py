@@ -1,5 +1,4 @@
 import numpy as np
-
 from tikon.datos.datos import mínimo
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
@@ -40,10 +39,6 @@ class EcsDepred(CategEcOrg):
 
         # Arreglar errores de redondeo (negativos) en la computación
         depred.donde(depred < 0, 0)
-
-        # Ajustar por superficies
-        superficies = sim.obt_valor_control('superficies')
-        depred = depred * superficies
 
         # Convertir depredación potencial por depredador a depredación potencial total (multiplicar por la población
         # de cada depredador). También multiplicamos por el paso de la simulación. 'depred' ahora está en unidades
