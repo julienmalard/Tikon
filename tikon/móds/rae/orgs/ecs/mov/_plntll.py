@@ -20,7 +20,7 @@ class PlantillaEcDifusión(EcuaciónMov):
     def eval(símismo, paso, sim):
         pobs = símismo.pobs(sim)
 
-        atr = símismo.calc_atr(paso, sim)
+        atr = símismo.calc_atr(sim)
 
         dsnt = símismo.obt_valor_res(sim)
         atr_ajust = (atr / dsnt)  # Atracción ajustada por distancia. 1 = no atracción neta
@@ -29,7 +29,7 @@ class PlantillaEcDifusión(EcuaciónMov):
 
         return probs * pobs
 
-    def calc_atr(símismo, paso, sim):
+    def calc_atr(símismo, sim):
         raise NotImplementedError
 
     @property
