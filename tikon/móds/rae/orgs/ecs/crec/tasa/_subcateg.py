@@ -3,10 +3,10 @@ from tikon.móds.rae.orgs.ecs._plntll import SubcategEcOrg
 from tikon.móds.rae.utils import RES_CREC
 
 from .lognorm_temp import LogNormTemp
-from .ninguna import Ninguna
+from .constante import Constante
 
 
-class ModifCrec(SubcategEcOrg):
-    nombre = 'Modif'
-    cls_ramas = [EcuaciónVacía, Ninguna, LogNormTemp]
+class TasaCrec(SubcategEcOrg):
+    nombre = 'Tasa'
+    cls_ramas = [EcuaciónVacía, Constante, LogNormTemp]
     _nombre_res = RES_CREC

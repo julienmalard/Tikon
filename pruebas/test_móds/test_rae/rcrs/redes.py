@@ -1,10 +1,10 @@
 from tikon.central import Exper, Parcela
-from tikon.móds.rae.orgs.insectos import Sencillo, Esfécido, Parasitoide, MetamCompleta, MetamIncompleta
+from tikon.móds.rae.orgs.insectos import LotkaVolterra, Esfécido, Parasitoide, MetamCompleta, MetamIncompleta
 from tikon.móds.rae.red import RedAE
 
-sencillo = Sencillo('sencillo')
-otro_sencillo = Sencillo('otro sencillo')
-otro_más = Sencillo('otro más')
+sencillo = LotkaVolterra('sencillo')
+otro_sencillo = LotkaVolterra('otro sencillo')
+otro_más = LotkaVolterra('otro más')
 
 esfécido = Esfécido('esfécido')
 parasitoide = Parasitoide('parasitoide')

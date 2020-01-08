@@ -37,6 +37,8 @@ class FuncBrièreTemperatura(EcuaciónEdad):
     .. [1] Mokhtar, Abrul Monim y Salem Saif al Nabhani. 2010. Temperature-dependent development of dubas bug,
         Ommatissus lybicus (Hemiptera: Tropiduchidae), an endemic pest of date palm, Phoenix dactylifera.
         Eur. J. Entomol. 107: 681–685.
+    .. [2] J.-F. Briere, P. Pracros, A.-Y. Le Broux, J.-S. Pierre. A novel rate model of temperature-dependent
+       development for arthropods. Environmental Entomology, 28 (1999), pp. 22-29.
     """
     nombre = 'Brière Temperatura'
     cls_ramas = [PrTDevMínBT, PrDeltaTLetalBT]

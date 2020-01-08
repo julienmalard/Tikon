@@ -2,7 +2,7 @@ from .ins import Insecto
 from ..ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_REPR, ECS_TRANS, ECS_MRTE, ECS_MOV
 
 
-class Sencillo(Insecto):
+class LotkaVolterra(Insecto):
     """
     Esta clase representa insectos con ciclos de vida sencillos (para cuales sólo se incluye la etapa adulta en el
     modelo).
@@ -10,7 +10,7 @@ class Sencillo(Insecto):
 
     def __init__(símismo, nombre):
         tipo_ec = {
-            ECS_CREC: {'Modif': 'Ninguna', 'Ecuación': 'Logístico Presa'},
+            ECS_CREC: {'Tasa': 'Constante', 'Ecuación': 'Logístico Presa'},
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},
@@ -35,7 +35,7 @@ class MetamCompleta(Insecto):
         tipo_ec = {}
         if huevo:
             tipo_ec['huevo'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Nada'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
@@ -45,7 +45,7 @@ class MetamCompleta(Insecto):
             }
 
         tipo_ec['juvenil'] = {
-            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
@@ -55,7 +55,7 @@ class MetamCompleta(Insecto):
         }
 
         tipo_ec['pupa'] = {
-            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Constante'},
             ECS_EDAD: {'Ecuación': 'Días'},
@@ -66,7 +66,7 @@ class MetamCompleta(Insecto):
 
         if adulto:
             tipo_ec['adulto'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Nada'},
                 ECS_EDAD: {'Ecuación': 'Días'},
@@ -93,7 +93,7 @@ class MetamIncompleta(Insecto):
         tipo_ec = {}
         if huevo:
             tipo_ec['huevo'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Nada'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
@@ -104,7 +104,7 @@ class MetamIncompleta(Insecto):
 
         if njuvenil:
             tipo_ec['juvenil'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
@@ -115,7 +115,7 @@ class MetamIncompleta(Insecto):
 
         if adulto:
             tipo_ec['adulto'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Kovai'},
                 ECS_MRTE: {'Ecuación': 'Nada'},
                 ECS_EDAD: {'Ecuación': 'Días'},

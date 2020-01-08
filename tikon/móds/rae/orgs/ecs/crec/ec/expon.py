@@ -11,4 +11,5 @@ class Expon(EcuaciónCrec):
     # El exponencial no tiene parámetros además de r
 
     def eval(símismo, paso, sim):
-        return símismo.obt_valor_res(sim) * símismo.pobs(sim)
+        r = símismo.obt_valor_res(sim)
+        return r * símismo.pobs(sim)

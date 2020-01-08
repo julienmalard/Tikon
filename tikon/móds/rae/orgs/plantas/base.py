@@ -43,7 +43,7 @@ class Planta(Organismo):
             etapas.append('semilla')  # kg
 
         ecs_base = {
-            ECS_CREC: {'Modif': 'Ninguna', 'Ecuación': 'Logístico'},
+            ECS_CREC: {'Tasa': 'Constante', 'Ecuación': 'Logístico'},
             ECS_DEPR: {'Ecuación': 'Nada'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Nada'},
@@ -68,7 +68,7 @@ class Planta(Organismo):
             etapas = [etapas]
         etapas = [e if isinstance(e, str) else e.nombre for e in etapas]
 
-        símismo.activar_ec(ECS_CREC, 'Modif', 'Nada', etapas=etapas)
+        símismo.activar_ec(ECS_CREC, 'Tasa', 'Nada', etapas=etapas)
         símismo.activar_ec(ECS_CREC, 'Ecuación', 'Constante', etapas=etapas)
 
         for etp in etapas:

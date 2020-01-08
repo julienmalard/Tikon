@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.stats as estad
-
 from tikon.datos.datos import máximo
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám

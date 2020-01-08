@@ -17,10 +17,23 @@ class Parasitoide(Insecto):
     def __init__(símismo, nombre, pupa=False):
         símismo.pupa = pupa
 
-        tipo_ec = {}
+        tipo_ec = {
+            'juvenil': {
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Nada'},
+                ECS_MRTE: {'Ecuación': 'Constante'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear', 'Deter': 'Nada'},
+                ECS_REPR: {'Prob': 'Nada'},
+                ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+            }
+        }
+
+        # Depred, repr y mov se copiarán del huésped
+
         if pupa:
             tipo_ec['pupa'] = {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Nada'},
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},
@@ -29,19 +42,8 @@ class Parasitoide(Insecto):
                 ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
             }
 
-        # Crec, depred, repr y mov se copiarán del huésped
-        tipo_ec['juvenil'] = {
-            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
-            ECS_DEPR: {'Ecuación': 'Nada'},
-            ECS_MRTE: {'Ecuación': 'Constante'},
-            ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Linear', 'Deter': 'Nada'},
-            ECS_REPR: {'Prob': 'Nada'},
-            ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
-        }
-
         tipo_ec['adulto'] = {
-            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+            ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
             ECS_DEPR: {'Ecuación': 'Kovai'},
             ECS_MRTE: {'Ecuación': 'Nada'},
             ECS_EDAD: {'Ecuación': 'Días'},
@@ -95,18 +97,19 @@ class Esfécido(Insecto):
     """
 
     def __init__(símismo, nombre):
-        tipo_ec = {'adulto': {
-            ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
-            ECS_DEPR: {'Ecuación': 'Kovai'},
-            ECS_MRTE: {'Ecuación': 'Nada'},
-            ECS_EDAD: {'Ecuación': 'Días'},
-            ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada', 'Deter': 'Nada'},
-            ECS_REPR: {'Prob': 'Depredación'},
-            ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
-        },
+        tipo_ec = {
+            'adulto': {
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
+                ECS_DEPR: {'Ecuación': 'Kovai'},
+                ECS_MRTE: {'Ecuación': 'Nada'},
+                ECS_EDAD: {'Ecuación': 'Días'},
+                ECS_TRANS: {'Prob': 'Normal', 'Mult': 'Nada', 'Deter': 'Nada'},
+                ECS_REPR: {'Prob': 'Depredación'},
+                ECS_MOV: {'Distancia': 'Euclidiana', 'Atracción': 'Difusión Aleatoria'}
+            },
 
             'juvenil': {
-                ECS_CREC: {'Modif': 'Nada', 'Ecuación': 'Nada'},
+                ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
                 ECS_DEPR: {'Ecuación': 'Nada'},  # La comida 3 tiempos está incluida
                 ECS_MRTE: {'Ecuación': 'Constante'},
                 ECS_EDAD: {'Ecuación': 'Días'},

@@ -25,6 +25,6 @@ class EcsOrgs(ÁrbolEcs):
         # Etapa con trans prob y deter activados
         # Org con múltiples etapas sin trans
         # Mov atr pero no mov dstn -> activar dstn Euclidiana
-        # Crec modif pero no ec
-        # Crec ec pero no modif -> activar modif Ninguna
+        # Crec tasa pero no ec
+        # Crec ec pero no tasa -> activar tasa Ninguna
         pass  # para hacer

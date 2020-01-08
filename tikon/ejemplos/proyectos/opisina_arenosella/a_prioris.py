@@ -14,7 +14,7 @@ a_prioris = {
 
     'O. arenosella_senc': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              apriori=APrioriDens(((2.721 - 0.7539) / 2 * 1.96, (2.721 + 0.7539) / 2 * 1.96), 0.80)),
         dict(etapa='adulto',
              categ='Crecimiento', subcateg='Ecuación', ec='Logístico Presa', prm='K',
@@ -36,7 +36,7 @@ a_prioris = {
 
     'Parasitoide_senc': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              # 1:5 = 0.2 = 1-0.8 = ratio de sexos (macho a hembra)
              apriori=APrioriDens((0.402 * .8, (4.35 + 2.214 / 2) * .8), 0.80)),
         dict(etapa='adulto',
@@ -58,7 +58,7 @@ a_prioris = {
 
     'Araña': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              apriori=APrioriDens((100 / 60 / 2, 300 / 60 / 2), 0.80)),
         dict(etapa='adulto',
              categ='Crecimiento', subcateg='Ecuación', ec='Logístico Presa', prm='K',
