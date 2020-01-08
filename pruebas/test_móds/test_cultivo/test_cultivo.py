@@ -10,7 +10,7 @@ from tikon.datos.datos import Datos
 from tikon.móds.cultivo.cult import Cultivo
 from tikon.móds.cultivo.extrn import CombinSimsCult
 from tikon.móds.cultivo.res import RES_BIOMASA, RES_HUMSUELO
-from tikon.móds.rae.orgs.insectos import Sencillo
+from tikon.móds.rae.orgs.insectos import LotkaVolterra
 from tikon.móds.rae.orgs.plantas.externa import Tomate
 from tikon.móds.rae.red import RedAE
 from tikon.móds.rae.utils import EJE_ETAPA, RES_POBS
@@ -22,7 +22,7 @@ class PruebaExterno(unittest.TestCase):
     def setUpClass(cls):
         cls.hum_suelo, cls.biomasa = 0.3, 4.5
         cls.mód_cult = Cultivo()
-        cls.ins = Sencillo('insecto')
+        cls.ins = LotkaVolterra('insecto')
         cls.tomate = Tomate()
         cls.ins.secome(cls.tomate)
         cls.red = RedAE([cls.tomate, cls.ins])

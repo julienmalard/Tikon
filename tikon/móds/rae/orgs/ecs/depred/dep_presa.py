@@ -1,6 +1,6 @@
 import numpy as np
-from tikon.ecs.árb_mód import Parám
 
+from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónDepred
 
 
@@ -91,4 +91,4 @@ class TipoIIIDP(EcuaciónDepred):
     def eval(símismo, paso, sim):
         cf = símismo.cf
         dens = símismo.dens_pobs(sim, filtrar=False)
-        return np.multiply(np.square(dens), cf['a'] / (np.square(dens) + cf['b']))
+        return dens ** 2 * cf['a'] / (dens ** 2 + cf['b'])

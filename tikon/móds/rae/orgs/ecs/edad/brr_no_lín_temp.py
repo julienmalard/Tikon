@@ -45,7 +45,7 @@ class FuncBrièreNoLinearTemperatura(EcuaciónEdad):
        morgani, a novel egg parasitoid of the glassy-winged sharpshooter, and development of a degree-day
        model. Biological Control 60(3): 233-260.
     .. [2] J.-F. Briere, P. Pracros, A.-Y. Le Broux, J.-S. Pierre. A novel rate model of temperature-dependent
-       development for arthropods Environmental Entomology, 28 (1999), pp. 22-29.
+       development for arthropods. Environmental Entomology, 28 (1999), pp. 22-29.
     """
 
     nombre = 'Brière No Linear Temperatura'

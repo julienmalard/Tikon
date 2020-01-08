@@ -19,4 +19,5 @@ class Logíst(EcuaciónCrec):
 
     def eval(símismo, paso, sim):
         pobs_etps = símismo.pobs(sim)
-        return símismo.obt_valor_res(sim) * pobs_etps * (1 - pobs_etps / símismo.cf['K'])
+        r = símismo.obt_valor_res(sim)
+        return r * pobs_etps * (1 - pobs_etps / símismo.cf['K'])

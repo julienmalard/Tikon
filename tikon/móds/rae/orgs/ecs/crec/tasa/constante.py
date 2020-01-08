@@ -10,8 +10,8 @@ class R(Parám):
     apriori = APrioriDens((0, 0.1), 0.9)
 
 
-class Ninguna(ModCrec):
-    nombre = 'Ninguna'
+class Constante(ModCrec):
+    nombre = 'Constante'
     cls_ramas = [R]
 
     def eval(símismo, paso, sim):

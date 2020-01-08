@@ -2,7 +2,7 @@ import numpy as np
 
 from tikon.datos.datos import máximo
 from .ec import EcCrec
-from .modif import ModifCrec
+from .tasa import TasaCrec
 from .._plntll import CategEcOrg
 from ..utils import ECS_CREC
 from tikon.móds.rae.utils import RES_CREC
@@ -10,7 +10,7 @@ from tikon.móds.rae.utils import RES_CREC
 
 class EcsCrec(CategEcOrg):
     nombre = ECS_CREC
-    cls_ramas = [ModifCrec, EcCrec]
+    cls_ramas = [TasaCrec, EcCrec]
     _nombre_res = RES_CREC
 
     def postproc(símismo, paso, sim):

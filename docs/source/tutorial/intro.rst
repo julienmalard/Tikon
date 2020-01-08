@@ -66,6 +66,7 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
 
 .. code-block:: python
 
+   from tikon.central import Parcela
    from tikon.ejemplos.datos import obt_datos, obt_ref
    from tikon.exper.exper import Exper
    from tikon.rae.red_ae.obs import ObsPobs
@@ -92,8 +93,8 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
        },
        factor=655757.1429 / 500  # para convertir a individuos por ha
    )
-
-   exper_A = Exper('Sitio A', pobs)
+   exper_A = Exper('Sitio A', Parcela('Sitio A', geom=GeomParcela((7.297, 79.865))))
+   exper_A.datos.agregar_obs(pobs)
 
 
 Calibración
@@ -104,11 +105,11 @@ se podrían incluir clima, manejo, o cultivos también.
 
 .. code-block:: python
 
-   from tikon.central.simulador import Simulador
+   from tikon.central. import Modelo
 
-   simul = Simulador(red)
+   modelo = Modelo(red)
 
-   simul.calibrar('Sitio A', exper=exper_A)
+   modelo.calibrar('Sitio A', exper=exper_A)
 
 Validación
 ----------

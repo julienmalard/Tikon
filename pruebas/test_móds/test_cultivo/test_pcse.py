@@ -7,7 +7,7 @@ from tikon.móds.cultivo.cult import Cultivo
 from tikon.móds.cultivo.mod_pcse.clima import FuenteMeteoPCSE
 from tikon.móds.cultivo.mod_pcse.parc import ParcelasCultivoPCSE
 from tikon.móds.cultivo.res import RES_HUMSUELO
-from tikon.móds.rae.orgs.insectos import Sencillo
+from tikon.móds.rae.orgs.insectos import LotkaVolterra
 from tikon.móds.rae.orgs.plantas.externa import RemolachaAzucarera
 from tikon.móds.rae.red import RedAE
 
@@ -17,7 +17,7 @@ from pruebas.test_móds.test_cultivo.rcrs.pcse import prov_paráms, prov_meteo, 
 class PruebaPCSE(unittest.TestCase):
 
     def test_pcse(símismo):
-        gusanito = Sencillo('soy gusano')
+        gusanito = LotkaVolterra('soy gusano')
         remolacha = RemolachaAzucarera()
         gusanito.secome(remolacha)
         red = RedAE([remolacha, gusanito])

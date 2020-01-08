@@ -221,6 +221,9 @@ class SimulMódulo(PlantillaSimul):
                 'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=mód.nombre)
             )
 
+        if isinstance(vars_interés, str):
+            vars_interés = [vars_interés]
+
         símismo.simul_exper = simul_exper
         símismo.exper = simul_exper.exper
         símismo.ecs = ecs

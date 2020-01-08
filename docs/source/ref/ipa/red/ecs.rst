@@ -24,7 +24,7 @@ Ecuación
 Modificaciones
 ^^^^^^^^^^^^^^
 .. autoclass::
-   :members: tikon.rae.ecs.crec.modif.lognorm_temp.LogNormTemp
+   :members: tikon.rae.ecs.crec.tasa.lognorm_temp.LogNormTemp
 
 .. autoclass::
    :members: tikon.rae.ecs.crec.ec.ninguna.Ninguna

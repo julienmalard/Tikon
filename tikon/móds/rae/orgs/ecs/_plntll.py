@@ -25,6 +25,10 @@ class SubcategEcOrg(SubcategEc):
     def ajust_pobs(símismo, sim, pobs):
         símismo.poner_valor_mód(sim, var=RES_POBS, val=pobs, rel=True)
 
+    @classmethod
+    def registrar_ec(cls, ec):
+        cls.cls_ramas.append(ec)
+
     @property
     def nombre(símismo):
         raise NotImplementedError

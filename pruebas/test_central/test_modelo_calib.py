@@ -81,7 +81,7 @@ class PruebaCalibInic(unittest.TestCase):
         gen = generar()
         modelo = gen['modelo']
         exper = gen['exper']
-        modelo.calibrar('calib', exper, n_iter=50)
+        modelo.calibrar('calib', exper, n_iter=1000)
         modelo.guardar_calibs(cls.dir_)
         exper.guardar_calibs(cls.dir_)
 
@@ -129,7 +129,7 @@ class PruebaCalibInic(unittest.TestCase):
         exper = gen['exper']
         módulo = gen['módulo']
         exper.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=50, paráms=módulo)
+        modelo.calibrar('calib', exper, n_iter=500, paráms=módulo)
         valid = modelo.simular('valid', exper, calibs=['calib']).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
@@ -139,7 +139,7 @@ class PruebaCalibInic(unittest.TestCase):
         modelo = gen['modelo']
         exper = gen['exper']
         modelo.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=50, paráms=exper)
+        modelo.calibrar('calib', exper, n_iter=500, paráms=exper)
         valid = modelo.simular('valid', exper, calibs=['calib']).validar()
         símismo.assertGreater(valid['ens'], 0.90)
 
