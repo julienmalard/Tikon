@@ -59,7 +59,10 @@ class Valid(PlantillaValid):
         super().__init__(criterios, peso)
 
     def a_dic(símismo):
-        return {**{ll: v.a_dic() for ll, v in símismo.ramas.items()}, **super().a_dic()}
+        return {
+            **{ll: v.a_dic() for ll, v in símismo.ramas.items() if any(crt for crt in v.a_dic()['crits'].values())},
+            **super().a_dic()
+        }
 
     def __getitem__(símismo, itema):
         return símismo.criterios[itema]
