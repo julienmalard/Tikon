@@ -1,16 +1,15 @@
 from pprint import pprint
 
-from تقدیر.ذرائع import سی_اس_وی as clima_csv
-
-from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
-from tikon.clima.clima import Clima
+from tikon.central.exper import Exper
+from tikon.central.modelo import Simulador, EspecCalibsCorrida
 from tikon.ecs.aprioris import APrioriDens
-from tikon.estruc.simulador import Simulador, EspecCalibsCorrida
-from tikon.exper.exper import Exper
-from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
-from tikon.rae.orgs.plantas import Hojas
-from tikon.rae.red_ae import RedAE
-from tikon.rae.red_ae.obs import ObsPobs
+from tikon.ejemplos.Leucoptera_coffeella.a_prioris import a_prioris
+from tikon.móds.clima.clima import Clima
+from tikon.móds.rae import MetamCompleta, Parasitoide
+from tikon.móds.rae import ObsPobs
+from tikon.móds.rae import RedAE
+from tikon.móds.rae.orgs.plantas import Hojas
+from تقدیر.ذرائع import سی_اس_وی as clima_csv
 
 # Crear objeto planta
 Café = Hojas('Café')
@@ -45,7 +44,7 @@ El_Encanto = Exper()
 #       Elevation on Coffee Leafminer Leucoptera Coffeella (Lepidoptera: Lyonetiidae) Population Dynamics and
 #       Natural Enemies.” Crop Protection 29 (9): 1039–48. doi:10.1016/j.cropro.2010.03.007.
 pobs = ObsPobs.de_csv(
-    archivo='Suconusco_Chiapas.csv', col_tiempo='Día',
+    archivo='Suconusco_Chiapas.csv', tiempo='Día',
     corresp={
         'Juvenil': L_coffeella['juvenil'],
         'Para_larva': Parasitoide_larvas['juvenil']
@@ -72,18 +71,18 @@ calibs = EspecCalibsCorrida(aprioris=True)
 
 sim = Simulador([Red_café, ClimaElEncanto])
 res = sim.simular(exper=El_Encanto, calibs=calibs, n_rep_estoc=10, n_rep_parám=10)
-print('Valid antes de calib')
+print('Valid antes de calibrador')
 pprint(res.validar())
-res.graficar('antes calib')
+res.graficar('antes calibrador')
 
 sensib = sim.sensib(exper=El_Encanto, n=10)
-sensib.graficar('sensib antes calib')
+sensib.graficar('sensib antes calibrador')
 
 sim.calibrar('El Encanto', exper=El_Encanto)
 
 res_después = sim.simular(exper=El_Encanto, n_rep_estoc=10, n_rep_parám=10)
 pprint(res_después.validar())
-res_después.graficar('después calib')
+res_después.graficar('después calibrador')
 
 sensib = sim.sensib(exper=El_Encanto, n=10)
-sensib.graficar('sensib después calib')
+sensib.graficar('sensib después calibrador')

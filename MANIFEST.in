@@ -1,4 +1,4 @@
 recursive-include tikon *.json *.txt *.csv
 
 graft tikon/ejemplos
-graft pruebas/recursos
+graft pruebas

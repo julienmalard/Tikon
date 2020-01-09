@@ -23,12 +23,12 @@ en la corrida.
 
 Opciones avanzadas
 ------------------
-Puedes cambiar el comportamiento automático por pasar un objeto :class:`~tikon.estruc.simulador.EspecCalibsCorrida`
-a la función de simulación :func:`~tikon.estruc.simulador.Simulador.simular` del
-:class:`~tikon.estruc.simulador.Simulador` (e igualmente a las que la llaman
-indirectamente, como :func:`~tikon.estruc.simulador.Simulador.calibrar` y
-:func:`~tikon.estruc.simulador.Simulador.sensib`).
-:class:`~tikon.estruc.simulador.EspecCalibsCorrida` toma opciones para especificar el uso de *a prioris*, de
+Puedes cambiar el comportamiento automático por pasar un objeto :class:`~tikon.central.simulador.EspecCalibsCorrida`
+a la función de simulación :func:`~tikon.central.simulador.Simulador.simular` del
+:class:`~tikon.central.simulador.Simulador` (e igualmente a las que la llaman
+indirectamente, como :func:`~tikon.central.simulador.Simulador.calibrar` y
+:func:`~tikon.central.simulador.Simulador.sensib`).
+:class:`~tikon.central.simulador.EspecCalibsCorrida` toma opciones para especificar el uso de *a prioris*, de
 correspondencia entre parámetros, y de herencia de interacciones.
 
 A prioris

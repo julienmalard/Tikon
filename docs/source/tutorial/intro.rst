@@ -66,6 +66,7 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
 
 .. code-block:: python
 
+   from tikon.central import Parcela
    from tikon.ejemplos.datos import obt_datos, obt_ref
    from tikon.exper.exper import Exper
    from tikon.rae.red_ae.obs import ObsPobs
@@ -92,29 +93,29 @@ Aquí se conecta la red con observaciones de campo a través de un experimento (
        },
        factor=655757.1429 / 500  # para convertir a individuos por ha
    )
-
-   exper_A = Exper('Sitio A', pobs)
+   exper_A = Exper('Sitio A', Parcela('Sitio A', geom=GeomParcela((7.297, 79.865))))
+   exper_A.datos.agregar_obs(pobs)
 
 
 Calibración
 -----------
-Ahora vamos a calibrar nuestro modelo. Primero creamos un :class:`~tikon.estruc.simulador.Simulador` para poder correr
+Ahora vamos a calibrar nuestro modelo. Primero creamos un :class:`~tikon.central.simulador.Simulador` para poder correr
 simulaciones y calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un módulo (la red), pero
 se podrían incluir clima, manejo, o cultivos también.
 
 .. code-block:: python
 
-   from tikon.estruc.simulador import Simulador
+   from tikon.central. import Modelo
 
-   simul = Simulador(red)
+   modelo = Modelo(red)
 
-   simul.calibrar('Sitio A', exper=exper_A)
+   modelo.calibrar('Sitio A', exper=exper_A)
 
 Validación
 ----------
 En este ejemplo vamos a hacer trampa y validar con los mismos datos de calibración.
-Primero hacemos una simulación normal, y despues vamos a :func:`~tikon.result.res.ResultadosSimul.validar` los
-resultados. También los podremos :func:`~tikon.result.res.ResultadosSimul.graficar`.
+Primero hacemos una simulación normal, y despues vamos a :func:`~tikon.datos.res.ResultadosSimul.validar` los
+resultados. También los podremos :func:`~tikon.datos.res.ResultadosSimul.graficar`.
 
 Las observaciones especificadas arriba quedaron vinculadas en los resultados y por eso se tomarán en cuenta
 en la validación y en los gráficos.

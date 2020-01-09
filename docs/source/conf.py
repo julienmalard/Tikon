@@ -177,10 +177,12 @@ html_favicon = '_estático/imágenes/logos/Logo_favicon.ico'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_estático']
 
+
 def setup(app):
     app.add_stylesheet('css/tema.css')
     app.add_stylesheet('css/cambios.css')
     app.add_javascript('javascript.js')
+
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
