@@ -3,13 +3,13 @@ from warnings import warn as avisar
 
 import scipy.stats as estad
 from pruebas.test_central.rcrs.modelo_calib import generar
-from tikon.calibrador.spotpy_ import EVM, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC, CalibSpotPy
+from tikon.calibrador.spotpy_ import EMV, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC, CalibSpotPy
 from tikon.ecs.aprioris import APrioriDist
 
 
 class PruebaSpotPy(unittest.TestCase):
     def test_algs(símismo):
-        for alg in [EVM, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC]:
+        for alg in [EMV, RS, BDD, CMEDZ, MC, MLH, CAACAA, CAA, ECBUA, ERP, CMMC]:
             with símismo.subTest(alg.__name__):
                 gen = generar()
                 modelo = gen['modelo']
