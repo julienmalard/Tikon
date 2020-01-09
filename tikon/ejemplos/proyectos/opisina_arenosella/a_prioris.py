@@ -14,7 +14,7 @@ a_prioris = {
 
     'O. arenosella_senc': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              apriori=APrioriDens(((2.721 - 0.7539) / 2 * 1.96, (2.721 + 0.7539) / 2 * 1.96), 0.80)),
         dict(etapa='adulto',
              categ='Crecimiento', subcateg='Ecuación', ec='Logístico Presa', prm='K',
@@ -31,12 +31,12 @@ a_prioris = {
              org_inter='Palma de coco', etp_inter='planta',
              apriori=APrioriDens(
                  (((1823 - 100 * 1.96) / (53.1 + 10.64 * 1.96) * 1e-9) ** 2,
-                  ((1823 - 100 * 1.96) / (53.1 - 10.64 * 1.96) * 1e-9) ** 2), 0.80))  # Para hacer
+                  ((1823 - 100 * 1.96) / (53.1 - 10.64 * 1.96) * 1e-9) ** 2), 0.80))
     ],
 
     'Parasitoide_senc': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              # 1:5 = 0.2 = 1-0.8 = ratio de sexos (macho a hembra)
              apriori=APrioriDens((0.402 * .8, (4.35 + 2.214 / 2) * .8), 0.80)),
         dict(etapa='adulto',
@@ -52,13 +52,13 @@ a_prioris = {
         dict(etapa='adulto',
              categ='Depredación', subcateg='Ecuación', ec='Kovai', prm='b',
              org_inter='O. arenosella_senc', etp_inter='adulto',
-             apriori=APrioriDens(((20 / 30) ** 2, ((116 + 36.465 / 2) / 30) ** 2), 0.80))  # para hacer
+             apriori=APrioriDens(((20 / 30) ** 2, ((116 + 36.465 / 2) / 30) ** 2), 0.80))
 
     ],
 
     'Araña': [
         dict(etapa='adulto',
-             categ='Crecimiento', subcateg='Modif', ec='Ninguna', prm='r',
+             categ='Crecimiento', subcateg='Tasa', ec='Constante', prm='r',
              apriori=APrioriDens((100 / 60 / 2, 300 / 60 / 2), 0.80)),
         dict(etapa='adulto',
              categ='Crecimiento', subcateg='Ecuación', ec='Logístico Presa', prm='K',
@@ -75,7 +75,7 @@ a_prioris = {
         dict(etapa='adulto',
              categ='Depredación', subcateg='Ecuación', ec='Kovai', prm='b',
              # org_inter='O. arenosella_senc', etp_inter='adulto',
-             apriori=APrioriDens((100 ** 2, 1000 ** 2), 0.80)),  # para hacer
+             apriori=APrioriDens((100 ** 2, 1000 ** 2), 0.80)),
         dict(etapa='adulto',
              categ='Depredación', subcateg='Ecuación', ec='Kovai', prm='a',
              # org_inter='Parasitoide_senc', etp_inter='adulto',
@@ -83,7 +83,7 @@ a_prioris = {
         dict(etapa='adulto',
              categ='Depredación', subcateg='Ecuación', ec='Kovai', prm='b',
              # org_inter='Parasitoide_senc', etp_inter='adulto',
-             apriori=APrioriDens((10000 ** 2, 100000 ** 2), 0.80)),  # para hacer
+             apriori=APrioriDens((10000 ** 2, 100000 ** 2), 0.80)),
         dict(etapa='adulto',
              categ='Estoc', subcateg='Dist', ec='Normal', prm='sigma',
              apriori=APrioriDens((0, 0.01), 1))

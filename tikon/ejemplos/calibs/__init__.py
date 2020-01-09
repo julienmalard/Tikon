@@ -22,7 +22,7 @@ def guardar_calib(objs, nombre, autor, correo=None):
 
     dir_ = obt_calib(nombre)
     for obj in objs:
-        obj.guardar_calib(dir_)
+        obj.guardar_calibs(dir_)
 
     guardar_json(info, os.path.join(dir_, ARCH_INFO))
 

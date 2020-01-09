@@ -1,11 +1,11 @@
 Resultados
 ==========
 
-.. autoclass:: tikon.result.res.Resultado
+.. autoclass:: tikon.datos.res.Resultado
    :members:
 
-.. autoclass:: tikon.result.res.ResultadosSimul
+.. autoclass:: tikon.datos.res.ResultadosSimul
    :members:
 
-.. autoclass:: tikon.result.obs.Obs
+.. autoclass:: tikon.datos.obs.Obs
    :members:

@@ -40,11 +40,11 @@ msgstr ""
 
 #: ../../source/general/estruc.rst:11
 msgid ""
-"Un :class:`~tikon.estruc.simulador.Simulador` es la unidad fundamental de un"
+"Un :class:`~tikon.central.simulador.Simulador` es la unidad fundamental de un"
 " modelo en Tiko'n. Contiene varios módulos "
-"(:class:`~tikon.estruc.módulo.Módulo`) que interactuan entre sí mismos. "
+"(:class:`~tikon.central.módulo.Módulo`) que interactuan entre sí mismos. "
 "Todas simulaciones y calibraciones se efectuan a través de un "
-":class:`~tikon.estruc.simulador.Simulador`."
+":class:`~tikon.central.simulador.Simulador`."
 msgstr ""
 
 #: ../../source/general/estruc.rst:16
@@ -53,7 +53,7 @@ msgstr ""
 
 #: ../../source/general/estruc.rst:17
 msgid ""
-"Cada :class:`~tikon.estruc.módulo.Módulo` en Tiko'n representa una parte del"
+"Cada :class:`~tikon.central.módulo.Módulo` en Tiko'n representa una parte del"
 " agroecosistema. Por ejemplo, existen módulos para la red agroecológica, "
 "para el clima, para el cultivo y para el manejo humano. Los módulos pueden "
 "intercambiar valores de variables en el transcurso de una simulación."
@@ -78,12 +78,12 @@ msgstr ""
 #: ../../source/general/estruc.rst:29
 msgid ""
 "Se efectuan simulaciones por llamar "
-":func:`~tikon.estruc.simulador.Simulador.simular` con especificaciones de "
+":func:`~tikon.central.simulador.Simulador.simular` con especificaciones de "
 "escala temporal, repeticiones paramétricas y estocásticas, y experimento. "
 "Adentro de cada simulación, el modelo se va a "
-":func:`~tikon.estruc.simulador.Simulador.iniciar`, "
-":func:`~tikon.estruc.simulador.Simulador.correr`, y finalmente "
-":func:`~tikon.estruc.simulador.Simulador.cerrar`."
+":func:`~tikon.central.simulador.Simulador.iniciar`, "
+":func:`~tikon.central.simulador.Simulador.correr`, y finalmente "
+":func:`~tikon.central.simulador.Simulador.cerrar`."
 msgstr ""
 
 #: ../../source/general/estruc.rst:35
@@ -93,12 +93,12 @@ msgstr ""
 #: ../../source/general/estruc.rst:36
 msgid ""
 "Los resultados de simulación tienen su propia clase "
-"(:class:`~tikon.result.res.ResultadosSimul`), la cual incluye los resultados"
-" (:class:`~tikon.result.res.ResultadosMódulo`) de cada módulo del simulador,"
+"(:class:`~tikon.datos.res.ResultadosSimul`), la cual incluye los resultados"
+" (:class:`~tikon.datos.res.ResultadosMódulo`) de cada módulo del simulador,"
 " los cuales en torno contienen los resultados "
-"(:class:`~tikon.result.res.Resultado`) de cada variable del módulo. "
-"Resultados se pueden :func:`~tikon.result.res.ResultadosSimul.validar` y "
-"también :func:`~tikon.result.res.ResultadosSimul.graficar`."
+"(:class:`~tikon.datos.res.Resultado`) de cada variable del módulo. "
+"Resultados se pueden :func:`~tikon.datos.res.ResultadosSimul.validar` y "
+"también :func:`~tikon.datos.res.ResultadosSimul.graficar`."
 msgstr ""
 
 #: ../../source/general/estruc.rst:43

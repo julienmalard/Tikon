@@ -1,6 +1,6 @@
-from ._espec_dists import líms_dist, obt_nombre
-from ._utils import proc_líms, líms_compat
 from .dists import DistAnalítica
+from .dists import líms_dist
+from .utils import líms_compat
 
 
 class APriori(object):
@@ -20,10 +20,12 @@ class APrioriDens(APriori):
 class APrioriDist(APriori):
     def __init__(símismo, dist):
         símismo._dist = dist
-        símismo._líms_dist = líms_dist(obt_nombre(dist))
+        if isinstance(dist, DistAnalítica):
+            símismo._líms_dist = dist.líms
+        else:
+            símismo._líms_dist = líms_dist(dist)
 
     def dist(símismo, líms):
-        líms = proc_líms(líms)
-        líms_compat(líms, símismo._líms_dist)
+        líms_compat(símismo._líms_dist, líms)
 
-        return símismo._dist
+        return símismo._dist if isinstance(símismo._dist, DistAnalítica) else DistAnalítica(símismo._dist)

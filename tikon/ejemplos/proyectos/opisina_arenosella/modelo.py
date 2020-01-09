@@ -1,8 +1,8 @@
+from tikon.central.exper import Exper
 from tikon.ejemplos.datos import obt_datos
-from tikon.exper.exper import Exper
-from tikon.rae.orgs.insectos import MetamCompleta, Parasitoide
-from tikon.rae.red_ae import RedAE
-from tikon.rae.red_ae.obs import ObsPobs
+from tikon.móds.rae import MetamCompleta, Parasitoide
+from tikon.móds.rae import ObsPobs
+from tikon.móds.rae import RedAE
 
 # Mariposas tienen metamórfosis completa
 Oarenosella = MetamCompleta('O. arenosella', njuvenil=5)
@@ -26,7 +26,7 @@ datos = obt_datos('Perera et al 1988/Oarenosella_A.csv')
 # Se trata de observaciones de poblaciones (y no de otro variable, como depredación).
 pobs = ObsPobs.de_csv(
     datos,
-    col_tiempo='Día',
+    tiempo='Día',
     corresp={
         'Estado 1': Oarenosella['juvenil_1'],
         'Estado 2': Oarenosella['juvenil_2'],

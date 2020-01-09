@@ -27,7 +27,7 @@ Primero cargamos el modelo y sus calibraciones.
 
    from tikon.ejemplos.calibs import obt_calib
    from tikon.ejemplos.proyectos.opisina_arenosella import modelo as mod
-   from tikon.estruc.simulador import Simulador
+   from tikon.central.simulador import Simulador
 
    dir_calibs = 'Opisina arenosella, Perera et al. 1988'
 

@@ -3,8 +3,8 @@
    :alt: Logo de Tiko'n
    :align: center
 
-¡Bienvenidoas a la documentación de Tiko'n!
-===========================================
+¡Bienvenides a la documentación de Tiko'n!
+==========================================
 
 .. image:: https://travis-ci.org/julienmalard/Tikon.svg?branch=master
    :target: https://travis-ci.org/julienmalard/Tikon
@@ -22,6 +22,10 @@
 ---------------
 Tiko'n es un programa para desarrollar modelos de redes tróficas agroecológicas de manera sencilla, reproducible y
 divertida.
+
+¿Por qué se llama Tiko'n?
+-------------------------
+*Tiko'n* quiere decir *cultivo* o *agricultura* en Kaqchikel.
 
 ¿Qué es un modelo de redes tróficas?
 ------------------------------------
@@ -52,6 +56,14 @@ nada menos, nada más.
 #. Funcionalidades integradas para calibración y validación de modelos
 #. Formato estandardizado para guardar y compartir modelos calibrados
 #. Y, por supuesto, gráficos bonitos
+
+¿Qué no es Tiko'n?
+==================
+Tiko'n **no** es, y no intenta(rá) ser:
+
+* Un modelo basado en agentes. Estos modelos toman demasiado poder computacional a las escalas geográficas
+  y temporales y con el nivel de incertidumbre paramétrico y estocástico para los cuales se diseñó Tiko'n.
+* Un modelo con resolución intraparcela. Si quieres más resolución espacial, debes crear parcelas más pequeñas.
 
 Contenido
 =========
