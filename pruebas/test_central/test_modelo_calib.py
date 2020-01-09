@@ -2,6 +2,8 @@ import shutil
 import tempfile
 import unittest
 
+from tikon.central.calibs import EspecCalibsCorrida
+
 
 class PruebaCalibEcs(unittest.TestCase):
 
@@ -81,7 +83,7 @@ class PruebaCalibInic(unittest.TestCase):
         gen = generar()
         modelo = gen['modelo']
         exper = gen['exper']
-        modelo.calibrar('calib', exper, n_iter=1000)
+        modelo.calibrar('calib', exper, n_iter=50)
         modelo.guardar_calibs(cls.dir_)
         exper.guardar_calibs(cls.dir_)
 
@@ -93,7 +95,7 @@ class PruebaCalibInic(unittest.TestCase):
         otro_modelo.cargar_calibs(símismo.dir_)
         otro_exper.cargar_calibs(símismo.dir_)
 
-        valid = otro_modelo.simular('valid', otro_exper, calibs=['calib']).validar()
+        valid = otro_modelo.simular('valid', otro_exper, calibs=EspecCalibsCorrida(['calib'])).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
     def test_renombrar_calib(símismo):
@@ -107,7 +109,7 @@ class PruebaCalibInic(unittest.TestCase):
 
         coso.renombrar_calib('calib', 'otro nombre')
         exper.renombrar_calib('calib', 'otro nombre')
-        valid = modelo.simular('valid', exper, calibs=['otro nombre']).validar()
+        valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['otro nombre'])).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
     def test_borrar_calib(símismo):
@@ -129,8 +131,8 @@ class PruebaCalibInic(unittest.TestCase):
         exper = gen['exper']
         módulo = gen['módulo']
         exper.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=500, paráms=módulo)
-        valid = modelo.simular('valid', exper, calibs=['calib']).validar()
+        modelo.calibrar('calib', exper, n_iter=150, paráms=módulo)
+        valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
     def test_calib_solamente_inic(símismo):
@@ -139,8 +141,8 @@ class PruebaCalibInic(unittest.TestCase):
         modelo = gen['modelo']
         exper = gen['exper']
         modelo.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=500, paráms=exper)
-        valid = modelo.simular('valid', exper, calibs=['calib']).validar()
+        modelo.calibrar('calib', exper, n_iter=150, paráms=exper)
+        valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
         símismo.assertGreater(valid['ens'], 0.90)
 
     @classmethod
