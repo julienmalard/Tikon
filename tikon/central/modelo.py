@@ -1,7 +1,7 @@
 import os
 from inspect import isclass
 
-from tikon.calibrador.spotpy_ import EVM
+from tikon.calibrador.spotpy_ import EMV
 from tikon.ecs import Parám
 from tikon.datos.proc import ens, gen_proc
 
@@ -34,7 +34,7 @@ class Modelo(object):
         return simul
 
     def calibrar(
-            símismo, nombre, exper, t=None, n_iter=300, calibrador=EVM(), proc=ens, calibs=None, reps=None,
+            símismo, nombre, exper, t=None, n_iter=300, calibrador=EMV(), proc=ens, calibs=None, reps=None,
             paráms=None
     ):
 

@@ -60,8 +60,8 @@ class CalibSpotPy(Calibrador):
         return vero, buenas
 
 
-class EVM(CalibSpotPy):
-    """Estimación de verosimilitud máxima"""
+class EMV(CalibSpotPy):
+    """Estimación por máxima verosimilitud"""
     alg_spotpy = spt.algorithms.mle
 
 
