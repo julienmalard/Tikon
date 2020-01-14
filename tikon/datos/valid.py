@@ -29,17 +29,17 @@ class ValidÍnds(PlantillaValid):
         super().__init__(criterios, peso)
 
     def a_dic(símismo):
-        return {'índs': {ll: str(v) for ll, v in símismo.índs.items()} , **super().a_dic()}
+        return {'índs': {ll: str(v) for ll, v in símismo.índs.items()}, **super().a_dic()}
 
 
 class ValidRes(PlantillaValid):
     def __init__(símismo, valids, proc):
         símismo.valids = valids
         criterios = {
-            cr: proc.combin(vals=[v[cr] for v in valids], pesos=[v.peso for v in valids]) if valids else None
+            cr: proc.combin(vals=[v[cr] for v in valids], pesos=[v.peso for v in valids]).item() if valids else None
             for cr in proc.criterios
         }
-        peso = proc.combin_pesos([v.peso for v in valids]) if valids else 0
+        peso = proc.combin_pesos([v.peso for v in valids]).item() if valids else 0
         super().__init__(criterios, peso)
 
     def a_dic(símismo):
@@ -51,16 +51,18 @@ class Valid(PlantillaValid):
         criterios = {
             cr: proc.combin(
                 vals=[v[cr] for v in ramas.values() if v.peso], pesos=[v.peso for v in ramas.values() if v.peso]
-            ) for cr in proc.criterios
+            ).item() for cr in proc.criterios
         }
-        peso = proc.combin_pesos([v.peso for v in ramas.values()])
+        peso = proc.combin_pesos([v.peso for v in ramas.values()]).item()
         símismo.ramas = ramas
 
         super().__init__(criterios, peso)
 
     def a_dic(símismo):
         return {
-            **{ll: v.a_dic() for ll, v in símismo.ramas.items() if any(crt for crt in v.a_dic()['crits'].values())},
+            **{
+                str(ll): v.a_dic() for ll, v in símismo.ramas.items() if any(crt for crt in v.a_dic()['crits'].values())
+            },
             **super().a_dic()
         }
 
@@ -77,6 +79,6 @@ class ProcesadorValid(Procesador):
 
         símismo.criterios = list(f_vals)
         super().__init__(
-            lambda o, s: {ll: v(o, s) for ll, v in f_vals.items()},
+            lambda o, s: {ll: v(o, s).item() for ll, v in f_vals.items()},
             f_pesos, f_combin, f_combin_pesos
         )
