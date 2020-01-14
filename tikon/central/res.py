@@ -166,7 +166,7 @@ class Resultado(PlantillaSimul):
                 else x for x in crds.values
             ]
 
-        formato = formato.lower()
+        formato = formato.lower().strip('.')
         if formato == 'netcdf':
             archivo = asegurar_ext(archivo, '.nc')
             asegurar_dir_existe(archivo)

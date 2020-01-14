@@ -20,6 +20,7 @@ class EcsTrans(CategEcOrg):
         trans_de, trans_a = zip(*sim.recip_trans)
 
         trans = trans.loc[{EJE_ETAPA: list(trans_de)}]
-        trans.coords[EJE_ETAPA] = list(trans_a)
-
-        símismo.ajust_pobs(sim, trans)
+        for de, a in zip(trans_de, trans_a):
+            trans_etp = trans.loc[{EJE_ETAPA: de}]
+            trans_etp.coords[EJE_ETAPA] = [a]
+            símismo.ajust_pobs(sim, trans_etp)
