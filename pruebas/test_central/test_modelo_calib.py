@@ -134,7 +134,7 @@ class PruebaCalibInic(unittest.TestCase):
         # para hacer: opción sin aprioris únicamente para exper
         modelo.calibrar('calib', exper, n_iter=50, paráms=módulo, calibs=EspecCalibsCorrida(aprioris=False))
         valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
-        símismo.assertGreater(valid['ens'], 0.95)
+        símismo.assertGreater(valid['ens'], 0.90)
 
     def test_calib_solamente_inic(símismo):
         from .rcrs.modelo_calib_inic import generar
