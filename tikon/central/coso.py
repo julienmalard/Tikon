@@ -61,3 +61,21 @@ class Coso(object):
 
     def __str__(símismo):
         return símismo.nombre
+
+    def __eq__(símismo, otro):
+        return isinstance(otro, símismo.__class__) and símismo.nombre == otro.nombre
+
+    def __hash__(símismo):
+        return hash(símismo.nombre)
+
+
+class SumaCosos(object):
+    def __init__(símismo, cosos):
+        símismo.cosos = cosos
+
+    def __add__(símismo, otro):
+        return SumaCosos(*list(otro), *símismo.cosos)
+
+    def __iter__(símismo):
+        for coso in símismo.cosos:
+            yield coso

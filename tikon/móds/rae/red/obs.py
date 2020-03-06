@@ -4,6 +4,7 @@ from tikon.datos import Obs
 from tikon.utils import EJE_PARC, EJE_DEST
 
 from .red import RedAE
+from ..orgs.organismo import Etapa
 
 
 class ObsRAE(Obs):
@@ -11,8 +12,10 @@ class ObsRAE(Obs):
 
     @classmethod
     def de_cuadro(cls, datos_pd, corresp, coords=None, tiempo=None, parcela=None, factor=1, **argsll):
+        corresp = {ll: tuple(v) if not isinstance(v, Etapa) else v for ll, v in corresp.items()}
         return super().de_cuadro(
-            datos_pd, corresp=corresp, eje_principal=EJE_ETAPA, parc=parcela, tiempo=tiempo, coords=coords, factor=factor
+            datos_pd, corresp=corresp, eje_principal=EJE_ETAPA, parc=parcela, tiempo=tiempo, coords=coords,
+            factor=factor
         )
 
     @property

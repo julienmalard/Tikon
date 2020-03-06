@@ -11,7 +11,7 @@ class Loc(object):
         if isinstance(dic, Datos):
             dic = dic.coords
         return {
-            dm: [símismo.datos.coords[dm].index(c) for c in (crds if isinstance(crds, list) else [crds])]
+            dm: [símismo.datos.coords[dm].index(c) for c in (crds if isinstance(crds, (list, set)) else [crds])]
             for dm, crds in dic.items()
         }
 

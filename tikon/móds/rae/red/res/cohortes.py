@@ -113,6 +113,8 @@ class ResCohortes(ResultadoRed):
 
         etps_quitar = [x for x in para_quitar.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]]
         if not etps_quitar:
+            if recips:
+                raise ValueError('Etapas para quitar no tienen cohortes.')
             return
         índs = {EJE_ETAPA: etps_quitar}
         para_quitar = para_quitar.loc[índs]

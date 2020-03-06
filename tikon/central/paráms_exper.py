@@ -36,7 +36,7 @@ class ParámsExperVar(PlantillaParámsExper):
         líms = proc_líms(sim.líms)
         # para hacer: estandardizar
         if símismo.datos.obs:
-            ref = min(líms[1], np.nanmax([o_.datos.values.max() for o_ in símismo.datos.obs]))
+            ref = min(líms[1], np.nanmax([np.nanmax(o_.datos.values) for o_ in símismo.datos.obs]))
             if líms == (0, np.inf):
                 apriori = APrioriDist(expon(0, ref))
             else:
