@@ -64,7 +64,8 @@ fase juvenil se desarrolla adentro de su huésped.
 
    avispa = Parasitoide('avispa')
 
-   avispa.parasita(mosca, etps_entra='juvenil', etp_emerg='pupa')
+   with RedAE([avispa, mosca]) as red:
+       avispa.parasita(mosca, etps_entra='juvenil', etp_emerg='pupa')
 
 Esfécidos
 ---------
@@ -81,7 +82,8 @@ adulta.
 
    esfécido = Esfécido('esfécido')
 
-   esfécido.captura(araña, etps_presa='adulto')
+   with RedAE([araña, esfécido]) as red:
+       esfécido.captura(araña, etps_presa='adulto')
 
 
 Cambiar ecuaciones
@@ -94,4 +96,6 @@ Puedes modificar las ecuaciones empleadas para un insecto en particular.
 
    araña.activar_ec(categ='Edad', subcateg='Ecuación', ec='Días grados')
 
-   esfécido.captura(araña, etps_presa='adulto')
+   with RedAE([araña, esfécido]) as red:
+       esfécido.captura(araña, etps_presa='adulto')
+

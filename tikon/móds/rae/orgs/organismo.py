@@ -1,3 +1,5 @@
+from itertools import product
+
 from tikon.central.coso import Coso, SumaCosos
 from .ecs import EcsOrgs
 from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS, ECS_ESTOC
@@ -65,11 +67,8 @@ class Organismo(Coso):
         if not contexto:
             raise ValueError('Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés.')
 
-        for red in contexto:
-            for e_p in etps_presa:
-                for e_s in etps_símismo:
-                    obj_rel = RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s)
-                    red.agregar_relación(obj_rel)
+        for red, e_p, e_s in product(contexto, etps_presa, etps_símismo):
+            red.agregar_relación(RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s))
 
     def parasita(símismo, huésped, etps_entra, etp_emerg, etp_recip, etp_símismo=None):
         if not contexto:

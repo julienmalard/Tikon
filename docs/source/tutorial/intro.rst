@@ -27,14 +27,13 @@ para la lista completa de clases disponibles).
    Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)
    Paras_pupa = Parasitoide('Parasitoide pupa')
 
-   # El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta
-   Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
-
-   # El parasitoide de pupas parasita y emerge de la pupa
-   Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
-
    # Juntamos todo en una red
-   red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])
+   with RedAE([Oarenosella, Paras_larvas, Paras_pupa]) as red:
+       # El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta
+       Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')
+
+       # El parasitoide de pupas parasita y emerge de la pupa
+       Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')
 
 
 A prioris
