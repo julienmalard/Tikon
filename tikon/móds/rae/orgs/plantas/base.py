@@ -62,11 +62,7 @@ class Planta(Organismo):
 
     def fijar_dens(símismo, apriori, etapas=None):
 
-        if etapas is None:
-            etapas = símismo.etapas()
-        if isinstance(etapas, (str, Etapa)):
-            etapas = [etapas]
-        etapas = [e if isinstance(e, str) else e.nombre for e in etapas]
+        etapas = [e if isinstance(e, str) else e.nombre for e in símismo.resolver_etapas(etapas)]
 
         símismo.activar_ec(ECS_CREC, 'Tasa', 'Nada', etapas=etapas)
         símismo.activar_ec(ECS_CREC, 'Ecuación', 'Constante', etapas=etapas)

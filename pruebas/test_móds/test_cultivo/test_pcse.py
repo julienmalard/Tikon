@@ -19,8 +19,8 @@ class PruebaPCSE(unittest.TestCase):
     def test_pcse(símismo):
         gusanito = LotkaVolterra('soy gusano')
         remolacha = RemolachaAzucarera()
-        gusanito.secome(remolacha)
-        red = RedAE([remolacha, gusanito])
+        with RedAE([remolacha, gusanito]) as red:
+            gusanito.secome(remolacha)
 
         modelo = Wofost71_PP
         parc = ParcelasCultivoPCSE(

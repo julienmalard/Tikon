@@ -1,9 +1,7 @@
-from typing import List
-
-from tikon.central.coso import Coso
-
+from tikon.central.coso import Coso, SumaCosos
 from .ecs import EcsOrgs
 from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS, ECS_ESTOC
+from ..utils import contexto
 
 
 class Organismo(Coso):
@@ -21,9 +19,7 @@ class Organismo(Coso):
             etapas = [etapas]
         etapas = [e if isinstance(e, Etapa) else símismo._gen_etapa(e) for e in etapas]
 
-        símismo._etapas = etapas
-        símismo._rels_presas = []  # type: List[RelaciónPresa]
-        símismo._rels_parás = []  # type: List[RelaciónParas]
+        símismo.etapas = etapas
 
     def activar_ec(símismo, categ, subcateg, ec, etapas=None):
         etapas = símismo.resolver_etapas(etapas)
@@ -52,100 +48,60 @@ class Organismo(Coso):
             etp.borrar_aprioris(categ, sub_categ, ec, prm, índs=índs)
 
     def verificar(símismo):
-        for etp in símismo._etapas:
+        for etp in símismo.etapas:
             etp.ecs.verificar()
 
     def borrar_calib(símismo, nombre):
-        for etp in símismo._etapas:
+        for etp in símismo.etapas:
             etp.borrar_calib(nombre)
 
     def renombrar_calib(símismo, nombre, nuevo):
-        for etp in símismo._etapas:
+        for etp in símismo.etapas:
             etp.renombrar_calib(nombre, nuevo)
 
     def secome(símismo, presa, etps_presa=None, etps_símismo=None):
         etps_presa = presa.resolver_etapas(etps_presa)
         etps_símismo = símismo.resolver_etapas(etps_símismo)
+        if not contexto:
+            raise ValueError('Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés.')
 
-        for e_p in etps_presa:
-            for e_s in etps_símismo:
-                obj_rel = RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s)
-                símismo._rels_presas.append(obj_rel)
-
-    def nosecome(símismo, presa, etps_presa=None, etps_símismo=None):
-
-        etps_presa = presa.resolver_etapas(etps_presa)
-        etps_símismo = símismo.resolver_etapas(etps_símismo)
-
-        for rel in list(símismo._rels_presas):
-            if rel.presa is presa and rel.etp_presa in etps_presa and rel.etp_depred in etps_símismo:
-                símismo._rels_presas.remove(rel)
+        for red in contexto:
+            for e_p in etps_presa:
+                for e_s in etps_símismo:
+                    obj_rel = RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s)
+                    red.agregar_relación(obj_rel)
 
     def parasita(símismo, huésped, etps_entra, etp_emerg, etp_recip, etp_símismo=None):
+        if not contexto:
+            raise ValueError('Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés.')
+
         etps_entra = huésped.resolver_etapas(etps_entra)
         etp_emerg = huésped.resolver_etapas(etp_emerg)[0]
         etp_recip = símismo.resolver_etapas(etp_recip)[0]
 
         if etp_símismo is None:
-            etp_símismo = símismo._etapas[-1]
+            etp_símismo = símismo.etapas[-1]
         etp_símismo = símismo.resolver_etapas(etp_símismo)[0]
 
         obj_rel = RelaciónParas(
             huésped=huésped, etps_entra=etps_entra, etp_depred=etp_símismo, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
-        símismo._rels_parás.append(obj_rel)
-
-    def noparasita(símismo, huésped, etps_entra=None, etps_símismo=None):
-
-        etps_entra = símismo.resolver_etapas(etps_entra)
-        etps_símismo = símismo.resolver_etapas(etps_símismo)
-
-        for rel in list(símismo._rels_parás):
-            if rel.huésped is huésped and rel.etps_entra in etps_entra and rel.etp_depred in etps_símismo:
-                símismo._rels_parás.remove(rel)
+        for red in contexto:
+            red.agregar_relación(obj_rel)
 
     def resolver_etapas(símismo, etapas):
         if etapas is None:
-            etapas = símismo._etapas
+            etapas = símismo.etapas
         elif isinstance(etapas, (str, Etapa)):
             etapas = [etapas]
         etapas = [símismo[e] if isinstance(e, str) else e for e in etapas]
 
         return etapas
 
-    def etapas(símismo, fantasmas_de=None):
-
-        if fantasmas_de:
-            etps_fant = [f for r_p in símismo._rels_parás for f in r_p.fantasmas if f.org_hués in fantasmas_de]
-        else:
-            etps_fant = []
-
-        return símismo._etapas + etps_fant
-
     def índice(símismo, etp):
         if isinstance(etp, str):
             etp = símismo[etp]
-        return símismo._etapas.index(etp)
-
-    def presas(símismo, etp=None):
-        return [rel.etp_presa for rel in símismo._rels_presas if (etp is None or rel.etp_depred == etp)]
-
-    def huéspedes(símismo, etp=None):
-        """
-        Devuelve etapas huéspedes víctimas directas de parasitismo.
-
-        Parameters
-        ----------
-        etp
-
-        Returns
-        -------
-
-        """
-        return [e_h for rel in símismo._rels_parás for e_h in rel.etps_entra if (etp is None or rel.etp_depred == etp)]
-
-    def fantasmas(símismo):
-        return [rel.fantasmas[í] for rel in símismo._rels_parás for í in range(len(rel.etps_entra))]
+        return símismo.etapas.index(etp)
 
     def espec_apriori_etp(símismo, etapa, apriori, categ, subcateg, ec, prm, índs=None):
         símismo[etapa].espec_apriori(apriori, categ, subcateg, ec, prm, índs)
@@ -162,24 +118,24 @@ class Organismo(Coso):
                 etp._ecs_de_json(calibs[etp.nombre])
 
     def __len__(símismo):
-        return len(símismo._etapas)
+        return len(símismo.etapas)
 
     def __getitem__(símismo, itema):
         if isinstance(itema, int):
-            return símismo._etapas[itema]
+            return símismo.etapas[itema]
         try:
-            return next(e for e in símismo._etapas if e.nombre == itema)
+            return next(e for e in símismo.etapas if e.nombre == itema)
         except StopIteration:
             raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=símismo))
 
     def __iter__(símismo):
-        for etp in símismo._etapas:
+        for etp in símismo.etapas:
             yield etp
 
     def __contains__(símismo, itema):
         if isinstance(itema, str):
-            return any(str(itema) == e.nombre for e in símismo.etapas())
-        return any(itema is e for e in símismo.etapas())
+            return any(str(itema) == e.nombre for e in símismo.etapas)
+        return any(itema is e for e in símismo.etapas)
 
 
 class Etapa(Coso):
@@ -215,6 +171,12 @@ class Etapa(Coso):
     def __str__(símismo):
         return str(símismo.org) + ' : ' + símismo.nombre
 
+    def __eq__(símismo, otro):
+        return isinstance(otro, símismo.__class__) and símismo.nombre == otro.nombre and símismo.org == otro.org
+
+    def __hash__(símismo):
+        return hash(str(símismo))
+
 
 categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE, ECS_ESTOC]
 
@@ -249,14 +211,28 @@ class EtapaFantasma(Etapa):
         return símismo.sig
 
 
-class RelaciónPresa(object):
+class RelaciónOrgs(object):
+    def __init__(símismo, orgs):
+        símismo.orgs = orgs
+
+    @property
+    def tipo(símismo):
+        raise NotImplementedError
+
+
+class RelaciónPresa(RelaciónOrgs):
+    tipo = 'presa'
+
     def __init__(símismo, presa, etp_presa, etp_depred):
         símismo.presa = presa
         símismo.etp_presa = etp_presa
         símismo.etp_depred = etp_depred
+        super().__init__([presa, etp_depred.org])
 
 
-class RelaciónParas(object):
+class RelaciónParas(RelaciónOrgs):
+    tipo = 'paras'
+
     def __init__(símismo, huésped, etps_entra, etp_depred, etp_emerg, etp_recip):
         símismo.huésped = huésped
         símismo.etps_entra = etps_entra
@@ -274,17 +250,13 @@ class RelaciónParas(object):
             ))
         símismo.fantasmas.reverse()
 
+        super().__init__([huésped, etp_depred.org])
 
-class SumaEtapas(object):
-    def __init__(símismo, etapas):
-        símismo.etapas = etapas
+
+class SumaEtapas(SumaCosos):
 
     def __add__(símismo, otro):
         if isinstance(otro, Etapa):
-            return SumaEtapas([otro, *símismo.etapas])
+            return SumaEtapas([otro, *símismo.cosos])
         else:
-            return SumaEtapas(*list(otro), *símismo.etapas)
-
-    def __iter__(símismo):
-        for etp in símismo.etapas:
-            yield etp
+            return SumaEtapas(*list(otro), *símismo.cosos)

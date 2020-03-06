@@ -12,7 +12,12 @@ def n_existen(x):
 
 # Funciones criterios
 def ens(o, s):
-    return of.nashsutcliffe(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    ev = of.nashsutcliffe(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    if np.isnan(ev):
+        return 1
+    elif np.isinf(ev):
+        return -1e6
+    return ev
 
 
 def rcep(o, s):

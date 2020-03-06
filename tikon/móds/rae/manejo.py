@@ -23,12 +23,12 @@ class CondPoblación(CondVariable):
 
 class AcciónPob(Acción):
     def __init__(símismo, etapa):
-        símismo.etapa = etapa
+        símismo.etapa = [etapa] if isinstance(etapa, Etapa) else etapa
 
     def _proc_pobs(símismo, pobs):
         if isinstance(pobs, Datos):
-            return pobs.expandir_dims(coords={EJE_ETAPA: [símismo.etapa]})
-        return Datos(pobs.item(), coords={EJE_ETAPA: [símismo.etapa]}, dims=[EJE_ETAPA])
+            return pobs.expandir_dims(coords={EJE_ETAPA: símismo.etapa})
+        return Datos(pobs.item(), coords={EJE_ETAPA: símismo.etapa}, dims=[EJE_ETAPA])
 
     def __call__(símismo, sim, donde):
         raise NotImplementedError

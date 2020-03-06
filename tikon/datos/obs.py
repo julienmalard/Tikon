@@ -37,6 +37,9 @@ class Obs(object):
         if isinstance(datos_pd, str):
             datos_pd = pd.read_csv(datos_pd, encoding='utf8')
         corresp = corresp or {}
+        for ll, v in corresp.items():
+            if isinstance(v, list):
+                corresp[ll] = tuple(v)
         coords = {
             EJE_PARC: parc or EJE_PARC,
             EJE_TIEMPO: tiempo or EJE_TIEMPO,
@@ -46,9 +49,10 @@ class Obs(object):
         coords_xr = coords.copy()
         for dim, crd in coords.items():
             if isinstance(dim, str) and crd in datos_pd.columns:
-                coords_xr[dim] = datos_pd[crd]
+                coords_xr[dim] = datos_pd[crd].unique()
             else:
                 coords_xr[dim] = [crd]
+
         coords_xr[eje_principal] = list(corresp.values())
         datos = xr.DataArray(np.nan, coords=coords_xr, dims=list(coords_xr))
 
@@ -60,7 +64,7 @@ class Obs(object):
             }
             vals = d[[x for x in list(d.axes[0]) if x in corresp]]
             datos.loc[índs] = vals * factor
-
+        datos.coords[EJE_PARC] = [str(prc) for prc in datos.coords[EJE_PARC].values]
         return cls(datos)
 
     def __contains__(símismo, itema):

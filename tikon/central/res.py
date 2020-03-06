@@ -125,8 +125,11 @@ class Resultado(PlantillaSimul):
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
                 obs_índs = obs_corresp.loc[índs]
-
-                l_proc.append(proc.calc(obs_índs, res_corresp.loc[índs]))
+                ejes_combin = [ll for ll in índs if isinstance(índs[ll], tuple)]
+                res_índs = res_corresp.loc[
+                    {ll: list(v) if ll in ejes_combin else v for ll, v in índs.items()}
+                ].sum(ejes_combin)
+                l_proc.append(proc.calc(obs_índs, res_índs))
                 pesos.append(proc.pesos(obs_índs))
         if l_proc:
             return proc.combin(np.array(l_proc), pesos=pesos), proc.combin_pesos(pesos)

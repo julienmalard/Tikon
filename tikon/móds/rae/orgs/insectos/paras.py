@@ -56,7 +56,7 @@ class Parasitoide(Insecto):
             nombre=nombre, huevo=False, njuvenil=1, pupa=pupa, adulto=True, tipo_ecs=tipo_ec
         )
 
-    def parasita(símismo, huésped, etps_entra, etp_emerg, etp_símismo='adulto', etp_recip=None):
+    def parasita(símismo, huésped, etps_entra=None, etp_emerg=None, etp_símismo='adulto', etp_recip=None):
         """
         Indica la relación de parasitismo.
 
@@ -78,6 +78,19 @@ class Parasitoide(Insecto):
 
         if etp_recip is None:
             etp_recip = 'pupa' if símismo.pupa else 'adulto'
+
+        if etps_entra is None:
+            try:
+                etps_entra = huésped['juvenil']
+            except KeyError:
+                etps_entra = huésped.etapas[0]
+
+        if etp_emerg is None:
+            siguiente = (etps_entra if isinstance(etps_entra, Etapa) else etps_entra[-1]).siguiente()
+            etp_emerg = siguiente or huésped.etapas[-1]
+
+        # if etp_emerg.index():
+        #     raise ValueError('')
         super().parasita(
             huésped=huésped, etp_símismo=etp_símismo, etps_entra=etps_entra, etp_emerg=etp_emerg, etp_recip=etp_recip
         )
@@ -135,17 +148,5 @@ class Esfécido(Insecto):
         etps_presa: Etapa or str or list
             La(s) etapa(s) de la presa que pueden ser víctimas.
         """
+        etps_presa = etps_presa or presa['juvenil']
         símismo.secome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')
-
-    def nocaptura(símismo, presa, etps_presa=None):
-        """
-        Borra una relación entre un Esfécido y una presas.
-
-        Parameters
-        ----------
-        presa: Insecto
-            La presa.
-        etps_presa: Etapa or str or list
-            La(s) etapa(s) de la presa que ya no pueden ser víctimas.
-        """
-        símismo.nosecome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')

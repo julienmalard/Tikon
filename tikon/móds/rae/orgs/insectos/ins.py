@@ -49,7 +49,7 @@ class Insecto(Organismo):
         if etapas is not None and JUVENIL in etapas:
             etapas.remove(JUVENIL)
 
-            for etp in símismo._etapas:
+            for etp in símismo.etapas:
                 if etp.nombre.startswith(JUVENIL):
                     etapas.append(etp)
 

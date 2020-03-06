@@ -41,8 +41,11 @@ class PlantillaSimul(object):
         return Valid({s: símismo[s].validar(proc=proc) for s in símismo}, proc=proc)
 
     def procesar_calib(símismo, proc):
-        vals, pesos = np.array(list(zip(*[símismo[s].procesar_calib(proc) for s in símismo])))
-        return proc.combin(vals, pesos=pesos), proc.combin_pesos(pesos)
+        evl = list(zip(*[símismo[s].procesar_calib(proc) for s in símismo]))
+        if evl:
+            vals, pesos = np.array(evl)
+            return proc.combin(vals, pesos=pesos), proc.combin_pesos(pesos)
+        return 0, 0
 
     def graficar(símismo, directorio, argsll=None):
         for s in símismo:

@@ -24,8 +24,8 @@ class PruebaExterno(unittest.TestCase):
         cls.mód_cult = Cultivo()
         cls.ins = LotkaVolterra('insecto')
         cls.tomate = Tomate()
-        cls.ins.secome(cls.tomate)
-        cls.red = RedAE([cls.tomate, cls.ins])
+        with RedAE([cls.tomate, cls.ins]) as cls.red:
+            cls.ins.secome(cls.tomate)
 
     def _prueba_parc(símismo, parc):
         res = Modelo(
@@ -35,7 +35,7 @@ class PruebaExterno(unittest.TestCase):
         npt.assert_equal(res[Cultivo.nombre][RES_BIOMASA].res.values, símismo.biomasa)
         npt.assert_equal(res[Cultivo.nombre][RES_HUMSUELO].res.values, símismo.hum_suelo)
         npt.assert_equal(
-            res[RedAE.nombre][RES_POBS].res.loc[{EJE_ETAPA: símismo.tomate.etapas()}].values, símismo.biomasa
+            res[RedAE.nombre][RES_POBS].res.loc[{EJE_ETAPA: símismo.tomate.etapas}].values, símismo.biomasa
         )
 
     def test_combin(símismo):
