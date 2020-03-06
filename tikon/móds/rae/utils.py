@@ -12,3 +12,5 @@ RES_TRANS = 'Transición'
 RES_MOV = 'Movimiento'
 RES_ESTOC = 'Estoc'
 RES_COHORTES = 'Cohortes'
+
+contexto = []

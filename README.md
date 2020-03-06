@@ -30,22 +30,23 @@ En más detalles, Tiko'n:
 
 ## Un ejemplo
 ```python
-from tikon.móds.rae import RedAE
-from tikon.móds.rae import MetamCompleta, Parasitoide
-from tikon.central.modelo import Simulador
+from tikon.móds.rae.red import RedAE
+from tikon.móds.rae.orgs.insectos import MetamCompleta, Parasitoide
+from tikon.central import Modelo, Exper, Parcela
 
 # Crear los insectos
 oruga = MetamCompleta('oruga', njuvenil=3)
 paras = Parasitoide('parasitoide')
 
 # Relaciones tróficas
-paras.parasita(oruga, etps_entra='juvenil_1', etp_emerg='pupa')
+paras.parasita(oruga, etps_entra='juvenil 1', etp_emerg='pupa')
 
 # Crear la red
 mi_red = RedAE([oruga, paras])
 
 # Simular
-res = Simulador(mi_red).simular(días=30)
+exper = Exper('prueba', parcelas=Parcela('Mi parcela'))
+res = Modelo(mi_red).simular('mi modelo', exper, t=30)
 res.graficar()
 
 ```

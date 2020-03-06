@@ -131,7 +131,8 @@ class PruebaCalibInic(unittest.TestCase):
         exper = gen['exper']
         módulo = gen['módulo']
         exper.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=150, paráms=módulo)
+        # para hacer: opción sin aprioris únicamente para exper
+        modelo.calibrar('calib', exper, n_iter=50, paráms=módulo, calibs=EspecCalibsCorrida(aprioris=False))
         valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
         símismo.assertGreater(valid['ens'], 0.95)
 
@@ -141,7 +142,7 @@ class PruebaCalibInic(unittest.TestCase):
         modelo = gen['modelo']
         exper = gen['exper']
         modelo.cargar_calibs(símismo.dir_)
-        modelo.calibrar('calib', exper, n_iter=150, paráms=exper)
+        modelo.calibrar('calib', exper, n_iter=50, paráms=exper)
         valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
         símismo.assertGreater(valid['ens'], 0.90)
 

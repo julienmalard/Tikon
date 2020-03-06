@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import expon
+from scipy.stats import expon, norm
 
 from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDens, APrioriDist
@@ -34,13 +34,13 @@ class ParámsExperVar(PlantillaParámsExper):
     def __init__(símismo, nombre, exper, sim, datos, n_reps):
         super().__init__(nombre, exper, sim=sim, datos=datos, n_reps=n_reps)
         líms = proc_líms(sim.líms)
+        # para hacer: estandardizar
         if símismo.datos.obs:
-            mín = líms[0]
             ref = min(líms[1], np.nanmax([o_.datos.values.max() for o_ in símismo.datos.obs]))
             if líms == (0, np.inf):
                 apriori = APrioriDist(expon(0, ref))
             else:
-                apriori = APrioriDens((mín, ref), 0.90)
+                apriori = APrioriDist(norm(0, ref))
         else:
             apriori = sim.apriori
 
