@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Tiko'n 2.0\n"
+"Project-Id-Version: Tiko'n 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-05 03:44+0000\n"
+"POT-Creation-Date: 2020-06-27 16:59+0000\n"
 "PO-Revision-Date: 2019-07-31 15:21+0000\n"
 "Language-Team: Chinese (Taiwan) (https://www.transifex.com/qatikon/teams/70660/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -58,34 +58,33 @@ msgid ""
 "Paras_larvas = Parasitoide('Parasitoide larvas', pupa=True)\n"
 "Paras_pupa = Parasitoide('Parasitoide pupa')\n"
 "\n"
-"# El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta\n"
-"Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')\n"
-"\n"
-"# El parasitoide de pupas parasita y emerge de la pupa\n"
-"Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')\n"
-"\n"
 "# Juntamos todo en una red\n"
-"red = RedAE([Oarenosella, Paras_larvas, Paras_pupa])"
+"with RedAE([Oarenosella, Paras_larvas, Paras_pupa]) as red:\n"
+"    # El parasitoide de larvas parasita las fases 3, 4, y 5 de O. arenosela y emergen después de la quinta\n"
+"    Paras_larvas.parasita(Oarenosella, ['juvenil_3', 'juvenil_4', 'juvenil_5'], etp_emerg='juvenil_5')\n"
+"\n"
+"    # El parasitoide de pupas parasita y emerge de la pupa\n"
+"    Paras_pupa.parasita(Oarenosella, 'pupa', etp_emerg='pupa')"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:41
+#: ../../source/tutorial/intro.rst:40
 msgid "A prioris"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:42
+#: ../../source/tutorial/intro.rst:41
 msgid ""
 "Un *a priori* es una distribución probable del valor de un parámetro que "
 "especificas antes de correr una calibración. Ayuda el algoritmo de "
 "calibración a encontrar el mejor valor del parámetro."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:45
+#: ../../source/tutorial/intro.rst:44
 msgid ""
 "Aquí vamos a cargar las distribuciones a prioris para los parámetros de la "
 "red. Los tienes que especificar manualmente para cada experimento."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:49
+#: ../../source/tutorial/intro.rst:48
 msgid ""
 "Es **muy importante** establecer buenos *a prioris* para calibraciones. Las "
 "limitaciones de algoritmos existentes de calibración de estos tipos de "
@@ -93,36 +92,37 @@ msgid ""
 "bastante precisos para todos los parámetros del modelo."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:53
+#: ../../source/tutorial/intro.rst:52
 msgid ""
 "Nota para estudiantes: Mejorar estos algoritmos podría ser buena idea de "
 "tesis. :)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:55
+#: ../../source/tutorial/intro.rst:54
 msgid ""
 "En este caso ya especificamos nuestros a prioris en un documento separado "
 "así que los vamos a cargar directamente."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:57
+#: ../../source/tutorial/intro.rst:56
 msgid ""
 "from tikon.ejemplos.opisina_arenosella.a_prioris import a_prioris\n"
 "red.espec_aprioris(a_prioris)"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:64
+#: ../../source/tutorial/intro.rst:63
 msgid "El experimento"
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:65
+#: ../../source/tutorial/intro.rst:64
 msgid ""
 "Aquí se conecta la red con observaciones de campo a través de un experimento"
 " (:class:`~tikon.exper.exper.Exper`)."
 msgstr ""
 
-#: ../../source/tutorial/intro.rst:67
+#: ../../source/tutorial/intro.rst:66
 msgid ""
+"from tikon.central import Parcela\n"
 "from tikon.ejemplos.datos import obt_datos, obt_ref\n"
 "from tikon.exper.exper import Exper\n"
 "from tikon.rae.red_ae.obs import ObsPobs\n"
@@ -149,8 +149,8 @@ msgid ""
 "    },\n"
 "    factor=655757.1429 / 500  # para convertir a individuos por ha\n"
 ")\n"
-"\n"
-"exper_A = Exper('Sitio A', pobs)"
+"exper_A = Exper('Sitio A', Parcela('Sitio A', geom=GeomParcela((7.297, 79.865))))\n"
+"exper_A.datos.agregar_obs(pobs)"
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:100
@@ -160,18 +160,18 @@ msgstr ""
 #: ../../source/tutorial/intro.rst:101
 msgid ""
 "Ahora vamos a calibrar nuestro modelo. Primero creamos un "
-":class:`~tikon.central.simulador.Simulador` para poder correr simulaciones y "
-"calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
+":class:`~tikon.central.simulador.Simulador` para poder correr simulaciones y"
+" calibraciones. En nuestro ejemplo sencillo el simulador solamente tiene un "
 "módulo (la red), pero se podrían incluir clima, manejo, o cultivos también."
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:105
 msgid ""
-"from tikon.central.simulador import Simulador\n"
+"from tikon.central. import Modelo\n"
 "\n"
-"simul = Simulador(red)\n"
+"modelo = Modelo(red)\n"
 "\n"
-"simul.calibrar('Sitio A', exper=exper_A)"
+"modelo.calibrar('Sitio A', exper=exper_A)"
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:114
@@ -182,8 +182,8 @@ msgstr ""
 msgid ""
 "En este ejemplo vamos a hacer trampa y validar con los mismos datos de "
 "calibración. Primero hacemos una simulación normal, y despues vamos a "
-":func:`~tikon.datos.res.ResultadosSimul.validar` los resultados. También "
-"los podremos :func:`~tikon.datos.res.ResultadosSimul.graficar`."
+":func:`~tikon.datos.res.ResultadosSimul.validar` los resultados. También los"
+" podremos :func:`~tikon.datos.res.ResultadosSimul.graficar`."
 msgstr ""
 
 #: ../../source/tutorial/intro.rst:119

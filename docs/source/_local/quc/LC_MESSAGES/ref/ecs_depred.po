@@ -1,0 +1,60 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-27 16:59+0000\n"
+"PO-Revision-Date: 2020-03-06 18:59+0000\n"
+"Language-Team: K'iche' (https://www.transifex.com/qatikon/teams/70660/quc/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: quc\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/ref/ecs_depred.rst:1 ../../source/ref/ecs_depred.rst:18
+msgid "\"\"\""
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:3
+msgid ""
+"Respuestas funcionales (y = consumo de presa por cápita de depredador, D = "
+"densidad del depredador, P = densidad de la presa; a, b y c son constantes):"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:7
+msgid "Tipo I:"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:7
+msgid "y = a*P"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:10
+msgid "Tipo II:"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:10
+msgid "y = a*P / (P + b)"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:13
+msgid "Tipo III:"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:13
+msgid "y = c"
+msgstr ""
+
+#: ../../source/ref/ecs_depred.rst:15
+msgid ""
+"Dependencia en la presa quiere decir que el modelo está dependiente de la "
+"población de la presa únicamente (como los ejemplos arriba). Ecuaciones "
+"dependientes en el ratio se calculan de manera similar, pero reemplazando P "
+"con (P/D) en las ecuaciones arriba."
+msgstr ""

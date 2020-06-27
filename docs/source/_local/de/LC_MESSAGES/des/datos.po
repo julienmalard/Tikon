@@ -1,0 +1,71 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2017+, Julien Malard
+# This file is distributed under the same license as the Tiko'n package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Tiko'n 3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-27 16:59+0000\n"
+"PO-Revision-Date: 2019-07-15 16:52+0000\n"
+"Language-Team: German (https://www.transifex.com/qatikon/teams/70660/de/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../source/des/datos.rst:2
+msgid "Contribuir datos"
+msgstr ""
+
+#: ../../source/des/datos.rst:3
+msgid ""
+"Un modelo no es mejor que los datos que lo alimentan. Lo más compartimos "
+"nuestros datos, lo mejor se volverá el programa para todas las usuarias."
+msgstr ""
+
+#: ../../source/des/datos.rst:7
+msgid "Contribuir observaciones"
+msgstr ""
+
+#: ../../source/des/datos.rst:8
+msgid "Puedes contribuir bases de datos de observaciones de campo."
+msgstr ""
+
+#: ../../source/des/datos.rst:10
+msgid ""
+"from tikon.ejemplos.datos import guardar_datos\n"
+"\n"
+"guardar_datos(\n"
+"    'aquí/están/mis datos.csv',\n"
+"    nombre='Yo et al., 2019',\n"
+"    módulo='red',\n"
+"    variable='Pobs',\n"
+"    unidades='individuos por ha',\n"
+"    ref='ref/bibtex/aquí.txt'\n"
+")"
+msgstr ""
+
+#: ../../source/des/datos.rst:24
+msgid "Contribuir calibraciones"
+msgstr ""
+
+#: ../../source/des/datos.rst:25
+msgid ""
+"Ver :ref:`guardar_y_cargar` para instrucciones sobre cómo guardar tus "
+"calibraciones en Tiko'n."
+msgstr ""
+
+#: ../../source/des/datos.rst:28
+msgid "Cómo compartir"
+msgstr ""
+
+#: ../../source/des/datos.rst:29
+msgid ""
+"La manera la más fácil de compartir los datos es de clonar una versión local"
+" de Tiko'n. Después, puedes hacer un `commit` y compartir tus datos y "
+"calibraciones en GitHub con el resto de la comunidad."
+msgstr ""

@@ -9,9 +9,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Tiko'n 2.0\n"
+"Project-Id-Version: Tiko'n 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-05 03:44+0000\n"
+"POT-Creation-Date: 2020-06-27 16:59+0000\n"
 "PO-Revision-Date: 2017-01-13 17:14+0000\n"
 "Last-Translator: Julien Malard <julien.malard@mail.mcgill.ca>, 2019\n"
 "Language-Team: Urdu (https://www.transifex.com/qatikon/teams/70660/ur/)\n"
@@ -21,25 +21,25 @@ msgstr ""
 "Language: ur\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../source/index.rst:59 ../../source/index.rst:59
+#: ../../source/index.rst:71 ../../source/index.rst:71
 msgid "General"
 msgstr "عام"
 
-#: ../../source/index.rst:68 ../../source/index.rst:68
+#: ../../source/index.rst:80 ../../source/index.rst:80
 msgid "Tutorial"
 msgstr "مسق"
 
-#: ../../source/index.rst:81 ../../source/index.rst:81
+#: ../../source/index.rst:93 ../../source/index.rst:93
 msgid "Desarrollo"
 msgstr "ترقی"
 
-#: ../../source/index.rst:90 ../../source/index.rst:90
+#: ../../source/index.rst:102 ../../source/index.rst:102
 msgid "Referencia"
 msgstr "ھوالہ"
 
 #: ../../source/index.rst:7
-msgid "¡Bienvenidoas a la documentación de Tiko'n!"
-msgstr "تیکون کی دستاویزات پر خوش آمادید! "
+msgid "¡Bienvenides a la documentación de Tiko'n!"
+msgstr ""
 
 #: ../../source/index.rst:22
 msgid "¿Qué es Tiko'n?"
@@ -54,10 +54,18 @@ msgstr ""
 " زراعی خوراکی جال کے نمونے بنا سکتے ہو۔"
 
 #: ../../source/index.rst:27
+msgid "¿Por qué se llama Tiko'n?"
+msgstr ""
+
+#: ../../source/index.rst:28
+msgid "*Tiko'n* quiere decir *cultivo* o *agricultura* en Kaqchikel."
+msgstr ""
+
+#: ../../source/index.rst:31
 msgid "¿Qué es un modelo de redes tróficas?"
 msgstr "خوراکی جال کا نمونہ کا کیا معنی؟"
 
-#: ../../source/index.rst:28
+#: ../../source/index.rst:32
 msgid ""
 "Un modelo de redes tróficas es un modelo que representa las interacciones "
 "entre organismos vivos en un campo agrícola (en general insectos y otros "
@@ -71,11 +79,11 @@ msgstr ""
 "انتظام، موسم اور دوستی کیڑوں کے متابق سے دشمن کیڑوں کی مستقبل آبادی، اور "
 "مختلف کیڑوں کا انتظام کے حکمت عملی کے فائدہ بھی کی پیشن گوئی کرتا ہیے۔"
 
-#: ../../source/index.rst:34
+#: ../../source/index.rst:38
 msgid "¿Por qué utilizar Tiko'n?"
 msgstr "میں کیوں تیکون کا استعمال کروں؟"
 
-#: ../../source/index.rst:35
+#: ../../source/index.rst:39
 msgid ""
 "Redes tróficas con cosas muy difíciles a modelizar. Aun las más sencillas (3"
 " insectos) presentan problemas como"
@@ -83,15 +91,15 @@ msgstr ""
 "خوراکی جال کے نمونوں بنانے بہت مشکل بات ہیے۔ سب سے آسان جال (صرف ۳ کیڑوں کے)"
 " بھی درج ذیل مشکل کے ساتھ آتے ہیے۔"
 
-#: ../../source/index.rst:37
+#: ../../source/index.rst:41
 msgid "Multitud de parámetros (15+ por insecto)"
 msgstr "بہت زیادہ متاغیرات (ہر کیڑا کو ۱۵ سے زیادہ)"
 
-#: ../../source/index.rst:38
+#: ../../source/index.rst:42
 msgid "Inestabilidad matemática (dificultando predicciones fiables)"
 msgstr "ریاضی عدم استحکام (جس سے پیشن گوئی مشکل ھو جاتی ہیے)"
 
-#: ../../source/index.rst:39
+#: ../../source/index.rst:43
 msgid ""
 "Multitud de posibilidades de ecuaciones en la literatura para cada fase de "
 "vida (reproducción, edad, transiciones, muertes, depredación)"
@@ -99,15 +107,15 @@ msgstr ""
 "ادب میں ہر زندگی کا مرحلہ (تولید، عمر، منتقلی، موت، شکار) کا مساوات کے لئے "
 "مختلف امکانات"
 
-#: ../../source/index.rst:40
+#: ../../source/index.rst:44
 msgid "Muy alta incertidumbre en los valores verdaderos de los parámetros"
 msgstr "متغیرات کے قیمت میں انچی غیر یقینی۔"
 
-#: ../../source/index.rst:41
+#: ../../source/index.rst:45
 msgid "Pocos datos para calibración y validación"
 msgstr "تنظیم اور تصدیق کے لئے کوائف کی کمی"
 
-#: ../../source/index.rst:42
+#: ../../source/index.rst:46
 msgid ""
 "Requerimiento de conocimientos informáticos avanzados para conectar con "
 "modelos de cultivos externos o con predicciones de cambios climáticos"
@@ -115,7 +123,7 @@ msgstr ""
 "بیرونی فصل کے نمونوں اور آبو ہوا تبدیلیوں کی پیشن گوئی کی جوڑای کے لئے اعلی "
 "درجے کے تاخمینہ کاری علم کی ضرورت"
 
-#: ../../source/index.rst:44
+#: ../../source/index.rst:48
 msgid ""
 "Así que si quieres hacer modelos tróficos pero te desaniman estos retos, "
 "¡Tiko'n es para ti! Tiko'n manejará todos los puntos arriba para ti, siempre"
@@ -126,7 +134,7 @@ msgstr ""
 "ہیں، پھر تیکوں آپکے لئے ہی ہیے! تیکوں سارے مذکورہ بالا نقطے میں مدد کریگا، "
 "اور ہمیشہ آپکو اپنے نمونے کی تفصیل پر اتنے ہی اختیار دیگا جتنے آپ چاہتی ہیں۔"
 
-#: ../../source/index.rst:48
+#: ../../source/index.rst:52
 msgid ""
 "Colección interna de la mayoría de ecuaciones para redes tróficas "
 "disponibles en la literatura, con selección automática de ecuaciones para "
@@ -135,35 +143,56 @@ msgstr ""
 "ادب میںکی اکثریت دستیابی خوراکی جال کے مساوات تیکون میں بھی دستیاب ہیں، اور "
 "ان کی خودکار انتخاب بھی کی جاتی ہیے"
 
-#: ../../source/index.rst:49
+#: ../../source/index.rst:53
 msgid "Posibilidad de agregar tus propias ecuaciones si quieres"
 msgstr "خودی لیکھی ہوی مساوات جوڑانے کی موقع"
 
-#: ../../source/index.rst:50
+#: ../../source/index.rst:54
 msgid ""
 "Conexión automática con bases de datos y con predicciones y observaciones "
 "climáticas"
 msgstr ""
 "اعدادوشمار کی ذرائع اور آبو ہوا کے پیشن گوئی اور مشاہدات کے ساتھ جوڑای"
 
-#: ../../source/index.rst:51
+#: ../../source/index.rst:55
 msgid ""
 "Manejo automático de parametros y de cálculos de poblaciones y de "
 "depredación"
 msgstr "آبادی اور شکار کے حصاب اور متغیرات کی خودکار انتظام"
 
-#: ../../source/index.rst:52
+#: ../../source/index.rst:56
 msgid "Funcionalidades integradas para calibración y validación de modelos"
 msgstr "نمونوں کی تنظیم اور تصدیق کے لئے مربوط فعالیت"
 
-#: ../../source/index.rst:53
+#: ../../source/index.rst:57
 msgid "Formato estandardizado para guardar y compartir modelos calibrados"
 msgstr "تنظیم کی چکی نمونوں کی محفوظ اور بانٹنے کے لئے معیاری وضع"
 
-#: ../../source/index.rst:54
+#: ../../source/index.rst:58
 msgid "Y, por supuesto, gráficos bonitos"
 msgstr "اور، بلکل، خوبصورت تصویریں"
 
-#: ../../source/index.rst:57
+#: ../../source/index.rst:61
+msgid "¿Qué no es Tiko'n?"
+msgstr ""
+
+#: ../../source/index.rst:62
+msgid "Tiko'n **no** es, y no intenta(rá) ser:"
+msgstr ""
+
+#: ../../source/index.rst:64
+msgid ""
+"Un modelo basado en agentes. Estos modelos toman demasiado poder "
+"computacional a las escalas geográficas y temporales y con el nivel de "
+"incertidumbre paramétrico y estocástico para los cuales se diseñó Tiko'n."
+msgstr ""
+
+#: ../../source/index.rst:66
+msgid ""
+"Un modelo con resolución intraparcela. Si quieres más resolución espacial, "
+"debes crear parcelas más pequeñas."
+msgstr ""
+
+#: ../../source/index.rst:69
 msgid "Contenido"
 msgstr "مشمولات"
