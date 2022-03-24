@@ -5,7 +5,6 @@ def leer(arch):
     with open(arch, 'r', encoding='utf-8') as d:
         return d.read()
 
-
 setup(
     name='tikon',
     version=leer('tikon/versión.txt').strip(),
