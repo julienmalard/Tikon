@@ -3,6 +3,7 @@ from functools import partial
 import numpy as np
 import pyproj
 import xarray as xr
+from frozendict import frozendict
 from geopy.distance import distance
 from shapely.geometry import Polygon
 from shapely.ops import transform
@@ -57,20 +58,14 @@ class GeomParcela(object):
 
 
 def _controles_parc(parcelas):
-    nombres = [prc.nombre for prc in parcelas]
+    nombres = tuple(prc.nombre for prc in parcelas)
 
-    superficies = Datos(
-        [prc.geom.superficie for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], atribs={'unids': 'ha'}
-    )
-    elevs = Datos(
-        [prc.geom.elev for prc in parcelas], coords={EJE_PARC: nombres}, dims=[EJE_PARC], atribs={'unids': 'm'}
-    )
-    cntrds = Datos(
-        [prc.geom.centroide for prc in parcelas],
-        coords={EJE_PARC: nombres, EJE_COORD: ['lat', 'lon']},
-        dims=[EJE_PARC, EJE_COORD],
-        atribs={'unids': 'grados'}
-    )
+    superficies = Datos([prc.geom.superficie for prc in parcelas], dims=[EJE_PARC], coords=frozendict({EJE_PARC: nombres}),
+                        atribs={'unids': 'ha'})
+    elevs = Datos([prc.geom.elev for prc in parcelas], dims=[EJE_PARC], coords=frozendict({EJE_PARC: nombres}),
+                  atribs={'unids': 'm'})
+    cntrds = Datos([prc.geom.centroide for prc in parcelas], dims=[EJE_PARC, EJE_COORD],
+                   coords=frozendict({EJE_PARC: nombres, EJE_COORD: ('lat', 'lon')}), atribs={'unids': 'grados'})
     cntrds_xr = cntrds.a_xarray()
     distancias = Datos.de_xarray(
         xr.apply_ufunc(_dstn, cntrds_xr, cntrds_xr.rename({EJE_PARC: EJE_DEST}), input_core_dims=[[EJE_COORD]] * 2)

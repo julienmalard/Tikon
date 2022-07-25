@@ -87,6 +87,8 @@ class PruebaCalibInic(unittest.TestCase):
         modelo.guardar_calibs(cls.dir_)
         exper.guardar_calibs(cls.dir_)
 
+        cls.valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['calib'])).validar()
+
     def test_cargar_calib(símismo):
         from .rcrs.modelo_calib_inic import generar
         otro = generar()
@@ -96,7 +98,7 @@ class PruebaCalibInic(unittest.TestCase):
         otro_exper.cargar_calibs(símismo.dir_)
 
         valid = otro_modelo.simular('valid', otro_exper, calibs=EspecCalibsCorrida(['calib'])).validar()
-        símismo.assertGreater(valid['ens'], 0.95)
+        símismo.assertAlmostEqual(valid['ens'], símismo.valid['ens'], delta=0.05)
 
     def test_renombrar_calib(símismo):
         from .rcrs.modelo_calib_inic import generar
@@ -110,7 +112,7 @@ class PruebaCalibInic(unittest.TestCase):
         coso.renombrar_calib('calib', 'otro nombre')
         exper.renombrar_calib('calib', 'otro nombre')
         valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['otro nombre'])).validar()
-        símismo.assertGreater(valid['ens'], 0.95)
+        símismo.assertAlmostEqual(valid['ens'], símismo.valid['ens'], delta=0.05)
 
     def test_borrar_calib(símismo):
         from .rcrs.modelo_calib_inic import generar
@@ -122,7 +124,7 @@ class PruebaCalibInic(unittest.TestCase):
 
         exper.borrar_calib('calib')
         valid = modelo.simular('valid', exper).validar()
-        símismo.assertLess(valid['ens'], 0.90)
+        símismo.assertLess(valid['ens'], símismo.valid['ens'])
 
     def test_calib_exluir_inic(símismo):
         from .rcrs.modelo_calib_inic import generar

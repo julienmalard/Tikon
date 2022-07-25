@@ -57,10 +57,7 @@ class PruebaCombinSimsCult(unittest.TestCase):
     def setUpClass(cls):
         cls.reps = {'paráms': 5, 'estoc': 3}
         cls.coords = {'eje 1': ['a', 'b', 'c'], **{ll: range(v) for ll, v in cls.reps.items()}}
-        cls.datos = Datos(
-            0., coords=cls.coords,
-            dims=list(cls.coords)
-        )
+        cls.datos = Datos(0., dims=list(cls.coords), coords=cls.coords)
 
     def _verificar_agregar(símismo, combin, coords):
         agregado = combin.agregar(símismo.datos)

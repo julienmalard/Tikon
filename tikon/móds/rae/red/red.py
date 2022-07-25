@@ -1,7 +1,9 @@
 import numpy as np
+from frozendict import frozendict
 
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
+from tikon.consts import CORREO_AUTOR
 from tikon.datos.datos import Datos
 from tikon.ecs.paráms import Inter
 from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA, contexto
@@ -9,7 +11,6 @@ from .res.cohortes import ResCohortes
 from ..orgs.ecs import EcsOrgs
 from ..orgs.ecs.utils import ECS_TRANS, ECS_REPR
 from ..orgs.insectos import Parasitoide
-from ..orgs.insectos.ins import JUVENIL
 from ..orgs.insectos.paras import EtapaJuvenilParasitoide
 from ..orgs.organismo import EtapaFantasma, Etapa, Organismo
 from ..red.res import res as res_red
@@ -30,32 +31,30 @@ class SimulRed(SimulMódulo):
 
         modelo = simul_exper.modelo
         exper = simul_exper.exper
-        símismo.recip_repr = [
-            etp.org[0] for etp in símismo.etapas if etp.categ_activa(ECS_REPR, modelo, mód=mód, exper=exper)
-        ]
+        símismo.recip_repr = tuple([
+            id(etp.org[0]) for etp in símismo.etapas if etp.categ_activa(ECS_REPR, modelo, mód=mód, exper=exper)
+        ])
 
-        símismo.recip_trans = [
-            (etp, etp.siguiente()) for etp in símismo.etapas
+        símismo.recip_trans = tuple([
+            (id(etp), id(etp.siguiente())) for etp in símismo.etapas
             if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper) and etp.siguiente()
-        ]
+        ])
 
         símismo.parás_hués = []
         for etp in símismo.etapas:
             if isinstance(etp.org, Parasitoide) and etp.nombre == 'adulto':
                 huéspedes = list(mód.huéspedes(etp))
                 fantasmas = sorted(mód.fantasmas(huéspedes, paras=etp), key=lambda x: huéspedes.index(x.etp_hués))
-                símismo.parás_hués.append((etp, (huéspedes, fantasmas)))
+                símismo.parás_hués.append((id(etp), (tuple(id(h) for h in huéspedes), tuple(id(f) for f in fantasmas))))
 
         # Índices para luego poder encontrar las interacciones entre parasitoides y víctimas en las matrices de
         # depredación
-        depredadores = [etp for etp in símismo.etapas if mód.presas(etp) or mód.huéspedes(etp)]
-        símismo.máscara_parás = Datos(
-            False, coords={
-                EJE_ETAPA: depredadores, EJE_VÍCTIMA: símismo.víctimas
-            }, dims=[EJE_ETAPA, EJE_VÍCTIMA]
-        )
+        depredadores = tuple(id(etp) for etp in símismo.etapas if mód.presas(etp) or mód.huéspedes(etp))
+        símismo.máscara_parás = Datos(False, dims=[EJE_ETAPA, EJE_VÍCTIMA], coords=frozendict({
+            EJE_ETAPA: depredadores, EJE_VÍCTIMA: tuple(id(v) for v in símismo.víctimas)
+        }))
         for paras, hués_fants in símismo.parás_hués:
-            símismo.máscara_parás.loc[{EJE_ETAPA: paras, EJE_VÍCTIMA: hués_fants[0]}] = True
+            símismo.máscara_parás.loc[frozendict({EJE_ETAPA: paras, EJE_VÍCTIMA: hués_fants[0]})] = True
 
         super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
 
@@ -69,7 +68,8 @@ class SimulRed(SimulMódulo):
     def verificar_estado(símismo):
         super().verificar_estado()
 
-        mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.\n\tSino, es culpa mía.'
+        mnsg = '\tSi acabas de agregar nuevas ecuaciones, es probablemente culpa tuya.' \
+               '\n\tSino, es culpa mía, avísame al {correo}.'.format(correo=CORREO_AUTOR)
         pobs = símismo[RES_POBS].datos
 
         if símismo[RES_COHORTES].activa:

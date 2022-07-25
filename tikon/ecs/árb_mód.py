@@ -1,4 +1,5 @@
 import xarray as xr
+from frozendict import frozendict
 
 from tikon.datos.datos import Datos
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
@@ -58,7 +59,8 @@ class PlantillaRamaEc(object):
         val = sim.obt_valor(var)
         if filtrar is not False:
             filtrar = símismo.cosos if filtrar is True else filtrar
-            return val.loc[{símismo.eje_cosos: filtrar}]
+            filtrar = tuple([c if isinstance(c, (str, int)) else id(c) for c in filtrar])
+            return val.loc[frozendict({símismo.eje_cosos: filtrar})]
         return val
 
     def poner_valor_res(símismo, sim, val, rel=False):
@@ -153,7 +155,7 @@ class SubcategEc(PlantillaRamaEc):
             res = ec.eval(paso, sim)
             if res is not None:
                 if not isinstance(res, Datos):
-                    res = Datos(res, coords={ec.eje_cosos: ec.cosos}, dims=[ec.eje_cosos])
+                    res = Datos(res, dims=[ec.eje_cosos], coords=frozendict({ec.eje_cosos: ec.cosos}))
                 ec.poner_valor_res(sim, val=res)
 
         símismo.postproc(paso, sim=sim)

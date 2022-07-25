@@ -1,4 +1,6 @@
 import numpy as np
+from frozendict import frozendict
+
 from tikon.datos.datos import mínimo
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
@@ -71,9 +73,9 @@ class EcsDepred(CategEcOrg):
         # Para cada parasitoide...
         for parás, (l_hués, l_fants) in sim.parás_hués:
             pob_parasitada = depr_parás.loc[
-                {EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués}
+                frozendict({EJE_ETAPA: parás, EJE_VÍCTIMA: l_hués})
             ].dejar(EJE_ETAPA).renombrar({EJE_VÍCTIMA: EJE_ETAPA})
 
             cohortes.quitar(pob_parasitada, recips=l_fants)
-            pob_parasitada.coords[EJE_ETAPA] = l_fants
+            pob_parasitada.asiñar_coords(EJE_ETAPA, l_fants)
             sim[RES_POBS].poner_valor(pob_parasitada, rel=True)

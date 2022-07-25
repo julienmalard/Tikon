@@ -3,6 +3,7 @@ from warnings import warn as avisar
 import numpy as np
 from scipy import stats as estad
 from scipy.special import expit, logit
+from scipy.stats._continuous_distns import FitDataError
 
 from tikon.ecs.dists import utils
 from tikon.ecs.dists.dists import Dist, _escl_inf, _dist_mu
@@ -179,7 +180,10 @@ class DistAnalítica(Dist):
             if len(prms_dist(nmbr)) == len(restric):
                 prms = {'loc': 0, 'scale': 1}
             else:
-                ajustados = cls_sp.fit(trz_transf, **restric)
+                try:
+                    ajustados = cls_sp.fit(trz_transf, **restric)
+                except FitDataError:
+                    continue
                 prms = {pr: vl for pr, vl in zip(prms_dist(nmbr), ajustados)}
             p = estad.kstest(rvs=trz_transf, cdf=cls_sp(**prms).cdf)[1]
 

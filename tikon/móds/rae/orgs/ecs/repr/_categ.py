@@ -30,5 +30,5 @@ class EcsRepr(CategEcOrg):
         reprod = símismo.obt_valor_res(sim).f(np.round)
         símismo.poner_valor_res(sim, reprod)
 
-        reprod.coords[EJE_ETAPA] = sim.recip_repr
+        reprod.asiñar_coords(EJE_ETAPA, sim.recip_repr)
         símismo.ajust_pobs(sim, reprod)

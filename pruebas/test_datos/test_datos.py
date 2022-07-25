@@ -22,10 +22,8 @@ def _datos_igls(dt1, dt2, caso, meta=False):
 
 
 def _datos(mxr=True):
-    dts = Datos(
-        np.arange(2 * 3, dtype=float).reshape((2, 3)), dims=['a', 'b'], coords={'a': [1, 2], 'b': ['x', 'y', 'z']},
-        nombre='datos', atribs={'unidades': 'gatos'}
-    )
+    dts = Datos(np.arange(2 * 3, dtype=float).reshape((2, 3)), dims=['a', 'b'],
+                coords={'a': [1, 2], 'b': ['x', 'y', 'z']}, nombre='datos', atribs={'unidades': 'gatos'})
     if mxr:
         return dts, dts.a_xarray()
     return dts

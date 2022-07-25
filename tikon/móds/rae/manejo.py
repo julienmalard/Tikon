@@ -28,7 +28,7 @@ class AcciónPob(Acción):
     def _proc_pobs(símismo, pobs):
         if isinstance(pobs, Datos):
             return pobs.expandir_dims(coords={EJE_ETAPA: símismo.etapa})
-        return Datos(pobs.item(), coords={EJE_ETAPA: símismo.etapa}, dims=[EJE_ETAPA])
+        return Datos(pobs.item(), dims=[EJE_ETAPA], coords={EJE_ETAPA: símismo.etapa})
 
     def __call__(símismo, sim, donde):
         raise NotImplementedError

@@ -1,5 +1,7 @@
 import numpy as np
 import xarray as xr
+from frozendict import frozendict
+
 from tikon.datos.datos import Datos
 
 from tikon.utils import EJE_PARÁMS
@@ -26,7 +28,11 @@ class MatrParám(object):
 
         símismo.eje = eje
         símismo.índice = índice
-        símismo._datos = Datos(0., coords=símismo.coords, dims=list(símismo.coords))
+        símismo._datos = Datos(
+            0.,
+            dims=list(símismo.coords),
+            coords=frozendict({ll: tuple(v) if isinstance(v, list) else v for ll, v in símismo.coords.items()})
+        )
 
     @property
     def coords(símismo):
@@ -39,7 +45,9 @@ class MatrParám(object):
     def act_vals(símismo):
         for sub in símismo._sub_matrs:
             sub.act_vals()
-            símismo._datos.loc[{símismo.eje: sub.índice}] = sub.val
+            símismo._datos.loc[
+                frozendict({símismo.eje: sub.índice if isinstance(sub.índice, (str, int)) else id(sub.índice)})
+            ] = sub.val
 
     def vals_paráms(símismo):
         return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]

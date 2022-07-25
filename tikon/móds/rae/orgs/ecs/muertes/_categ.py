@@ -7,11 +7,12 @@ from tikon.móds.rae.utils import RES_MRTE
 from .constante import Constante
 from .lognorm_temp import LogNormTemp
 from .sig_temp import SigmoidalTemperatura
+from .lluvia_linear import LluviaLinear
 
 
 class EcMuerte(SubcategEcOrg):
     nombre = 'Ecuación'
-    cls_ramas = [Constante, EcuaciónVacía, LogNormTemp, SigmoidalTemperatura]
+    cls_ramas = [Constante, EcuaciónVacía, LogNormTemp, SigmoidalTemperatura, LluviaLinear]
     _nombre_res = ECS_MRTE
 
 

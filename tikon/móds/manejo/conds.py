@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from frozendict import frozendict
 
 from tikon.datos.datos import Datos, lleno_como, f_numpy as fnp
 
@@ -152,7 +153,7 @@ class CondVariable(Condición):
         símismo.var = var
         símismo.prueba = prueba
         símismo.func = func
-        símismo.coords = coords or {}
+        símismo.coords = coords or frozendict({})
         símismo.espera = espera
         símismo.mem = None
 

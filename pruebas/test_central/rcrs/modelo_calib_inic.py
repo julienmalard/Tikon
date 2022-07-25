@@ -30,9 +30,8 @@ class EcuaciónParám(Ecuación):
     def eval(símismo, paso, sim):
         ant = símismo.obt_valor_res(sim)
         n_estoc = len(ant.coords[EJE_ESTOC])
-        return ant + símismo.cf['a'] + Datos(
-            (np.random.random(n_estoc) - 0.5) * 0.1, coords={EJE_ESTOC: np.arange(n_estoc)}, dims=[EJE_ESTOC]
-        )
+        return ant + símismo.cf['a'] + Datos((np.random.random(n_estoc) - 0.5) * 0.1, dims=[EJE_ESTOC],
+                                             coords={EJE_ESTOC: np.arange(n_estoc)})
 
 
 class SubCategParám(SubcategEc):

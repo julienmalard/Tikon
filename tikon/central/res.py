@@ -2,6 +2,7 @@ from itertools import product
 
 import numpy as np
 import xarray as xr
+from frozendict import frozendict
 
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
@@ -215,5 +216,5 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 
 
 def _gen_datos(nombre, coords, t):
-    coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
-    return Datos(0., coords=coords, dims=list(coords), nombre=nombre)
+    coords = frozendict({EJE_TIEMPO: t.eje if t is not None else [0], **coords})
+    return Datos(0., dims=list(coords), coords=coords, nombre=nombre)

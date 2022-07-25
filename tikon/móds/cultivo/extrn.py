@@ -130,11 +130,9 @@ class InstanciaSimulCultivo(object):
         símismo.índs = {ll: [v] if isinstance(v, int) else v for ll, v in índs.items()}
         res = [sim.sim[r] for r in sim.sim]
         símismo.datos = {
-            str(vr): Datos(
-                0.,
-                coords={**{dim: vr.datos.coords[dim] for dim in vr.datos.dims if dim not in reps}, **símismo.índs},
-                dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs)
-            ) for vr in res
+            str(vr): Datos(0., dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs),
+                           coords={**{dim: vr.datos.coords[dim] for dim in vr.datos.dims if dim not in reps},
+                                   **símismo.índs}) for vr in res
         }
 
     def iniciar(símismo):

@@ -1,6 +1,7 @@
 import math as mat
 
 import numpy as np
+from frozendict import frozendict
 
 from tikon.datos.datos import donde, Datos, alinear_como
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS
@@ -26,21 +27,21 @@ class ResCohortes(ResultadoRed):
 
     @property
     def pobs(símismo):
-        return símismo.datos.loc[{'comp': 'pobs'}].dejar('comp')
+        return símismo.datos.loc[frozendict({'comp': 'pobs'})].dejar('comp')
 
     @pobs.setter
     def pobs(símismo, val):
         crds = val.coords if isinstance(val, Datos) else {}
-        símismo.datos.loc[{'comp': 'pobs', **crds}] = val
+        símismo.datos.loc[frozendict({'comp': 'pobs', **crds})] = val
 
     @property
     def edad(símismo):
-        return símismo.datos.loc[{'comp': 'edad'}].dejar('comp')
+        return símismo.datos.loc[frozendict({'comp': 'edad'})].dejar('comp')
 
     @edad.setter
     def edad(símismo, val):
         crds = val.coords if isinstance(val, Datos) else {}
-        símismo.datos.loc[{'comp': 'edad', **crds}] = val
+        símismo.datos.loc[frozendict({'comp': 'edad', **crds})] = val
 
     def iniciar(símismo):
         super().iniciar()
@@ -52,14 +53,13 @@ class ResCohortes(ResultadoRed):
             for ec_prob in ecs_prob:
                 máx = ec_prob.dist.ppf(0.99)
                 cosos = ec_prob.cosos
-                pobs_etps = pobs.loc[{EJE_ETAPA: cosos}]
+                pobs_etps = pobs.loc[frozendict({EJE_ETAPA: tuple([id(c) for c in cosos])})]
                 pobs_n = pobs_etps // n
                 extras = pobs_etps % n
                 for í, ed in enumerate(np.linspace(0, máx, num=n)):
-                    edades = Datos(
-                        ed, dims=[EJE_ETAPA, EJE_PARÁMS],
-                        coords={EJE_ETAPA: cosos, EJE_PARÁMS: range(símismo.sim.simul_exper.reps['paráms'])}
-                    )
+                    edades = Datos(ed, dims=[EJE_ETAPA, EJE_PARÁMS],
+                                   coords=frozendict(
+                                       {EJE_ETAPA: cosos, EJE_PARÁMS: range(símismo.sim.simul_exper.reps['paráms'])}))
                     símismo.agregar(pobs_n + (í < extras), edad=edades)
 
         except KeyError:
@@ -67,10 +67,10 @@ class ResCohortes(ResultadoRed):
 
     def agregar(símismo, nuevos, edad=0):
 
-        etps_nuevos = [x for x in nuevos.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]]
+        etps_nuevos = tuple([x for x in nuevos.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]])
         if not etps_nuevos:
             return
-        índs = {EJE_ETAPA: etps_nuevos}
+        índs = frozendict({EJE_ETAPA: etps_nuevos})
         nuevos = nuevos.loc[índs]
 
         # Limpiar edades de cohortes
@@ -111,12 +111,12 @@ class ResCohortes(ResultadoRed):
         if not símismo.activa:
             return
 
-        etps_quitar = [x for x in para_quitar.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]]
+        etps_quitar = tuple([x for x in para_quitar.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]])
         if not etps_quitar:
             if recips:
                 raise ValueError('Etapas para quitar no tienen cohortes.')
             return
-        índs = {EJE_ETAPA: etps_quitar}
+        índs = frozendict({EJE_ETAPA: etps_quitar})
         para_quitar = para_quitar.loc[índs]
         pobs = símismo.pobs.loc[índs]
         edades = símismo.edad.loc[índs]
@@ -135,8 +135,8 @@ class ResCohortes(ResultadoRed):
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
             quitar += quitar_res
-            quitar.coords[EJE_ETAPA] = recips
-            edades.coords[EJE_ETAPA] = recips
+            quitar.asiñar_coords(EJE_ETAPA, recips)
+            edades.asiñar_coords(EJE_ETAPA, recips)
 
             # Para cada cohorte...
             for í_coh in range(símismo.n_coh):
@@ -170,7 +170,7 @@ class ResCohortes(ResultadoRed):
         probs = (dist.cdf((edades + cambio_edad).transposar(dims).matr) - dens_cum_eds) / (1 - dens_cum_eds)
 
         # Calcular el número que transicionan. Ya estamos con Datos de nuevo.
-        probs = Datos(probs, coords=pobs.coords, dims=dims).llenar_nan(1)
+        probs = Datos(probs, dims=dims, coords=pobs.coords).llenar_nan(1)
         n_cambian = (pobs * probs).fi(np.round)
 
         # Aplicar el cambio de edad.
@@ -193,7 +193,7 @@ class ResCohortes(ResultadoRed):
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
         dens_cum_eds = dist.cdf(edades.transposar(dims).matr)
         dens_con_cambio = dist.cdf((edades + cambio_edad).transposar(dims).matr)
-        dens = Datos(dens_con_cambio - dens_cum_eds, coords=pobs.coords, dims=dims)
+        dens = Datos(dens_con_cambio - dens_cum_eds, dims=dims, coords=pobs.coords)
 
         return (pobs * dens).suma(dim=EJE_COH)  # Devolver en formato Datos
 

@@ -23,15 +23,16 @@ class ProveedorMeteoPCSEPandas(NASAPowerWeatherDataProvider):
     def __init__(símismo, bd_pandas, lat, lon, elev):
         WeatherDataProvider.__init__(símismo)
 
-        bd_pandas = bd_pandas.rename({vr: vr_pcse for vr, vr_pcse in conv_nombres.items() if vr in bd_pandas})
-
-        if 'WIND' not in bd_pandas:
-            bd_pandas['WIND'] = 1  # en m/s; valor automático consistente con DSSAT
+        if 'veloc_viento' not in bd_pandas:
+            bd_pandas['veloc_viento'] = 1  # en m/s; valor automático consistente con DSSAT
         if 'vap' not in bd_pandas:
             bd_pandas['vap'] = _calc_vap(bd_pandas)  # kPa
 
         for var, conv in convs_unids.items():
             bd_pandas[var] *= conv
+
+        bd_pandas = bd_pandas.rename({vr: vr_pcse for vr, vr_pcse in conv_nombres.items() if vr in bd_pandas},
+                                     axis='columns')
 
         for f in bd_pandas.index:
             día = pd.to_datetime(f)
@@ -62,9 +63,9 @@ def _calc_vap(bd):
 
 def _calc_t_rocío(bd):
     # Ecuación de DSSAT (CALC_TDEW)
-    t_mín = bd['temp_mín']
-    if 'hum_rel' in bd:  # fraccional, y no en % como en DSSAT
-        r_hum = bd['hum_rel']
+    t_mín = bd['TMIN']
+    if 'RHUM' in bd:  # fraccional, y no en % como en DSSAT
+        r_hum = bd['RHUM']
         if r_hum.max() > 1:
             r_hum /= 100
         a, b, c = 0.61078, 17.269, 237.3
