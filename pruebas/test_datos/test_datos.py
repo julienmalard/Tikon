@@ -159,7 +159,7 @@ class PruebaDatos(unittest.TestCase):
 
     def test_transposar(símismo):
         dts, mxr = _datos()
-        _prb_igl(dts.transposar(['b', 'a']), mxr.transpose(*['b', 'a']))
+        _prb_igl(dts.transponer(['b', 'a']), mxr.transpose(*['b', 'a']))
 
     def test_dejar(símismo):
         dts = _datos(False).loc[{'b': ['x']}]

@@ -76,7 +76,7 @@ class SimulRed(SimulMódulo):
             pobs_coh = símismo[RES_COHORTES].datos[{'comp': 0}]
             if np.any(~np.equal(pobs_coh.matr, np.round(pobs_coh.matr))):
                 raise ValueError('Población de cohorte fraccional.\n{mnsg}'.format(mnsg=mnsg))
-            pobs_corresp_coh = pobs.loc[{EJE_ETAPA: pobs_coh.coords[EJE_ETAPA]}]
+            pobs_corresp_coh = pobs.loc[frozendict({EJE_ETAPA: pobs_coh.coords_internas[EJE_ETAPA]})]
             if np.any(np.not_equal(pobs_coh.suma(dim=EJE_COH).matr, pobs_corresp_coh.matr)):
                 raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))
 

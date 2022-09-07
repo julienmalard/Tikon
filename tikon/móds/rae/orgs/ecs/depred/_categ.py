@@ -48,7 +48,7 @@ class EcsDepred(CategEcOrg):
         depred = depred * símismo.pobs(sim) * paso
 
         # Ajustar por la presencia de varios depredadores (eje = depredadores)
-        máx = símismo.pobs(sim, filtrar=depred.coords[EJE_VÍCTIMA]).renombrar({EJE_ETAPA: EJE_VÍCTIMA})
+        máx = símismo.pobs(sim, filtrar=depred.coords_internas[EJE_VÍCTIMA]).renombrar({EJE_ETAPA: EJE_VÍCTIMA})
         depred = mínimo(depred, máx)
         depred = probs_conj(depred, pesos=1, máx=máx, dim=EJE_ETAPA)
 

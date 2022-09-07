@@ -84,6 +84,7 @@ class InstanciaPCSE(InstanciaSimulCultivo):
     def aplicar_daño(símismo, daño):
         org = símismo.org
         daño = daño.renombrar({EJE_VÍCTIMA: EJE_ETAPA})
+        raise NotImplementedError  # Verificar utilización de .coords o .coords_internas
         etapas_activas = [etp for etp in daño.coords[EJE_ETAPA] if etp.org is org]
         for etp in etapas_activas:
             try:

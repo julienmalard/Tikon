@@ -66,7 +66,7 @@ class PruebaCombinSimsCult(unittest.TestCase):
 
     def _verificar_desagregar(símismo, combin, agregado):
         desagregado = combin.desagregar(agregado, reps=símismo.reps)
-        xrt.assert_equal(desagregado.a_xarray(), símismo.datos.transposar(desagregado.dims).a_xarray())
+        xrt.assert_equal(desagregado.a_xarray(), símismo.datos.transponer(desagregado.dims).a_xarray())
 
     def test_transf_lista(símismo):
         combin = CombinSimsCult(('estoc', 'paráms'))

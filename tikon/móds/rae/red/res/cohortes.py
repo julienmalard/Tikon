@@ -31,7 +31,7 @@ class ResCohortes(ResultadoRed):
 
     @pobs.setter
     def pobs(símismo, val):
-        crds = val.coords if isinstance(val, Datos) else {}
+        crds = val.coords_internas if isinstance(val, Datos) else {}
         símismo.datos.loc[frozendict({'comp': 'pobs', **crds})] = val
 
     @property
@@ -40,7 +40,7 @@ class ResCohortes(ResultadoRed):
 
     @edad.setter
     def edad(símismo, val):
-        crds = val.coords if isinstance(val, Datos) else {}
+        crds = val.coords_internas if isinstance(val, Datos) else {}
         símismo.datos.loc[frozendict({'comp': 'edad', **crds})] = val
 
     def iniciar(símismo):
@@ -67,7 +67,7 @@ class ResCohortes(ResultadoRed):
 
     def agregar(símismo, nuevos, edad=0):
 
-        etps_nuevos = tuple([x for x in nuevos.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]])
+        etps_nuevos = tuple([x for x in nuevos.coords_internas[EJE_ETAPA] if x in símismo.datos.coords_internas[EJE_ETAPA]])
         if not etps_nuevos:
             return
         índs = frozendict({EJE_ETAPA: etps_nuevos})
@@ -111,7 +111,7 @@ class ResCohortes(ResultadoRed):
         if not símismo.activa:
             return
 
-        etps_quitar = tuple([x for x in para_quitar.coords[EJE_ETAPA] if x in símismo.datos.coords[EJE_ETAPA]])
+        etps_quitar = tuple([x for x in para_quitar.coords_internas[EJE_ETAPA] if x in símismo.datos.coords_internas[EJE_ETAPA]])
         if not etps_quitar:
             if recips:
                 raise ValueError('Etapas para quitar no tienen cohortes.')
@@ -160,17 +160,17 @@ class ResCohortes(ResultadoRed):
     def trans(símismo, cambio_edad, dist):
 
         # Las edades y las poblaciones actuales de las etapas que transicionan.
-        índ = cambio_edad.coords
+        índ = cambio_edad.coords_internas
         edades = símismo.edad.loc[índ]
         pobs = símismo.pobs.loc[índ]
 
         # Calcular la probabilidad de transición. Cambiamos a numpy temporalmente
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
-        dens_cum_eds = dist.cdf(edades.transposar(dims).matr)
-        probs = (dist.cdf((edades + cambio_edad).transposar(dims).matr) - dens_cum_eds) / (1 - dens_cum_eds)
+        dens_cum_eds = dist.cdf(edades.transponer(dims).matr)
+        probs = (dist.cdf((edades + cambio_edad).transponer(dims).matr) - dens_cum_eds) / (1 - dens_cum_eds)
 
         # Calcular el número que transicionan. Ya estamos con Datos de nuevo.
-        probs = Datos(probs, dims=dims, coords=pobs.coords).llenar_nan(1)
+        probs = Datos(probs, dims=dims, coords=pobs.coords_internas).llenar_nan(1)
         n_cambian = (pobs * probs).fi(np.round)
 
         # Aplicar el cambio de edad.
@@ -185,15 +185,15 @@ class ResCohortes(ResultadoRed):
     def dens_dif(símismo, cambio_edad, dist):
 
         # Las edades y las poblaciones actuales de las etapas de interés.
-        índ = cambio_edad.coords
+        índ = cambio_edad.coords_internas
         edades = símismo.edad.loc[índ]
         pobs = símismo.pobs.loc[índ]
 
         # Calcular la densidad de probabilidad. Cambiamos a numpy temporalmente
         dims = [d for d in edades.dims if d not in (EJE_ETAPA, EJE_PARÁMS)] + [EJE_ETAPA, EJE_PARÁMS]
-        dens_cum_eds = dist.cdf(edades.transposar(dims).matr)
-        dens_con_cambio = dist.cdf((edades + cambio_edad).transposar(dims).matr)
-        dens = Datos(dens_con_cambio - dens_cum_eds, dims=dims, coords=pobs.coords)
+        dens_cum_eds = dist.cdf(edades.transponer(dims).matr)
+        dens_con_cambio = dist.cdf((edades + cambio_edad).transponer(dims).matr)
+        dens = Datos(dens_con_cambio - dens_cum_eds, dims=dims, coords=pobs.coords_internas)
 
         return (pobs * dens).suma(dim=EJE_COH)  # Devolver en formato Datos
 

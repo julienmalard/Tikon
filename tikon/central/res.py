@@ -216,5 +216,5 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
 
 
 def _gen_datos(nombre, coords, t):
-    coords = frozendict({EJE_TIEMPO: t.eje if t is not None else [0], **coords})
+    coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
     return Datos(0., dims=list(coords), coords=coords, nombre=nombre)
