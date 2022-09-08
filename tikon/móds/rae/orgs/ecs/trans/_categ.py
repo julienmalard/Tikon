@@ -24,5 +24,5 @@ class EcsTrans(CategEcOrg):
         trans = trans.loc[frozendict({EJE_ETAPA: tuple(trans_de)})]
         for de, a in zip(trans_de, trans_a):
             trans_etp = trans.loc[frozendict({EJE_ETAPA: de})]
-            trans_etp.asiñar_coords(EJE_ETAPA, (a,))
+            trans_etp.asignar_coords(EJE_ETAPA, (a,))
             símismo.ajust_pobs(sim, trans_etp)

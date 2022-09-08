@@ -28,10 +28,10 @@ def _calc_índices(_dic, _coords, _dims):
 
 @functools.lru_cache
 def _calc_índices_loc(coords, dic):
-    return {
+    return frozendict({
         dm: tuple(coords[dm].index(c) for c in (crds if isinstance(crds, (tuple, set, list)) else [crds]))
         for dm, crds in dic.items()
-    }
+    })
 
 
 @functools.lru_cache
@@ -41,6 +41,16 @@ def _proc_llave(dims, coords, llave):
         dm: tuple(coords[dm][í] for í in llave[dm]) if dm in llave else coords[dm] for dm in dims
     })
     return dims, coords
+
+
+class CoordsDatos(dict):
+    def __init__(símismo, *args, **argsll):
+        super().__init__(*args, **argsll)
+
+    def __setitem__(símismo, llave, valor):
+        raise ValueError(
+            "No se pueden asignar coordenadas directamente en un objeto Datos. Llamar datos.asignar_coords en vez."
+        )
 
 
 class Loc(object):
@@ -136,7 +146,7 @@ class Datos(object):
         copia.dims = tuple(cambios[dm] if dm in cambios else dm for dm in copia.dims)
         return copia
 
-    def asiñar_coords(símismo, eje, coords):
+    def asignar_coords(símismo, eje, coords):
         símismo._coords_internas = frozendict({**símismo._coords_internas, **{
             eje: coords
         }})
@@ -195,7 +205,7 @@ class Datos(object):
 
     @property
     def coords(símismo):
-        return {ll: símismo._decodificar_coord(v) for ll, v in símismo.coords_internas.items()}
+        return CoordsDatos({ll: símismo._decodificar_coord(v) for ll, v in símismo.coords_internas.items()})
 
     def _í_dims(símismo, dims):
         if isinstance(dims, str):
@@ -399,7 +409,7 @@ class Datos(object):
         return símismo.nuevo_como(~símismo.matr)
 
     def __getitem__(símismo, itema):
-        if isinstance(itema, dict):
+        if isinstance(itema, (dict, frozendict)):
             dims, coords = símismo._proc_llave(itema)
             return Datos(símismo.matr[símismo._índices(itema)], dims=dims, coords=coords, nombre=símismo.nombre,
                          atribs=símismo.atribs, _conv_coords=símismo._conv_coords, _verif=False)
@@ -407,14 +417,14 @@ class Datos(object):
 
     def __setitem__(símismo, llave, valor):
         if isinstance(valor, Datos):
-            if isinstance(llave, dict):
+            if isinstance(llave, (dict, frozendict)):
                 dims, coords = símismo._proc_llave(llave)
             else:
                 dims, coords = símismo.dims, símismo.coords_internas
 
             valor = _alinear_como_coords(dims=dims, coords=coords, otro=valor).matr
 
-        if isinstance(llave, dict):
+        if isinstance(llave, frozendict):
             símismo.matr[símismo._índices(llave)] = valor
         else:
             símismo.matr[llave] = valor

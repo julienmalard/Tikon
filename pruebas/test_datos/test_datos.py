@@ -5,7 +5,7 @@ import numpy.testing as npt
 import xarray as xr
 import xarray.testing as xrt
 
-from tikon.datos.datos import Datos, lleno_como, combinar, máximo, mínimo, donde, f_numpy
+from tikon.datos.datos import Datos, lleno_como, combinar, máximo, mínimo, donde, f_numpy, codificar_coords
 
 
 def _prb_igl(dts, mxr):
@@ -217,17 +217,17 @@ class PruebaSel(unittest.TestCase):
     def test_sel_1_eje(símismo):
         dts, mxr = _datos()
         sel = {'b': [0, 2]}
-        _prb_igl(dts[sel], mxr[sel])
+        _prb_igl(dts[codificar_coords(sel)], mxr[sel])
 
     def test_sel_2_ejes(símismo):
         dts, mxr = _datos()
         sel = {'a': [0], 'b': [0, 2]}
-        _prb_igl(dts[sel], mxr[sel])
+        _prb_igl(dts[codificar_coords(sel)], mxr[sel])
 
     def test_poner_val(símismo):
         dts, mxr = _datos()
         sel = {'b': [0, 2]}
-        dts[sel] = -1
+        dts[codificar_coords(sel)] = -1
         mxr[sel] = -1
         _prb_igl(dts, mxr)
 
@@ -244,8 +244,8 @@ class PruebaSel(unittest.TestCase):
         nuevo = dts.nuevo_como(-1)
         sel = {'b': [0, 2]}
 
-        dts[sel] = nuevo
-        mxr[sel] = nuevo[sel].a_xarray()
+        dts[codificar_coords(sel)] = nuevo
+        mxr[sel] = nuevo[codificar_coords(sel)].a_xarray()
         _prb_igl(dts, mxr)
 
     def test_poner_de_datos_sub(símismo):
@@ -253,8 +253,8 @@ class PruebaSel(unittest.TestCase):
         nuevo = dts.nuevo_como(-1)
         sel = {'b': [0, 2]}
 
-        dts[sel] = nuevo
-        mxr[sel] = nuevo[sel].a_xarray()
+        dts[codificar_coords(sel)] = nuevo
+        mxr[sel] = nuevo[codificar_coords(sel)].a_xarray()
         _prb_igl(dts, mxr)
 
 
@@ -262,20 +262,20 @@ class PruebaLoc(unittest.TestCase):
     def test_loc_1_eje(símismo):
         dts, mxr = _datos()
         sel = {'b': ['x', 'z']}
-        _prb_igl(dts.loc[sel], mxr.loc[sel])
+        _prb_igl(dts.loc[codificar_coords(sel)], mxr.loc[sel])
 
     def test_loc_poner_val(símismo):
         dts, mxr = _datos()
         sel = {'b': ['x', 'z']}
 
         with símismo.subTest(rel=False):
-            dts.loc[sel] = -1
+            dts.loc[codificar_coords(sel)] = -1
             mxr.loc[sel] = -1
             _prb_igl(dts, mxr)
         dts, mxr = _datos()
 
         with símismo.subTest(rel=True):
-            dts.loc[sel] -= 1
+            dts.loc[codificar_coords(sel)] -= 1
             mxr.loc[sel] -= 1
             _prb_igl(dts, mxr)
 
@@ -296,7 +296,7 @@ class PruebaFuncs(unittest.TestCase):
     def test_combin(símismo):
         dts, mxr = _datos()
         otro = dts.copiar()
-        otro.coords['b'] = ['u', 'v', 'w']
+        otro.asignar_coords('b', ('u', 'v', 'w'))
         mxr_otro = mxr.copy()
         mxr_otro.coords['b'] = ['u', 'v', 'w']
         _prb_igl(combinar(otro, dts), mxr_otro.combine_first(mxr))

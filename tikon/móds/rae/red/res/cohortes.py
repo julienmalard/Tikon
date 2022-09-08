@@ -135,8 +135,8 @@ class ResCohortes(ResultadoRed):
         # Si transiciona a otro cohorte (de otra etapa), implementarlo aquí
         if recips is not None:
             quitar += quitar_res
-            quitar.asiñar_coords(EJE_ETAPA, recips)
-            edades.asiñar_coords(EJE_ETAPA, recips)
+            quitar.asignar_coords(EJE_ETAPA, recips)
+            edades.asignar_coords(EJE_ETAPA, recips)
 
             # Para cada cohorte...
             for í_coh in range(símismo.n_coh):

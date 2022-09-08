@@ -77,5 +77,5 @@ class EcsDepred(CategEcOrg):
             ].dejar(EJE_ETAPA).renombrar({EJE_VÍCTIMA: EJE_ETAPA})
 
             cohortes.quitar(pob_parasitada, recips=l_fants)
-            pob_parasitada.asiñar_coords(EJE_ETAPA, l_fants)
+            pob_parasitada.asignar_coords(EJE_ETAPA, l_fants)
             sim[RES_POBS].poner_valor(pob_parasitada, rel=True)
