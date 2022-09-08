@@ -62,9 +62,9 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         coso_no_pp = ec_postproc.coso_no_pp
 
         res = modelo.simular('postproc', exper, t=2)['exper']['módulo']['res']
-        res_pp = res.datos.loc[{'coso': coso_pp}].matr
-        res_pp_categ = res.datos.loc[{'coso': coso_pp_categ}].matr
-        res_no_pp = res.datos.loc[{'coso': coso_no_pp}].matr
+        res_pp = res.datos.loc[res.datos.codificar_coords({'coso': coso_pp})].matr
+        res_pp_categ = res.datos.loc[res.datos.codificar_coords({'coso': coso_pp_categ})].matr
+        res_no_pp = res.datos.loc[res.datos.codificar_coords({'coso': coso_no_pp})].matr
 
         npt.assert_equal(res_no_pp, 0)
         npt.assert_equal(res_pp_categ, 1 + ec_postproc.agreg_postproc_categ)
@@ -190,7 +190,7 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         with símismo.subTest('con interacciones'):
             coso1.interactua_con([coso2, coso3])
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': [coso2, coso3]}], rango)
+            símismo._verif_en(res.datos.loc[res.datos.codificar_coords({'coso': coso1, 'otro': [coso2, coso3]})], rango)
 
     def test_inter_aprioris(símismo):
         from .rcrs import ec_inter
@@ -205,12 +205,12 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a')
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': [coso2, coso3]}], (1.5, 1.5 + 1))
+            símismo._verif_en(res.datos.loc[res.datos.codificar_coords({'coso': coso1, 'otro': [coso2, coso3]})], (1.5, 1.5 + 1))
 
         with símismo.subTest('con índs'):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.borrar_aprioris()
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a', índs=[coso3])
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
-            símismo._verif_en(res.datos.loc[{'coso': coso1, 'otro': coso3}], (1.5, 1.5 + 1))
-            símismo._verif_fuera_de(res.datos.loc[{'coso': coso1, 'otro': coso2}], (1.5, 1.5 + 1))
+            símismo._verif_en(res.datos.loc[res.datos.codificar_coords({'coso': coso1, 'otro': coso3})], (1.5, 1.5 + 1))
+            símismo._verif_fuera_de(res.datos.loc[res.datos.codificar_coords({'coso': coso1, 'otro': coso2})], (1.5, 1.5 + 1))

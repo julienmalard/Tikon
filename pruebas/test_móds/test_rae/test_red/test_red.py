@@ -3,6 +3,7 @@ import unittest
 from pruebas.test_móds.test_rae.rcrs import redes as r
 from tikon.central import Modelo
 from tikon.móds.rae.red import RedAE
+from tikon.móds.rae.red.red import ErrorParasitismoCircular
 
 
 class PruebaRed(unittest.TestCase):
@@ -25,12 +26,11 @@ class PruebaRed(unittest.TestCase):
     def test_esfécido(símismo):
         res = Modelo(r.red_esfécido).simular('esfécido', exper=r.exper, t=10, depurar=True)
 
-    @unittest.skip('Implementar')
     def test_hiperparasitismo(símismo):
         res = Modelo(r.red_hiperparasitismo).simular('esfécido', exper=r.exper, t=10, depurar=True)
 
     def test_parasitismo_circular(símismo):
-        with símismo.assertRaises(ValueError):
+        with símismo.assertRaises(ErrorParasitismoCircular):
             with RedAE():
                 r.parasitoide.parasita(r.metam_completa)
                 r.hiperparasitoide.parasita(r.parasitoide)

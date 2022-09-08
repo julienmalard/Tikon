@@ -45,9 +45,7 @@ class MatrParám(object):
     def act_vals(símismo):
         for sub in símismo._sub_matrs:
             sub.act_vals()
-            símismo._datos.loc[
-                frozendict({símismo.eje: sub.índice if isinstance(sub.índice, (str, int)) else id(sub.índice)})
-            ] = sub.val
+            símismo._datos.loc[símismo._datos.codificar_coords({símismo.eje: sub.índice})] = sub.val
 
     def vals_paráms(símismo):
         return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]

@@ -16,6 +16,10 @@ from ..orgs.organismo import EtapaFantasma, Etapa, Organismo
 from ..red.res import res as res_red
 
 
+class ErrorParasitismoCircular(ValueError):
+    pass
+
+
 class SimulRed(SimulMódulo):
     resultados = [
         res_red.ResPobs, res_red.ResEdad, res_red.ResCrec, res_red.ResDepred, res_red.ResRepr,

@@ -31,4 +31,3 @@ class PruebaPCSE(unittest.TestCase):
         res = Modelo(
             [Cultivo, red, clima]
         ).simular('cultivo', exper=Exper('exper', parc), t=t, vars_interés=True)['exper']
-        pass

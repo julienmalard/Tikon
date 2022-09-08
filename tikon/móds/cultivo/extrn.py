@@ -4,7 +4,7 @@ from itertools import product
 import numpy as np
 
 from tikon.central import Parcela, GrupoParcelas
-from tikon.datos.datos import Datos, combinar
+from tikon.datos.datos import Datos, combinar, codificar_coords
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.utils import EJE_PARÁMS, EJE_ESTOC
@@ -94,7 +94,7 @@ class SimulCultivoExterno(object):
     def aplicar_daño(símismo, daño):
         daño = símismo.combin.agregar(daño)
         for inst in símismo.instancias:
-            inst.aplicar_daño(daño.loc[inst.índs])
+            inst.aplicar_daño(daño.loc[codificar_coords(inst.índs)])
 
     def cerrar(símismo):
         for inst in símismo.instancias:
@@ -121,7 +121,7 @@ class CombinSimsCult(object):
             yield dict(zip(dims, índs))
 
     def desagregar(símismo, egreso, reps):
-        return egreso.expandir_dims({ll: range(v) for ll, v in reps.items() if ll in símismo.transf})
+        return egreso.expandir_dims(codificar_coords({ll: range(v) for ll, v in reps.items() if ll in símismo.transf}))
 
 
 class InstanciaSimulCultivo(object):

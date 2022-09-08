@@ -3,6 +3,7 @@ from warnings import warn as avisar
 import pandas as pd
 from babel.dates import format_date
 
+from tikon.datos.datos import codificar_coords
 from tikon.móds.cultivo.extrn import SimulCultivoExterno, InstanciaSimulCultivo
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
 from tikon.móds.rae.utils import EJE_ETAPA, EJE_VÍCTIMA
@@ -51,9 +52,9 @@ class InstanciaPCSE(InstanciaSimulCultivo):
 
     def _gen_proveedor_meteo(símismo):
         parc = str(símismo.sim.parcelas.parcelas[0])
-        centr = símismo.sim.sim.exper.controles['centroides'].loc[{EJE_PARC: parc}]
-        lat, lon = centr.loc[{EJE_COORD: 'lat'}].matr[0, 0], centr.loc[{EJE_COORD: 'lon'}].matr[0, 0]
-        elev = símismo.sim.sim.exper.controles['elevaciones'].loc[{EJE_PARC: parc}].matr[0]
+        centr = símismo.sim.sim.exper.controles['centroides'].loc[codificar_coords({EJE_PARC: parc})]
+        lat, lon = centr.loc[codificar_coords({EJE_COORD: 'lat'})].matr[0, 0], centr.loc[codificar_coords({EJE_COORD: 'lon'})].matr[0, 0]
+        elev = símismo.sim.sim.exper.controles['elevaciones'].loc[codificar_coords({EJE_PARC: parc})].matr[0]
 
         clima = símismo.sim.sim.clima
         bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop_vars(EJE_PARC).to_dataframe()
@@ -77,14 +78,13 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         for vr, (vr_pcse, conv) in símismo._conv_vars.items():
             val = símismo.modelo.get_variable(vr_pcse)
             if val is not None:
-                símismo.datos[RES_BIOMASA].loc[{EJE_ETAPA: org[vr]}] = val * conv
+                símismo.datos[RES_BIOMASA].loc[codificar_coords({EJE_ETAPA: org[vr]})] = val * conv
 
         símismo.datos[RES_HUMSUELO][:] = símismo.modelo.get_variable('SM')
 
     def aplicar_daño(símismo, daño):
         org = símismo.org
         daño = daño.renombrar({EJE_VÍCTIMA: EJE_ETAPA})
-        raise NotImplementedError  # Verificar utilización de .coords o .coords_internas
         etapas_activas = [etp for etp in daño.coords[EJE_ETAPA] if etp.org is org]
         for etp in etapas_activas:
             try:
@@ -93,7 +93,7 @@ class InstanciaPCSE(InstanciaSimulCultivo):
                 continue
             val = símismo.modelo.get_variable(var)
             if val is not None:
-                símismo.modelo.set_variable(var, val - daño.loc[{EJE_ETAPA: etp}].matr.item() / conv)
+                símismo.modelo.set_variable(var, val - daño.loc[codificar_coords({EJE_ETAPA: etp})].matr.item() / conv)
 
     def cerrar(símismo):
         pass

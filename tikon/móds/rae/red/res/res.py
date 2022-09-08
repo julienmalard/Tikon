@@ -1,4 +1,5 @@
 import numpy as np
+from frozendict import frozendict
 from scipy.stats import expon, uniform
 
 from tikon.central.res import Resultado
@@ -33,7 +34,7 @@ class ResultadoRed(Resultado):
                 símismo._datos_t.loc[{eje: paras_juv}] = 0
 
             for etp in fantasmas:
-                val = símismo._datos_t.loc[{eje: etp}]
+                val = símismo._datos_t.loc[frozendict({eje: id(etp)})]
 
                 # Agregamos etapas fantasmas a la etapa juvenil del parasitoide (etapa espejo)
                 if etp.etp_espejo in símismo._datos_t.coords[eje]:

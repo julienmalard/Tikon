@@ -30,7 +30,8 @@ xlrd = "1.2.0"
 bibtexparser = "^1.2.0"
 frozendict = "^2.3.4"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.971"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

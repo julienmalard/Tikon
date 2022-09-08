@@ -17,7 +17,7 @@ class PruebaSpotPy(unittest.TestCase):
                 modelo.calibrar('calib', exper, calibrador=alg(), n_iter=30)
                 valid = modelo.simular('valid', exper, calibs=['calib']).validar()
                 if valid['ens'] < 0.90:
-                    avisar('Algoritmo {alg} no funcion muy bien.'.format(alg=alg.__name__))
+                    avisar('Algoritmo {alg} no funciona muy bien.'.format(alg=alg.__name__))
 
     def test_dists(símismo):
         dists_aprioris = {
@@ -29,9 +29,9 @@ class PruebaSpotPy(unittest.TestCase):
             'Gamma': estad.gamma(1, 0, 1),
             'Triang': estad.triang(0.5, 0, 2)
         }
-        for nmbre in CalibSpotPy.dists_disp:
-            dist = dists_aprioris[nmbre]
-            with símismo.subTest(nmbre):
+        for nombre in CalibSpotPy.dists_disp:
+            dist = dists_aprioris[nombre]
+            with símismo.subTest(nombre):
                 gen = generar()
                 modelo = gen['modelo']
                 exper = gen['exper']

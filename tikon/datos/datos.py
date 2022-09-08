@@ -1,4 +1,5 @@
 import functools
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -69,7 +70,7 @@ class Datos(object):
 
         símismo.matr = val
         símismo.dims = dims
-        símismo._coords = coords
+        símismo._coords_internas = coords
 
         símismo._conv_coords = _conv_coords
 
@@ -86,9 +87,8 @@ class Datos(object):
     def _verif_init(símismo):
         símismo.dims = tuple(símismo.dims)
         símismo._conv_coords = {}
-        símismo._coords = frozendict({
-            ll: tuple(símismo._codificar_coord(o) for o in v) for ll, v in símismo.coords_internas.items()
-        })
+        símismo._coords_internas = símismo.codificar_coords(símismo._coords_internas)
+
         if set(símismo.dims) != set(símismo.coords_internas):
             raise ValueError(set(símismo.dims), set(símismo.coords_internas))
         frm = tuple(len(símismo.coords_internas[dm]) for dm in símismo.dims)
@@ -112,16 +112,8 @@ class Datos(object):
             attrs=símismo.atribs
         )
 
-    def _codificar_coord(símismo, valor):
-        if isinstance(valor, (str, int)):
-            return valor
-
-        if type(valor) is pd.Timestamp:
-            código = valor.toordinal()
-        else:
-            código = id(valor)
-        símismo._conv_coords[código] = valor
-        return código
+    def codificar_coords(símismo, coords: dict[str, Any]):
+        return codificar_coords(coords, símismo)
 
     def _decodificar_coord(símismo, valor):
         def decodificar(v):
@@ -140,12 +132,12 @@ class Datos(object):
         coords_final = dict(copia.coords_internas)
         for ant, nv in cambios.items():
             coords_final[nv] = coords_final.pop(ant)
-        copia._coords = frozendict(coords_final)
+        copia._coords_internas = frozendict(coords_final)
         copia.dims = tuple(cambios[dm] if dm in cambios else dm for dm in copia.dims)
         return copia
 
     def asiñar_coords(símismo, eje, coords):
-        símismo._coords = frozendict({**símismo._coords, **{
+        símismo._coords_internas = frozendict({**símismo._coords_internas, **{
             eje: coords
         }})
 
@@ -174,7 +166,8 @@ class Datos(object):
 
     def transponer(símismo, dims):
         orden = [símismo.dims.index(d) for d in dims]
-        return Datos(np.transpose(símismo.matr, orden), dims=dims, coords=símismo.coords_internas, nombre=símismo.nombre,
+        return Datos(np.transpose(símismo.matr, orden), dims=dims, coords=símismo.coords_internas,
+                     nombre=símismo.nombre,
                      atribs=símismo.atribs, _conv_coords=símismo._conv_coords, _verif=False)
 
     def expandir_dims(símismo, coords):
@@ -182,7 +175,7 @@ class Datos(object):
             o_dims, o_coords = coords.dims, coords.coords_internas
         else:
             o_coords = coords
-            o_dims = list(o_coords)
+            o_dims = tuple(o_coords)
         return _expandir_dims(símismo, dims=o_dims, coords=o_coords)
 
     def dejar(símismo, dim):
@@ -192,13 +185,13 @@ class Datos(object):
 
         símismo.matr = símismo.matr.squeeze(símismo.dims.index(dim))
         símismo.dims = tuple(x for x in símismo.dims if x not in dim)
-        símismo._coords = frozendict({dm: símismo.coords_internas[dm] for dm in símismo.dims})
+        símismo._coords_internas = frozendict({dm: símismo.coords_internas[dm] for dm in símismo.dims})
         símismo.loc = Loc(símismo)
         return símismo
 
     @property
     def coords_internas(símismo):
-        return símismo._coords
+        return símismo._coords_internas
 
     @property
     def coords(símismo):
@@ -461,10 +454,11 @@ def combinar(*matrs):
         coords[d] = []
         for m in matrs:
             coords[d] += [v for v in m.coords_internas[d] if v not in coords[d]]
+        coords[d] = tuple(coords[d])
 
     _conv_coords = {c: v for m in matrs for c, v in m._conv_coords.items()}
 
-    final = Datos(np.nan, dims=dims, coords=coords, _conv_coords=_conv_coords, _verif=False)
+    final = Datos(np.nan, dims=dims, coords=frozendict(coords), _conv_coords=_conv_coords, _verif=False)
     for m in matrs:
         final.loc[m.coords_internas] = m
 
@@ -518,7 +512,8 @@ def _intersec_datos(*args):
 
     c_final = _intersec_coords(*[dt.coords_internas for dt in datos])
     return [
-        x.loc[frozendict({dm: tuple(c) for dm, c in c_final.items() if dm in x.coords_internas})] if isinstance(x, Datos) else x
+        x.loc[frozendict({dm: tuple(c) for dm, c in c_final.items() if dm in x.coords_internas})] if isinstance(x,
+                                                                                                                Datos) else x
         for x in args
     ]
 
@@ -570,3 +565,25 @@ def _gen_f_expandir_dims(dims_datos, coords_datos, dims, coords, guardar_orden):
 def _expandir_dims(datos, dims, coords, guardar_orden=True):
     f = _gen_f_expandir_dims(datos.dims, datos.coords_internas, dims, coords, guardar_orden=guardar_orden)
     return f(datos)
+
+
+def codificar_coords(coords, datos: Optional[Datos] = None):
+    return frozendict({
+        ll: tuple(
+            _codificar_coord(o, datos) for o in v
+        ) if isinstance(v, (range, tuple, list, set, np.ndarray, pd.Index)) else (_codificar_coord(v, datos),) for
+        ll, v in coords.items()
+    })
+
+
+def _codificar_coord(valor, datos):
+    if isinstance(valor, (str, int, np.number)):
+        return valor
+
+    if type(valor) is pd.Timestamp:
+        código = valor.toordinal()
+    else:
+        código = id(valor)
+    if datos:
+        datos._conv_coords[código] = valor
+    return código

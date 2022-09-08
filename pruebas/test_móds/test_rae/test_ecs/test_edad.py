@@ -18,7 +18,6 @@ class PruebaEdad(unittest.TestCase):
         t = Tiempo(f_inic, f_final)
 
         for ec in EcEdad.cls_ramas:
-            print(ec.nombre)
             if ec is EcuaciónVacía:
                 continue
             with símismo.subTest(ec.nombre):

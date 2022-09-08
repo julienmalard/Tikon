@@ -17,9 +17,9 @@ class SimulClima(SimulMódulo):
         variables = mód.variables
         d_datos = {
             prc: مقام(
-                centroides.loc[{EJE_PARC: prc, EJE_COORD: 'lat'}].matr[0],
-                centroides.loc[{EJE_PARC: prc, EJE_COORD: 'lon'}].matr[0],
-                elev.loc[{EJE_PARC: prc}].matr[0]
+                centroides.loc[centroides.codificar_coords({EJE_PARC: prc, EJE_COORD: 'lat'})].matr[0],
+                centroides.loc[centroides.codificar_coords({EJE_PARC: prc, EJE_COORD: 'lon'})].matr[0],
+                elev.loc[elev.codificar_coords({EJE_PARC: prc})].matr[0]
             ).کوائف_پانا(
                 سے=t_inic, تک=t_final, ذرائع=mód.fuentes, خاکے=mód.escenario
             ).روزانہ().loc[eje_t[0]:eje_t[-1]]

@@ -9,6 +9,7 @@ from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA, EJE_ETAPA, RES_POBS
 from tikon.utils import EJE_PARC
 
 from . import res
+from ...datos.datos import codificar_coords
 
 
 class SimulCultivo(SimulMódulo):
@@ -57,10 +58,10 @@ class SimulCultivo(SimulMódulo):
         depred = símismo.red.obt_valor(RES_DEPR)
 
         # Daño total (de todos herbívoros) por etapa de planta, por m2
-        daño = depred.loc[{EJE_VÍCTIMA: [x for x in símismo.etapas]}].suma(dim=EJE_ETAPA) / símismo.superficies
+        daño = depred.loc[codificar_coords({EJE_VÍCTIMA: [x for x in símismo.etapas]})].suma(dim=EJE_ETAPA) / símismo.superficies
 
         for prc in símismo.simuls_parcelas:
-            prc.aplicar_daño(daño.loc[{EJE_PARC: [str(p) for p in prc.parcelas]}])
+            prc.aplicar_daño(daño.loc[codificar_coords({EJE_PARC: [str(p) for p in prc.parcelas]})])
 
     def mandar_biomasa(símismo):
         símismo.red.poner_valor(RES_POBS, val=símismo.obt_valor(RES_BIOMASA) * símismo.superficies)

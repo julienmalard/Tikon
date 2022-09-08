@@ -153,7 +153,7 @@ class PruebaDatos(unittest.TestCase):
 
     def test_expandir_dims(símismo):
         dts, mxr = _datos()
-        dts.expandir_dims({'c': [1]})
+        dts.expandir_dims(dts.codificar_coords({'c': [1]}))
         mxr.expand_dims('c', 1)
         _prb_igl(dts, mxr)
 
@@ -162,7 +162,8 @@ class PruebaDatos(unittest.TestCase):
         _prb_igl(dts.transponer(['b', 'a']), mxr.transpose(*['b', 'a']))
 
     def test_dejar(símismo):
-        dts = _datos(False).loc[{'b': ['x']}]
+        dts = _datos(False)
+        dts = dts.loc[dts.codificar_coords({'b': ['x']})]
         mxr = dts.a_xarray()
         _prb_igl(dts.dejar('b'), mxr.squeeze('b').drop_vars('b'))
 
