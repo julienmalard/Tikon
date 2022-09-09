@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Optional
+from typing import Any, Optional, Union, List
 
 import numpy as np
 import pandas as pd
@@ -159,7 +159,7 @@ class Datos(object):
         símismo.matr[np.isinf(símismo.matr)] = val
         return símismo
 
-    def nuevo_como(símismo, vals, excluir: str = None):
+    def nuevo_como(símismo, vals, excluir: Union[str, List[str]] = None):
         coords = símismo.coords_internas
         dims = símismo.dims
         if excluir:

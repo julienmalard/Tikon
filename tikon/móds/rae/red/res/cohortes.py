@@ -3,7 +3,7 @@ import math as mat
 import numpy as np
 from frozendict import frozendict
 
-from tikon.datos.datos import donde, Datos, alinear_como
+from tikon.central.matriz import donde, Datos, alinear_como
 from tikon.móds.rae.orgs.ecs.utils import ECS_TRANS
 from tikon.móds.rae.utils import EJE_COH, EJE_ETAPA, RES_COHORTES, RES_POBS
 from tikon.utils import EJE_PARÁMS

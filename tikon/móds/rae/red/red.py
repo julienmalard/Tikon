@@ -4,7 +4,7 @@ from frozendict import frozendict
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.consts import CORREO_AUTOR
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.ecs.paráms import Inter
 from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA, contexto
 from .res.cohortes import ResCohortes

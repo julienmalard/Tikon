@@ -6,7 +6,7 @@ import xarray as xr
 import xarray.testing as xrt
 
 from tikon.central import Parcela, Modelo, Exper
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.móds.cultivo.cult import Cultivo
 from tikon.móds.cultivo.extrn import CombinSimsCult
 from tikon.móds.cultivo.res import RES_BIOMASA, RES_HUMSUELO

@@ -1,7 +1,6 @@
-import xarray as xr
 from frozendict import frozendict
 
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
 from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
 

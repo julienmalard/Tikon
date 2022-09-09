@@ -3,7 +3,7 @@ from math import pi as π
 import numpy as np
 import xarray as xr
 
-from tikon.datos.datos import f_numpy, donde, máximo, mínimo
+from tikon.central.matriz import f_numpy, donde, máximo, mínimo
 
 
 def días_grados(mín, máx, umbrales, método, corte):

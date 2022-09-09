@@ -1,6 +1,6 @@
 from tikon.central import Módulo, SimulMódulo, Exper, Parcela
 from tikon.central.res import Resultado
-from tikon.datos.datos import donde as f_donde
+from tikon.central.matriz import donde as f_donde
 from tikon.móds.manejo import Acción
 from tikon.móds.manejo.conds import CondVariable
 

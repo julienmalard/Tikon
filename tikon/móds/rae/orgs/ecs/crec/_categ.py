@@ -1,6 +1,4 @@
-import numpy as np
-
-from tikon.datos.datos import máximo
+from tikon.central.matriz import máximo
 from .ec import EcCrec
 from .tasa import TasaCrec
 from .._plntll import CategEcOrg

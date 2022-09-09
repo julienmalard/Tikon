@@ -2,11 +2,10 @@ from itertools import product
 
 import numpy as np
 import xarray as xr
-from frozendict import frozendict
 
 from tikon.central.errores import ErrorNombreInválido
 from tikon.central.simul import PlantillaSimul
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.ecs.aprioris import APrioriDens

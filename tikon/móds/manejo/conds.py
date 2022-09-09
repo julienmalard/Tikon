@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from frozendict import frozendict
 
-from tikon.datos.datos import Datos, lleno_como, f_numpy as fnp
+from tikon.central.matriz import Datos, lleno_como, f_numpy as fnp
 
 
 class PruebaCond(object):

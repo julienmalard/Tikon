@@ -1,7 +1,6 @@
-import numpy as np
 import xarray as xr
 
-from tikon.datos.datos import donde
+from tikon.central.matriz import donde
 
 ECS_EDAD = 'Edad'
 ECS_CREC = 'Crecimiento'

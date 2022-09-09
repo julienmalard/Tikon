@@ -3,7 +3,7 @@ from warnings import warn as avisar
 import pandas as pd
 from babel.dates import format_date
 
-from tikon.datos.datos import codificar_coords
+from tikon.central.matriz import codificar_coords
 from tikon.móds.cultivo.extrn import SimulCultivoExterno, InstanciaSimulCultivo
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
 from tikon.móds.rae.utils import EJE_ETAPA, EJE_VÍCTIMA

@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 from tikon.central import Módulo, SimulMódulo, Modelo, Exper, Parcela, Coso
 from tikon.central.res import Resultado
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.ecs import ÁrbolEcs, CategEc, EcuaciónVacía, SubcategEc, Ecuación, Parám
 from tikon.ecs.aprioris import APrioriDens
 from tikon.datos import Obs

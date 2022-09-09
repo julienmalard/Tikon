@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from tikon.utils import guardar_json, leer_json
 
@@ -14,7 +15,7 @@ class Coso(object):
     def índices_inter(símismo):
         return símismo.nombre
 
-    def activar_ec(símismo, categ, subcateg, ec, **argspc):
+    def activar_ec(símismo, categ: str, subcateg: str, ec: str, **argspc: Any):
         símismo.ecs.activar_ec(categ, subcateg, ec)
 
     def activar_ecs(símismo, dic_ecs):

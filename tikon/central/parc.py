@@ -3,11 +3,10 @@ from functools import partial
 import numpy as np
 import pyproj
 import xarray as xr
-from frozendict import frozendict
 from geopy.distance import distance
 from shapely.geometry import Polygon
 from shapely.ops import transform
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.utils import EJE_PARC, EJE_DEST, EJE_COORD
 
 

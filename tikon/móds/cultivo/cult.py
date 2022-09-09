@@ -9,7 +9,7 @@ from tikon.móds.rae.utils import RES_DEPR, EJE_VÍCTIMA, EJE_ETAPA, RES_POBS
 from tikon.utils import EJE_PARC
 
 from . import res
-from ...datos.datos import codificar_coords
+from tikon.central.matriz import codificar_coords
 
 
 class SimulCultivo(SimulMódulo):

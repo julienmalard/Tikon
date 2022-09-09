@@ -1,4 +1,4 @@
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from ._plntll import EcuaciónOrg
 from ...utils import RES_EDAD, RES_COHORTES
 

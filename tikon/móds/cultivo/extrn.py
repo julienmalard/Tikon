@@ -4,7 +4,7 @@ from itertools import product
 import numpy as np
 
 from tikon.central import Parcela, GrupoParcelas
-from tikon.datos.datos import Datos, combinar, codificar_coords
+from tikon.central.matriz import Datos, combinar, codificar_coords
 from tikon.móds.rae.orgs.plantas import externa as plt_externas
 from tikon.móds.rae.orgs.plantas.externa import CultivoExterno
 from tikon.utils import EJE_PARÁMS, EJE_ESTOC

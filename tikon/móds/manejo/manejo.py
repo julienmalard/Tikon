@@ -1,8 +1,8 @@
-from copy import deepcopy, copy
+from copy import copy
 
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 from tikon.móds.manejo.acciones import Acción
 
 

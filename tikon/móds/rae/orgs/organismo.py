@@ -1,4 +1,5 @@
 from itertools import product
+from typing import Union, Iterable
 
 from tikon.central.coso import Coso, SumaCosos
 from .ecs import EcsOrgs
@@ -23,7 +24,7 @@ class Organismo(Coso):
 
         símismo.etapas = etapas
 
-    def activar_ec(símismo, categ, subcateg, ec, etapas=None):
+    def activar_ec(símismo, categ: str, subcateg: str, ec: str, etapas=None):
         etapas = símismo.resolver_etapas(etapas)
 
         for etp in etapas:
@@ -142,7 +143,7 @@ class Etapa(Coso):
         super().__init__(nombre, EcsOrgs)
 
         if ':' in símismo.nombre:
-            raise ValueError('Nombre de etapa no puede contener ":".')
+            raise ValueError('Un nombre de etapa no puede contener el carácter ":".')
 
         símismo.org = org
 
@@ -178,6 +179,11 @@ class Etapa(Coso):
 
 
 categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE, ECS_ESTOC]
+
+
+class EspecificaciónEtapa(object):
+    def resolver(símismo, etapas) -> list[Etapa]:
+        raise NotImplementedError
 
 
 class EtapaFantasma(Etapa):
@@ -259,3 +265,7 @@ class SumaEtapas(SumaCosos):
             return SumaEtapas([otro, *símismo.cosos])
         else:
             return SumaEtapas(*list(otro), *símismo.cosos)
+
+
+Tipo_Similar_A_Etapa = Union[Organismo, Etapa, SumaCosos, EspecificaciónEtapa, str]
+Tipo_Resolvable_A_Etapas = Union[Tipo_Similar_A_Etapa, Iterable[Tipo_Similar_A_Etapa]]

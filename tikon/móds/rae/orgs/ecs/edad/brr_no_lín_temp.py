@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm, expon
 
-from tikon.datos.datos import máximo, f_numpy
+from tikon.central.matriz import máximo, f_numpy
 from tikon.ecs.aprioris import APrioriDist
 from tikon.ecs.árb_mód import Parám
 from ._plntll_ec import EcuaciónEdad

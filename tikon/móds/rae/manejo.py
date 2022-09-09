@@ -1,4 +1,4 @@
-from tikon.datos.datos import donde as donde_, Datos
+from tikon.central.matriz import donde as donde_, Datos
 from tikon.móds.manejo.acciones import Acción
 from tikon.móds.manejo.conds import CondVariable
 from tikon.móds.rae.utils import RES_POBS, EJE_ETAPA

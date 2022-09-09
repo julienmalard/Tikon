@@ -1,6 +1,6 @@
 import numpy as np
 
-from tikon.datos.datos import máximo
+from tikon.central.matriz import máximo
 from tikon.ecs.aprioris import APrioriDens
 from tikon.ecs.árb_mód import Parám
 from tikon.móds.rae.orgs.ecs.estoc._plntll_ec import EcuaciónEstoc

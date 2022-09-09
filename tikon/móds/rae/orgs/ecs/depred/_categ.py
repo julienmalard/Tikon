@@ -1,7 +1,7 @@
 import numpy as np
 from frozendict import frozendict
 
-from tikon.datos.datos import mínimo
+from tikon.central.matriz import mínimo
 from tikon.ecs.árb_mód import EcuaciónVacía
 from tikon.móds.rae.orgs.ecs._plntll import CategEcOrg, SubcategEcOrg
 from tikon.móds.rae.orgs.ecs.utils import ECS_DEPR, probs_conj

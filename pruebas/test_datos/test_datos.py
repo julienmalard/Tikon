@@ -5,7 +5,7 @@ import numpy.testing as npt
 import xarray as xr
 import xarray.testing as xrt
 
-from tikon.datos.datos import Datos, lleno_como, combinar, máximo, mínimo, donde, f_numpy, codificar_coords
+from tikon.central.matriz import Datos, lleno_como, combinar, máximo, mínimo, donde, f_numpy, codificar_coords
 
 
 def _prb_igl(dts, mxr):

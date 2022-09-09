@@ -1,8 +1,7 @@
 import numpy as np
-import xarray as xr
 from frozendict import frozendict
 
-from tikon.datos.datos import Datos
+from tikon.central.matriz import Datos
 
 from tikon.utils import EJE_PARÁMS
 
