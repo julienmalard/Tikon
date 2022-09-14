@@ -1,11 +1,24 @@
 from math import pi
+from typing import TypedDict, Union, Optional
 
 import numpy as np
 import scipy.stats as estad
-# Un diccionario de las distribuciones y de sus objetos de SciPy correspondientes.
-from tikon.utils import proc_líms
+from scipy.stats._distn_infrastructure import rv_continuous, rv_continuous_frozen
 
-dists = {
+from tikon.tipos import Tipo_Valor_Numérico
+
+Líms_Con_None = tuple[Union[Tipo_Valor_Numérico, None], Union[Tipo_Valor_Numérico, None]]
+Líms_Numéricas = tuple[Tipo_Valor_Numérico, Tipo_Valor_Numérico]
+
+
+class DicEspecDistScipy(TypedDict):
+    scipy: rv_continuous
+    paráms: list[str]
+    límites: Líms_Con_None
+
+
+# Un diccionario de las distribuciones y de sus objetos de SciPy correspondientes.
+dists: dict[str, DicEspecDistScipy] = {
     'Alpha': {'scipy': estad.alpha,
               'paráms': ['a', 'loc', 'scale'],
               'límites': (0, None)
@@ -217,7 +230,6 @@ dists = {
     'Triang': {'scipy': estad.triang,
                'paráms': ['c', 'loc', 'scale'],
                'límites': (0, 1),  # El límite es ('a', 'b')
-               'tipo': 'cont'
                },
     'TukeyLambda': {'scipy': estad.tukeylambda,
                     'paráms': ['lam', 'loc', 'scale'],
@@ -226,7 +238,6 @@ dists = {
     'Uniforme': {'scipy': estad.uniform,
                  'paráms': ['loc', 'scale'],
                  'límites': (0, 1),
-                 'tipo': 'cont'
                  },
     'Wald': {'scipy': estad.wald,
              'paráms': ['loc', 'scale'],
@@ -247,7 +258,7 @@ dists = {
 }
 
 
-def _valid_nombre(nombre):
+def _valid_nombre(nombre: str) -> str:
     try:
         return next(nmbr for nmbr in dists if nmbr.lower() == nombre.lower())
     except StopIteration:
@@ -257,16 +268,16 @@ def _valid_nombre(nombre):
         )
 
 
-def _obt_dic_dist(nombre):
+def _obt_dic_dist(nombre: str) -> DicEspecDistScipy:
     nombre = _valid_nombre(nombre)
     return dists[nombre]
 
 
-def clase_scipy(nombre):
+def clase_scipy(nombre: str) -> rv_continuous:
     return _obt_dic_dist(nombre)['scipy']
 
 
-def líms_dist(dist):
+def líms_dist(dist: Union[str, rv_continuous_frozen]) -> Líms_Numéricas:
     if isinstance(dist, str):
         return proc_líms(_obt_dic_dist(dist)['límites'])
     else:
@@ -276,15 +287,15 @@ def líms_dist(dist):
         return líms[0] + ubic, (líms[1] - líms[0]) * escala + ((líms[0] + ubic) if líms[0] > -np.inf else 0)
 
 
-def obt_prms_obj_scipy(dist):
+def obt_prms_obj_scipy(dist: rv_continuous_frozen) -> tuple[tuple, Tipo_Valor_Numérico, Tipo_Valor_Numérico]:
     return dist.dist._parse_args(*dist.args, **dist.kwds)
 
 
-def prms_dist(nombre):
+def prms_dist(nombre)->list[str]:
     return _obt_dic_dist(nombre)['paráms']
 
 
-def obt_scipy(nombre, paráms):
+def obt_scipy(nombre: str, paráms: Union[dict[str, Tipo_Valor_Numérico], tuple[tuple, Tipo_Valor_Numérico, Tipo_Valor_Numérico]]):
     cls_dist = clase_scipy(nombre)
 
     if isinstance(paráms, dict):
@@ -293,5 +304,13 @@ def obt_scipy(nombre, paráms):
         return cls_dist(*paráms[0], loc=paráms[1], scale=paráms[2])
 
 
-def obt_nombre(dist_sp):
+def obt_nombre(dist_sp: rv_continuous_frozen)-> str:
     return next(nmb for nmb in dists if dists[nmb]['scipy'].name == dist_sp.dist.name)
+
+
+def proc_líms(líms: Optional[Líms_Con_None]) -> Líms_Numéricas:
+    inf = np.inf
+
+    if líms is None:
+        return -inf, inf
+    return -inf if líms[0] is None else líms[0], inf if líms[1] is None else líms[1]

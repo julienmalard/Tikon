@@ -201,13 +201,13 @@ class PruebaFuncionalidadesEcs(unittest.TestCase):
         exper = ec_inter.exper
 
         coso1.interactua_con([coso2, coso3])
-        with símismo.subTest('sin índs'):
+        with símismo.subTest('sin índices'):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a')
             res = modelo.simular('con interacciones', exper=exper, t=2, vars_interés=True)['exper']['módulo']['res']
             símismo._verif_en(res.datos.loc[res.datos.codificar_coords({'coso': coso1, 'otro': [coso2, coso3]})], (1.5, 1.5 + 1))
 
-        with símismo.subTest('con índs'):
+        with símismo.subTest('con índices'):
             apriori = APrioriDist(uniform(1.5, 1))
             coso1.borrar_aprioris()
             coso1.espec_apriori(apriori, 'categ', 'subcateg', 'ec', 'a', índs=[coso3])

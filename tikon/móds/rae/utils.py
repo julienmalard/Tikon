@@ -1,3 +1,8 @@
+import typing
+
+if typing.TYPE_CHECKING:
+    from tikon.móds.rae.red import RedAE
+
 EJE_COH = 'coh'
 EJE_ETAPA = 'etapa'
 EJE_VÍCTIMA = 'víctima'
@@ -13,4 +18,4 @@ RES_MOV = 'Movimiento'
 RES_ESTOC = 'Estoc'
 RES_COHORTES = 'Cohortes'
 
-contexto = []
+contexto: list['RedAE'] = []

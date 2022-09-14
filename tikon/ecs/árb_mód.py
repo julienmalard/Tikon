@@ -1,15 +1,17 @@
+from typing import Type, Sequence
+
 from frozendict import frozendict
 
 from tikon.central.matriz import Datos
 from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
-from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso
+from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso, PlantillaRamaEcCoso
 
 
 class PlantillaRamaEc(object):
-    cls_ramas = []
+    cls_ramas: Sequence[Type["PlantillaRamaEc"]] = []
 
-    _cls_en_coso = NotImplemented
-    _nombre_res = NotImplemented
+    _cls_en_coso: "Type[PlantillaRamaEcCoso]" = NotImplemented
+    _nombre_res: str = NotImplemented
 
     def __init__(símismo, modelo, mód, exper, cosos, n_reps, ecs):
 
@@ -216,7 +218,7 @@ class EcuaciónVacía(Ecuación):
 class Parám(PlantillaRamaEc):
     _cls_en_coso = ParámCoso
     eje_cosos = None
-    cls_ramas = []
+    cls_ramas: Sequence[Type["Parám"]] = []
 
     # Éstos se pueden personalizar
     líms = (None, None)

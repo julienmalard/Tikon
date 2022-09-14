@@ -1,5 +1,6 @@
 import unittest
 import warnings
+from typing import cast
 
 import numpy as np
 import numpy.testing as npt
@@ -7,9 +8,9 @@ import scipy.stats as estad
 from matplotlib.figure import Figure as Figura
 from numpy import exp
 from scipy.special import expit
-from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, MnjdrDists, dibujar_dist
+from tikon.ecs.dists import DistAnalítica, DistTraza, Dist, ManejadorDists, dibujar_dist
 from tikon.ecs.dists.anlt import TransfDist
-from tikon.utils import proc_líms
+from tikon.ecs.dists.utils import proc_líms
 
 
 class PruebaDistAnalítica(unittest.TestCase):
@@ -187,7 +188,7 @@ class PruebaTransfDist(unittest.TestCase):
 class PruebaDistTraza(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.n = n = 10000
+        cls.n = n = 100000
         trz = np.random.normal(0, 1, n)
         cls.dist = DistTraza(trz)
 
@@ -217,65 +218,65 @@ class PruebaDistTraza(unittest.TestCase):
         npt.assert_equal(símismo.dist.obt_vals_índ(índs), símismo.dist.trz[índs])
 
     def test_conv_dic(símismo):
-        dist = Dist.de_dic(símismo.dist.a_dic())
+        dist = cast(DistTraza, Dist.de_dic(símismo.dist.a_dic()))
         npt.assert_allclose(dist.trz, símismo.dist.trz)
         npt.assert_allclose(dist.pesos, símismo.dist.pesos)
 
     def test_error_pesos(símismo):
         with símismo.assertRaises(ValueError):
-            DistTraza(trz=np.arange(12), pesos=np.random.random(símismo.n + 1))
+            DistTraza(trz=np.arange(12), pesos=np.random.rand(símismo.n + 1))
 
 
 class PruebaMnjdrDists(unittest.TestCase):
     def test_base(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
         mnjdr.actualizar(dist)
         símismo.assertIs(dist, mnjdr.obt_val())
 
     def test_borrar(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
         mnjdr.actualizar(dist)
         mnjdr.actualizar(None)
         símismo.assertIsNone(mnjdr.obt_val())
 
     def test_índs(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índs=['a', 'b'])
+        mnjdr.actualizar(dist, índices=['a', 'b'])
         símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
 
     def test_índs_no_existen(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
         mnjdr.actualizar(dist)
-        símismo.assertIsNone(mnjdr.obt_val(índs=['hola'], heredar=False))
-        símismo.assertIs(dist, mnjdr.obt_val(índs=['hola']))
+        símismo.assertIsNone(mnjdr.obt_val(índices=['hola'], heredar=False))
+        símismo.assertIs(dist, mnjdr.obt_val(índices=['hola']))
 
     def test_índs_herencia(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índs='a')
+        mnjdr.actualizar(dist, índices='a')
         símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
 
     def test_índs_sin_herencia(símismo):
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índs=['a'])
+        mnjdr.actualizar(dist, índices=['a'])
         símismo.assertIsNone(mnjdr.obt_val(['a', 'b'], heredar=False))
 
     @staticmethod
     def test_conv_dic():
-        mnjdr = MnjdrDists()
+        mnjdr = ManejadorDists()
         dist0 = DistAnalítica(estad.norm())
         dista = DistAnalítica(estad.gamma(1))
         distb = DistAnalítica(estad.norm(3, 4))
 
         mnjdr.actualizar(dist0)
-        mnjdr.actualizar(dista, índs=['a'])
-        mnjdr.actualizar(distb, índs=['a', 'b'])
-        nuevo = MnjdrDists.de_dic(mnjdr.a_dic())
+        mnjdr.actualizar(dista, índices=['a'])
+        mnjdr.actualizar(distb, índices=['a', 'b'])
+        nuevo = ManejadorDists.de_dic(mnjdr.a_dic())
         p = .95
         npt.assert_equal(mnjdr.obt_val().aprox_líms(p), nuevo.obt_val().aprox_líms(p))
         npt.assert_equal(mnjdr.obt_val('a').aprox_líms(p), nuevo.obt_val('a').aprox_líms(p))

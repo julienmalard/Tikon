@@ -114,7 +114,7 @@ class PruebaCalibInic(unittest.TestCase):
         valid = modelo.simular('valid', exper, calibs=EspecCalibsCorrida(['otro nombre'])).validar()
         símismo.assertAlmostEqual(valid['ens'], símismo.valid['ens'], delta=0.05)
 
-    def test_borrar_calib(símismo):
+    def est_borrar_calib(símismo):
         from .rcrs.modelo_calib_inic import generar
         gen = generar()
         modelo = gen['modelo']

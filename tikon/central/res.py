@@ -9,7 +9,8 @@ from tikon.central.matriz import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.ecs.aprioris import APrioriDens
-from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO, guardar_json, asegurar_dir_existe, asegurar_ext
+from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO, guardar_json, asegurar_dir_existe, asegurar_ext
+from tikon.ecs.dists.utils import proc_líms
 
 
 class Resultado(PlantillaSimul):

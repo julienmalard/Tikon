@@ -1,10 +1,12 @@
+from typing import Iterable
+
 import numpy as np
 from frozendict import frozendict
 
+from tikon.central.matriz import Datos
 from tikon.central.módulo import Módulo
 from tikon.central.simul import SimulMódulo
 from tikon.consts import CORREO_AUTOR
-from tikon.central.matriz import Datos
 from tikon.ecs.paráms import Inter
 from tikon.móds.rae.utils import RES_POBS, RES_COHORTES, EJE_COH, EJE_ETAPA, EJE_VÍCTIMA, contexto
 from .res.cohortes import ResCohortes
@@ -26,7 +28,7 @@ class SimulRed(SimulMódulo):
         res_red.ResMuerte, res_red.ResTrans, res_red.ResMov, res_red.ResEstoc, ResCohortes
     ]
 
-    def __init__(símismo, mód, simul_exper, ecs, vars_interés):
+    def __init__(símismo, mód: "RedAE", simul_exper, ecs, vars_interés):
 
         símismo.etapas = mód.etapas
         símismo.orgs = mód.orgs
@@ -78,10 +80,10 @@ class SimulRed(SimulMódulo):
 
         if símismo[RES_COHORTES].activa:
             pobs_coh = símismo[RES_COHORTES].datos[{'comp': 0}]
-            if np.any(~np.equal(pobs_coh.matr, np.round(pobs_coh.matr))):
+            if np.any(~np.array_equal(pobs_coh.matr, np.round(pobs_coh.matr))):
                 raise ValueError('Población de cohorte fraccional.\n{mnsg}'.format(mnsg=mnsg))
             pobs_corresp_coh = pobs.loc[frozendict({EJE_ETAPA: pobs_coh.coords_internas[EJE_ETAPA]})]
-            if np.any(np.not_equal(pobs_coh.suma(dim=EJE_COH).matr, pobs_corresp_coh.matr)):
+            if np.any(np.array_equal(pobs_coh.suma(dim=EJE_COH).matr, pobs_corresp_coh.matr)):
                 raise ValueError('Población de cohorte no suma a población total.\n{mnsg}'.format(mnsg=mnsg))
 
 
@@ -90,7 +92,7 @@ class RedAE(Módulo):
     cls_simul = SimulRed
     eje_coso = EJE_ETAPA
 
-    def __init__(símismo, orgs=None):
+    def __init__(símismo, orgs: Iterable[Organismo] = None):
         super().__init__(cosos=orgs)
         símismo.relaciones = {'presa': [], 'paras': []}
 
@@ -118,7 +120,7 @@ class RedAE(Módulo):
                 raise ValueError('Organismo "{org}" no existe en red "{r}".'.format(org=org, r=símismo))
         símismo.relaciones[relación.tipo].append(relación)
 
-    def inter(símismo, modelo, coso, tipo):
+    def inter(símismo, modelo, coso, tipo: str):
         if isinstance(tipo, str):
             tipo = [tipo]
 

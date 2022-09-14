@@ -5,7 +5,8 @@ from tikon.ecs import Parám
 from tikon.ecs.aprioris import APrioriDens, APrioriDist
 from tikon.ecs.paráms import ValsParámCoso, ValsParámCosoInter, MatrParám
 from tikon.ecs.árb_coso import ParámCoso
-from tikon.utils import proc_líms, EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
+from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO
+from ..ecs.dists.utils import proc_líms
 from .datos import DatosVar, DatosMód
 
 

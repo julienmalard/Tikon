@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Dict
 
-from .dists import DistAnalítica, MnjdrDists
+from .dists import DistAnalítica, ManejadorDists
 
 
 class PlantillaRamaEcCoso(dict):
@@ -135,8 +135,8 @@ class ParámCoso(PlantillaRamaEcCoso):
         símismo.líms = pariente.líms
         símismo.inter = pariente.inter
         símismo.apriori_auto = pariente.apriori
-        símismo._calibs = {}  # type: Dict[str, MnjdrDists]
-        símismo._apriori = MnjdrDists()
+        símismo._calibs = {}  # type: Dict[str, ManejadorDists]
+        símismo._apriori = ManejadorDists()
 
         super().__init__(pariente, ramas=[], coso=coso)
 
@@ -145,7 +145,7 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def agregar_calib(símismo, id_cal, dist, inter=None):
         if id_cal not in símismo._calibs:
-            símismo._calibs[id_cal] = MnjdrDists()
+            símismo._calibs[id_cal] = ManejadorDists()
 
         símismo._calibs[id_cal].actualizar(dist, inter)
 
@@ -157,7 +157,7 @@ class ParámCoso(PlantillaRamaEcCoso):
 
     def espec_apriori(símismo, apriori, inter=None):
         dist = apriori.dist(símismo.líms)
-        símismo._apriori.actualizar(dist=dist, índs=inter)
+        símismo._apriori.actualizar(dist=dist, índices=inter)
 
     def borrar_aprioris(símismo, *args, índs=None):
         if len(args):
@@ -171,15 +171,15 @@ class ParámCoso(PlantillaRamaEcCoso):
         return DistAnalítica.de_líms(símismo.líms)
 
     def dists_disp(símismo, inter, heredar):
-        return {clb: dists.obt_val(índs=inter, heredar=heredar) for clb, dists in símismo._calibs.items()}
+        return {clb: dists.obt_val(índices=inter, heredar=heredar) for clb, dists in símismo._calibs.items()}
 
     def a_dic(símismo):
         return {ll: v for ll, v in {nmb: clb.a_dic() for nmb, clb in símismo._calibs.items()}.items() if len(v)}
 
     def de_dic(símismo, dic):
         for calib, d_dist in dic.items():
-            símismo._calibs[calib] = MnjdrDists.de_dic(
-                d_dist, mnjdr=símismo._calibs[calib] if calib in símismo._calibs else None
+            símismo._calibs[calib] = ManejadorDists.de_dic(
+                d_dist, manejador=símismo._calibs[calib] if calib in símismo._calibs else None
             )
 
     def __copy__(símismo):

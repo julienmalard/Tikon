@@ -12,7 +12,7 @@ class Organismo(Coso):
     Un organismo es la clase pariente para cualquier especie en una red agroecológica.
     """
 
-    def __init__(símismo, nombre, etapas):
+    def __init__(símismo, nombre: str, etapas: Union["Etapa", Iterable["Etapa"]]):
         super().__init__(nombre, ecs=EcsOrgs)
 
         if ':' in símismo.nombre:
@@ -24,7 +24,7 @@ class Organismo(Coso):
 
         símismo.etapas = etapas
 
-    def activar_ec(símismo, categ: str, subcateg: str, ec: str, etapas=None):
+    def activar_ec(símismo, categ: str, subcateg: str, ec: str, etapas: "Tipo_Resolvable_A_Etapas" = None):
         etapas = símismo.resolver_etapas(etapas)
 
         for etp in etapas:
@@ -45,7 +45,10 @@ class Organismo(Coso):
         for etp in etapas:
             etp.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
 
-    def borrar_aprioris(símismo, categ=None, sub_categ=None, ec=None, prm=None, índs=None, etapas=None):
+    def borrar_aprioris(
+            símismo, categ: str = None, sub_categ: str = None, ec: str = None, prm: str = None, índs=None,
+            etapas=None
+    ):
         etapas = símismo.resolver_etapas(etapas)
         for etp in etapas:
             etp.borrar_aprioris(categ, sub_categ, ec, prm, índs=índs)

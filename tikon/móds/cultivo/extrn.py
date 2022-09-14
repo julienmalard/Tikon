@@ -43,7 +43,7 @@ class SimulCultivoExterno(object):
         símismo.instancias = [
             símismo.cls_instancia(
                 sim=símismo, índs=índs, reps=símismo.reps
-            ) for índs in símismo.combin.índs(símismo.reps)
+            ) for índs in símismo.combin.índices(símismo.reps)
         ]
 
     @property
@@ -94,7 +94,7 @@ class SimulCultivoExterno(object):
     def aplicar_daño(símismo, daño):
         daño = símismo.combin.agregar(daño)
         for inst in símismo.instancias:
-            inst.aplicar_daño(daño.loc[codificar_coords(inst.índs)])
+            inst.aplicar_daño(daño.loc[codificar_coords(inst.índices)])
 
     def cerrar(símismo):
         for inst in símismo.instancias:

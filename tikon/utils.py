@@ -126,14 +126,6 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
     return detector.result['encoding']  # Devolver el resultado
 
 
-def proc_líms(líms):
-    inf = np.inf
-
-    if líms is None:
-        return -inf, inf
-    return -inf if líms[0] is None else líms[0], inf if líms[1] is None else líms[1]
-
-
 EJE_PARÁMS = 'paráms'
 EJE_ESTOC = 'estoc'
 EJE_TIEMPO = 'tiempo'

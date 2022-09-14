@@ -1,4 +1,4 @@
-from tikon.utils import proc_líms
+from tikon.ecs.dists.utils import proc_líms
 
 
 def líms_compat(líms, ref):

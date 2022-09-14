@@ -29,7 +29,7 @@ class ValidÍnds(PlantillaValid):
         super().__init__(criterios, peso)
 
     def a_dic(símismo):
-        return {'índs': {ll: str(v) for ll, v in símismo.índs.items()}, **super().a_dic()}
+        return {'índices': {ll: str(v) for ll, v in símismo.índs.items()}, **super().a_dic()}
 
 
 class ValidRes(PlantillaValid):
