@@ -63,6 +63,6 @@ Si quieres la versión más recién (en desarrollo), puedes obtenerla de GitHub 
 
 ## Autores
 
-* [Julien Jean Malard](https://www.researchgate.net/profile/Julien_Malard); julien.malard@mail.mcgill.ca
-* [Marcela Rojas Díaz](https://www.researchgate.net/profile/Marcela_Rojas5); marcela.rojas@mail.mcgill.ca
+* [Julien Jean Malard](https://www.researchgate.net/profile/Julien-Malard-Adam); julien.malard@mail.mcgill.ca
+* [Marcela Rojas Díaz](https://www.researchgate.net/profile/Marcela-Rojas-4); marcela.rojas@mail.mcgill.ca
 
