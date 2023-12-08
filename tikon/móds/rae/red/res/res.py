@@ -9,7 +9,7 @@ from tikon.móds.rae.utils import RES_DEPR, RES_POBS, EJE_VÍCTIMA, RES_EDAD, RE
     RES_ESTOC, EJE_ETAPA
 from tikon.utils import EJE_DEST, EJE_TIEMPO
 from ...orgs.insectos.paras import EtapaJuvenilParasitoide
-from ...orgs.organismo import EtapaFantasma
+from ...orgs.etapa import EtapaFantasma
 
 
 class ResultadoRed(Resultado):

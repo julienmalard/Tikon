@@ -4,7 +4,7 @@ from tikon.datos import Obs
 from tikon.utils import EJE_PARC, EJE_DEST
 
 from .red import RedAE
-from ..orgs.organismo import Etapa
+from ..orgs.etapa import Etapa
 
 
 class ObsRAE(Obs):

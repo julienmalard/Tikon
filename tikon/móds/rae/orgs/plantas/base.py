@@ -1,7 +1,8 @@
 from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MOV, ECS_MRTE, ECS_TRANS, ECS_REPR, \
     ECS_ESTOC
 
-from ..organismo import Organismo, Etapa
+from ..organismo import Organismo
+from ..etapa import Etapa
 
 
 class Planta(Organismo):

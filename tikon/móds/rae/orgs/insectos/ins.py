@@ -1,6 +1,10 @@
-from ..organismo import Organismo, Etapa
+from ..etapa import Etapa, EspecificaciónEtapaPorNombre, EspecificaciónEtapas, EspecificaciónEtapaPorPrincipioNombre
+from ..organismo import Organismo
 
+HUEVO = "huevo"
 JUVENIL = 'juvenil'
+PUPA = "pupa"
+ADULTO = "adulto"
 
 
 class Insecto(Organismo):
@@ -17,7 +21,7 @@ class Insecto(Organismo):
         # Añadir las etapas
         etapas = []
         if huevo:
-            etapas.append('huevo')
+            etapas.append(HUEVO)
 
         if njuvenil < 0:
             raise ValueError('El número de juveniles no puede ser inferior a 0.')
@@ -34,13 +38,43 @@ class Insecto(Organismo):
             etapas.append(nombre_juv)
 
         if pupa:
-            etapas.append('pupa')
+            etapas.append(PUPA)
 
         if adulto:
-            etapas.append('adulto')
+            etapas.append(ADULTO)
 
         super().__init__(nombre=nombre, etapas=etapas)
         símismo.activar_ecs(tipo_ecs)
+
+    def huevo(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
+        return EspecificaciónEtapaPorNombre(
+            organismo=símismo,
+            nombre_etapa=HUEVO,
+            incluir_parasitadas=incluir_parasitadas
+        )
+
+    def juveniles(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
+
+        # Incluiremos todas las etapas empezando por JUVENIL
+        return EspecificaciónEtapaPorPrincipioNombre(
+            organismo=símismo,
+            nombre_etapa=JUVENIL,
+            incluir_parasitadas=incluir_parasitadas
+        )
+
+    def pupa(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
+        return EspecificaciónEtapaPorNombre(
+            organismo=símismo,
+            nombre_etapa=PUPA,
+            incluir_parasitadas=incluir_parasitadas
+        )
+
+    def adulto(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
+        return EspecificaciónEtapaPorNombre(
+            organismo=símismo,
+            nombre_etapa=ADULTO,
+            incluir_parasitadas=incluir_parasitadas
+        )
 
     def resolver_etapas(símismo, etapas):
         if isinstance(etapas, (str, Etapa)):

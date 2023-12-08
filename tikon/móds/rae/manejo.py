@@ -2,7 +2,8 @@ from tikon.central.matriz import donde as donde_, Datos
 from tikon.móds.manejo.acciones import Acción
 from tikon.móds.manejo.conds import CondVariable
 from tikon.móds.rae.utils import RES_POBS, EJE_ETAPA
-from .orgs.organismo import Etapa, SumaEtapas, Organismo
+from .orgs.organismo import Organismo
+from .orgs.etapa import Etapa, SumaEtapas
 from .red import RedAE
 
 

@@ -59,7 +59,7 @@ class SimulCultivoExterno(object):
             orgs_potenciales = símismo.parcelas.conv_cultivos[cultivo]
         else:
             _cls_apropriada = _cls_cultivos[cultivo.lower()]
-            orgs_potenciales = [org for org in símismo.sim.orgs if isinstance(org, _cls_apropriada)]
+            orgs_potenciales = [org for org in símismo.sim.organismos if isinstance(org, _cls_apropriada)]
         if variedad:
             return next(
                 (clt for clt in orgs_potenciales if clt.variedad and clt.variedad.lower() == variedad.lower()),

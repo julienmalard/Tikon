@@ -21,7 +21,7 @@ class SimulCultivo(SimulMódulo):
             raise ErrorRequísitos('Falta módulo RedAE requerido por Cultivo.')
 
         símismo.mód_red = simul_exper.modelo[RedAE.nombre]
-        símismo.orgs = [org for org in símismo.mód_red.orgs if isinstance(org, CultivoExterno)]
+        símismo.orgs = [org for org in símismo.mód_red.organismos if isinstance(org, CultivoExterno)]
         símismo.etapas = [etp for org in símismo.orgs for etp in org]
 
         super().__init__(mód=mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)

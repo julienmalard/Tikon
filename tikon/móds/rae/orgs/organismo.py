@@ -1,9 +1,10 @@
 from itertools import product
 from typing import Union, Iterable
 
-from tikon.central.coso import Coso, SumaCosos
+from tikon.central.coso import Coso
 from .ecs import EcsOrgs
 from .ecs.utils import ECS_EDAD, ECS_MRTE, ECS_TRANS, ECS_ESTOC
+from .etapa import Etapa, EtapaFantasma
 from ..utils import contexto
 
 
@@ -141,82 +142,7 @@ class Organismo(Coso):
         return any(itema is e for e in símismo.etapas)
 
 
-class Etapa(Coso):
-    def __init__(símismo, nombre, org):
-        super().__init__(nombre, EcsOrgs)
-
-        if ':' in símismo.nombre:
-            raise ValueError('Un nombre de etapa no puede contener el carácter ":".')
-
-        símismo.org = org
-
-    @property
-    def índices_inter(símismo):
-        return [str(símismo.org), str(símismo)]
-
-    def presas(símismo):
-        return símismo.org.presas(símismo)
-
-    def huéspedes(símismo):
-        return símismo.org.huéspedes(símismo)
-
-    def con_cohortes(símismo, exper):
-        return símismo.categ_activa(ECS_EDAD, modelo=None, mód=símismo, exper=exper)
-
-    def siguiente(símismo):
-        índice = símismo.org.índice(símismo)
-        if índice < (len(símismo.org) - 1):
-            return símismo.org[índice + 1]
-
-    def __add__(símismo, otro):
-        return SumaEtapas([símismo, otro])
-
-    def __str__(símismo):
-        return str(símismo.org) + ' : ' + símismo.nombre
-
-    def __eq__(símismo, otro):
-        return isinstance(otro, símismo.__class__) and símismo.nombre == otro.nombre and símismo.org == otro.org
-
-    def __hash__(símismo):
-        return hash(str(símismo))
-
-
 categs_parás = [ECS_TRANS, ECS_EDAD, ECS_MRTE, ECS_ESTOC]
-
-
-class EspecificaciónEtapa(object):
-    def resolver(símismo, etapas) -> list[Etapa]:
-        raise NotImplementedError
-
-
-class EtapaFantasma(Etapa):
-    def __init__(símismo, org, etp, org_hués, etp_hués, sig):
-        nombre = f'{etp.nombre} en {etp_hués.org}, {etp_hués.nombre}'
-        super().__init__(nombre, org)
-
-        símismo.etp_espejo = etp
-        símismo.org_hués = org_hués
-        símismo.etp_hués = etp_hués
-        símismo.sig = sig
-
-        símismo._vincular_ecs()
-
-    def _vincular_ecs(símismo):
-
-        if isinstance(símismo.sig, EtapaFantasma):
-            categs_de_prs = []
-        else:
-            categs_de_prs = categs_parás
-        categs_de_hués = [str(ctg) for ctg in símismo.ecs if str(ctg) not in categs_de_prs]
-
-        for ctg in categs_de_hués:
-            símismo.ecs[ctg] = símismo.etp_hués.ecs[ctg]
-
-        for ctg in categs_de_prs:
-            símismo.ecs[ctg] = símismo.etp_espejo.ecs[ctg]
-
-    def siguiente(símismo):
-        return símismo.sig
 
 
 class RelaciónOrgs(object):
@@ -259,16 +185,3 @@ class RelaciónParas(RelaciónOrgs):
         símismo.fantasmas.reverse()
 
         super().__init__([huésped, etp_depred.org])
-
-
-class SumaEtapas(SumaCosos):
-
-    def __add__(símismo, otro):
-        if isinstance(otro, Etapa):
-            return SumaEtapas([otro, *símismo.cosos])
-        else:
-            return SumaEtapas(*list(otro), *símismo.cosos)
-
-
-Tipo_Similar_A_Etapa = Union[Organismo, Etapa, SumaCosos, EspecificaciónEtapa, str]
-Tipo_Resolvable_A_Etapas = Union[Tipo_Similar_A_Etapa, Iterable[Tipo_Similar_A_Etapa]]

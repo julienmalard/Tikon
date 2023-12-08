@@ -34,6 +34,7 @@ frozendict = "^2.3.4"
 mypy = {git = "https://github.com/python/mypy.git"}
 data-science-types = "^0.2.23"
 pyright = "^1.1.270"
+black = "^22.8.0"
 
 [tool.mypy]
 plugins = "numpy.typing.mypy_plugin"

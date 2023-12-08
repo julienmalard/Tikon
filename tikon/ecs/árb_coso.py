@@ -2,10 +2,11 @@ from copy import copy
 from typing import Dict
 
 from .dists import DistAnalítica, ManejadorDists
+from ..central import Coso
 
 
 class PlantillaRamaEcCoso(dict):
-    def __init__(símismo, pariente, ramas, coso):
+    def __init__(símismo, pariente, ramas, coso: Coso):
         símismo.coso = coso
         símismo.nombre = pariente.nombre
         símismo.pariente = pariente
@@ -21,7 +22,7 @@ class PlantillaRamaEcCoso(dict):
             if rm in dic:
                 símismo[rm].de_dic(dic[rm])
 
-    def borrar_calib(símismo, nombre):
+    def borrar_calib(símismo, nombre: str):
         for rm in símismo:
             símismo[rm].borrar_calib(nombre)
 
@@ -68,7 +69,7 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
 class CategEcCoso(PlantillaRamaEcCoso):
 
-    def activar_ec(símismo, subcateg, ec):
+    def activar_ec(símismo, subcateg: str, ec: str):
         símismo[subcateg].activar_ec(ec)
 
     def desactivar_ec(símismo, subcateg=None):
@@ -91,7 +92,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
     def activa(símismo, modelo, mód, exper, coso):
         return símismo.ec_activa().activa(modelo, mód, exper, coso)
 
-    def activar_ec(símismo, ec):
+    def activar_ec(símismo, ec: str):
         try:
             obj_ec = símismo[ec]
         except KeyError:

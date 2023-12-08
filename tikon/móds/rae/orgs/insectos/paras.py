@@ -1,7 +1,7 @@
 from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_EDAD, ECS_MRTE, ECS_MOV, ECS_REPR, ECS_TRANS
 
 from .ins import Insecto, JUVENIL
-from ..organismo import Etapa
+from ..etapa import Etapa, EspecificaciónEtapas, EtapaFantasma, generar_especificación_etapas, ResolvableAEtapas
 
 
 class EtapaJuvenilParasitoide(Etapa):
@@ -89,10 +89,15 @@ class Parasitoide(Insecto):
             siguiente = (etps_entra if isinstance(etps_entra, Etapa) else etps_entra[-1]).siguiente()
             etp_emerg = siguiente or huésped.etapas[-1]
 
-        # if etp_emerg.index():
-        #     raise ValueError('')
         super().parasita(
             huésped=huésped, etp_símismo=etp_símismo, etps_entra=etps_entra, etp_emerg=etp_emerg, etp_recip=etp_recip
+        )
+
+    def juveniles_en(símismo, huésped: ResolvableAEtapas, incluir_parasitadas=True) -> EspecificaciónEtapas:
+        return EspecificaciónEtapasParasitadas(
+            parasitoide=símismo,
+            huésped=huésped,
+            incluir_parasitadas=incluir_parasitadas
         )
 
     def _gen_etapa(símismo, etp):
@@ -150,3 +155,19 @@ class Esfécido(Insecto):
         """
         etps_presa = etps_presa or presa['juvenil']
         símismo.secome(presa=presa, etps_presa=etps_presa, etps_símismo='adulto')
+
+
+class EspecificaciónEtapasParasitadas(EspecificaciónEtapas):
+    def __init__(símismo,
+                 parasitoide: Parasitoide,
+                 huésped: ResolvableAEtapas,
+                 incluir_parasitadas: bool
+                 ):
+        símismo.parasitoide = parasitoide
+        símismo.huésped = generar_especificación_etapas(huésped, incluir_parasitadas)
+
+    def concuerda(símismo, etapa: Etapa) -> bool:
+        if isinstance(etapa, EtapaFantasma):
+            if etapa.org is símismo.parasitoide and símismo.huésped.concuerda(etapa.etp_hués):
+                return True
+        return False
