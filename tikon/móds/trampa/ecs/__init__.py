@@ -5,7 +5,7 @@ from .captura import EcsCaptura
 
 
 class EcsTrampa(ÁrbolEcs):
-    nombre = 'trampa'
+    nombre = "trampa"
 
     # ¡Este órden queda muy importante!
     cls_ramas = [EcsDescomp, EcsCaptura]

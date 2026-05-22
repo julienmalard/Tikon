@@ -11,12 +11,15 @@ from tikon.datos.valid import Valid, gen_proc_valid
 
 
 class PlantillaSimul(object):
-
     def __init__(símismo, nombre, subs):
         símismo.nombre = nombre
         símismo._subs = {str(s): s for s in subs}
         if len(símismo._subs) != len(subs):
-            raise ValueError('Nombres duplicadoes en "{s}"'.format(s=', '.join([str(s) for s in subs])))
+            raise ValueError(
+                'Nombres duplicadoes en "{s}"'.format(
+                    s=", ".join([str(s) for s in subs])
+                )
+            )
 
     def iniciar(símismo):
         for s in símismo:
@@ -74,19 +77,29 @@ class Simulación(PlantillaSimul):
         exper = [exper] if isinstance(exper, Exper) else exper
 
         símismo.ecs = {
-            m: modelo[m].gen_ecs(modelo, mód=modelo[m], exper=exper, n_reps=reps['paráms']) for m in modelo
+            m: modelo[m].gen_ecs(
+                modelo, mód=modelo[m], exper=exper, n_reps=reps["paráms"]
+            )
+            for m in modelo
         }
 
         super().__init__(
             nombre,
             subs=[
-                SimulExper(modelo, exper=exp, t=t, reps=reps, ecs=símismo.ecs, vars_interés=vars_interés)
+                SimulExper(
+                    modelo,
+                    exper=exp,
+                    t=t,
+                    reps=reps,
+                    ecs=símismo.ecs,
+                    vars_interés=vars_interés,
+                )
                 for exp in exper
-            ]
+            ],
         )
 
         símismo.paráms = símismo.vals_paráms()
-        calibs.llenar_vals(símismo.paráms, n_reps=reps['paráms'])
+        calibs.llenar_vals(símismo.paráms, n_reps=reps["paráms"])
 
     def simular(símismo, depurar=False):
         símismo.iniciar()
@@ -119,7 +132,9 @@ class Simulación(PlantillaSimul):
 
         # Un hilo para cada módulo
         l_hilo = [
-            threading.Thread(name='hilo_%s' % exp, target=correr_exp, args=(símismo[exp],))
+            threading.Thread(
+                name="hilo_%s" % exp, target=correr_exp, args=(símismo[exp],)
+            )
             for exp in símismo
         ]
 
@@ -130,7 +145,11 @@ class Simulación(PlantillaSimul):
 
         # Verificar si hubo error
         if errores:
-            raise ChildProcessError('Hubo error en los experimentos siguientes: {exp}'.format(exp=', '.join(errores)))
+            raise ChildProcessError(
+                "Hubo error en los experimentos siguientes: {exp}".format(
+                    exp=", ".join(errores)
+                )
+            )
 
     def validar(símismo, proc=ens):
         proc = gen_proc_valid(proc)
@@ -149,7 +168,12 @@ class SimulExper(PlantillaSimul):
         símismo.reps = reps
         super().__init__(
             nombre=exper.nombre,
-            subs=[modelo[m].gen_simul(símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]) for m in modelo]
+            subs=[
+                modelo[m].gen_simul(
+                    símismo, vars_interés=vars_interés, ecs=símismo.ecs[m]
+                )
+                for m in modelo
+            ],
         )
 
         símismo.verificar_reqs()
@@ -163,12 +187,14 @@ class SimulExper(PlantillaSimul):
         for sim_mód in símismo:
             reqs_mód = símismo[sim_mód].requísitos() or []
             for req in reqs_mód:
-                mód_req, var_req = req.split('.')
+                mód_req, var_req = req.split(".")
                 try:
                     otro_mód = símismo[mód_req]
                 except KeyError:
                     raise ErrorRequísitos(
-                        'Módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(otro=mód_req, mód=sim_mód)
+                        'Módulo "{otro}" requerido por módulo "{mód}" no existe.'.format(
+                            otro=mód_req, mód=sim_mód
+                        )
                     )
                 if var_req not in otro_mód:
                     raise ErrorRequísitos(
@@ -219,9 +245,11 @@ class SimulMódulo(PlantillaSimul):
     resultados = []
 
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
-        if '.' in mód.nombre:
+        if "." in mód.nombre:
             raise ErrorNombreInválido(
-                'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(nombre=mód.nombre)
+                'Nombre {nombre} inválido: Nombres de módulos no pueden contener ".".'.format(
+                    nombre=mód.nombre
+                )
             )
 
         if isinstance(vars_interés, str):
@@ -233,11 +261,15 @@ class SimulMódulo(PlantillaSimul):
         símismo.mód = mód
 
         coords_base = gen_coords_base(
-            n_rep_estoc=simul_exper.reps['estoc'], n_rep_paráms=simul_exper.reps['paráms'],
-            parc=simul_exper.exper.controles['parcelas']
+            n_rep_estoc=simul_exper.reps["estoc"],
+            n_rep_paráms=simul_exper.reps["paráms"],
+            parc=simul_exper.exper.controles["parcelas"],
         )
         símismo.nombre = mód.nombre
-        objs_res = [res(sim=símismo, coords=coords_base, vars_interés=vars_interés) for res in símismo.resultados]
+        objs_res = [
+            res(sim=símismo, coords=coords_base, vars_interés=vars_interés)
+            for res in símismo.resultados
+        ]
         super().__init__(mód.nombre, objs_res)
 
     def vals_paráms(símismo):
@@ -255,7 +287,7 @@ class SimulMódulo(PlantillaSimul):
 
     def obt_valor_extern(símismo, var, mód=None):
         if not mód:
-            mód, var = var.split('.')
+            mód, var = var.split(".")
 
         return símismo.simul_exper[mód].obt_valor(var)
 
@@ -267,7 +299,7 @@ class SimulMódulo(PlantillaSimul):
 
     def poner_valor_extern(símismo, var, val, mód=None, rel=False):
         if not mód:
-            mód, var = var.split('.')
+            mód, var = var.split(".")
         return símismo.simul_exper[mód].poner_valor(var, val, rel=rel)
 
     def requísitos(símismo, controles=False):

@@ -18,16 +18,22 @@ class SimulCultivo(SimulMódulo):
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
 
         if RedAE.nombre not in simul_exper.modelo:
-            raise ErrorRequísitos('Falta módulo RedAE requerido por Cultivo.')
+            raise ErrorRequísitos("Falta módulo RedAE requerido por Cultivo.")
 
         símismo.mód_red = simul_exper.modelo[RedAE.nombre]
-        símismo.orgs = [org for org in símismo.mód_red.organismos if isinstance(org, CultivoExterno)]
+        símismo.orgs = [
+            org for org in símismo.mód_red.organismos if isinstance(org, CultivoExterno)
+        ]
         símismo.etapas = [etp for org in símismo.orgs for etp in org]
 
-        super().__init__(mód=mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
+        super().__init__(
+            mód=mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés
+        )
 
-        símismo.simuls_parcelas = [prc.gen_simul(símismo) for prc in simul_exper.exper.grupos_parc]
-        símismo.superficies = símismo.exper.controles['superficies']
+        símismo.simuls_parcelas = [
+            prc.gen_simul(símismo) for prc in simul_exper.exper.grupos_parc
+        ]
+        símismo.superficies = símismo.exper.controles["superficies"]
 
     @property
     def red(símismo):
@@ -58,13 +64,22 @@ class SimulCultivo(SimulMódulo):
         depred = símismo.red.obt_valor(RES_DEPR)
 
         # Daño total (de todos herbívoros) por etapa de planta, por m2
-        daño = depred.loc[codificar_coords({EJE_VÍCTIMA: [x for x in símismo.etapas]})].suma(dim=EJE_ETAPA) / símismo.superficies
+        daño = (
+            depred.loc[
+                codificar_coords({EJE_VÍCTIMA: [x for x in símismo.etapas]})
+            ].suma(dim=EJE_ETAPA)
+            / símismo.superficies
+        )
 
         for prc in símismo.simuls_parcelas:
-            prc.aplicar_daño(daño.loc[codificar_coords({EJE_PARC: [str(p) for p in prc.parcelas]})])
+            prc.aplicar_daño(
+                daño.loc[codificar_coords({EJE_PARC: [str(p) for p in prc.parcelas]})]
+            )
 
     def mandar_biomasa(símismo):
-        símismo.red.poner_valor(RES_POBS, val=símismo.obt_valor(RES_BIOMASA) * símismo.superficies)
+        símismo.red.poner_valor(
+            RES_POBS, val=símismo.obt_valor(RES_BIOMASA) * símismo.superficies
+        )
 
     def cerrar(símismo):
         for s in símismo.simuls_parcelas:
@@ -72,13 +87,21 @@ class SimulCultivo(SimulMódulo):
         super().cerrar()
 
     def requísitos(símismo, controles=False):
-        reqs_externos = {req for prc in símismo.simuls_parcelas for req in prc.requísitos(controles) or {}}
-        req_adicional = {'superficies'} if controles else {'{red}.{depred}'.format(red=RedAE.nombre, depred=RES_DEPR)}
+        reqs_externos = {
+            req
+            for prc in símismo.simuls_parcelas
+            for req in prc.requísitos(controles) or {}
+        }
+        req_adicional = (
+            {"superficies"}
+            if controles
+            else {"{red}.{depred}".format(red=RedAE.nombre, depred=RES_DEPR)}
+        )
         return reqs_externos.union(req_adicional)
 
 
 class Cultivo(Módulo):
-    nombre = 'cultivo'
+    nombre = "cultivo"
     cls_simul = SimulCultivo
 
     def __init__(símismo):

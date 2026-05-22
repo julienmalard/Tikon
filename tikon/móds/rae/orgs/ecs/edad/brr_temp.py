@@ -8,16 +8,16 @@ from ._plntll_ec import EcuaciónEdad
 
 
 class PrTDevMínBT(Parám):
-    nombre = 't_dev_mín'
+    nombre = "t_dev_mín"
     líms = (None, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(norm(20, 10))
 
 
 class PrDeltaTLetalBT(Parám):
-    nombre = 'delta_t_letal'
+    nombre = "delta_t_letal"
     líms = (0, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(expon(scale=10))
 
 
@@ -40,20 +40,21 @@ class FuncBrièreTemperatura(EcuaciónEdad):
     .. [2] J.-F. Briere, P. Pracros, A.-Y. Le Broux, J.-S. Pierre. A novel rate model of temperature-dependent
        development for arthropods. Environmental Entomology, 28 (1999), pp. 22-29.
     """
-    nombre = 'Brière Temperatura'
+
+    nombre = "Brière Temperatura"
     cls_ramas = [PrTDevMínBT, PrDeltaTLetalBT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
+        temp_prom = símismo.obt_valor_extern(sim, "clima.temp_prom")
 
-        return máximo(
-            temp_prom * (temp_prom - cf['t_dev_mín']), 0
-        ) * (
-                   máximo(cf['delta_t_letal'] + cf['t_dev_mín'] - temp_prom, 0)
-               ).fi(np.sqrt) * paso
+        return (
+            máximo(temp_prom * (temp_prom - cf["t_dev_mín"]), 0)
+            * (máximo(cf["delta_t_letal"] + cf["t_dev_mín"] - temp_prom, 0)).fi(np.sqrt)
+            * paso
+        )
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
-            return {'clima.temp_prom'}
+            return {"clima.temp_prom"}

@@ -6,7 +6,7 @@ class Expon(EcuaciónCrec):
     Crecimiento exponencial
     """
 
-    nombre = 'Exponencial'
+    nombre = "Exponencial"
 
     # El exponencial no tiene parámetros además de r
 

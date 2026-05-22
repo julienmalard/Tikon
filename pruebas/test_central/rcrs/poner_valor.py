@@ -3,7 +3,7 @@ from tikon.central.res import Resultado
 
 
 class Res(Resultado):
-    nombre = 'res'
+    nombre = "res"
     unids = None
 
 
@@ -16,11 +16,11 @@ class SimulMóduloCntrl(SimulMódulo):
 
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)
-        símismo.poner_valor('res', 1, rel=símismo.relativo)
+        símismo.poner_valor("res", 1, rel=símismo.relativo)
 
 
 class MóduloValorControl(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloCntrl
 
     def __init__(símismo, relativo):
@@ -28,6 +28,6 @@ class MóduloValorControl(Módulo):
         super().__init__(cosos=None)
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 modelo = Modelo(MóduloValorControl(relativo=False))
 modelo_rel = Modelo(MóduloValorControl(relativo=True))

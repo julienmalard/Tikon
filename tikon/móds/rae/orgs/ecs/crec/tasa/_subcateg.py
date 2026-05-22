@@ -7,6 +7,6 @@ from .constante import Constante
 
 
 class TasaCrec(SubcategEcOrg):
-    nombre = 'Tasa'
+    nombre = "Tasa"
     cls_ramas = [EcuaciónVacía, Constante, LogNormTemp]
     _nombre_res = RES_CREC

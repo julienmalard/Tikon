@@ -13,11 +13,13 @@ class SimulAplicaciones(SimulMódulo):
     resultados = [ResDescomp, ResConcentración, ResMortalidad]
 
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
-        super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
+        super().__init__(
+            mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés
+        )
 
 
 class Aplicaciones(Módulo):
-    nombre = 'aplicaciones'
+    nombre = "aplicaciones"
     cls_simul = SimulAplicaciones
     cls_ecs = EcsProducto
     eje_coso = EJE_PRODUCTO
@@ -35,7 +37,7 @@ class Aplicaciones(Módulo):
 
         etps_inter = set()
         for tp in tipo:
-            if tp == 'etapa':
+            if tp == "etapa":
                 etps_inter.update(modelo[RedAE.nombre].etapas)
             else:
                 raise ValueError(tipo)

@@ -8,21 +8,21 @@ from ._plntll_ec import EcuaciónEdad
 
 
 class PrRhoLT(Parám):
-    nombre = 'rho'
+    nombre = "rho"
     líms = (0, 1)
-    unids = 'días C -1'
+    unids = "días C -1"
 
 
 class PrDeltaLT(Parám):
-    nombre = 'delta'
+    nombre = "delta"
     líms = (0, 1)
-    unids = 'C'
+    unids = "C"
 
 
 class PrTLetalLT(Parám):
-    nombre = 't_letal'
+    nombre = "t_letal"
     líms = (None, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(estad.norm(20, 10))
 
 
@@ -40,20 +40,27 @@ class FuncLoganTemperatura(EcuaciónEdad):
     .. [2] Logan, J.A., Wollkind, D.J., Hoyt, S.C. & Tanigoshi, L.K. 1976. An analytical model for description of
        temperature dependent rate phenomena in arthropods. Environmental Entomology, 5:1133–1140.
     """
-    nombre = 'Logan Temperatura'
+
+    nombre = "Logan Temperatura"
     cls_ramas = [PrRhoLT, PrDeltaLT, PrTLetalLT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
 
-        temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
-        return máximo(
-            (cf['rho'] * temp_prom).fi(np.exp) -
-            (cf['rho'] * cf['t_letal'] - (cf['t_letal'] - temp_prom) / cf['delta']).fi(np.exp),
-            0
-        ) * paso
+        temp_prom = símismo.obt_valor_extern(sim, "clima.temp_prom")
+        return (
+            máximo(
+                (cf["rho"] * temp_prom).fi(np.exp)
+                - (
+                    cf["rho"] * cf["t_letal"]
+                    - (cf["t_letal"] - temp_prom) / cf["delta"]
+                ).fi(np.exp),
+                0,
+            )
+            * paso
+        )
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
-            return {'clima.temp_prom'}
+            return {"clima.temp_prom"}

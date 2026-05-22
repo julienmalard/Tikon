@@ -20,7 +20,11 @@ class Obs(object):
         if not np.issubdtype(símismo.datos[EJE_TIEMPO].values.dtype, np.datetime64):
             res = res.copy()
             res[EJE_TIEMPO] = np.array(
-                [x.days for x in pd.to_datetime(res[EJE_TIEMPO].values) - pd.to_datetime(res[EJE_TIEMPO].values[0])]
+                [
+                    x.days
+                    for x in pd.to_datetime(res[EJE_TIEMPO].values)
+                    - pd.to_datetime(res[EJE_TIEMPO].values[0])
+                ]
             )
         return res
 
@@ -33,9 +37,19 @@ class Obs(object):
         raise NotImplementedError
 
     @classmethod
-    def de_cuadro(cls, datos_pd, corresp, eje_principal, parc=None, tiempo=None, coords=None, factor=1, **argsll):
+    def de_cuadro(
+        cls,
+        datos_pd,
+        corresp,
+        eje_principal,
+        parc=None,
+        tiempo=None,
+        coords=None,
+        factor=1,
+        **argsll,
+    ):
         if isinstance(datos_pd, str):
-            datos_pd = pd.read_csv(datos_pd, encoding='utf8')
+            datos_pd = pd.read_csv(datos_pd, encoding="utf8")
         corresp = corresp or {}
         for ll, v in corresp.items():
             if isinstance(v, list):
@@ -43,7 +57,7 @@ class Obs(object):
         coords = {
             EJE_PARC: parc or EJE_PARC,
             EJE_TIEMPO: tiempo or EJE_TIEMPO,
-            **(coords or {})
+            **(coords or {}),
         }
 
         coords_xr = coords.copy()
@@ -59,8 +73,13 @@ class Obs(object):
         for f in datos_pd.iterrows():
             d = f[1]
             índs = {
-                **{dim: d[vl] if isinstance(vl, str) and vl in d else vl for dim, vl in coords.items()},
-                **{eje_principal: [corresp[x] for x in list(d.axes[0]) if x in corresp]}
+                **{
+                    dim: d[vl] if isinstance(vl, str) and vl in d else vl
+                    for dim, vl in coords.items()
+                },
+                **{
+                    eje_principal: [corresp[x] for x in list(d.axes[0]) if x in corresp]
+                },
             }
             vals = d[[x for x in list(d.axes[0]) if x in corresp]]
             datos.loc[índs] = vals * factor

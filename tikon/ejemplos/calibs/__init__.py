@@ -4,7 +4,7 @@ from datetime import datetime
 from pkg_resources import resource_filename
 from tikon.utils import leer_json, guardar_json
 
-ARCH_INFO = 'info.json'
+ARCH_INFO = "info.json"
 
 
 def obt_calib(nombre):
@@ -15,9 +15,9 @@ def guardar_calib(objs, nombre, autor, correo=None):
     ahora = datetime.now()
 
     info = {
-        'fecha': ahora.strftime('%Y-%m-%d %H:%M:%S'),
-        'autor': autor,
-        'correo': correo
+        "fecha": ahora.strftime("%Y-%m-%d %H:%M:%S"),
+        "autor": autor,
+        "correo": correo,
     }
 
     dir_ = obt_calib(nombre)

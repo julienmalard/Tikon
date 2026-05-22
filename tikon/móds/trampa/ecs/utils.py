@@ -1,2 +1,2 @@
-ECS_DESCOMP = 'Descomposición'
-ECS_CAPTURA = 'Mortalidad'
+ECS_DESCOMP = "Descomposición"
+ECS_CAPTURA = "Mortalidad"

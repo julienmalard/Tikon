@@ -12,11 +12,23 @@ from typing_extensions import NotRequired
 from tikon.ecs.dists import utils
 from tikon.ecs.dists.dibs import dibujar_dist
 from tikon.ecs.dists.dists import Dist, _escala_inf, _dist_mu, DicDist
-from tikon.ecs.dists.utils import obt_scipy, obt_nombre, obt_prms_obj_scipy, líms_dist, clase_scipy, prms_dist, \
-    proc_líms, \
-    Líms_Con_None, Líms_Numéricas
+from tikon.ecs.dists.utils import (
+    obt_scipy,
+    obt_nombre,
+    obt_prms_obj_scipy,
+    líms_dist,
+    clase_scipy,
+    prms_dist,
+    proc_líms,
+    Líms_Con_None,
+    Líms_Numéricas,
+)
 from tikon.ecs.utils import líms_compat
-from tikon.tipos import Tipo_Matriz_Numérica, Tipo_Matriz_Núm_Entero, Tipo_Valor_Numérico
+from tikon.tipos import (
+    Tipo_Matriz_Numérica,
+    Tipo_Matriz_Núm_Entero,
+    Tipo_Valor_Numérico,
+)
 
 
 class DicDistAnalítica(DicDist, TypedDict):
@@ -74,14 +86,16 @@ class DistAnalítica(Dist):
         return vals
 
     def dibujar(símismo, nombre=None, ejes=None, argsll=None) -> Axes:
-        return dibujar_dist(símismo, nombre=nombre or símismo.nombre_dist, ejes=ejes, argsll=argsll)
+        return dibujar_dist(
+            símismo, nombre=nombre or símismo.nombre_dist, ejes=ejes, argsll=argsll
+        )
 
     def a_dic(símismo) -> DicDistAnalítica:
         return DicDistAnalítica(
             tipo=símismo.__class__.__name__,
             transf=símismo._transf.a_dic() if símismo._transf else None,
             dist=símismo.nombre_dist,
-            paráms=símismo.paráms
+            paráms=símismo.paráms,
         )
 
     @classmethod
@@ -90,8 +104,12 @@ class DistAnalítica(Dist):
             raise ValueError(dic)
 
         dicDistAnalítica = cast(DicDistAnalítica, dic)
-        transf = TransfDist.de_dic(dicDistAnalítica['transf']) if dicDistAnalítica['transf'] else None
-        dist_sp = obt_scipy(dicDistAnalítica['dist'], dicDistAnalítica['paráms'])
+        transf = (
+            TransfDist.de_dic(dicDistAnalítica["transf"])
+            if dicDistAnalítica["transf"]
+            else None
+        )
+        dist_sp = obt_scipy(dicDistAnalítica["dist"], dicDistAnalítica["paráms"])
         return cls(dist=dist_sp, transf=transf)
 
     @classmethod
@@ -100,19 +118,32 @@ class DistAnalítica(Dist):
 
         if líms[0] == -np.inf:
             if líms[1] == np.inf:
-                return DistAnalítica(dist=estad.norm(), transf=TransfDist(None, ubic=0, escl=_escala_inf))
+                return DistAnalítica(
+                    dist=estad.norm(), transf=TransfDist(None, ubic=0, escl=_escala_inf)
+                )
 
-            return DistAnalítica(dist=estad.expon(), transf=TransfDist(None, ubic=líms[1], escl=-_escala_inf))
+            return DistAnalítica(
+                dist=estad.expon(),
+                transf=TransfDist(None, ubic=líms[1], escl=-_escala_inf),
+            )
 
         if líms[1] == np.inf:
-            return DistAnalítica(dist=estad.expon(), transf=TransfDist(None, ubic=líms[0], escl=_escala_inf))
+            return DistAnalítica(
+                dist=estad.expon(),
+                transf=TransfDist(None, ubic=líms[0], escl=_escala_inf),
+            )
 
-        return DistAnalítica(dist=estad.uniform(), transf=TransfDist(None, ubic=líms[0], escl=líms[1] - líms[0]))
+        return DistAnalítica(
+            dist=estad.uniform(),
+            transf=TransfDist(None, ubic=líms[0], escl=líms[1] - líms[0]),
+        )
 
     @classmethod
     def de_dens(
-            cls, dens: int | float, líms_dens: Optional[Líms_Con_None],
-            líms: Optional[Líms_Con_None]
+        cls,
+        dens: int | float,
+        líms_dens: Optional[Líms_Con_None],
+        líms: Optional[Líms_Con_None],
     ) -> "DistAnalítica":
         líms_dens_resueltas = np.array(proc_líms(líms_dens))
         líms_resueltas = np.array(proc_líms(líms))
@@ -121,26 +152,45 @@ class DistAnalítica(Dist):
         if dens == 1:
             if np.isinf(líms_dens_resueltas[0]) or np.isinf(líms_dens_resueltas[1]):
                 raise ValueError(
-                    'No se puede especificar densidad de 1 con rango ilimitado como "{}".'.format(líms_dens_resueltas)
+                    'No se puede especificar densidad de 1 con rango ilimitado como "{}".'.format(
+                        líms_dens_resueltas
+                    )
                 )
             return DistAnalítica(
-                dist=estad.uniform(), transf=TransfDist(None, ubic=líms_dens_resueltas[0], escl=líms_dens_resueltas[1] - líms_dens_resueltas[0])
+                dist=estad.uniform(),
+                transf=TransfDist(
+                    None,
+                    ubic=líms_dens_resueltas[0],
+                    escl=líms_dens_resueltas[1] - líms_dens_resueltas[0],
+                ),
             )
         elif dens <= 0 or dens > 1:
-            raise ValueError('La densidad debe ser en (0, 1].')
+            raise ValueError("La densidad debe ser en (0, 1].")
 
         if líms_resueltas[0] == -np.inf:
             if líms_resueltas[1] == np.inf:
                 transf = None
             else:
-                escl = (líms_resueltas[1] - líms_dens_resueltas[1]) or ((líms_resueltas[1] - líms_dens_resueltas[0]) if líms_dens_resueltas[0] != -np.inf else 1)
-                transf = TransfDist('LnExp', ubic=líms_resueltas[1], escl=-escl)
+                escl = (líms_resueltas[1] - líms_dens_resueltas[1]) or (
+                    (líms_resueltas[1] - líms_dens_resueltas[0])
+                    if líms_dens_resueltas[0] != -np.inf
+                    else 1
+                )
+                transf = TransfDist("LnExp", ubic=líms_resueltas[1], escl=-escl)
 
         elif líms_resueltas[1] == np.inf:
-            escl = (líms_dens_resueltas[0] - líms_resueltas[0]) or ((líms_dens_resueltas[1] - líms_resueltas[0]) if líms_dens_resueltas[1] != np.inf else 1)
-            transf = TransfDist('LnExp', ubic=líms_resueltas[0], escl=escl)
+            escl = (líms_dens_resueltas[0] - líms_resueltas[0]) or (
+                (líms_dens_resueltas[1] - líms_resueltas[0])
+                if líms_dens_resueltas[1] != np.inf
+                else 1
+            )
+            transf = TransfDist("LnExp", ubic=líms_resueltas[0], escl=escl)
         else:
-            transf = TransfDist('Expit', ubic=líms_resueltas[0], escl=líms_resueltas[1] - líms_resueltas[0])
+            transf = TransfDist(
+                "Expit",
+                ubic=líms_resueltas[0],
+                escl=líms_resueltas[1] - líms_resueltas[0],
+            )
 
         if transf is None:
             líms_dens_intern = líms_dens_resueltas
@@ -151,8 +201,8 @@ class DistAnalítica(Dist):
         if líms_dens_intern[0] == -np.inf:
             if líms_dens_intern[1] == np.inf:
                 raise ValueError(
-                    'Rangos idénticos como {r1} y {r2} no pueden tener densidad inferior a '
-                    '1.'.format(r1=líms_resueltas, r2=líms_dens_resueltas)
+                    "Rangos idénticos como {r1} y {r2} no pueden tener densidad inferior a "
+                    "1.".format(r1=líms_resueltas, r2=líms_dens_resueltas)
                 )
             mu = líms_dens_intern[1] - _dist_mu
             sg = -_dist_mu / estad.norm.ppf(1 - dens)
@@ -163,17 +213,28 @@ class DistAnalítica(Dist):
 
         else:
             mu = (líms_dens_intern[1] + líms_dens_intern[0]) / 2
-            sg = (líms_dens_intern[0] - líms_dens_intern[1]) / 2 / estad.norm.ppf((1 - dens) / 2)
+            sg = (
+                (líms_dens_intern[0] - líms_dens_intern[1])
+                / 2
+                / estad.norm.ppf((1 - dens) / 2)
+            )
 
         return DistAnalítica(estad.norm(loc=mu, scale=sg), transf=transf)
 
     @classmethod
-    def de_traza(cls, trz: Tipo_Matriz_Numérica, líms: Líms_Con_None, permitidas: list[str] = None):
+    def de_traza(
+        cls,
+        trz: Tipo_Matriz_Numérica,
+        líms: Líms_Con_None,
+        permitidas: list[str] = None,
+    ):
         permitidas = permitidas or list(utils.dists)
 
         líms = proc_líms(líms)
         if trz.min() < líms[0] or trz.max() > líms[1]:
-            raise ValueError('Valores en traza deben caber en los límites teoréticos de la distribución.')
+            raise ValueError(
+                "Valores en traza deben caber en los límites teoréticos de la distribución."
+            )
 
         # Un diccionario para guardar el mejor ajuste
         class DicMejorAjuste(TypedDict):
@@ -195,19 +256,19 @@ class DistAnalítica(Dist):
                 restric = {}
             elif líms_d[0] == -np.inf or líms_d[1] == np.inf:
                 transf = _gen_transf_1_lím(trz, líms, líms_d)
-                restric = {'floc': 0}
+                restric = {"floc": 0}
             else:
                 escl = (líms[1] - líms[0]) / (líms_d[1] - líms_d[0])
                 ubic = líms[0] - líms_d[0] * escl
                 transf = TransfDist(None, ubic=ubic, escl=escl)
                 # En el caso [R, R], limitamos los valores inferiores y superiores de la distribución.
-                restric = {'floc': 0, 'fscale': 1}
+                restric = {"floc": 0, "fscale": 1}
 
             trz_transf = transf.transf_inv(trz)
 
             cls_sp = clase_scipy(nmbr)
             if len(prms_dist(nmbr)) == len(restric):
-                prms = {'loc': 0, 'scale': 1}
+                prms = {"loc": 0, "scale": 1}
             else:
                 try:
                     ajustados = cls_sp.fit(trz_transf, **restric)
@@ -217,16 +278,20 @@ class DistAnalítica(Dist):
             p = estad.kstest(rvs=trz_transf, cdf=cls_sp(**prms).cdf)[1]
 
             # Si el ajuste es mejor que el mejor ajuste anterior...
-            if not mejor_ajuste or p > mejor_ajuste['p']:
+            if not mejor_ajuste or p > mejor_ajuste["p"]:
                 # Guardarlo
                 mejor_ajuste = dict(dist=cls_sp(**prms), transf=transf, p=p)
 
         if not mejor_ajuste:
-            raise ValueError('No se encontró distribución permitida compatible.')
+            raise ValueError("No se encontró distribución permitida compatible.")
 
         # Si no logramos un buen aujste, avisar al usuario.
-        if mejor_ajuste['p'] <= 0.10:
-            avisar('El ajuste de la mejor distribución quedó muy mal (p = {:.6f}).'.format(mejor_ajuste['p']))
+        if mejor_ajuste["p"] <= 0.10:
+            avisar(
+                "El ajuste de la mejor distribución quedó muy mal (p = {:.6f}).".format(
+                    mejor_ajuste["p"]
+                )
+            )
 
         return DistAnalítica(dist=mejor_ajuste["dist"], transf=mejor_ajuste["transf"])
 
@@ -238,7 +303,12 @@ class DicTransfDist(TypedDict):
 
 
 class TransfDist(object):
-    def __init__(símismo, transf: Optional[str], ubic: Tipo_Valor_Numérico = 0, escl: Tipo_Valor_Numérico = 1):
+    def __init__(
+        símismo,
+        transf: Optional[str],
+        ubic: Tipo_Valor_Numérico = 0,
+        escl: Tipo_Valor_Numérico = 1,
+    ):
         """
 
         Parameters
@@ -252,10 +322,10 @@ class TransfDist(object):
             símismo._transf = None
         else:
             símismo._transf = transf.lower()
-            if símismo._transf == 'expit':
+            if símismo._transf == "expit":
                 símismo._f = expit
                 símismo._f_inv = logit
-            elif símismo._transf == 'lnexp':
+            elif símismo._transf == "lnexp":
                 símismo._f = lnexp
                 símismo._f_inv = invlnexp
             else:
@@ -271,15 +341,11 @@ class TransfDist(object):
         return símismo._f_inv((vals - símismo._ubic) / símismo._escl)
 
     def a_dic(símismo) -> DicTransfDist:
-        return {
-            'transf': símismo._transf,
-            'ubic': símismo._ubic,
-            'escl': símismo._escl
-        }
+        return {"transf": símismo._transf, "ubic": símismo._ubic, "escl": símismo._escl}
 
     @classmethod
     def de_dic(cls, dic: DicTransfDist) -> "TransfDist":
-        return TransfDist(dic['transf'], ubic=dic['ubic'], escl=dic['escl'])
+        return TransfDist(dic["transf"], ubic=dic["ubic"], escl=dic["escl"])
 
 
 def _gen_transf_sin_líms(trz: Tipo_Matriz_Numérica, líms: Líms_Numéricas) -> TransfDist:
@@ -287,15 +353,17 @@ def _gen_transf_sin_líms(trz: Tipo_Matriz_Numérica, líms: Líms_Numéricas) -
         if líms[1] == np.inf:
             # noinspection PyTypeChecker
             return TransfDist(None, ubic=np.mean(trz), escl=np.std(trz))
-        return TransfDist('LnExp', ubic=líms[1], escl=-np.std(trz))
+        return TransfDist("LnExp", ubic=líms[1], escl=-np.std(trz))
 
     if líms[1] == np.inf:
         # noinspection PyTypeChecker
-        return TransfDist('LnExp', ubic=líms[0], escl=np.std(trz))
-    return TransfDist('Expit', ubic=líms[0], escl=líms[1] - líms[0])
+        return TransfDist("LnExp", ubic=líms[0], escl=np.std(trz))
+    return TransfDist("Expit", ubic=líms[0], escl=líms[1] - líms[0])
 
 
-def _gen_transf_1_lím(trz: Tipo_Matriz_Numérica, líms: Líms_Numéricas, líms_d: Líms_Numéricas) -> TransfDist:
+def _gen_transf_1_lím(
+    trz: Tipo_Matriz_Numérica, líms: Líms_Numéricas, líms_d: Líms_Numéricas
+) -> TransfDist:
     if líms_d[0] == -np.inf:
         líms_d = (-líms_d[1], np.inf)
         líms = (-líms[1], -líms[0])

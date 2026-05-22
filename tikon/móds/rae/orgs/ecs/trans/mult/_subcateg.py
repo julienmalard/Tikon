@@ -10,6 +10,6 @@ class MultTrans(SubcategEcOrg):
     Posibilidades de transiciones multiplicadoras (por ejemplo, la eclosión de parasitoides).
     """
 
-    nombre = 'Mult'
+    nombre = "Mult"
     cls_ramas = [EcuaciónVacía, Linear]
     _nombre_res = RES_TRANS

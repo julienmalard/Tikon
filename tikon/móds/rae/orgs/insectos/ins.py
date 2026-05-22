@@ -1,8 +1,13 @@
-from ..etapa import Etapa, EspecificaciónEtapaPorNombre, EspecificaciónEtapas, EspecificaciónEtapaPorPrincipioNombre
+from ..etapa import (
+    Etapa,
+    EspecificaciónEtapaPorNombre,
+    EspecificaciónEtapas,
+    EspecificaciónEtapaPorPrincipioNombre,
+)
 from ..organismo import Organismo
 
 HUEVO = "huevo"
-JUVENIL = 'juvenil'
+JUVENIL = "juvenil"
 PUPA = "pupa"
 ADULTO = "adulto"
 
@@ -13,7 +18,9 @@ class Insecto(Organismo):
     pariente para cada tipo de insecto.
     """
 
-    def __init__(símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None):
+    def __init__(
+        símismo, nombre, huevo=False, njuvenil=0, pupa=False, adulto=True, tipo_ecs=None
+    ):
 
         if tipo_ecs is None:
             tipo_ecs = {}
@@ -24,15 +31,14 @@ class Insecto(Organismo):
             etapas.append(HUEVO)
 
         if njuvenil < 0:
-            raise ValueError('El número de juveniles no puede ser inferior a 0.')
+            raise ValueError("El número de juveniles no puede ser inferior a 0.")
 
         for i in range(0, njuvenil):
-
             # Establecer el nombre de la etapa juvenil
             if njuvenil == 1:
                 nombre_juv = JUVENIL
             else:
-                nombre_juv = f'{JUVENIL} {i + 1}'
+                nombre_juv = f"{JUVENIL} {i + 1}"
 
             # Agregar la etapa
             etapas.append(nombre_juv)
@@ -50,7 +56,7 @@ class Insecto(Organismo):
         return EspecificaciónEtapaPorNombre(
             organismo=símismo,
             nombre_etapa=HUEVO,
-            incluir_parasitadas=incluir_parasitadas
+            incluir_parasitadas=incluir_parasitadas,
         )
 
     def juveniles(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
@@ -59,21 +65,21 @@ class Insecto(Organismo):
         return EspecificaciónEtapaPorPrincipioNombre(
             organismo=símismo,
             nombre_etapa=JUVENIL,
-            incluir_parasitadas=incluir_parasitadas
+            incluir_parasitadas=incluir_parasitadas,
         )
 
     def pupa(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
         return EspecificaciónEtapaPorNombre(
             organismo=símismo,
             nombre_etapa=PUPA,
-            incluir_parasitadas=incluir_parasitadas
+            incluir_parasitadas=incluir_parasitadas,
         )
 
     def adulto(símismo, incluir_parasitadas=True) -> EspecificaciónEtapas:
         return EspecificaciónEtapaPorNombre(
             organismo=símismo,
             nombre_etapa=ADULTO,
-            incluir_parasitadas=incluir_parasitadas
+            incluir_parasitadas=incluir_parasitadas,
         )
 
     def resolver_etapas(símismo, etapas):

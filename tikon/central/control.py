@@ -1,8 +1,6 @@
 from .parc import _controles_parc
 
-_controles_auto = {
-    'n_cohortes': 10
-}
+_controles_auto = {"n_cohortes": 10}
 
 
 class ControlesExper(object):

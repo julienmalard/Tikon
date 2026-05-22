@@ -1,26 +1,44 @@
-from tikon.móds.rae.orgs.ecs.utils import ECS_CREC, ECS_DEPR, ECS_MRTE, ECS_EDAD, ECS_TRANS, ECS_REPR, ECS_ESTOC, \
-    ECS_MOV
+from tikon.móds.rae.orgs.ecs.utils import (
+    ECS_CREC,
+    ECS_DEPR,
+    ECS_MRTE,
+    ECS_EDAD,
+    ECS_TRANS,
+    ECS_REPR,
+    ECS_ESTOC,
+    ECS_MOV,
+)
 from tikon.móds.rae.orgs.plantas import Planta
 
 
 class CultivoExterno(Planta):
-
     def __init__(símismo, nombre=None, variedad=None):
         nombre = nombre or símismo.cultivo
         base = {
-            ECS_CREC: {'Tasa': 'Nada', 'Ecuación': 'Nada'},
-            ECS_DEPR: {'Ecuación': 'Nada'},
-            ECS_MRTE: {'Ecuación': 'Nada'},
-            ECS_EDAD: {'Ecuación': 'Nada'},
-            ECS_TRANS: {'Prob': 'Nada', 'Mult': 'Nada'},
-            ECS_REPR: {'Prob': 'Nada'},
-            ECS_ESTOC: {'Dist': 'Nada'},
-            ECS_MOV: {'Distancia': 'Nada', 'Atracción': 'Nada'}
+            ECS_CREC: {"Tasa": "Nada", "Ecuación": "Nada"},
+            ECS_DEPR: {"Ecuación": "Nada"},
+            ECS_MRTE: {"Ecuación": "Nada"},
+            ECS_EDAD: {"Ecuación": "Nada"},
+            ECS_TRANS: {"Prob": "Nada", "Mult": "Nada"},
+            ECS_REPR: {"Prob": "Nada"},
+            ECS_ESTOC: {"Dist": "Nada"},
+            ECS_MOV: {"Distancia": "Nada", "Atracción": "Nada"},
         }
-        tipo_ecs = {parte: base for parte in ['raíz', 'palo', 'sabia', 'hoja', 'flor', 'fruta', 'semilla']}
+        tipo_ecs = {
+            parte: base
+            for parte in ["raíz", "palo", "sabia", "hoja", "flor", "fruta", "semilla"]
+        }
         super().__init__(
-            nombre, raíz=True, palo=True, sabia=True, hoja=True, flor=True, fruta=True, semilla=True,
-            variedad=variedad, tipo_ecs=tipo_ecs
+            nombre,
+            raíz=True,
+            palo=True,
+            sabia=True,
+            hoja=True,
+            flor=True,
+            fruta=True,
+            semilla=True,
+            variedad=variedad,
+            tipo_ecs=tipo_ecs,
         )
 
     @property
@@ -29,144 +47,144 @@ class CultivoExterno(Planta):
 
 
 class Alfalfa(CultivoExterno):
-    cultivo = 'alfalfa'
+    cultivo = "alfalfa"
 
 
 class Tomate(CultivoExterno):
-    cultivo = 'tomate'
+    cultivo = "tomate"
 
 
 class PastoBahía(CultivoExterno):
-    cultivo = 'pasto bahía'
+    cultivo = "pasto bahía"
 
 
 class GramaComún(CultivoExterno):
-    cultivo = 'grama común'
+    cultivo = "grama común"
 
 
 class Frijol(CultivoExterno):
-    cultivo = 'frijol'
+    cultivo = "frijol"
 
 
 class Brachiaria(CultivoExterno):
-    cultivo = 'brachiaria'
+    cultivo = "brachiaria"
 
 
 class Repollo(CultivoExterno):
-    cultivo = 'repollo'
+    cultivo = "repollo"
 
 
 class Canola(CultivoExterno):
-    cultivo = 'canola'
+    cultivo = "canola"
 
 
 class JudíaVerde(CultivoExterno):
-    cultivo = 'judía verde'
+    cultivo = "judía verde"
 
 
 class Pimiento(CultivoExterno):
-    cultivo = 'pimiento'
+    cultivo = "pimiento"
 
 
 class Cártamo(CultivoExterno):
-    cultivo = 'cártamo'
+    cultivo = "cártamo"
 
 
 class MaízDulce(CultivoExterno):
-    cultivo = 'maíz dulce'
+    cultivo = "maíz dulce"
 
 
 class Taro(CultivoExterno):
-    cultivo = 'taro'
+    cultivo = "taro"
 
 
 class FrijolTerciopelo(CultivoExterno):
-    cultivo = 'frijol terciopelo'
+    cultivo = "frijol terciopelo"
 
 
 class Cebada(CultivoExterno):
-    cultivo = 'cebada'
+    cultivo = "cebada"
 
 
 class Mandioca(CultivoExterno):
-    cultivo = 'mandioca'
+    cultivo = "mandioca"
 
 
 class Garbanzo(CultivoExterno):
-    cultivo = 'garbanzo'
+    cultivo = "garbanzo"
 
 
 class Algodón(CultivoExterno):
-    cultivo = 'algodón'
+    cultivo = "algodón"
 
 
 class FrijolDeCarita(CultivoExterno):
-    cultivo = 'frijol de carita'
+    cultivo = "frijol de carita"
 
 
 class Faba(CultivoExterno):
-    cultivo = 'haba'
+    cultivo = "haba"
 
 
 class Maní(CultivoExterno):
-    cultivo = 'maní'
+    cultivo = "maní"
 
 
 class Maíz(CultivoExterno):
-    cultivo = 'maíz'
+    cultivo = "maíz"
 
 
 class Mungo(CultivoExterno):
-    cultivo = 'mungo'
+    cultivo = "mungo"
 
 
 class Guandú(CultivoExterno):
-    cultivo = 'guandú'
+    cultivo = "guandú"
 
 
 class Papa(CultivoExterno):
-    cultivo = 'papa'
+    cultivo = "papa"
 
 
 class Raps(CultivoExterno):
-    cultivo = 'raps'
+    cultivo = "raps"
 
 
 class Arroz(CultivoExterno):
-    cultivo = 'arroz'
+    cultivo = "arroz"
 
 
 class Sorgo(CultivoExterno):
-    cultivo = 'sorgo'
+    cultivo = "sorgo"
 
 
 class Soya(CultivoExterno):
-    cultivo = 'soya'
+    cultivo = "soya"
 
 
 class RemolachaAzucarera(CultivoExterno):
-    cultivo = 'remolacha azucarera'
+    cultivo = "remolacha azucarera"
 
 
 class Caña(CultivoExterno):
-    cultivo = 'caña'
+    cultivo = "caña"
 
 
 class Girasol(CultivoExterno):
-    cultivo = 'girasol'
+    cultivo = "girasol"
 
 
 class Batata(CultivoExterno):
-    cultivo = 'batata'
+    cultivo = "batata"
 
 
 class Tabaco(CultivoExterno):
-    cultivo = 'tabaco'
+    cultivo = "tabaco"
 
 
 class Trigo(CultivoExterno):
-    cultivo = 'trigo'
+    cultivo = "trigo"
 
 
 class TrigoInvierno(CultivoExterno):
-    cultivo = 'trigo de invierno'
+    cultivo = "trigo de invierno"

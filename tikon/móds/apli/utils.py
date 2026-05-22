@@ -1,5 +1,5 @@
-EJE_PRODUCTO = 'producto'
+EJE_PRODUCTO = "producto"
 
-RES_DESCOMP = 'Descomposición'
-RES_CONC = 'Concentración'
-RES_MRTLD = 'Mortalidad'
+RES_DESCOMP = "Descomposición"
+RES_CONC = "Concentración"
+RES_MRTLD = "Mortalidad"

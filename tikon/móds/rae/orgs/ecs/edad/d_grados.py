@@ -7,16 +7,16 @@ from .utils import días_grados
 
 
 class PrMínDG(Parám):
-    nombre = 'mín'
+    nombre = "mín"
     líms = (None, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(norm(20, 10))
 
 
 class PrDifDG(Parám):
-    nombre = 'dif'
+    nombre = "dif"
     líms = (0, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(expon(scale=10))
 
 
@@ -24,18 +24,27 @@ class PlantillaFuncDíasGrados(EcuaciónEdad):
     """
     Edad calculada por días grados.
     """
+
     cls_ramas = [PrMínDG, PrDifDG]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        temp_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
-        temp_mín = símismo.obt_valor_extern(sim, 'clima.temp_mín')
-        return días_grados(temp_máx, temp_mín, umbrales=(cf['mín'], cf['mín'] + cf['dif']), **símismo._args()) * paso
+        temp_máx = símismo.obt_valor_extern(sim, "clima.temp_máx")
+        temp_mín = símismo.obt_valor_extern(sim, "clima.temp_mín")
+        return (
+            días_grados(
+                temp_máx,
+                temp_mín,
+                umbrales=(cf["mín"], cf["mín"] + cf["dif"]),
+                **símismo._args(),
+            )
+            * paso
+        )
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
-            return {'clima.temp_máx', 'clima.temp_mín'}
+            return {"clima.temp_máx", "clima.temp_mín"}
 
     @property
     def nombre(símismo):
@@ -51,10 +60,11 @@ class FuncDíasGradosTH(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados TH'
+
+    nombre = "Días grados TH"
 
     def _args(símismo):
-        return {'método': 'triangular', 'corte': 'horizontal'}
+        return {"método": "triangular", "corte": "horizontal"}
 
 
 class FuncDíasGradosSH(PlantillaFuncDíasGrados):
@@ -63,10 +73,11 @@ class FuncDíasGradosSH(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados SH'
+
+    nombre = "Días grados SH"
 
     def _args(símismo):
-        return {'método': 'sinusoidal', 'corte': 'horizontal'}
+        return {"método": "sinusoidal", "corte": "horizontal"}
 
 
 class FuncDíasGradosTI(PlantillaFuncDíasGrados):
@@ -75,10 +86,11 @@ class FuncDíasGradosTI(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados TI'
+
+    nombre = "Días grados TI"
 
     def _args(símismo):
-        return {'método': 'triangular', 'corte': 'intermediario'}
+        return {"método": "triangular", "corte": "intermediario"}
 
 
 class FuncDíasGradosSI(PlantillaFuncDíasGrados):
@@ -87,10 +99,11 @@ class FuncDíasGradosSI(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados SI'
+
+    nombre = "Días grados SI"
 
     def _args(símismo):
-        return {'método': 'sinusoidal', 'corte': 'horizontal'}
+        return {"método": "sinusoidal", "corte": "horizontal"}
 
 
 class FuncDíasGradosTV(PlantillaFuncDíasGrados):
@@ -99,10 +112,11 @@ class FuncDíasGradosTV(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados TV'
+
+    nombre = "Días grados TV"
 
     def _args(símismo):
-        return {'método': 'triangular', 'corte': 'vertical'}
+        return {"método": "triangular", "corte": "vertical"}
 
 
 class FuncDíasGradosSV(PlantillaFuncDíasGrados):
@@ -111,10 +125,11 @@ class FuncDíasGradosSV(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados SV'
+
+    nombre = "Días grados SV"
 
     def _args(símismo):
-        return {'método': 'sinusoidal', 'corte': 'vertical'}
+        return {"método": "sinusoidal", "corte": "vertical"}
 
 
 class FuncDíasGradosTN(PlantillaFuncDíasGrados):
@@ -123,10 +138,11 @@ class FuncDíasGradosTN(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados TN'
+
+    nombre = "Días grados TN"
 
     def _args(símismo):
-        return {'método': 'triangular', 'corte': 'ninguno'}
+        return {"método": "triangular", "corte": "ninguno"}
 
 
 class FuncDíasGradosSN(PlantillaFuncDíasGrados):
@@ -135,7 +151,8 @@ class FuncDíasGradosSN(PlantillaFuncDíasGrados):
 
     Ver :func:`~tikon.rae.orgs.ecs.edad.días_grados`.
     """
-    nombre = 'Días grados SN'
+
+    nombre = "Días grados SN"
 
     def _args(símismo):
-        return {'método': 'sinusoidal', 'corte': 'ninguno'}
+        return {"método": "sinusoidal", "corte": "ninguno"}

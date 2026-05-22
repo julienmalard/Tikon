@@ -15,19 +15,22 @@ from pruebas.test_móds.test_cultivo.rcrs.pcse import prov_paráms, prov_meteo, 
 
 
 class PruebaPCSE(unittest.TestCase):
-
     def test_pcse(símismo):
-        gusanito = LotkaVolterra('soy gusano')
+        gusanito = LotkaVolterra("soy gusano")
         remolacha = RemolachaAzucarera()
         with RedAE([remolacha, gusanito]) as red:
             gusanito.secome(remolacha)
 
         modelo = Wofost71_PP
         parc = ParcelasCultivoPCSE(
-            'parc', modelo, prov_paráms=prov_paráms, prov_meteo=prov_meteo, agromanejo=agromanejo
+            "parc",
+            modelo,
+            prov_paráms=prov_paráms,
+            prov_meteo=prov_meteo,
+            agromanejo=agromanejo,
         )
         clima = Clima(fuentes=(FuenteMeteoPCSE(prov_meteo),))
-        t = Tiempo('2000-04-01', '2000-04-15')
-        res = Modelo(
-            [Cultivo, red, clima]
-        ).simular('cultivo', exper=Exper('exper', parc), t=t, vars_interés=True)['exper']
+        t = Tiempo("2000-04-01", "2000-04-15")
+        res = Modelo([Cultivo, red, clima]).simular(
+            "cultivo", exper=Exper("exper", parc), t=t, vars_interés=True
+        )["exper"]

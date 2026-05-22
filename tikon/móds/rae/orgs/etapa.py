@@ -36,9 +36,9 @@ class Etapa(Coso):
 
     def __eq__(símismo, otro):
         return (
-                isinstance(otro, símismo.__class__)
-                and símismo.nombre == otro.nombre
-                and símismo.org == otro.org
+            isinstance(otro, símismo.__class__)
+            and símismo.nombre == otro.nombre
+            and símismo.org == otro.org
         )
 
     def __hash__(símismo):
@@ -114,7 +114,7 @@ class EspecificaciónEtapasOrganismo(EspecificaciónEtapas):
 
 class EspecificaciónEtapaPorNombre(EspecificaciónEtapasOrganismo):
     def __init__(
-            símismo, organismo: Organismo, nombre_etapa: str, incluir_parasitadas: bool
+        símismo, organismo: Organismo, nombre_etapa: str, incluir_parasitadas: bool
     ):
         super().__init__(organismo=organismo, incluir_parasitadas=incluir_parasitadas)
         símismo.nombre_etapa = nombre_etapa
@@ -135,7 +135,9 @@ class EspecificaciónEtapaPorNombre(EspecificaciónEtapasOrganismo):
                     return True
                 return False
         else:
-            return etapa.org == símismo.organismo and símismo.nombre_concuerda(etapa.nombre)
+            return etapa.org == símismo.organismo and símismo.nombre_concuerda(
+                etapa.nombre
+            )
 
     def nombre_concuerda(símismo, nombre: str) -> bool:
         return nombre == símismo.nombre_etapa
@@ -165,7 +167,7 @@ ResolvableAEtapas = Organismo | Etapa | EspecificaciónEtapas
 
 
 def generar_especificación_etapas(
-        criterio: ResolvableAEtapas, incluir_parasitadas: bool
+    criterio: ResolvableAEtapas, incluir_parasitadas: bool
 ) -> EspecificaciónEtapas:
     if isinstance(criterio, EspecificaciónEtapas):
         return criterio

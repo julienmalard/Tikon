@@ -4,28 +4,28 @@ from tikon.ecs import ÁrbolEcs, CategEc, Ecuación, SubcategEc, EcuaciónVacía
 
 
 class EcuaciónObtVal(Ecuación):
-    nombre = 'obt val'
-    eje_cosos = 'coso'
+    nombre = "obt val"
+    eje_cosos = "coso"
 
     def eval(símismo, paso, sim):
-        val = símismo.obt_valor_mód(sim, 'res 1')
-        símismo.poner_valor_mód(sim, 'res 2', val)
+        val = símismo.obt_valor_mód(sim, "res 1")
+        símismo.poner_valor_mód(sim, "res 2", val)
 
 
 class SubCategObtVal(SubcategEc):
-    nombre = 'subcateg'
+    nombre = "subcateg"
     cls_ramas = [EcuaciónObtVal, EcuaciónVacía]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class CategObtVal(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategObtVal]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class EcsObtVal(ÁrbolEcs):
-    nombre = 'Ecs obt val'
+    nombre = "Ecs obt val"
     cls_ramas = [CategObtVal]
 
 
@@ -38,7 +38,7 @@ class ResEjeCoso(Resultado):
     unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'coso': sim.ecs.cosos, **coords}
+        coords = {"coso": sim.ecs.cosos, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
     @property
@@ -47,11 +47,11 @@ class ResEjeCoso(Resultado):
 
 
 class Res1(ResEjeCoso):
-    nombre = 'res 1'
+    nombre = "res 1"
 
 
 class Res2(ResEjeCoso):
-    nombre = 'res 2'
+    nombre = "res 2"
 
 
 class SimulMóduloObtVal(SimulMódulo):
@@ -59,14 +59,14 @@ class SimulMóduloObtVal(SimulMódulo):
 
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)
-        símismo.poner_valor('res 1', 1, rel=True)
+        símismo.poner_valor("res 1", 1, rel=True)
 
 
 coso1, coso2, coso3 = [CosoObtValor(str(i)) for i in range(1, 4)]
 
 
 class MóduloObtVal(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloObtVal
 
     def __init__(símismo, cosos=None):
@@ -77,5 +77,5 @@ class MóduloObtVal(Módulo):
         return EcsObtVal(modelo, mód, exper, cosos=símismo.l_cosos, n_reps=n_reps)
 
 
-mi_exper = Exper('exper', Parcela('parcela'))
+mi_exper = Exper("exper", Parcela("parcela"))
 mi_modelo = Modelo(MóduloObtVal([coso1, coso2, coso3]))

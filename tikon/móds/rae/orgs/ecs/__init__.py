@@ -11,10 +11,19 @@ from .trans import EcsTrans
 
 
 class EcsOrgs(ÁrbolEcs):
-    nombre = 'organismo'
+    nombre = "organismo"
 
     # ¡Este órden queda muy importante!
-    cls_ramas = [EcsEdad, EcsDepred, EcsCrec, EcsRepr, EcsMuerte, EcsTrans, EcsMov, EcsEstoc]
+    cls_ramas = [
+        EcsEdad,
+        EcsDepred,
+        EcsCrec,
+        EcsRepr,
+        EcsMuerte,
+        EcsTrans,
+        EcsMov,
+        EcsEstoc,
+    ]
 
     def verificar(símismo, org):
         # Si crec Ec está activada, solamente Depred y Estoc se pueden activar

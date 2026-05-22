@@ -5,7 +5,8 @@ class FuncDías(EcuaciónEdad):
     """
     Edad por día.
     """
-    nombre = 'Días'
+
+    nombre = "Días"
 
     def eval(símismo, paso, sim):
         return paso

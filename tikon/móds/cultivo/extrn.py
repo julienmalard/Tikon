@@ -11,13 +11,14 @@ from tikon.utils import EJE_PARÁMS, EJE_ESTOC
 
 
 class ParcelasCultivoExterno(GrupoParcelas):
-
     def __init__(símismo, parcelas, combin=None):
         combin = combin if combin is not None else (EJE_ESTOC, EJE_PARÁMS)
         parcelas = [parcelas] if isinstance(parcelas, Parcela) else parcelas
         super().__init__(parcelas=parcelas)
 
-        símismo.combin = combin if isinstance(combin, CombinSimsCult) else CombinSimsCult(combin)
+        símismo.combin = (
+            combin if isinstance(combin, CombinSimsCult) else CombinSimsCult(combin)
+        )
         símismo.conv_cultivos = {}
 
     def conectar_cultivo(símismo, obj_cultivo, nombre):
@@ -41,9 +42,8 @@ class SimulCultivoExterno(object):
         símismo.reps = sim.simul_exper.reps
 
         símismo.instancias = [
-            símismo.cls_instancia(
-                sim=símismo, índs=índs, reps=símismo.reps
-            ) for índs in símismo.combin.índices(símismo.reps)
+            símismo.cls_instancia(sim=símismo, índs=índs, reps=símismo.reps)
+            for índs in símismo.combin.índices(símismo.reps)
         ]
 
     @property
@@ -59,11 +59,19 @@ class SimulCultivoExterno(object):
             orgs_potenciales = símismo.parcelas.conv_cultivos[cultivo]
         else:
             _cls_apropriada = _cls_cultivos[cultivo.lower()]
-            orgs_potenciales = [org for org in símismo.sim.organismos if isinstance(org, _cls_apropriada)]
+            orgs_potenciales = [
+                org
+                for org in símismo.sim.organismos
+                if isinstance(org, _cls_apropriada)
+            ]
         if variedad:
             return next(
-                (clt for clt in orgs_potenciales if clt.variedad and clt.variedad.lower() == variedad.lower()),
-                orgs_potenciales[0]
+                (
+                    clt
+                    for clt in orgs_potenciales
+                    if clt.variedad and clt.variedad.lower() == variedad.lower()
+                ),
+                orgs_potenciales[0],
             )
         return orgs_potenciales[0]
 
@@ -86,7 +94,8 @@ class SimulCultivoExterno(object):
         datos = {
             vr: símismo.combin.desagregar(
                 combinar(*[d[vr] for d in l_datos]), reps=símismo.reps
-            ) for vr in vrs
+            )
+            for vr in vrs
         }
         for var in datos:
             símismo.sim.poner_valor(var=var, val=datos[var])
@@ -117,11 +126,17 @@ class CombinSimsCult(object):
 
     def índs(símismo, reps):
         dims = [dim for dim in reps if dim not in símismo.transf]
-        for índs in product(*[range(crds) for dim, crds in reps.items() if dim in dims]):
+        for índs in product(
+            *[range(crds) for dim, crds in reps.items() if dim in dims]
+        ):
             yield dict(zip(dims, índs))
 
     def desagregar(símismo, egreso, reps):
-        return egreso.expandir_dims(codificar_coords({ll: range(v) for ll, v in reps.items() if ll in símismo.transf}))
+        return egreso.expandir_dims(
+            codificar_coords(
+                {ll: range(v) for ll, v in reps.items() if ll in símismo.transf}
+            )
+        )
 
 
 class InstanciaSimulCultivo(object):
@@ -130,9 +145,20 @@ class InstanciaSimulCultivo(object):
         símismo.índs = {ll: [v] if isinstance(v, int) else v for ll, v in índs.items()}
         res = [sim.sim[r] for r in sim.sim]
         símismo.datos = {
-            str(vr): Datos(0., dims=[dim for dim in vr.datos.dims if dim not in reps] + list(símismo.índs),
-                           coords={**{dim: vr.datos.coords[dim] for dim in vr.datos.dims if dim not in reps},
-                                   **símismo.índs}) for vr in res
+            str(vr): Datos(
+                0.0,
+                dims=[dim for dim in vr.datos.dims if dim not in reps]
+                + list(símismo.índs),
+                coords={
+                    **{
+                        dim: vr.datos.coords[dim]
+                        for dim in vr.datos.dims
+                        if dim not in reps
+                    },
+                    **símismo.índs,
+                },
+            )
+            for vr in res
         }
 
     def iniciar(símismo):
@@ -152,6 +178,8 @@ class InstanciaSimulCultivo(object):
 
 
 _cls_cultivos = {
-    clt[1].cultivo: clt[1] for clt in inspect.getmembers(plt_externas, inspect.isclass)
-    if issubclass(clt[1], plt_externas.CultivoExterno) and clt[1] != plt_externas.CultivoExterno
+    clt[1].cultivo: clt[1]
+    for clt in inspect.getmembers(plt_externas, inspect.isclass)
+    if issubclass(clt[1], plt_externas.CultivoExterno)
+    and clt[1] != plt_externas.CultivoExterno
 }

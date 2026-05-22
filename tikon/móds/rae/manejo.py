@@ -9,7 +9,9 @@ from .red import RedAE
 
 class CondPoblación(CondVariable):
     def __init__(símismo, etapas, prueba, func=Datos.suma, espera=14):
-        etapas = [etapas] if isinstance(etapas, (Etapa, SumaEtapas, Organismo)) else etapas
+        etapas = (
+            [etapas] if isinstance(etapas, (Etapa, SumaEtapas, Organismo)) else etapas
+        )
         etapas_final = []
         for etp in etapas:
             if isinstance(etp, Etapa):
@@ -18,7 +20,12 @@ class CondPoblación(CondVariable):
                 etapas_final += [e for e in etp]
 
         super().__init__(
-            mód=RedAE.nombre, var=RES_POBS, prueba=prueba, espera=espera, func=func, coords={EJE_ETAPA: etapas}
+            mód=RedAE.nombre,
+            var=RES_POBS,
+            prueba=prueba,
+            espera=espera,
+            func=func,
+            coords={EJE_ETAPA: etapas},
         )
 
 

@@ -6,7 +6,9 @@ from tikon.ecs.dists import DistAnalítica, DistTraza
 
 
 class EspecCalibsCorrida(object):
-    def __init__(símismo, calibs=None, aprioris=False, corresp=True, heredar_inter=True):
+    def __init__(
+        símismo, calibs=None, aprioris=False, corresp=True, heredar_inter=True
+    ):
         símismo.calibs = [calibs] if isinstance(calibs, str) else calibs
         símismo.aprioris = aprioris
         símismo.corresp = corresp
@@ -30,7 +32,11 @@ class EspecCalibsCorrida(object):
         if símismo.aprioris:
             for val_prm in l_vals_prm:
                 try:
-                    existente = next(cnx for cnx in l_dists if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals))
+                    existente = next(
+                        cnx
+                        for cnx in l_dists
+                        if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals)
+                    )
                     existente.vals.append(val_prm)
                 except StopIteration:
                     apriori = val_prm.apriori()
@@ -39,7 +45,9 @@ class EspecCalibsCorrida(object):
                             raise ValueError(apriori.nombre_dist)
                         l_dists.append(ConexPrmsDist(val_prm, apriori))
                         sin_aprioris.remove(val_prm)
-        símismo.filtrar_dists(sin_aprioris).llenar_lista_calibs(l_dists, permitidas=permitidas)
+        símismo.filtrar_dists(sin_aprioris).llenar_lista_calibs(
+            l_dists, permitidas=permitidas
+        )
         return l_dists
 
     def filtrar_dists(símismo, l_vals_prm):
@@ -47,16 +55,23 @@ class EspecCalibsCorrida(object):
 
         if símismo.calibs is not None:
             for i, prm in enumerate(dists_disp):
-                dists_disp[i] = {nmb: dist for nmb, dist in prm.items() if nmb in símismo.calibs}
+                dists_disp[i] = {
+                    nmb: dist for nmb, dist in prm.items() if nmb in símismo.calibs
+                }
 
         if símismo.corresp:
             comunes = [
-                dist for dist in set(d for prm in dists_disp for d in prm) if all(dist in prm for prm in dists_disp)
+                dist
+                for dist in set(d for prm in dists_disp for d in prm)
+                if all(dist in prm for prm in dists_disp)
             ]
             if comunes:
-                dists_disp = [{nmb: dist for nmb, dist in prm.items() if nmb in comunes} for prm in dists_disp]
+                dists_disp = [
+                    {nmb: dist for nmb, dist in prm.items() if nmb in comunes}
+                    for prm in dists_disp
+                ]
             elif any(len(d) for d in dists_disp):
-                avisar('No se pudo guardar correspondencia entre calibraciones.')
+                avisar("No se pudo guardar correspondencia entre calibraciones.")
 
         return DistsFiltradas(l_vals_prm, dists_disp)
 
@@ -65,7 +80,9 @@ def _gen_espec_calibs(calibs, aprioris, heredar, corresp):
     if isinstance(calibs, EspecCalibsCorrida):
         return calibs
     else:
-        return EspecCalibsCorrida(calibs, aprioris=aprioris, corresp=corresp, heredar_inter=heredar)
+        return EspecCalibsCorrida(
+            calibs, aprioris=aprioris, corresp=corresp, heredar_inter=heredar
+        )
 
 
 class ConexPrmsDist(object):
@@ -104,16 +121,26 @@ class DistsFiltradas(object):
                 for í, (nmb, dist) in enumerate(d_dists.items()):
                     tmñ = dist.tmñ()
                     if nmb not in índs_dists:
-                        índs_dists[nmb] = {tmñ: np.random.randint(tmñ, size=n_por_dist[í])}
+                        índs_dists[nmb] = {
+                            tmñ: np.random.randint(tmñ, size=n_por_dist[í])
+                        }
                     elif tmñ not in índs_dists:
-                        índs_dists[nmb][tmñ] = np.random.randint(tmñ, size=n_por_dist[í])
-                prm.llenar_de_dists([(d_dists[nmb], índs_dists[nmb][tmñ]) for nmb in d_dists])
+                        índs_dists[nmb][tmñ] = np.random.randint(
+                            tmñ, size=n_por_dist[í]
+                        )
+                prm.llenar_de_dists(
+                    [(d_dists[nmb], índs_dists[nmb][tmñ]) for nmb in d_dists]
+                )
 
     def llenar_lista_calibs(símismo, lista, permitidas):
 
         for val_prm, d_dists in zip(símismo.vals_prms, símismo.dists_disp):
             try:
-                existente = next(cnx for cnx in lista if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals))
+                existente = next(
+                    cnx
+                    for cnx in lista
+                    if any(_vals_prms_iguales(vl, val_prm) for vl in cnx.vals)
+                )
                 existente.vals.append(val_prm)
                 continue
             except StopIteration:
@@ -124,15 +151,27 @@ class DistsFiltradas(object):
             if n_dists == 0:
                 dist_base = val_prm.dist_base()
                 if dist_base.nombre_dist not in permitidas:
-                    raise ValueError('Distribución de base {nmbr} no permitida.'.format(nmbr=dist_base.nombre_dist))
+                    raise ValueError(
+                        "Distribución de base {nmbr} no permitida.".format(
+                            nmbr=dist_base.nombre_dist
+                        )
+                    )
                 lista.append(ConexPrmsDist(val_prm, dist=dist_base))
 
-            elif n_dists == 1 and (isinstance(l_dists[0], DistAnalítica) and l_dists[0].nombre_dist in permitidas):
+            elif n_dists == 1 and (
+                isinstance(l_dists[0], DistAnalítica)
+                and l_dists[0].nombre_dist in permitidas
+            ):
                 lista.append(ConexPrmsDist(val_prm, dist=l_dists[0]))
             else:
                 traza = np.ravel((d.obt_vals(100) for d in d_dists.values()))
                 lista.append(
-                    ConexPrmsDist(val_prm, dist=DistAnalítica.de_traza(traza, líms=val_prm.líms, permitidas=permitidas))
+                    ConexPrmsDist(
+                        val_prm,
+                        dist=DistAnalítica.de_traza(
+                            traza, líms=val_prm.líms, permitidas=permitidas
+                        ),
+                    )
                 )
 
 

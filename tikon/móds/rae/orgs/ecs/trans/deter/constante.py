@@ -4,7 +4,7 @@ from .._plntll_ec import EcuaciónTrans
 
 
 class Q(Parám):
-    nombre = 'q'
+    nombre = "q"
     líms = (0, 1)
     unids = None
 
@@ -15,7 +15,7 @@ class Constante(EcuaciónTrans):
     exponencial.
     """
 
-    nombre = 'Constante'
+    nombre = "Constante"
     cls_ramas = [Q]
 
     def eval(símismo, paso, sim):
@@ -24,4 +24,4 @@ class Constante(EcuaciónTrans):
 
         # Tomamos el paso en cuenta según las reglas de probabilidades conjuntas:
         # p(x sucede n veces) = (1 - (1- p(x))^n)
-        return pobs * (1 - (1 - cf['q']) ** paso)
+        return pobs * (1 - (1 - cf["q"]) ** paso)

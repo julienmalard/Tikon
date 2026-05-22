@@ -11,26 +11,30 @@ from tikon.móds.rae.red import RedAE
 
 from .rcrs.aplis import ins
 
-exper = Exper('exper', Parcela('parc'))
+exper = Exper("exper", Parcela("parc"))
 
 
 class PruebaApli(unittest.TestCase):
     def test_descomp(símismo):
-        prod = Producto('producto')
-        f_inic, f_final = '2000-01-01', '2000-01-10'
+        prod = Producto("producto")
+        f_inic, f_final = "2000-01-01", "2000-01-10"
         t = Tiempo(f_inic, f_final)
         for ec in EcDescomp.cls_ramas:
             with símismo.subTest(ec.nombre):
-                prod.activar_ec(ECS_DESCOMP, subcateg='Ecuación', ec=ec.nombre)
-                mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=[RedAE(ins), Aplicaciones(prod)], t=t)
+                prod.activar_ec(ECS_DESCOMP, subcateg="Ecuación", ec=ec.nombre)
+                mod = gen_modelo_reqs_clima(
+                    ec, exper=exper, módulos=[RedAE(ins), Aplicaciones(prod)], t=t
+                )
                 mod.simular(str(ec), exper=exper, t=t)
 
     def test_mrtld(símismo):
-        prod = Producto('producto')
-        f_inic, f_final = '2000-01-01', '2000-01-10'
+        prod = Producto("producto")
+        f_inic, f_final = "2000-01-01", "2000-01-10"
         t = Tiempo(f_inic, f_final)
         for ec in EcMortalidad.cls_ramas:
             with símismo.subTest(ec.nombre):
-                prod.activar_ec(ECS_MRTLD, subcateg='Ecuación', ec=ec.nombre)
-                mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=[RedAE(ins), Aplicaciones(prod)], t=t)
+                prod.activar_ec(ECS_MRTLD, subcateg="Ecuación", ec=ec.nombre)
+                mod = gen_modelo_reqs_clima(
+                    ec, exper=exper, módulos=[RedAE(ins), Aplicaciones(prod)], t=t
+                )
                 mod.simular(str(ec), exper=exper, t=t)

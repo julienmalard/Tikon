@@ -3,8 +3,21 @@ from typing import Type, Sequence
 from frozendict import frozendict
 
 from tikon.central.matriz import Datos
-from .paráms import MnjdrValsCoefs, MatrParám, ValsParámCoso, ValsParámCosoInter, ValsParámCosoVacíos
-from .árb_coso import ÁrbolEcsCoso, CategEcCoso, SubcategEcCoso, EcuaciónCoso, ParámCoso, PlantillaRamaEcCoso
+from .paráms import (
+    MnjdrValsCoefs,
+    MatrParám,
+    ValsParámCoso,
+    ValsParámCosoInter,
+    ValsParámCosoVacíos,
+)
+from .árb_coso import (
+    ÁrbolEcsCoso,
+    CategEcCoso,
+    SubcategEcCoso,
+    EcuaciónCoso,
+    ParámCoso,
+    PlantillaRamaEcCoso,
+)
 
 
 class PlantillaRamaEc(object):
@@ -19,15 +32,27 @@ class PlantillaRamaEc(object):
         símismo._ramas = {}
 
         for rm in símismo.cls_ramas:
-            activos = list(zip(*[
-                (ec[rm.nombre], coso) for ec, coso in zip(ecs, cosos)
-                if ec[rm.nombre].activa(modelo=modelo, mód=mód, exper=exper, coso=coso)
-            ]))
+            activos = list(
+                zip(
+                    *[
+                        (ec[rm.nombre], coso)
+                        for ec, coso in zip(ecs, cosos)
+                        if ec[rm.nombre].activa(
+                            modelo=modelo, mód=mód, exper=exper, coso=coso
+                        )
+                    ]
+                )
+            )
             if activos:
                 ecs_activos, cosos_activos = activos
                 # convertir tuple a lista abajo es necesario para xr.DataArray.loc después
                 símismo._ramas[rm.nombre] = rm(
-                    modelo, mód, exper=exper, cosos=list(cosos_activos), n_reps=n_reps, ecs=list(ecs_activos)
+                    modelo,
+                    mód,
+                    exper=exper,
+                    cosos=list(cosos_activos),
+                    n_reps=n_reps,
+                    ecs=list(ecs_activos),
                 )
 
     def requísitos(símismo, controles=False):
@@ -60,7 +85,9 @@ class PlantillaRamaEc(object):
         val = sim.obt_valor(var)
         if filtrar is not False:
             filtrar = símismo.cosos if filtrar is True else filtrar
-            filtrar = tuple([c if isinstance(c, (str, int)) else id(c) for c in filtrar])
+            filtrar = tuple(
+                [c if isinstance(c, (str, int)) else id(c) for c in filtrar]
+            )
             return val.loc[frozendict({símismo.eje_cosos: filtrar})]
         return val
 
@@ -69,7 +96,9 @@ class PlantillaRamaEc(object):
 
     @classmethod
     def para_coso(cls, coso):
-        return cls._cls_en_coso(cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso)
+        return cls._cls_en_coso(
+            cls, [c.para_coso(coso) for c in cls.cls_ramas], coso=coso
+        )
 
     @staticmethod
     def poner_valor_mód(sim, var, val, rel=False):
@@ -78,13 +107,13 @@ class PlantillaRamaEc(object):
     @staticmethod
     def obt_valor_extern(sim, var, mód=None):
         if not mód:
-            mód, var = var.split('.')
+            mód, var = var.split(".")
         return sim.simul_exper[mód].obt_valor(var)
 
     @staticmethod
     def poner_valor_extern(sim, var, val, mód=None, rel=False):
         if not mód:
-            mód, var = var.split('.')
+            mód, var = var.split(".")
         return sim.simul_exper[mód].poner_valor(var, val, rel=rel)
 
     @staticmethod
@@ -120,7 +149,14 @@ class ÁrbolEcs(PlantillaRamaEc):
     eje_cosos = None
 
     def __init__(símismo, modelo, mód, exper, cosos, n_reps):
-        super().__init__(modelo, mód, exper, cosos=cosos, n_reps=n_reps, ecs=[coso.ecs for coso in cosos])
+        super().__init__(
+            modelo,
+            mód,
+            exper,
+            cosos=cosos,
+            n_reps=n_reps,
+            ecs=[coso.ecs for coso in cosos],
+        )
 
     def cosos_en_categ(símismo, categ):
         if categ in símismo:
@@ -156,7 +192,11 @@ class SubcategEc(PlantillaRamaEc):
             res = ec.eval(paso, sim)
             if res is not None:
                 if not isinstance(res, Datos):
-                    res = Datos(res, dims=[ec.eje_cosos], coords=frozendict({ec.eje_cosos: ec.cosos}))
+                    res = Datos(
+                        res,
+                        dims=[ec.eje_cosos],
+                        coords=frozendict({ec.eje_cosos: ec.cosos}),
+                    )
                 ec.poner_valor_res(sim, val=res)
 
         símismo.postproc(paso, sim=sim)
@@ -204,7 +244,7 @@ class Ecuación(PlantillaRamaEc):
 
 
 class EcuaciónVacía(Ecuación):
-    nombre = 'Nada'
+    nombre = "Nada"
     eje_cosos = None
 
     @classmethod
@@ -240,12 +280,21 @@ class Parám(PlantillaRamaEc):
             if not inters:
                 vals = ValsParámCoso(tmñ=n_reps, prm_base=prm_cs, índice=coso)
             else:
-                vals = ValsParámCosoInter([
-                    ValsParámCoso(
-                        tmñ=n_reps, prm_base=prm_cs, índice=inter, inter=inter.índices_inter
-                    ) if inter in inters.itemas else ValsParámCosoVacíos(tmñ=n_reps, índice=inter)
-                    for inter in inters
-                ], eje=inters.eje, índice=coso)
+                vals = ValsParámCosoInter(
+                    [
+                        ValsParámCoso(
+                            tmñ=n_reps,
+                            prm_base=prm_cs,
+                            índice=inter,
+                            inter=inter.índices_inter,
+                        )
+                        if inter in inters.itemas
+                        else ValsParámCosoVacíos(tmñ=n_reps, índice=inter)
+                        for inter in inters
+                    ],
+                    eje=inters.eje,
+                    índice=coso,
+                )
 
             l_prms.append(vals)
         return MatrParám(l_prms, eje=mód.eje_coso, índice=None)

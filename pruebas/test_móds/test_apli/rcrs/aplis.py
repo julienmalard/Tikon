@@ -4,12 +4,12 @@ from tikon.móds.apli.prods import Producto
 from tikon.móds.rae.orgs.insectos import LotkaVolterra
 from tikon.móds.rae.red import RedAE
 
-producto = Producto('Peligroso')
+producto = Producto("Peligroso")
 
 aplicaciones = Aplicaciones(producto)
 
-exper = Exper('exper', Parcela('parc'))
+exper = Exper("exper", Parcela("parc"))
 
-ins = LotkaVolterra('sencillo')
+ins = LotkaVolterra("sencillo")
 red = RedAE(ins)
 modelo = Modelo([aplicaciones, red])

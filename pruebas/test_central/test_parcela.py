@@ -16,5 +16,5 @@ class PruebaGeomParcela(unittest.TestCase):
 
 class PruebaParcela(unittest.TestCase):
     def test_parcela(símismo):
-        parc = Parcela('mi parcela')
-        símismo.assertEqual(str(parc), 'mi parcela')
+        parc = Parcela("mi parcela")
+        símismo.assertEqual(str(parc), "mi parcela")

@@ -12,12 +12,12 @@ const = math.pi
 
 
 class Res(Resultado):
-    nombre = 'res'
+    nombre = "res"
     unids = None
     inicializable = True
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'mi eje': np.arange(10), **coords}
+        coords = {"mi eje": np.arange(10), **coords}
         super().__init__(sim, coords, vars_interés)
 
 
@@ -26,33 +26,41 @@ class SimulMóduloInic(SimulMódulo):
 
 
 class MóduloResInic(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloInic
 
 
-f_inic = '2019-01-01'
-f_final = '2019-02-01'
-tiempo = pd.date_range(f_inic, f_final, freq='D')
+f_inic = "2019-01-01"
+f_final = "2019-02-01"
+tiempo = pd.date_range(f_inic, f_final, freq="D")
 
 
 class MiObs(Obs):
-    mód = 'módulo'
-    var = 'res'
+    mód = "módulo"
+    var = "res"
 
 
 obs = MiObs(
-    datos=xr.DataArray(const, coords={'mi eje': np.arange(5), EJE_TIEMPO: tiempo}, dims=['mi eje', EJE_TIEMPO])
+    datos=xr.DataArray(
+        const,
+        coords={"mi eje": np.arange(5), EJE_TIEMPO: tiempo},
+        dims=["mi eje", EJE_TIEMPO],
+    )
 )
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 exper.datos.agregar_obs(obs)
 
-exper_sin_obs = Exper('exper', Parcela('parcela'))
+exper_sin_obs = Exper("exper", Parcela("parcela"))
 
 obs_t_numérico = MiObs(
-    datos=xr.DataArray(const, coords={'mi eje': np.arange(5), EJE_TIEMPO: np.arange(5)}, dims=['mi eje', EJE_TIEMPO])
+    datos=xr.DataArray(
+        const,
+        coords={"mi eje": np.arange(5), EJE_TIEMPO: np.arange(5)},
+        dims=["mi eje", EJE_TIEMPO],
+    )
 )
-exper_obs_numérico = Exper('exper', Parcela('parcela'))
+exper_obs_numérico = Exper("exper", Parcela("parcela"))
 exper_obs_numérico.datos.agregar_obs(obs_t_numérico)
 
 modelo = Modelo(MóduloResInic())

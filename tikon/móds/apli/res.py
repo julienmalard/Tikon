@@ -24,13 +24,13 @@ class ResultadoApli(Resultado):
 
 class ResDescomp(ResultadoApli):
     nombre = RES_DESCOMP
-    unids = 'kg / ha / día'
+    unids = "kg / ha / día"
     líms = (0, np.inf)
 
 
 class ResConcentración(ResultadoApli):
     nombre = RES_CONC
-    unids = 'kg / ha'
+    unids = "kg / ha"
     líms = (0, np.inf)
     apriori = APrioriDist(expon(scale=5))
     inicializable = True
@@ -42,7 +42,5 @@ class ResMortalidad(ResultadoApli):
     unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {
-            EJE_ETAPA: sim.simul_exper.modelo[RedAE.nombre].etapas, **coords
-        }
+        coords = {EJE_ETAPA: sim.simul_exper.modelo[RedAE.nombre].etapas, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)

@@ -8,7 +8,7 @@ from .normal import Normal
 
 
 class DistEstoc(SubcategEcOrg):
-    nombre = 'Dist'
+    nombre = "Dist"
     cls_ramas = [Normal, EcuaciónVacía]
     _nombre_res = RES_ESTOC
 

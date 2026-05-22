@@ -7,10 +7,10 @@ from ._plntll_ec import EcuaciónRepr
 
 
 class N(Parám):
-    nombre = 'n'
+    nombre = "n"
     líms = (0, None)
     unids = None
-    inter = ['presa']
+    inter = ["presa"]
     apriori = APrioriDist(expon(scale=10))
 
 
@@ -18,7 +18,8 @@ class Depred(EcuaciónRepr):
     """
     Reproducciones en función de la depredación (útil para avispas esfécidas)
     """
-    nombre = 'Depredación'
+
+    nombre = "Depredación"
     cls_ramas = [N]
 
     def eval(símismo, paso, sim):
@@ -26,4 +27,4 @@ class Depred(EcuaciónRepr):
         depred = símismo.obt_valor_mód(sim, RES_DEPR, filtrar=False)
 
         pobs = símismo.pobs(sim)  # Paso ya se tomó en cuenta con depredaciones
-        return (cf['n'] * depred).suma(dim=EJE_VÍCTIMA) * pobs
+        return (cf["n"] * depred).suma(dim=EJE_VÍCTIMA) * pobs

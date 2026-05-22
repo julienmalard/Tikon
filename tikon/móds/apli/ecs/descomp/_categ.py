@@ -6,7 +6,7 @@ from .exp_neg import DecaiExp
 
 
 class EcDescomp(SubcategEc):
-    nombre = 'Ecuación'
+    nombre = "Ecuación"
     cls_ramas = [DecaiExp, EcuaciónVacía]
     eje_cosos = EJE_PRODUCTO
     _nombre_res = RES_DESCOMP

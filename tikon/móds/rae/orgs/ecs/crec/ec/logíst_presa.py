@@ -6,10 +6,10 @@ from ._plntll_ec import EcuaciónCrec
 
 
 class K(Parám):
-    nombre = 'K'
+    nombre = "K"
     líms = (0, None)
-    inter = 'presa'
-    unids = 'individual'
+    inter = "presa"
+    unids = "individual"
 
 
 class LogístPresa(EcuaciónCrec):
@@ -18,7 +18,7 @@ class LogístPresa(EcuaciónCrec):
     la contribución individual de cada presa a la capacidad de carga de esta etapa (el depredador).
     """
 
-    nombre = 'Logístico Presa'
+    nombre = "Logístico Presa"
     cls_ramas = [K]
 
     def eval(símismo, paso, sim):
@@ -26,6 +26,8 @@ class LogístPresa(EcuaciónCrec):
         pobs_presas = símismo.pobs(sim, filtrar=False)
         pobs = símismo.pobs(sim)
 
-        k = np.maximum(1, (pobs_presas * símismo.cf['K']).suma(dim=EJE_VÍCTIMA))  # Calcular la capacidad de carga
+        k = np.maximum(
+            1, (pobs_presas * símismo.cf["K"]).suma(dim=EJE_VÍCTIMA)
+        )  # Calcular la capacidad de carga
 
         return crec_etps * pobs * (1 - pobs / k)  # Ecuación logística sencilla

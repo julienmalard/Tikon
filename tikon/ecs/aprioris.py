@@ -16,7 +16,9 @@ class APriori(object):
 
 
 class APrioriDens(APriori):
-    def __init__(símismo, rango: Optional[Líms_Con_None], certidumbre: Tipo_Valor_Numérico):
+    def __init__(
+        símismo, rango: Optional[Líms_Con_None], certidumbre: Tipo_Valor_Numérico
+    ):
         símismo.rango = rango
         símismo.cert = certidumbre
 
@@ -35,4 +37,8 @@ class APrioriDist(APriori):
     def dist(símismo, líms: Optional[Líms_Con_None]) -> DistAnalítica:
         líms_compat(símismo._líms_dist, líms)
 
-        return símismo._dist if isinstance(símismo._dist, DistAnalítica) else DistAnalítica(símismo._dist)
+        return (
+            símismo._dist
+            if isinstance(símismo._dist, DistAnalítica)
+            else DistAnalítica(símismo._dist)
+        )

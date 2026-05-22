@@ -15,8 +15,18 @@ from .triang import Triang
 
 
 class ProbRepr(SubcategEcOrg):
-    nombre = 'Prob'
-    cls_ramas = [Constante, EcuaciónVacía, Depred, Normal, Triang, Cauchy, Gamma, Logística, T]
+    nombre = "Prob"
+    cls_ramas = [
+        Constante,
+        EcuaciónVacía,
+        Depred,
+        Normal,
+        Triang,
+        Cauchy,
+        Gamma,
+        Logística,
+        T,
+    ]
     _nombre_res = RES_REPR
 
 

@@ -5,38 +5,38 @@ from tikon.móds.rae.orgs.ecs.repr._plntll_ec import EcuaciónReprCoh
 
 
 class N(Parám):
-    nombre = 'n'
+    nombre = "n"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=500))
 
 
 class K(Parám):
-    nombre = 'k'
+    nombre = "k"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=10))
 
 
 class Mu(Parám):
-    nombre = 'mu'
+    nombre = "mu"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=100))
 
 
 class Sigma(Parám):
-    nombre = 'sigma'
+    nombre = "sigma"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=10))
 
 
 class T(EcuaciónReprCoh):
-    nombre = 'T'
+    nombre = "T"
     cls_ramas = [N, K, Mu, Sigma]
     _cls_dist = estad.t
 
     def _prms_scipy(símismo):
         cf = símismo.cf
-        return dict(df=cf['k'], loc=cf['mu'], scale=cf['sigma'])
+        return dict(df=cf["k"], loc=cf["mu"], scale=cf["sigma"])

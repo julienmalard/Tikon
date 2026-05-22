@@ -24,13 +24,13 @@ class ResultadoTrampa(Resultado):
 
 class ResDescomp(ResultadoTrampa):
     nombre = RES_DESCOMP
-    unids = 'trampas / ha / día'
+    unids = "trampas / ha / día"
     líms = (0, np.inf)
 
 
 class ResDensidad(ResultadoTrampa):
     nombre = RES_DENS
-    unids = 'trampas / ha'
+    unids = "trampas / ha"
     líms = (0, np.inf)
     apriori = APrioriDist(expon(scale=5))
     inicializable = True

@@ -18,11 +18,13 @@ class FuenteMeteoPCSE(ذریعہ_نکتہ):
 
     def _کوائف_بنانا(símismo, سے, تک, عرض, طول, بلندی, خاکے):
         datos_pd = pd.DataFrame.from_dict(símismo.proveedor.export())
-        datos_pd = datos_pd.set_index('DAY')
-        datos_pd.index = pd.to_datetime(datos_pd.index).to_period('D')
+        datos_pd = datos_pd.set_index("DAY")
+        datos_pd.index = pd.to_datetime(datos_pd.index).to_period("D")
         pd_final = pd.DataFrame(
             columns=símismo._vars_pcse,
-            index=pd.period_range(símismo.proveedor.first_date, símismo.proveedor.last_date, freq='D')
+            index=pd.period_range(
+                símismo.proveedor.first_date, símismo.proveedor.last_date, freq="D"
+            ),
         )
         pd_final = pd_final.fillna(datos_pd).rename(columns={**conv_inv})
 

@@ -32,14 +32,16 @@ class Coso(object):
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None):
         símismo.ecs.espec_apriori(apriori, categ, sub_categ, ec, prm, inter=índs)
 
-    def borrar_aprioris(símismo, categ=None, sub_categ=None, ec=None, prm=None, índs=None):
+    def borrar_aprioris(
+        símismo, categ=None, sub_categ=None, ec=None, prm=None, índs=None
+    ):
         símismo.ecs.borrar_aprioris(categ, sub_categ, ec, prm, índs=índs)
 
     def verificar(símismo):
         símismo.ecs.verificar()
 
-    def guardar_calibs(símismo, directorio=''):
-        arch = os.path.join(directorio, símismo.nombre + '.json')
+    def guardar_calibs(símismo, directorio=""):
+        arch = os.path.join(directorio, símismo.nombre + ".json")
         guardar_json(símismo._ecs_a_json(), arch)
 
     def borrar_calib(símismo, nombre):
@@ -49,8 +51,8 @@ class Coso(object):
         símismo.ecs.renombrar_calib(nombre, nuevo)
 
     def cargar_calibs(símismo, archivo):
-        if os.path.splitext(archivo) != '.json':
-            archivo = os.path.join(archivo, símismo.nombre + '.json')
+        if os.path.splitext(archivo) != ".json":
+            archivo = os.path.join(archivo, símismo.nombre + ".json")
         calibs = leer_json(archivo)
         símismo._ecs_de_json(calibs)
 

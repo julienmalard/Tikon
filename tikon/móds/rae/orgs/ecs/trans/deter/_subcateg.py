@@ -11,7 +11,7 @@ class TransDeter(SubcategEcOrg):
     Transiciones deteminísticas (y no probabilísticas según la edad)
     """
 
-    nombre = 'Deter'
+    nombre = "Deter"
     cls_ramas = [EcuaciónVacía, Constante]
     _nombre_res = RES_TRANS
 

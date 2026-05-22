@@ -2,7 +2,11 @@ from typing import Union, TypedDict, Optional, Iterable, Any
 
 import numpy as np
 
-from tikon.tipos import Tipo_Valor_Numérico, Tipo_Matriz_Núm_Entero, Tipo_Matriz_Numérica
+from tikon.tipos import (
+    Tipo_Valor_Numérico,
+    Tipo_Matriz_Núm_Entero,
+    Tipo_Matriz_Numérica,
+)
 
 _escala_inf = 1e10
 _dist_mu = 1
@@ -21,7 +25,6 @@ Tipo_Índices = Union[str, Iterable[str]]
 
 
 class Dist(object):
-
     def obt_vals(símismo, n: int) -> Tipo_Matriz_Numérica:
         raise NotImplementedError
 
@@ -31,7 +34,9 @@ class Dist(object):
     def tmñ(símismo) -> Union[int, float]:
         raise NotImplementedError
 
-    def aprox_líms(símismo, prc: Tipo_Valor_Numérico) -> np.ndarray[Any, np.dtype[np.number]]:
+    def aprox_líms(
+        símismo, prc: Tipo_Valor_Numérico
+    ) -> np.ndarray[Any, np.dtype[np.number]]:
         raise NotImplementedError
 
     def a_dic(símismo) -> DicDist:
@@ -39,7 +44,7 @@ class Dist(object):
 
     @classmethod
     def de_dic(cls, dic: DicDist) -> "Dist":
-        tipo = dic['tipo']
+        tipo = dic["tipo"]
         for x in cls.__subclasses__():
             if x.__name__ == tipo:
                 return x.de_dic(dic)
@@ -55,7 +60,9 @@ class ManejadorDists(object):
         símismo.val = None
         símismo.índices = {}
 
-    def actualizar(símismo, dist: Optional["Dist"], índices: Tipo_Índices = None) -> None:
+    def actualizar(
+        símismo, dist: Optional["Dist"], índices: Tipo_Índices = None
+    ) -> None:
         índices = símismo._proc_índs(índices)
         if índices is None or not índices:
             símismo.val = dist
@@ -67,7 +74,9 @@ class ManejadorDists(object):
 
             símismo.índices[í].actualizar(dist, índices)
 
-    def obt_val(símismo, índices: Tipo_Índices = None, heredar: bool = True) -> Optional[Dist]:
+    def obt_val(
+        símismo, índices: Tipo_Índices = None, heredar: bool = True
+    ) -> Optional[Dist]:
         índices = símismo._proc_índs(índices)
 
         if índices is None or not len(índices):
@@ -103,23 +112,33 @@ class ManejadorDists(object):
 
     def a_dic(símismo) -> DicManejadorDists:
         return {
-            'val': símismo.val.a_dic() if símismo.val else None,
-            'índices': {str(ll): v.a_dic() for ll, v in símismo.índices.items()}
+            "val": símismo.val.a_dic() if símismo.val else None,
+            "índices": {str(ll): v.a_dic() for ll, v in símismo.índices.items()},
         }
 
     @classmethod
-    def de_dic(cls, dic: DicManejadorDists, manejador: "ManejadorDists" = None) -> "ManejadorDists":
+    def de_dic(
+        cls, dic: DicManejadorDists, manejador: "ManejadorDists" = None
+    ) -> "ManejadorDists":
         if manejador is None:
             manejador = ManejadorDists()
 
         def act_manejador(
-                mnj: ManejadorDists, d: DicManejadorDists, índices_anteriores: list[str] = None
+            mnj: ManejadorDists,
+            d: DicManejadorDists,
+            índices_anteriores: list[str] = None,
         ) -> None:
-            val = d['val']
-            índices = d['índices']
-            mnj.actualizar(dist=Dist.de_dic(val) if val else None, índices=índices_anteriores)
+            val = d["val"]
+            índices = d["índices"]
+            mnj.actualizar(
+                dist=Dist.de_dic(val) if val else None, índices=índices_anteriores
+            )
             for í in índices:
-                act_manejador(mnj, d=índices[í], índices_anteriores=(índices_anteriores or []) + [í])
+                act_manejador(
+                    mnj,
+                    d=índices[í],
+                    índices_anteriores=(índices_anteriores or []) + [í],
+                )
 
         act_manejador(manejador, d=dic)
 

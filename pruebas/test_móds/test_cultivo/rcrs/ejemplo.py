@@ -1,10 +1,13 @@
-from tikon.móds.cultivo.extrn import ParcelasCultivoExterno, SimulCultivoExterno, InstanciaSimulCultivo
+from tikon.móds.cultivo.extrn import (
+    ParcelasCultivoExterno,
+    SimulCultivoExterno,
+    InstanciaSimulCultivo,
+)
 from tikon.móds.cultivo.res import RES_HUMSUELO, RES_BIOMASA
 from tikon.utils import EJE_ESTOC, EJE_PARÁMS
 
 
 class MiInstanciaSimulCultivo(InstanciaSimulCultivo):
-
     def __init__(símismo, sim, índs, reps):
         símismo.biomasa = sim.parcelas.biomasa
         símismo.hum_suelo = sim.parcelas.hum_suelo
@@ -32,7 +35,6 @@ class MiSimulCultivoExterno(SimulCultivoExterno):
 
 
 class MiParcelaCultivoExterno(ParcelasCultivoExterno):
-
     def __init__(símismo, parcelas, hum_suelo, biomasa, combin=(EJE_ESTOC, EJE_PARÁMS)):
         símismo.hum_suelo = hum_suelo
         símismo.biomasa = biomasa

@@ -4,7 +4,6 @@ from ...utils import RES_EDAD, RES_COHORTES
 
 
 class EcuaciónConCohorte(EcuaciónOrg):
-
     def __init__(símismo, modelo, mód, exper, cosos, n_reps, ecs):
         super().__init__(modelo, mód, exper, cosos=cosos, n_reps=n_reps, ecs=ecs)
 
@@ -12,9 +11,12 @@ class EcuaciónConCohorte(EcuaciónOrg):
 
     def act_vals(símismo):
         super().act_vals()
-        símismo.dist = símismo._cls_dist(**{
-            ll: v.matr if isinstance(v, Datos) else v for ll, v in símismo._prms_scipy().items()
-        })
+        símismo.dist = símismo._cls_dist(
+            **{
+                ll: v.matr if isinstance(v, Datos) else v
+                for ll, v in símismo._prms_scipy().items()
+            }
+        )
 
     def cambio_edad(símismo, sim):
         return símismo.obt_valor_mód(sim, RES_EDAD)

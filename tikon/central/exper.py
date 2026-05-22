@@ -16,7 +16,9 @@ class Exper(object):
         símismo.parcelas, símismo.grupos_parc = _extract_parcelas(parcelas)
         if len(símismo.parcelas) != len({str(p) for p in símismo.parcelas}):
             raise ValueError(
-                'Parcelas con nombres idénticos en "{p}".'.format(p=', '.join([str(p) for p in símismo.parcelas]))
+                'Parcelas con nombres idénticos en "{p}".'.format(
+                    p=", ".join([str(p) for p in símismo.parcelas])
+                )
             )
         símismo.controles = ControlesExper(símismo.parcelas)
 
@@ -35,15 +37,15 @@ class Exper(object):
     def renombrar_calib(símismo, nombre, nuevo):
         símismo.datos.renombrar_calib(nombre, nuevo)
 
-    def guardar_calibs(símismo, directorio=''):
-        archivo = os.path.join(directorio, símismo.nombre + '.json')
+    def guardar_calibs(símismo, directorio=""):
+        archivo = os.path.join(directorio, símismo.nombre + ".json")
         símismo.datos.guardar_calibs(archivo)
 
-    def cargar_calibs(símismo, directorio=''):
-        if os.path.splitext(directorio)[1] == '.json':
+    def cargar_calibs(símismo, directorio=""):
+        if os.path.splitext(directorio)[1] == ".json":
             archivo = directorio
         else:
-            archivo = os.path.join(directorio, símismo.nombre + '.json')
+            archivo = os.path.join(directorio, símismo.nombre + ".json")
         símismo.datos.cargar_calibs(archivo)
 
     def __str__(símismo):
@@ -51,7 +53,9 @@ class Exper(object):
 
 
 def _extract_parcelas(parcelas):
-    parcelas = [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas
+    parcelas = (
+        [parcelas] if isinstance(parcelas, (Parcela, GrupoParcelas)) else parcelas
+    )
     l_prcs = []
     l_grupos = []
     for prc in parcelas:

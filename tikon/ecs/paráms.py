@@ -17,8 +17,17 @@ if typing.TYPE_CHECKING:
 
 
 class MnjdrValsCoefs(object):
-    def __init__(símismo, modelo: "Modelo", mód: "Módulo", paráms: Iterable["Parám"], n_reps: Tipo_Valor_Numérico_Entero):
-        símismo._paráms = {str(pr): pr.gen_matr_parám(modelo=modelo, mód=mód, n_reps=n_reps) for pr in paráms}
+    def __init__(
+        símismo,
+        modelo: "Modelo",
+        mód: "Módulo",
+        paráms: Iterable["Parám"],
+        n_reps: Tipo_Valor_Numérico_Entero,
+    ):
+        símismo._paráms = {
+            str(pr): pr.gen_matr_parám(modelo=modelo, mód=mód, n_reps=n_reps)
+            for pr in paráms
+        }
 
     def vals_paráms(símismo) -> list["ValsParámCoso"]:
         return [prm for matr in símismo._paráms.values() for prm in matr.vals_paráms()]
@@ -32,20 +41,30 @@ class MnjdrValsCoefs(object):
 
 
 class MatrParám(object):
-    def __init__(símismo, subs: Sequence["MatrParám"], eje: str, índice: Optional["Coso"]):
+    def __init__(
+        símismo, subs: Sequence["MatrParám"], eje: str, índice: Optional["Coso"]
+    ):
         símismo._sub_matrs = subs
 
         símismo.eje = eje
         símismo.índice = índice
         símismo._datos = Datos(
-            0.,
+            0.0,
             dims=list(símismo.coords),
-            coords=frozendict({ll: tuple(v) if isinstance(v, list) else v for ll, v in símismo.coords.items()})
+            coords=frozendict(
+                {
+                    ll: tuple(v) if isinstance(v, list) else v
+                    for ll, v in símismo.coords.items()
+                }
+            ),
         )
 
     @property
     def coords(símismo) -> dict[str, list["Coso"]]:
-        return {símismo.eje: [sub.índice for sub in símismo._sub_matrs], **_combin_coords(símismo._sub_matrs)}
+        return {
+            símismo.eje: [sub.índice for sub in símismo._sub_matrs],
+            **_combin_coords(símismo._sub_matrs),
+        }
 
     @property
     def val(símismo) -> Datos:
@@ -54,24 +73,31 @@ class MatrParám(object):
     def act_vals(símismo) -> None:
         for sub in símismo._sub_matrs:
             sub.act_vals()
-            símismo._datos.loc[símismo._datos.codificar_coords({símismo.eje: sub.índice})] = sub.val
+            símismo._datos.loc[
+                símismo._datos.codificar_coords({símismo.eje: sub.índice})
+            ] = sub.val
 
     def vals_paráms(símismo) -> list["ValsParámCoso"]:
         return [vls for mtr in símismo._sub_matrs for vls in mtr.vals_paráms()]
 
 
 class ValsParámCosoInter(MatrParám):
-    def __init__(símismo, vals_paráms_inter: list["ValsParámCoso"], eje: str, índice: Optional["Coso"]):
+    def __init__(
+        símismo,
+        vals_paráms_inter: list["ValsParámCoso"],
+        eje: str,
+        índice: Optional["Coso"],
+    ):
         super().__init__(vals_paráms_inter, eje=eje, índice=índice)
 
 
 class ValsParámCoso(MatrParám):
     def __init__(
-            símismo,
-            tmñ: Tipo_Valor_Numérico_Entero,
-            prm_base: Optional["ParámCoso"],
-            índice: Optional["Coso"],
-            inter: Optional["Coso"] = None
+        símismo,
+        tmñ: Tipo_Valor_Numérico_Entero,
+        prm_base: Optional["ParámCoso"],
+        índice: Optional["Coso"],
+        inter: Optional["Coso"] = None,
     ):
         símismo.tmñ = tmñ
         símismo.prm = prm_base
@@ -109,7 +135,10 @@ class ValsParámCoso(MatrParám):
     def llenar_de_apriori(símismo, heredar=True):
         símismo.val = símismo.apriori(heredar).obt_vals(símismo.tmñ)
 
-    def llenar_de_dists(símismo, dists: list[tuple[Dist, Tipo_Valor_Numérico_Entero | Tipo_Matriz_Núm_Entero]]):
+    def llenar_de_dists(
+        símismo,
+        dists: list[tuple[Dist, Tipo_Valor_Numérico_Entero | Tipo_Matriz_Núm_Entero]],
+    ):
         val = []
 
         for d, n in dists:
@@ -157,5 +186,5 @@ class Inter(object):
 def _combin_coords(grupo: Sequence["MatrParám"]) -> dict[str, list["Coso"]]:
     coords = grupo[0].coords
     if not all(obj.coords == coords for obj in grupo):
-        raise ValueError('Coordinadas deben ser iguales para cada miembro de un grupo.')
+        raise ValueError("Coordinadas deben ser iguales para cada miembro de un grupo.")
     return coords

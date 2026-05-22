@@ -13,9 +13,11 @@ class PlantillaRamaEcCoso(dict):
         super().__init__(**{str(r): r for r in ramas})
 
     def activa(símismo, modelo, mód, exper, coso):
-        return coso.ecs_activas \
-               and símismo.pariente.activa(modelo, mód, exper) \
-               and any(símismo[rm].activa(modelo, mód, exper, coso) for rm in símismo)
+        return (
+            coso.ecs_activas
+            and símismo.pariente.activa(modelo, mód, exper)
+            and any(símismo[rm].activa(modelo, mód, exper, coso) for rm in símismo)
+        )
 
     def de_dic(símismo, dic):
         for rm in símismo:
@@ -41,7 +43,11 @@ class PlantillaRamaEcCoso(dict):
             símismo[rm].renombrar_calib(nombre, nuevo)
 
     def a_dic(símismo):
-        return {ll: v for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo.items()}.items() if len(v)}
+        return {
+            ll: v
+            for ll, v in {nmb: rm.a_dic() for nmb, rm in símismo.items()}.items()
+            if len(v)
+        }
 
     def __contains__(símismo, itema):
         return str(itema) in símismo
@@ -55,7 +61,6 @@ class PlantillaRamaEcCoso(dict):
 
 
 class ÁrbolEcsCoso(PlantillaRamaEcCoso):
-
     def espec_apriori(símismo, apriori, categ, sub_categ, ec, parám, inter=None):
         obj_parám = símismo[categ][sub_categ][ec][parám]
         obj_parám.espec_apriori(apriori, inter=inter)
@@ -68,7 +73,6 @@ class ÁrbolEcsCoso(PlantillaRamaEcCoso):
 
 
 class CategEcCoso(PlantillaRamaEcCoso):
-
     def activar_ec(símismo, subcateg: str, ec: str):
         símismo[subcateg].activar_ec(ec)
 
@@ -96,7 +100,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
         try:
             obj_ec = símismo[ec]
         except KeyError:
-            raise ValueError('Ecuación {ec} no existe por aquí.'.format(ec=ec))
+            raise ValueError("Ecuación {ec} no existe por aquí.".format(ec=ec))
 
         símismo._activada = obj_ec
         for rm in símismo.values():
@@ -105,7 +109,7 @@ class SubcategEcCoso(PlantillaRamaEcCoso):
         obj_ec.activada = True
 
     def desactivar_ec(símismo):
-        símismo.activar_ec('Nada')
+        símismo.activar_ec("Nada")
 
     def ec_activa(símismo):
         return símismo._activada
@@ -120,14 +124,17 @@ class EcuaciónCoso(PlantillaRamaEcCoso):
         if símismo.activada and símismo.pariente.activa(modelo, mód, exper):
             inters = símismo.inter()
             if inters:
-                return all(mód.inter(modelo, símismo.coso, tipo=intr) for intr in inters)
+                return all(
+                    mód.inter(modelo, símismo.coso, tipo=intr) for intr in inters
+                )
             return True
         return False
 
     def inter(símismo):
         return {
             tuple(prm.inter) if isinstance(prm.inter, list) else (prm.inter,)
-            for prm in símismo.values() if prm.inter is not None
+            for prm in símismo.values()
+            if prm.inter is not None
         }
 
 
@@ -172,15 +179,25 @@ class ParámCoso(PlantillaRamaEcCoso):
         return DistAnalítica.de_líms(símismo.líms)
 
     def dists_disp(símismo, inter, heredar):
-        return {clb: dists.obt_val(índices=inter, heredar=heredar) for clb, dists in símismo._calibs.items()}
+        return {
+            clb: dists.obt_val(índices=inter, heredar=heredar)
+            for clb, dists in símismo._calibs.items()
+        }
 
     def a_dic(símismo):
-        return {ll: v for ll, v in {nmb: clb.a_dic() for nmb, clb in símismo._calibs.items()}.items() if len(v)}
+        return {
+            ll: v
+            for ll, v in {
+                nmb: clb.a_dic() for nmb, clb in símismo._calibs.items()
+            }.items()
+            if len(v)
+        }
 
     def de_dic(símismo, dic):
         for calib, d_dist in dic.items():
             símismo._calibs[calib] = ManejadorDists.de_dic(
-                d_dist, manejador=símismo._calibs[calib] if calib in símismo._calibs else None
+                d_dist,
+                manejador=símismo._calibs[calib] if calib in símismo._calibs else None,
             )
 
     def __copy__(símismo):

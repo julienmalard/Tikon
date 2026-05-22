@@ -6,9 +6,9 @@ class SimulMóduloNombrePunto(SimulMódulo):
 
 
 class MóduloNombrePunto(Módulo):
-    nombre = 'Tengo.un.Punto'
+    nombre = "Tengo.un.Punto"
     cls_simul = SimulMóduloNombrePunto
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 modelo = Modelo([MóduloNombrePunto()])

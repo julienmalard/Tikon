@@ -5,8 +5,8 @@ import bibtexparser
 from pkg_resources import resource_filename
 from tikon.utils import guardar_json
 
-_ARCH_REF = 'ref.txt'
-_EXT_INFO = '.info.json'
+_ARCH_REF = "ref.txt"
+_EXT_INFO = ".info.json"
 
 
 def obt_datos(nombre):
@@ -19,7 +19,7 @@ def obt_ref(nombre):
         dir_ = os.path.split(dir_)[0]
     arch = os.path.join(dir_, _ARCH_REF)
 
-    with open(arch, 'r', encoding='utf8') as arch_bibtex:
+    with open(arch, "r", encoding="utf8") as arch_bibtex:
         return bibtexparser.load(arch_bibtex)
 
 
@@ -31,12 +31,10 @@ def guardar_datos(datos, nombre, módulo, variable, unidades, ref=None):
         os.makedirs(dir_)
     shutil.copy(src=datos, dst=os.path.join(dir_, nombre_datos))
 
-    info = {
-        "módulo": módulo,
-        "variable": variable,
-        "unidades": unidades
-    }
-    guardar_json(info, os.path.join(dir_, os.path.splitext(nombre_datos)[0] + _EXT_INFO))
+    info = {"módulo": módulo, "variable": variable, "unidades": unidades}
+    guardar_json(
+        info, os.path.join(dir_, os.path.splitext(nombre_datos)[0] + _EXT_INFO)
+    )
 
     if ref:
         shutil.copy(src=ref, dst=os.path.join(dir_, _ARCH_REF))

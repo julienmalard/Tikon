@@ -15,29 +15,35 @@ class Módulo(object):
 
         símismo._cosos = {str(c): c for c in cosos}
         if len(símismo._cosos) != len(cosos):
-            raise ValueError('Nombres duplicados en {}.'.format(', '.join(cosos)))
+            raise ValueError("Nombres duplicados en {}.".format(", ".join(cosos)))
 
     def gen_ecs(símismo, modelo, mód, exper, n_reps):
         if símismo.cls_ecs:
-            return símismo.cls_ecs(modelo, mód, exper, cosos=list(símismo._cosos.values()), n_reps=n_reps)
+            return símismo.cls_ecs(
+                modelo, mód, exper, cosos=list(símismo._cosos.values()), n_reps=n_reps
+            )
 
-    def guardar_calibs(símismo, directorio=''):
+    def guardar_calibs(símismo, directorio=""):
         for c in símismo:
             símismo[c].guardar_calibs(os.path.join(directorio, c))
 
-    def cargar_calibs(símismo, directorio=''):
+    def cargar_calibs(símismo, directorio=""):
         for c in símismo:
             símismo[c].cargar_calibs(os.path.join(directorio, c))
 
     def gen_simul(símismo, simul_exper, vars_interés, ecs):
-        return símismo.cls_simul(mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs)
+        return símismo.cls_simul(
+            mód=símismo, simul_exper=simul_exper, vars_interés=vars_interés, ecs=ecs
+        )
 
     def borrar_aprioris(símismo):
         for c in símismo:
             símismo[c].borrar_aprioris()
 
     def inter(símismo, modelo, coso, tipo):
-        raise ValueError('Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo))
+        raise ValueError(
+            'Interacciones no implementadas para módulo "{mód}".'.format(mód=símismo)
+        )
 
     @property
     def nombre(símismo):

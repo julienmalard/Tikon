@@ -5,8 +5,6 @@ from tikon.móds.rae.utils import RES_MOV
 
 
 class Distancia(SubcategEcOrg):
-    nombre = 'Distancia'
-    cls_ramas = [
-        Euclidiana, EcuaciónVacía
-    ]
+    nombre = "Distancia"
+    cls_ramas = [Euclidiana, EcuaciónVacía]
     _nombre_res = RES_MOV

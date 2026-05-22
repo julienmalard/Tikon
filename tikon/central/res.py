@@ -9,7 +9,14 @@ from tikon.central.matriz import Datos
 from tikon.datos.dibs import graficar_res
 from tikon.datos.valid import ValidÍnds, ValidRes
 from tikon.ecs.aprioris import APrioriDens
-from tikon.utils import EJE_PARÁMS, EJE_ESTOC, EJE_TIEMPO, guardar_json, asegurar_dir_existe, asegurar_ext
+from tikon.utils import (
+    EJE_PARÁMS,
+    EJE_ESTOC,
+    EJE_TIEMPO,
+    guardar_json,
+    asegurar_dir_existe,
+    asegurar_ext,
+)
 from tikon.ecs.dists.utils import proc_líms
 
 
@@ -19,20 +26,24 @@ class Resultado(PlantillaSimul):
     apriori = None
 
     def __init__(símismo, sim, coords, vars_interés):
-        if '.' in símismo.nombre:
+        if "." in símismo.nombre:
             raise ErrorNombreInválido(
-                'Nombre {nombre} inválido: Nombres de resultados no pueden contener ".".'.format(nombre=símismo.nombre)
+                'Nombre {nombre} inválido: Nombres de resultados no pueden contener ".".'.format(
+                    nombre=símismo.nombre
+                )
             )
 
         símismo.sim = sim
         símismo.obs = sim.exper.datos.obt_obs(sim, símismo)
 
-        símismo.t = sim.simul_exper.t if _res_temporal(
-            símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés
-        ) else None
+        símismo.t = (
+            sim.simul_exper.t
+            if _res_temporal(símismo.nombre, sim.mód.nombre, símismo.obs, vars_interés)
+            else None
+        )
 
         símismo._datos_t = _gen_datos(símismo.nombre, coords, t=símismo.t)
-        símismo._datos_t.atribs['unids'] = símismo.unids
+        símismo._datos_t.atribs["unids"] = símismo.unids
 
         # Crear enlace dinámico entre resultados diarios y temporales
         símismo._datos = símismo._datos_t[{EJE_TIEMPO: 0}]
@@ -49,7 +60,10 @@ class Resultado(PlantillaSimul):
         datos_obs = [o_.datos.loc[índ] for o_ in obs if índ in o_]
         líms = proc_líms(símismo.líms)
         if datos_obs:
-            mín, máx = np.nanmin([o_.min() for o_ in datos_obs]), np.nanmax([o_.max() for o_ in datos_obs])
+            mín, máx = (
+                np.nanmin([o_.min() for o_ in datos_obs]),
+                np.nanmax([o_.max() for o_ in datos_obs]),
+            )
             mín = max(mín, líms[0])
             máx = min(máx, líms[1])
             return APrioriDens((mín, máx), 0.5)
@@ -88,21 +102,27 @@ class Resultado(PlantillaSimul):
         if not símismo.activada:
             return
         if np.any(~np.isfinite(símismo.datos.matr)):
-            raise ValueError('{res}: Valor no numérico (p. ej., división por 0)'.format(res=símismo))
+            raise ValueError(
+                "{res}: Valor no numérico (p. ej., división por 0)".format(res=símismo)
+            )
 
         if símismo.líms:
             mín, máx = proc_líms(símismo.líms)
 
             if np.any(símismo.datos.matr < mín) or np.any(símismo.datos.matr > máx):
                 raise ValueError(
-                    '{res}: Valor fuera de los límites {líms}'.format(res=símismo, líms=repr(símismo.líms))
+                    "{res}: Valor fuera de los límites {líms}".format(
+                        res=símismo, líms=repr(símismo.líms)
+                    )
                 )
 
     def validar(símismo, proc):
         l_proc = []
         for obs in símismo.obs:
             resultados = obs.proc_res(símismo.res)
-            res_corresp = resultados.interp_like(obs.datos).dropna(EJE_TIEMPO, how='all')
+            res_corresp = resultados.interp_like(obs.datos).dropna(
+                EJE_TIEMPO, how="all"
+            )
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
@@ -110,7 +130,9 @@ class Resultado(PlantillaSimul):
                 obs_índs = obs_corresp.loc[índs]
                 l_proc.append(
                     ValidÍnds(
-                        criterios=proc.calc(obs_índs, datos_índs), peso=proc.pesos(obs_índs), índs=índs
+                        criterios=proc.calc(obs_índs, datos_índs),
+                        peso=proc.pesos(obs_índs),
+                        índs=índs,
                     )
                 )
 
@@ -121,7 +143,9 @@ class Resultado(PlantillaSimul):
         pesos = []
         for obs in símismo.obs:
             resultados = obs.proc_res(símismo.res)
-            res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(EJE_TIEMPO, how='all')
+            res_corresp = resultados.interp_like(obs.datos[EJE_TIEMPO]).dropna(
+                EJE_TIEMPO, how="all"
+            )
             obs_corresp = obs.datos.loc[{EJE_TIEMPO: res_corresp[EJE_TIEMPO]}]
 
             for índs in símismo.iter_índs(obs.datos, excluir=EJE_TIEMPO):
@@ -136,11 +160,13 @@ class Resultado(PlantillaSimul):
             return proc.combin(np.array(l_proc), pesos=pesos), proc.combin_pesos(pesos)
         return 0, 0
 
-    def graficar(símismo, directorio='', argsll=None):
+    def graficar(símismo, directorio="", argsll=None):
         if símismo.t is not None:
             argsll = argsll or {}
-            for índs in símismo.iter_índs(símismo.res, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]):
-                título = ', '.join(ll + ' ' + str(v) for ll, v in índs.items())
+            for índs in símismo.iter_índs(
+                símismo.res, excluir=[EJE_TIEMPO, EJE_ESTOC, EJE_PARÁMS]
+            ):
+                título = ", ".join(ll + " " + str(v) for ll, v in índs.items())
 
                 obs_índs = []
                 for o_ in símismo.obs:
@@ -150,33 +176,41 @@ class Resultado(PlantillaSimul):
                         pass
 
                 graficar_res(
-                    título, directorio,
-                    simulado=símismo.res.loc[índs], obs=obs_índs, **argsll
+                    título,
+                    directorio,
+                    simulado=símismo.res.loc[índs],
+                    obs=obs_índs,
+                    **argsll,
                 )
 
     def a_dic(símismo):
         if símismo.t is not None:
             return {
-                'obs': símismo.obs.a_dic() if símismo.obs else None,
-                'preds': símismo.res.a_xarray().to_dict(),
+                "obs": símismo.obs.a_dic() if símismo.obs else None,
+                "preds": símismo.res.a_xarray().to_dict(),
             }
 
-    def guardar(símismo, archivo, formato='netcdf'):
+    def guardar(símismo, archivo, formato="netcdf"):
 
         res = símismo.res.copy()
         for dim, crds in res.coords.items():
             res.coords[dim] = [
-                str(x) if not (np.issubdtype(crds.dtype, np.int) or np.issubdtype(crds.dtype, np.datetime64))
-                else x for x in crds.values
+                str(x)
+                if not (
+                    np.issubdtype(crds.dtype, np.int)
+                    or np.issubdtype(crds.dtype, np.datetime64)
+                )
+                else x
+                for x in crds.values
             ]
 
-        formato = formato.lower().strip('.')
-        if formato == 'netcdf':
-            archivo = asegurar_ext(archivo, '.nc')
+        formato = formato.lower().strip(".")
+        if formato == "netcdf":
+            archivo = asegurar_ext(archivo, ".nc")
             asegurar_dir_existe(archivo)
-            res.to_netcdf(archivo, mode='w')
-        elif formato == 'json':
-            archivo = asegurar_ext(archivo, '.json')
+            res.to_netcdf(archivo, mode="w")
+        elif formato == "json":
+            archivo = asegurar_ext(archivo, ".json")
             guardar_json(res.to_dict(), archivo=archivo)
         else:
             raise ValueError(formato)
@@ -212,9 +246,9 @@ def _res_temporal(nombre, nombre_sim, obs, vars_interés):
     if vars_interés is None:
         return len(obs) > 0
 
-    return nombre_sim in vars_interés or nombre_sim + '.' + nombre in vars_interés
+    return nombre_sim in vars_interés or nombre_sim + "." + nombre in vars_interés
 
 
 def _gen_datos(nombre, coords, t):
     coords = {EJE_TIEMPO: t.eje if t is not None else [0], **coords}
-    return Datos(0., dims=list(coords), coords=coords, nombre=nombre)
+    return Datos(0.0, dims=list(coords), coords=coords, nombre=nombre)

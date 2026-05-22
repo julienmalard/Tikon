@@ -15,7 +15,9 @@ class Regla(object):
 
     def requísitos(símismo, controles):
         reqs_cond = símismo.condición.requísitos(controles) or {}
-        reqs_acción = {req for a in símismo.acción for req in (a.requísitos(controles) or {})}
+        reqs_acción = {
+            req for a in símismo.acción for req in (a.requísitos(controles) or {})
+        }
         return reqs_acción.union(reqs_cond)
 
     def __call__(símismo, sim, paso, f):
@@ -26,10 +28,11 @@ class Regla(object):
 
 
 class SimulManejo(SimulMódulo):
-
     def __init__(símismo, mód, simul_exper, ecs, vars_interés):
         símismo.reglas = mód.reglas
-        super().__init__(mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés)
+        super().__init__(
+            mód, simul_exper=simul_exper, ecs=ecs, vars_interés=vars_interés
+        )
 
     def requísitos(símismo, controles=False):
         return {req for rgl in símismo.reglas for req in rgl.requísitos(controles)}
@@ -41,7 +44,7 @@ class SimulManejo(SimulMódulo):
 
 
 class Manejo(Módulo):
-    nombre = 'manejo'
+    nombre = "manejo"
     cls_simul = SimulManejo
 
     def __init__(símismo, reglas=None):

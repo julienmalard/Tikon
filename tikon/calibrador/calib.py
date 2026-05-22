@@ -1,5 +1,4 @@
 class Calibrador(object):
-
     @property
     def dists_disp(símismo):
         raise NotImplementedError

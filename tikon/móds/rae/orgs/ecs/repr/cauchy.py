@@ -5,31 +5,31 @@ from tikon.móds.rae.orgs.ecs.repr._plntll_ec import EcuaciónReprCoh
 
 
 class N(Parám):
-    nombre = 'n'
+    nombre = "n"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=500))
 
 
 class U(Parám):
-    nombre = 'u'
+    nombre = "u"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=100))
 
 
 class F(Parám):
-    nombre = 'f'
+    nombre = "f"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(estad.expon(scale=10))
 
 
 class Cauchy(EcuaciónReprCoh):
-    nombre = 'Cauchy'
+    nombre = "Cauchy"
     cls_ramas = [N, U, F]
     _cls_dist = estad.cauchy
 
     def _prms_scipy(símismo):
         cf = símismo.cf
-        return dict(loc=cf['u'], scale=cf['f'])
+        return dict(loc=cf["u"], scale=cf["f"])

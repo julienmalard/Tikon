@@ -9,7 +9,7 @@ from .logíst import Logística
 
 
 class EcMortalidad(SubcategEc):
-    nombre = 'Ecuación'
+    nombre = "Ecuación"
     cls_ramas = [Logística, EcuaciónVacía]
     _nombre_res = RES_MRTLD
     eje_cosos = EJE_PRODUCTO
@@ -24,10 +24,12 @@ class EcsMortalidad(CategEc):
     def postproc(símismo, paso, sim):
         mortalidad = símismo.obt_valor_res(sim)
         sobrevivencia = 1 - mortalidad
-        mortalidad = 1 - sobrevivencia ** paso
+        mortalidad = 1 - sobrevivencia**paso
         mortalidad = probs_conj(mortalidad, dim=EJE_PRODUCTO)
         símismo.poner_valor_res(sim, mortalidad)
 
         mortalidad = mortalidad.suma(dim=EJE_PRODUCTO)
         pobs = símismo.obt_valor_extern(sim, RES_POBS, mód=RedAE.nombre)
-        símismo.poner_valor_extern(sim, var=RES_POBS, mód=RedAE.nombre, val=pobs * mortalidad)
+        símismo.poner_valor_extern(
+            sim, var=RES_POBS, mód=RedAE.nombre, val=pobs * mortalidad
+        )

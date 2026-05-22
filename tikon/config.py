@@ -3,9 +3,9 @@ import os
 
 from tikon.utils import guardar_json
 
-arch_config = os.path.join(os.path.split(__file__)[0], 'config.json')
+arch_config = os.path.join(os.path.split(__file__)[0], "config.json")
 try:
-    with open(arch_config, 'r', encoding='utf8') as a:
+    with open(arch_config, "r", encoding="utf8") as a:
         _conf = json.load(a)
 except (FileNotFoundError, json.JSONDecodeError, PermissionError):
     _conf = {}

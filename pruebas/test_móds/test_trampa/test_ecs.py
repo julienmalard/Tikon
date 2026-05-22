@@ -11,26 +11,30 @@ from tikon.móds.trampa.trampas import Trampa
 
 from .rcrs.trampas import ins
 
-exper = Exper('exper', Parcela('parc'))
+exper = Exper("exper", Parcela("parc"))
 
 
 class PruebaApli(unittest.TestCase):
     def test_descomp(símismo):
-        trampa = Trampa('amarilla')
-        f_inic, f_final = '2000-01-01', '2000-01-10'
+        trampa = Trampa("amarilla")
+        f_inic, f_final = "2000-01-01", "2000-01-10"
         t = Tiempo(f_inic, f_final)
         for ec in EcDescomp.cls_ramas:
             with símismo.subTest(ec.nombre):
-                trampa.activar_ec(ECS_DESCOMP, subcateg='Ecuación', ec=ec.nombre)
-                mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=[RedAE(ins), Trampas(trampa)], t=t)
+                trampa.activar_ec(ECS_DESCOMP, subcateg="Ecuación", ec=ec.nombre)
+                mod = gen_modelo_reqs_clima(
+                    ec, exper=exper, módulos=[RedAE(ins), Trampas(trampa)], t=t
+                )
                 mod.simular(str(ec), exper=exper, t=t)
 
     def test_captura(símismo):
-        trampa = Trampa('amarilla')
-        f_inic, f_final = '2000-01-01', '2000-01-10'
+        trampa = Trampa("amarilla")
+        f_inic, f_final = "2000-01-01", "2000-01-10"
         t = Tiempo(f_inic, f_final)
         for ec in EcCaptura.cls_ramas:
             with símismo.subTest(ec.nombre):
-                trampa.activar_ec(ECS_CAPTURA, subcateg='Ecuación', ec=ec.nombre)
-                mod = gen_modelo_reqs_clima(ec, exper=exper, módulos=[RedAE(ins), Trampas(trampa)], t=t)
+                trampa.activar_ec(ECS_CAPTURA, subcateg="Ecuación", ec=ec.nombre)
+                mod = gen_modelo_reqs_clima(
+                    ec, exper=exper, módulos=[RedAE(ins), Trampas(trampa)], t=t
+                )
                 mod.simular(str(ec), exper=exper, t=t)

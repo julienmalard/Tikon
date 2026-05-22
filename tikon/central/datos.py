@@ -8,7 +8,6 @@ from tikon.utils import guardar_json, leer_json
 
 
 class PlantillaDatosVals(dict):
-
     def __init__(símismo, nombre):
         símismo.nombre = nombre
         super().__init__()
@@ -71,7 +70,9 @@ class DatosVar(PlantillaDatosVals):
 
     def __init__(símismo, nombre):
         símismo.obs = []
-        pariente = type(nombre, (Parám,), {'nombre': nombre, 'unids': None, 'líms': None})
+        pariente = type(
+            nombre, (Parám,), {"nombre": nombre, "unids": None, "líms": None}
+        )
         símismo.prm = ParámCoso(pariente, coso=None)
         super().__init__(nombre)
 

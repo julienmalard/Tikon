@@ -1,5 +1,5 @@
-EJE_TRAMPA = 'trampa'
+EJE_TRAMPA = "trampa"
 
-RES_DESCOMP = 'Descomposición'
-RES_DENS = 'Densidad'
-RES_CAPTURA = 'Captura'
+RES_DESCOMP = "Descomposición"
+RES_DENS = "Densidad"
+RES_CAPTURA = "Captura"

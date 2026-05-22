@@ -3,7 +3,7 @@ from tikon.central.res import Resultado
 
 
 class Res1(Resultado):
-    nombre = 'res 1'
+    nombre = "res 1"
     unids = None
 
 
@@ -12,7 +12,7 @@ class SimulMódulo1(SimulMódulo):
 
 
 class Res2(Resultado):
-    nombre = 'res 2'
+    nombre = "res 2"
     unids = None
 
 
@@ -21,13 +21,13 @@ class SimulMódulo2(SimulMódulo):
 
 
 class Módulo1(Módulo):
-    nombre = 'módulo 1'
+    nombre = "módulo 1"
     cls_simul = SimulMódulo1
 
 
 class Módulo2(Módulo):
-    nombre = 'módulo 2'
+    nombre = "módulo 2"
     cls_simul = SimulMódulo2
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))

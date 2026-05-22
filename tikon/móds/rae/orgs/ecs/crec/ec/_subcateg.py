@@ -9,6 +9,6 @@ from tikon.móds.rae.utils import RES_CREC
 
 
 class EcCrec(SubcategEcOrg):
-    nombre = 'Ecuación'
+    nombre = "Ecuación"
     cls_ramas = [EcuaciónVacía, Expon, Logíst, LogístPresa, LogístDepred, Constante]
     _nombre_res = RES_CREC

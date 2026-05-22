@@ -4,7 +4,7 @@ from ._plntll_ec import EcuaciónMuertes
 
 
 class Q(Parám):
-    nombre = 'q'
+    nombre = "q"
     líms = (0, 1)
     unids = None
 
@@ -15,8 +15,8 @@ class Constante(EcuaciónMuertes):
 
     """
 
-    nombre = 'Constante'
+    nombre = "Constante"
     cls_ramas = [Q]
 
     def eval(símismo, paso, sim):
-        return símismo.cf['q']
+        return símismo.cf["q"]

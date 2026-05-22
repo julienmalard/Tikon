@@ -10,36 +10,36 @@ agreg_postproc_categ = math.e
 
 class Res(Resultado):
     unids = None
-    nombre = 'res'
+    nombre = "res"
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'coso': sim.ecs.cosos, **coords}
+        coords = {"coso": sim.ecs.cosos, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class EcuaciónPostProc(Ecuación):
-    nombre = 'pp'
-    eje_cosos = 'coso'
-    _nombre_res = 'res'
+    nombre = "pp"
+    eje_cosos = "coso"
+    _nombre_res = "res"
 
     def eval(símismo, paso, sim):
         return 1
 
 
 class EcuaciónNoPostProc(Ecuación):
-    nombre = 'npp'
-    eje_cosos = 'coso'
-    _nombre_res = 'res'
+    nombre = "npp"
+    eje_cosos = "coso"
+    _nombre_res = "res"
 
     def eval(símismo, paso, sim):
         return 1
 
 
 class SubCategPostProc(SubcategEc):
-    nombre = 'pp'
+    nombre = "pp"
     cls_ramas = [EcuaciónPostProc, EcuaciónVacía]
-    _nombre_res = 'res'
-    eje_cosos = 'coso'
+    _nombre_res = "res"
+    eje_cosos = "coso"
 
     def postproc(símismo, paso, sim):
         vals = símismo.obt_valor_res(sim)
@@ -48,17 +48,17 @@ class SubCategPostProc(SubcategEc):
 
 
 class SubCategNoPostProc(SubcategEc):
-    nombre = 'npp'
+    nombre = "npp"
     cls_ramas = [EcuaciónNoPostProc, EcuaciónVacía]
-    _nombre_res = 'res'
-    eje_cosos = 'coso'
+    _nombre_res = "res"
+    eje_cosos = "coso"
 
 
 class CategPostProc(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategPostProc, SubCategNoPostProc]
-    _nombre_res = 'res'
-    eje_cosos = 'coso'
+    _nombre_res = "res"
+    eje_cosos = "coso"
 
     def postproc(símismo, paso, sim):
         vals = símismo.obt_valor_res(sim, filtrar=True)
@@ -67,9 +67,9 @@ class CategPostProc(CategEc):
 
 
 class EcsPostProc(ÁrbolEcs):
-    nombre = 'Ecs requísito falta'
+    nombre = "Ecs requísito falta"
     cls_ramas = [CategPostProc]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class CosoPostProc(Coso):
@@ -83,15 +83,15 @@ class SimulMóduloPostProc(SimulMódulo):
 
 coso_pp, coso_pp_categ, coso_no_pp = [CosoPostProc(str(i)) for i in range(1, 4)]
 
-coso_pp.activar_ec('categ', subcateg='pp', ec='pp')
-coso_pp.desactivar_ec('categ', subcateg='npp')
+coso_pp.activar_ec("categ", subcateg="pp", ec="pp")
+coso_pp.desactivar_ec("categ", subcateg="npp")
 
-coso_pp_categ.desactivar_ec('categ', subcateg='pp')
-coso_no_pp.desactivar_ec('categ')
+coso_pp_categ.desactivar_ec("categ", subcateg="pp")
+coso_no_pp.desactivar_ec("categ")
 
 
 class MóduloPostProc(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloPostProc
     cls_ecs = EcsPostProc
 
@@ -99,5 +99,5 @@ class MóduloPostProc(Módulo):
         super().__init__(cosos=[coso_pp, coso_pp_categ, coso_no_pp])
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 modelo = Modelo(MóduloPostProc())

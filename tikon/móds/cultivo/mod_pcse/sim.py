@@ -13,10 +13,10 @@ from .meteo import ProveedorMeteoPCSEPandas
 
 class InstanciaPCSE(InstanciaSimulCultivo):
     _conv_vars = {
-        'hoja': ('LAI', 1),
-        'raíz': ('WRT', 1 / 10000),
-        'palo': ('WST', 1 / 10000),
-        'fruta': ('WSO', 1 / 10000)
+        "hoja": ("LAI", 1),
+        "raíz": ("WRT", 1 / 10000),
+        "palo": ("WST", 1 / 10000),
+        "fruta": ("WSO", 1 / 10000),
     }
 
     def __init__(símismo, sim, índs, reps):
@@ -29,7 +29,8 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         if f_0_pcse < f_0_tkn:
             raise ValueError(
                 "Simulación PCSE empieza el {f_pcse}, pero la simulación de Tiko'n empieza el {f_tkn}.".format(
-                    f_pcse=format_date(f_0_pcse, locale='es'), f_tkn=format_date(f_0_tkn, locale='es')
+                    f_pcse=format_date(f_0_pcse, locale="es"),
+                    f_tkn=format_date(f_0_tkn, locale="es"),
                 )
             )
         símismo.f_inic_modelo = pd.Timestamp(símismo.modelo.agromanager.start_date)
@@ -41,9 +42,13 @@ class InstanciaPCSE(InstanciaSimulCultivo):
             cultivo = pp.current_crop_name
             variedad = pp.current_variety_name
         except AttributeError:
-            texto = pp['CRPNAM'].lower()
-            cultivo = next(clt for clt in símismo.sim.trads_cultivos if texto.startswith(clt.lower()))
-            variedad = texto[len(cultivo):].strip() or None
+            texto = pp["CRPNAM"].lower()
+            cultivo = next(
+                clt
+                for clt in símismo.sim.trads_cultivos
+                if texto.startswith(clt.lower())
+            )
+            variedad = texto[len(cultivo) :].strip() or None
 
         return símismo.sim.obt_org(cultivo=cultivo, variedad=variedad)
 
@@ -52,9 +57,18 @@ class InstanciaPCSE(InstanciaSimulCultivo):
 
     def _gen_proveedor_meteo(símismo):
         parc = str(símismo.sim.parcelas.parcelas[0])
-        centr = símismo.sim.sim.exper.controles['centroides'].loc[codificar_coords({EJE_PARC: parc})]
-        lat, lon = centr.loc[codificar_coords({EJE_COORD: 'lat'})].matr[0, 0], centr.loc[codificar_coords({EJE_COORD: 'lon'})].matr[0, 0]
-        elev = símismo.sim.sim.exper.controles['elevaciones'].loc[codificar_coords({EJE_PARC: parc})].matr[0]
+        centr = símismo.sim.sim.exper.controles["centroides"].loc[
+            codificar_coords({EJE_PARC: parc})
+        ]
+        lat, lon = (
+            centr.loc[codificar_coords({EJE_COORD: "lat"})].matr[0, 0],
+            centr.loc[codificar_coords({EJE_COORD: "lon"})].matr[0, 0],
+        )
+        elev = (
+            símismo.sim.sim.exper.controles["elevaciones"]
+            .loc[codificar_coords({EJE_PARC: parc})]
+            .matr[0]
+        )
 
         clima = símismo.sim.sim.clima
         bd_pandas = clima.datos.loc[{EJE_PARC: parc}].drop_vars(EJE_PARC).to_dataframe()
@@ -70,7 +84,9 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         if f > símismo.f_inic_modelo:
             símismo.modelo.run(paso)
         if símismo.modelo.flag_terminate:
-            avisar("Modelo PCSE terminó simulación antes de la simulación completa de Tiko'n.")
+            avisar(
+                "Modelo PCSE terminó simulación antes de la simulación completa de Tiko'n."
+            )
         símismo.llenar_vals()
 
     def llenar_vals(símismo):
@@ -78,9 +94,11 @@ class InstanciaPCSE(InstanciaSimulCultivo):
         for vr, (vr_pcse, conv) in símismo._conv_vars.items():
             val = símismo.modelo.get_variable(vr_pcse)
             if val is not None:
-                símismo.datos[RES_BIOMASA].loc[codificar_coords({EJE_ETAPA: org[vr]})] = val * conv
+                símismo.datos[RES_BIOMASA].loc[
+                    codificar_coords({EJE_ETAPA: org[vr]})
+                ] = val * conv
 
-        símismo.datos[RES_HUMSUELO][:] = símismo.modelo.get_variable('SM')
+        símismo.datos[RES_HUMSUELO][:] = símismo.modelo.get_variable("SM")
 
     def aplicar_daño(símismo, daño):
         org = símismo.org
@@ -93,7 +111,11 @@ class InstanciaPCSE(InstanciaSimulCultivo):
                 continue
             val = símismo.modelo.get_variable(var)
             if val is not None:
-                símismo.modelo.set_variable(var, val - daño.loc[codificar_coords({EJE_ETAPA: etp})].matr.item() / conv)
+                símismo.modelo.set_variable(
+                    var,
+                    val
+                    - daño.loc[codificar_coords({EJE_ETAPA: etp})].matr.item() / conv,
+                )
 
     def cerrar(símismo):
         pass
@@ -102,31 +124,36 @@ class InstanciaPCSE(InstanciaSimulCultivo):
 class SimulPCSE(SimulCultivoExterno):
     cls_instancia = InstanciaPCSE
     trads_cultivos = {
-        'barley': 'cebada',
-        'cassava': 'mandioca',
-        'chickpea': 'garbanzo',
-        'cotton': 'algodón',
-        'cowpea': 'frijol de carita',
-        'fababean': 'haba',
-        'groundnut': 'maní',
-        'maize': 'maíz',
-        'millet': 'mijo',
-        'mungbean': 'mungo',
-        'pigeonpea': 'guandú',
-        'potato': 'papa',
-        'rapeseed': 'raps',
-        'rice': 'arroz',
-        'sorghum': 'sorgo',
-        'soybean': 'soya',
-        'sugar beet': 'remolacha azucarera',
-        'sugarcane': 'caña',
-        'sunflower': 'girasol',
-        'sweetpotato': 'batata',
-        'tobacco': 'tabaco',
-        'winter wheat': 'trigo de invierno',
-        'wheat': 'trigo'
+        "barley": "cebada",
+        "cassava": "mandioca",
+        "chickpea": "garbanzo",
+        "cotton": "algodón",
+        "cowpea": "frijol de carita",
+        "fababean": "haba",
+        "groundnut": "maní",
+        "maize": "maíz",
+        "millet": "mijo",
+        "mungbean": "mungo",
+        "pigeonpea": "guandú",
+        "potato": "papa",
+        "rapeseed": "raps",
+        "rice": "arroz",
+        "sorghum": "sorgo",
+        "soybean": "soya",
+        "sugar beet": "remolacha azucarera",
+        "sugarcane": "caña",
+        "sunflower": "girasol",
+        "sweetpotato": "batata",
+        "tobacco": "tabaco",
+        "winter wheat": "trigo de invierno",
+        "wheat": "trigo",
     }
 
     def requísitos(símismo, controles=False):
         if not controles:
-            return {'clima.temp_máx', 'clima.temp_mín', 'clima.rad_solar', 'clima.precip'}
+            return {
+                "clima.temp_máx",
+                "clima.temp_mín",
+                "clima.rad_solar",
+                "clima.precip",
+            }

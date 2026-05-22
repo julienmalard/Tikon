@@ -6,28 +6,28 @@ valor = 6.02214e23
 
 
 class EcuaciónObtVal(Ecuación):
-    nombre = 'obt val'
-    eje_cosos = 'coso'
+    nombre = "obt val"
+    eje_cosos = "coso"
 
     def eval(símismo, paso, sim):
-        val = símismo.obt_valor_extern(sim, 'res 2', 'otro módulo')
-        símismo.poner_valor_mód(sim, 'res', val)
+        val = símismo.obt_valor_extern(sim, "res 2", "otro módulo")
+        símismo.poner_valor_mód(sim, "res", val)
 
 
 class SubCategObtVal(SubcategEc):
-    nombre = 'subcateg'
+    nombre = "subcateg"
     cls_ramas = [EcuaciónObtVal, EcuaciónVacía]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class CategObtVal(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategObtVal]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class EcsObtVal(ÁrbolEcs):
-    nombre = 'Ecs obt val'
+    nombre = "Ecs obt val"
     cls_ramas = [CategObtVal]
 
 
@@ -40,7 +40,7 @@ class ResEjeCoso(Resultado):
     unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'coso': sim.ecs.cosos, **coords}
+        coords = {"coso": sim.ecs.cosos, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
     @property
@@ -49,11 +49,11 @@ class ResEjeCoso(Resultado):
 
 
 class Res(ResEjeCoso):
-    nombre = 'res'
+    nombre = "res"
 
 
 class Res2(Resultado):
-    nombre = 'res 2'
+    nombre = "res 2"
     unids = None
 
 
@@ -61,11 +61,11 @@ class SimulMóduloObtVal(SimulMódulo):
     resultados = [Res]
 
 
-coso = CosoObtValor('hola')
+coso = CosoObtValor("hola")
 
 
 class MóduloObtVal(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloObtVal
 
     def __init__(símismo, cosos=None):
@@ -81,13 +81,13 @@ class SimulOtroMódulo(SimulMódulo):
 
     def incrementar(símismo, paso, f):
         super().incrementar(paso, f)
-        símismo.poner_valor('res 2', valor)
+        símismo.poner_valor("res 2", valor)
 
 
 class OtroMódulo(Módulo):
-    nombre = 'otro módulo'
+    nombre = "otro módulo"
     cls_simul = SimulOtroMódulo
 
 
-mi_exper = Exper('exper', Parcela('parcela'))
+mi_exper = Exper("exper", Parcela("parcela"))
 mi_modelo = Modelo([MóduloObtVal([coso]), OtroMódulo])

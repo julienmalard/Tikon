@@ -11,5 +11,7 @@ class Aplicar(Acción):
         símismo.conc = conc
 
     def __call__(símismo, sim, donde):
-        cambio = xr.where(donde, símismo.conc, 0).expand_dims(dim={EJE_PRODUCTO: símismo.producto})
+        cambio = xr.where(donde, símismo.conc, 0).expand_dims(
+            dim={EJE_PRODUCTO: símismo.producto}
+        )
         sim[Aplicaciones.nombre].poner_valor(var=RES_CONC, val=cambio, rel=True)

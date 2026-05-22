@@ -16,10 +16,11 @@ class EcuaciónRepr(EcuaciónOrg):
 
 
 class EcuaciónReprCoh(EcuaciónRepr, EcuaciónConCohorte):
-
     def eval(símismo, paso, sim):
         dens_repr = símismo.dens_dif(sim, símismo.cambio_edad(sim), símismo.dist)
-        return símismo.cf['n'] * dens_repr  # Paso y pobs ya se tomaron en cuenta con cambio edad
+        return (
+            símismo.cf["n"] * dens_repr
+        )  # Paso y pobs ya se tomaron en cuenta con cambio edad
 
     def _prms_scipy(símismo):
         raise NotImplementedError

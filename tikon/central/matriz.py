@@ -16,7 +16,9 @@ def _calc_índices(_dic, _coords, _dims):
             v = _dic[dm]
             if isinstance(v, tuple):
                 if v == tuple(range(_dic[dm][0], _dic[dm][-1] + 1)):
-                    índices.append(slice(v[0], v[-1] + 1) if v != í_crds[dm] else slice(None))
+                    índices.append(
+                        slice(v[0], v[-1] + 1) if v != í_crds[dm] else slice(None)
+                    )
                 else:
                     índices.append(v)
             else:
@@ -28,18 +30,26 @@ def _calc_índices(_dic, _coords, _dims):
 
 @functools.lru_cache
 def _calc_índices_loc(coords, dic):
-    return frozendict({
-        dm: tuple(coords[dm].index(c) for c in (crds if isinstance(crds, (tuple, set, list)) else [crds]))
-        for dm, crds in dic.items()
-    })
+    return frozendict(
+        {
+            dm: tuple(
+                coords[dm].index(c)
+                for c in (crds if isinstance(crds, (tuple, set, list)) else [crds])
+            )
+            for dm, crds in dic.items()
+        }
+    )
 
 
 @functools.lru_cache
 def _proc_llave(dims, coords, llave):
     dims = tuple(dm for dm in dims if dm not in llave or not isinstance(llave[dm], int))
-    coords = frozendict({
-        dm: tuple(coords[dm][í] for í in llave[dm]) if dm in llave else coords[dm] for dm in dims
-    })
+    coords = frozendict(
+        {
+            dm: tuple(coords[dm][í] for í in llave[dm]) if dm in llave else coords[dm]
+            for dm in dims
+        }
+    )
     return dims, coords
 
 
@@ -70,13 +80,24 @@ class Loc(object):
 
 
 class Datos(object):
-    def __init__(símismo, val, dims, coords, nombre=None, atribs=None, _verif=True, _conv_coords=None):
+    def __init__(
+        símismo,
+        val,
+        dims,
+        coords,
+        nombre=None,
+        atribs=None,
+        _verif=True,
+        _conv_coords=None,
+    ):
 
         if not isinstance(val, np.ndarray):
             if isinstance(val, (list, tuple)):
                 val = np.array(val)
             else:
-                val = np.full(shape=tuple(len(coords[dm]) for dm in dims), fill_value=val)
+                val = np.full(
+                    shape=tuple(len(coords[dm]) for dm in dims), fill_value=val
+                )
 
         símismo.matr = val
         símismo.dims = dims
@@ -90,7 +111,9 @@ class Datos(object):
         if _verif:
             símismo._verif_init()
         elif símismo._conv_coords is None:
-            raise ValueError("Se debe especificar `_conv_coords` si `_verif_init===False`")
+            raise ValueError(
+                "Se debe especificar `_conv_coords` si `_verif_init===False`"
+            )
 
         símismo.loc = Loc(símismo)
 
@@ -107,11 +130,23 @@ class Datos(object):
 
     @classmethod
     def de_xarray(cls, datos):
-        coords = frozendict({
-            ll: tuple(v.values if not np.issubdtype(v.values.dtype, np.datetime64) else pd.to_datetime(v.values))
-            for ll, v in datos.coords.items()
-        })
-        return Datos(val=datos.values.copy(), dims=datos.dims, coords=coords, nombre=datos.name, atribs=datos.attrs)
+        coords = frozendict(
+            {
+                ll: tuple(
+                    v.values
+                    if not np.issubdtype(v.values.dtype, np.datetime64)
+                    else pd.to_datetime(v.values)
+                )
+                for ll, v in datos.coords.items()
+            }
+        )
+        return Datos(
+            val=datos.values.copy(),
+            dims=datos.dims,
+            coords=coords,
+            nombre=datos.name,
+            atribs=datos.attrs,
+        )
 
     def a_xarray(símismo):
         return xr.DataArray(
@@ -119,7 +154,7 @@ class Datos(object):
             coords=símismo.coords,
             dims=list(símismo.dims),
             name=símismo.nombre,
-            attrs=símismo.atribs
+            attrs=símismo.atribs,
         )
 
     def codificar_coords(símismo, coords: dict[str, Any]):
@@ -134,8 +169,15 @@ class Datos(object):
         return decodificar(valor)
 
     def copiar(símismo):
-        return Datos(símismo.matr.copy(), dims=símismo.dims, coords=símismo.coords_internas, nombre=símismo.nombre,
-                     atribs=símismo.atribs, _conv_coords=símismo._conv_coords, _verif=False)
+        return Datos(
+            símismo.matr.copy(),
+            dims=símismo.dims,
+            coords=símismo.coords_internas,
+            nombre=símismo.nombre,
+            atribs=símismo.atribs,
+            _conv_coords=símismo._conv_coords,
+            _verif=False,
+        )
 
     def renombrar(símismo, cambios):
         copia = símismo.copiar()
@@ -147,9 +189,9 @@ class Datos(object):
         return copia
 
     def asignar_coords(símismo, eje, coords):
-        símismo._coords_internas = frozendict({**símismo._coords_internas, **{
-            eje: coords
-        }})
+        símismo._coords_internas = frozendict(
+            {**símismo._coords_internas, **{eje: coords}}
+        )
 
     def llenar_nan(símismo, val):
         símismo.matr[np.isnan(símismo.matr)] = val
@@ -166,19 +208,32 @@ class Datos(object):
             if isinstance(excluir, str):
                 excluir = [excluir]
 
-            coords = frozendict({ll: v for ll, v in coords.items() if ll not in excluir})
+            coords = frozendict(
+                {ll: v for ll, v in coords.items() if ll not in excluir}
+            )
             dims = tuple(dm for dm in dims if dm not in excluir)
 
         return Datos(
-            vals, dims=dims, coords=coords, nombre=símismo.nombre, atribs=símismo.atribs,
-            _conv_coords=símismo._conv_coords, _verif=False
+            vals,
+            dims=dims,
+            coords=coords,
+            nombre=símismo.nombre,
+            atribs=símismo.atribs,
+            _conv_coords=símismo._conv_coords,
+            _verif=False,
         )
 
     def transponer(símismo, dims):
         orden = [símismo.dims.index(d) for d in dims]
-        return Datos(np.transpose(símismo.matr, orden), dims=dims, coords=símismo.coords_internas,
-                     nombre=símismo.nombre,
-                     atribs=símismo.atribs, _conv_coords=símismo._conv_coords, _verif=False)
+        return Datos(
+            np.transpose(símismo.matr, orden),
+            dims=dims,
+            coords=símismo.coords_internas,
+            nombre=símismo.nombre,
+            atribs=símismo.atribs,
+            _conv_coords=símismo._conv_coords,
+            _verif=False,
+        )
 
     def expandir_dims(símismo, coords):
         if isinstance(coords, Datos):
@@ -191,11 +246,13 @@ class Datos(object):
     def dejar(símismo, dim):
 
         if len(símismo.coords_internas[dim]) != 1:
-            raise ValueError('Dimensiones deben tener tamaño 1.')
+            raise ValueError("Dimensiones deben tener tamaño 1.")
 
         símismo.matr = símismo.matr.squeeze(símismo.dims.index(dim))
         símismo.dims = tuple(x for x in símismo.dims if x not in dim)
-        símismo._coords_internas = frozendict({dm: símismo.coords_internas[dm] for dm in símismo.dims})
+        símismo._coords_internas = frozendict(
+            {dm: símismo.coords_internas[dm] for dm in símismo.dims}
+        )
         símismo.loc = Loc(símismo)
         return símismo
 
@@ -205,7 +262,12 @@ class Datos(object):
 
     @property
     def coords(símismo):
-        return CoordsDatos({ll: símismo._decodificar_coord(v) for ll, v in símismo.coords_internas.items()})
+        return CoordsDatos(
+            {
+                ll: símismo._decodificar_coord(v)
+                for ll, v in símismo.coords_internas.items()
+            }
+        )
 
     def _í_dims(símismo, dims):
         if isinstance(dims, str):
@@ -280,7 +342,7 @@ class Datos(object):
 
     def __pow__(símismo, pot, módulo=None):
         x, y = alinear_2(símismo, pot)
-        return x.nuevo_como(x.matr ** y)
+        return x.nuevo_como(x.matr**y)
 
     def __and__(símismo, otro):
         x, y = alinear_2(símismo, otro)
@@ -393,7 +455,7 @@ class Datos(object):
 
     def __ipow__(símismo, pot, módulo=None):
         if isinstance(pot, Datos):
-            res = símismo ** pot
+            res = símismo**pot
             símismo.loc[res] = res
         else:
             símismo.matr **= pot
@@ -411,8 +473,15 @@ class Datos(object):
     def __getitem__(símismo, itema):
         if isinstance(itema, (dict, frozendict)):
             dims, coords = símismo._proc_llave(itema)
-            return Datos(símismo.matr[símismo._índices(itema)], dims=dims, coords=coords, nombre=símismo.nombre,
-                         atribs=símismo.atribs, _conv_coords=símismo._conv_coords, _verif=False)
+            return Datos(
+                símismo.matr[símismo._índices(itema)],
+                dims=dims,
+                coords=coords,
+                nombre=símismo.nombre,
+                atribs=símismo.atribs,
+                _conv_coords=símismo._conv_coords,
+                _verif=False,
+            )
         raise TypeError(type(itema))
 
     def __setitem__(símismo, llave, valor):
@@ -468,7 +537,13 @@ def combinar(*matrs):
 
     _conv_coords = {c: v for m in matrs for c, v in m._conv_coords.items()}
 
-    final = Datos(np.nan, dims=dims, coords=frozendict(coords), _conv_coords=_conv_coords, _verif=False)
+    final = Datos(
+        np.nan,
+        dims=dims,
+        coords=frozendict(coords),
+        _conv_coords=_conv_coords,
+        _verif=False,
+    )
     for m in matrs:
         final.loc[m.coords_internas] = m
 
@@ -483,7 +558,9 @@ def alinear(*datos):
 def alinear_2(dt1, dt2):
     if isinstance(dt2, Datos):
         dt1 = _expandir_dims(dt1, dims=dt2.dims, coords=dt2.coords_internas)
-        dt2 = _expandir_dims(dt2, dims=dt1.dims, coords=dt1.coords_internas, guardar_orden=False)
+        dt2 = _expandir_dims(
+            dt2, dims=dt1.dims, coords=dt1.coords_internas, guardar_orden=False
+        )
         if dt1.coords_internas == dt2.coords_internas:
             return dt1, dt2.matr
         else:
@@ -508,13 +585,28 @@ def _redimensionar(*args):
     datos = [x for x in args if isinstance(x, Datos)]
 
     dims = tuple(dict.fromkeys(dm for dt in datos for dm in dt.dims))
-    coords = frozendict({dm: next(dt.coords_internas[dm] for dt in datos if dm in dt.coords_internas) for dm in dims})
+    coords = frozendict(
+        {
+            dm: next(dt.coords_internas[dm] for dt in datos if dm in dt.coords_internas)
+            for dm in dims
+        }
+    )
 
-    return [_expandir_dims(x, dims, coords, guardar_orden=False) if isinstance(x, Datos) else x for x in args]
+    return [
+        _expandir_dims(x, dims, coords, guardar_orden=False)
+        if isinstance(x, Datos)
+        else x
+        for x in args
+    ]
 
 
 def _redimensionar_como(plntll, *args):
-    return [_expandir_dims(x, plntll.dims, plntll.coords_internas) if isinstance(x, Datos) else x for x in args]
+    return [
+        _expandir_dims(x, plntll.dims, plntll.coords_internas)
+        if isinstance(x, Datos)
+        else x
+        for x in args
+    ]
 
 
 def _intersec_datos(*args):
@@ -522,8 +614,13 @@ def _intersec_datos(*args):
 
     c_final = _intersec_coords(*[dt.coords_internas for dt in datos])
     return [
-        x.loc[frozendict({dm: tuple(c) for dm, c in c_final.items() if dm in x.coords_internas})] if isinstance(x,
-                                                                                                                Datos) else x
+        x.loc[
+            frozendict(
+                {dm: tuple(c) for dm, c in c_final.items() if dm in x.coords_internas}
+            )
+        ]
+        if isinstance(x, Datos)
+        else x
         for x in args
     ]
 
@@ -531,13 +628,22 @@ def _intersec_datos(*args):
 @functools.lru_cache
 def _intersec_coords(*args):
     dims = set(dm for crd in args for dm in crd)
-    c_final = frozendict({
-        dm: tuple(dict.fromkeys([
-            c for crds in args if dm in crds for c in crds[dm]
-            if all(c in crds_o[dm] for crds_o in args if dm in crds_o)
-        ]))
-        for dm in dims
-    })
+    c_final = frozendict(
+        {
+            dm: tuple(
+                dict.fromkeys(
+                    [
+                        c
+                        for crds in args
+                        if dm in crds
+                        for c in crds[dm]
+                        if all(c in crds_o[dm] for crds_o in args if dm in crds_o)
+                    ]
+                )
+            )
+            for dm in dims
+        }
+    )
 
     return c_final
 
@@ -550,40 +656,62 @@ def _gen_f_expandir_dims(dims_datos, coords_datos, dims, coords, guardar_orden):
     if dims_datos != d_final:
         if set(dims_datos) != set(d_final):
             # Agregar dims
-            c_final = {dm: list(coords_datos[dm]) if dm in coords_datos else coords[dm] for dm in d_final}
-            frm_matr = tuple(len(v) if ll in coords_datos else 1 for ll, v in c_final.items())
+            c_final = {
+                dm: list(coords_datos[dm]) if dm in coords_datos else coords[dm]
+                for dm in d_final
+            }
+            frm_matr = tuple(
+                len(v) if ll in coords_datos else 1 for ll, v in c_final.items()
+            )
             frm_final = tuple(len(v) for v in c_final.values())
 
             def f(datos):
                 # Copia de `broadcast_to` necesaria para evitar error Numpy con Datos.matr += V después
-                datos = Datos(np.broadcast_to(datos.matr.reshape(frm_matr), frm_final).copy(), d_final,
-                              coords=frozendict(
-                                  {ll: tuple(v) if isinstance(v, list) else v for ll, v in c_final.items()}),
-                              nombre=datos.nombre, atribs=datos.atribs, _conv_coords=datos._conv_coords, _verif=False)
+                datos = Datos(
+                    np.broadcast_to(datos.matr.reshape(frm_matr), frm_final).copy(),
+                    d_final,
+                    coords=frozendict(
+                        {
+                            ll: tuple(v) if isinstance(v, list) else v
+                            for ll, v in c_final.items()
+                        }
+                    ),
+                    nombre=datos.nombre,
+                    atribs=datos.atribs,
+                    _conv_coords=datos._conv_coords,
+                    _verif=False,
+                )
                 # Reordenar dims
                 return datos.transponer(d_final)
         else:
+
             def f(datos):
                 # Reordenar dims
                 return datos.transponer(d_final)
     else:
+
         def f(datos):
             return datos
+
     return f
 
 
 def _expandir_dims(datos, dims, coords, guardar_orden=True):
-    f = _gen_f_expandir_dims(datos.dims, datos.coords_internas, dims, coords, guardar_orden=guardar_orden)
+    f = _gen_f_expandir_dims(
+        datos.dims, datos.coords_internas, dims, coords, guardar_orden=guardar_orden
+    )
     return f(datos)
 
 
 def codificar_coords(coords, datos: Optional[Datos] = None):
-    return frozendict({
-        ll: tuple(
-            _codificar_coord(o, datos) for o in v
-        ) if isinstance(v, (range, tuple, list, set, np.ndarray, pd.Index)) else (_codificar_coord(v, datos),) for
-        ll, v in coords.items()
-    })
+    return frozendict(
+        {
+            ll: tuple(_codificar_coord(o, datos) for o in v)
+            if isinstance(v, (range, tuple, list, set, np.ndarray, pd.Index))
+            else (_codificar_coord(v, datos),)
+            for ll, v in coords.items()
+        }
+    )
 
 
 def _codificar_coord(valor, datos):

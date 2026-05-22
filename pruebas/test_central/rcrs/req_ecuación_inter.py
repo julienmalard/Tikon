@@ -4,15 +4,15 @@ from tikon.ecs.paráms import Inter
 
 
 class ParámInter(Parám):
-    nombre = 'a'
+    nombre = "a"
     unids = None
-    inter = ['otro']
+    inter = ["otro"]
 
 
 class EcuaciónReq(Ecuación):
-    nombre = 'req'
+    nombre = "req"
     cls_ramas = [ParámInter]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
     def eval(símismo, paso, sim):
         pass
@@ -20,23 +20,23 @@ class EcuaciónReq(Ecuación):
     @classmethod
     def requísitos(cls, controles=False):
         if controles:
-            return ['requísito control']
+            return ["requísito control"]
 
 
 class SubCategReqInter(SubcategEc):
-    nombre = 'subcateg'
+    nombre = "subcateg"
     cls_ramas = [EcuaciónReq, EcuaciónVacía]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class CategReqInter(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategReqInter]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class EcsReqInter(ÁrbolEcs):
-    nombre = 'Ecs inter con requísitos'
+    nombre = "Ecs inter con requísitos"
     cls_ramas = [CategReqInter]
 
 
@@ -53,24 +53,28 @@ class SimulMóduloReqEcInter(SimulMódulo):
     pass
 
 
-coso1 = CosoReqEcInter('Xsaqär tata')
-coso2 = CosoReqEcInter('Ütz awäch')
+coso1 = CosoReqEcInter("Xsaqär tata")
+coso2 = CosoReqEcInter("Ütz awäch")
 
 
 class MóduloReqEcInter(Módulo):
-    nombre = 'Requísitos ecs inter'
+    nombre = "Requísitos ecs inter"
     cls_simul = SimulMóduloReqEcInter
     cls_ecs = EcsReqInter
-    eje_coso = 'coso'
+    eje_coso = "coso"
 
     def __init__(símismo):
         super().__init__(cosos=[coso1, coso2])
 
     def inter(símismo, modelo, coso, tipo):
         for tp in tipo:
-            if tp == 'otro':
-                return Inter(coso.interacciones, eje='eje interacción', coords=símismo._cosos.values())
+            if tp == "otro":
+                return Inter(
+                    coso.interacciones,
+                    eje="eje interacción",
+                    coords=símismo._cosos.values(),
+                )
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 mi_modelo = Modelo(MóduloReqEcInter())

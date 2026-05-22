@@ -8,21 +8,21 @@ from ._plntll_ec import EcuaciónEdad
 
 
 class PrTDevMínBNLT(Parám):
-    nombre = 't_dev_mín'
+    nombre = "t_dev_mín"
     líms = (None, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(norm(20, 10))
 
 
 class PrDeltaTLetalBNLT(Parám):
-    nombre = 'delta_t_letal'
+    nombre = "delta_t_letal"
     líms = (0, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(expon(scale=10))
 
 
 class PrMBNLT(Parám):
-    nombre = 'm'
+    nombre = "m"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(expon(scale=10))
@@ -48,21 +48,23 @@ class FuncBrièreNoLinearTemperatura(EcuaciónEdad):
        development for arthropods. Environmental Entomology, 28 (1999), pp. 22-29.
     """
 
-    nombre = 'Brière No Linear Temperatura'
+    nombre = "Brière No Linear Temperatura"
     cls_ramas = [PrTDevMínBNLT, PrDeltaTLetalBNLT, PrMBNLT]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
-        temp_prom = símismo.obt_valor_extern(sim, 'clima.temp_prom')
-        return máximo(
-            temp_prom * (temp_prom - cf['t_dev_mín']), 0
-        ) * f_numpy(
-            np.power,
-            máximo(cf['t_dev_mín'] + cf['delta_t_letal'] - temp_prom, 0),
-            1 / cf['m']
-        ) * paso
+        temp_prom = símismo.obt_valor_extern(sim, "clima.temp_prom")
+        return (
+            máximo(temp_prom * (temp_prom - cf["t_dev_mín"]), 0)
+            * f_numpy(
+                np.power,
+                máximo(cf["t_dev_mín"] + cf["delta_t_letal"] - temp_prom, 0),
+                1 / cf["m"],
+            )
+            * paso
+        )
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
-            return {'clima.temp_prom'}
+            return {"clima.temp_prom"}

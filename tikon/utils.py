@@ -8,7 +8,7 @@ from chardet import UniversalDetector
 
 
 def guardar_archivo(texto, archivo):
-    with tempfile.NamedTemporaryFile('w', encoding='UTF-8', delete=False) as arch_temp:
+    with tempfile.NamedTemporaryFile("w", encoding="UTF-8", delete=False) as arch_temp:
         arch_temp.write(texto)
 
     asegurar_dir_existe(archivo)
@@ -31,7 +31,9 @@ def guardar_json(dic, archivo):
 
     """
 
-    txt = json.dumps(jsonificar(dic), ensure_ascii=False, sort_keys=True, indent=2, default=str)
+    txt = json.dumps(
+        jsonificar(dic), ensure_ascii=False, sort_keys=True, indent=2, default=str
+    )
     guardar_archivo(txt, archivo)
 
 
@@ -42,8 +44,8 @@ def asegurar_dir_existe(archivo):
 
 
 def asegurar_ext(archivo, ext):
-    if ext[0] != '.':
-        ext = f'.{ext}'
+    if ext[0] != ".":
+        ext = f".{ext}"
     ext_ant = os.path.splitext(archivo)[1]
     if ext_ant != ext:
         archivo = archivo + ext
@@ -51,7 +53,7 @@ def asegurar_ext(archivo, ext):
 
 
 def leer_json(archivo, numpy=True):
-    with open(archivo, 'r', encoding='utf8') as d:
+    with open(archivo, "r", encoding="utf8") as d:
         dic = json.load(d)
     if numpy:
         dic = numpyficar(dic)
@@ -106,9 +108,8 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
 
     """
     detector = UniversalDetector()
-    with open(archivo, 'rb') as d:
+    with open(archivo, "rb") as d:
         for í, línea in enumerate(d.readlines()):
-
             if cortar is None or cortar.encode() not in línea:
                 detector.feed(línea)  # Pasar la próxima línea al detector
             else:
@@ -123,12 +124,12 @@ def detectar_codif(archivo, máx_líneas=None, cortar=None):
 
     detector.close()  # Cerrar el detector
 
-    return detector.result['encoding']  # Devolver el resultado
+    return detector.result["encoding"]  # Devolver el resultado
 
 
-EJE_PARÁMS = 'paráms'
-EJE_ESTOC = 'estoc'
-EJE_TIEMPO = 'tiempo'
-EJE_PARC = 'parcela'
-EJE_DEST = 'dest'
-EJE_COORD = 'coord'
+EJE_PARÁMS = "paráms"
+EJE_ESTOC = "estoc"
+EJE_TIEMPO = "tiempo"
+EJE_PARC = "parcela"
+EJE_DEST = "dest"
+EJE_COORD = "coord"

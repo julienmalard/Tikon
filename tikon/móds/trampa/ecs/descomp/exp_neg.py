@@ -10,18 +10,18 @@ from ...utils import RES_DENS
 
 
 class T50(Parám):
-    nombre = 't50'
+    nombre = "t50"
     líms = (0, None)
-    unids = 'días'
+    unids = "días"
     apriori = APrioriDist(expon(scale=300))
 
 
 class DecaiExp(EcuaciónDescomp):
-    nombre = 'Decaimiento Exponencial'
+    nombre = "Decaimiento Exponencial"
     cls_ramas = [T50]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
         dens = símismo.obt_valor_mód(sim, RES_DENS)
-        λ = mat.log(2) / cf['t50']
+        λ = mat.log(2) / cf["t50"]
         return dens * (1 - (-λ * paso).fi(np.exp))

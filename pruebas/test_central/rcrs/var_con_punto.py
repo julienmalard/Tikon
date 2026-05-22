@@ -3,7 +3,7 @@ from tikon.central.res import Resultado
 
 
 class Res(Resultado):
-    nombre = 'soy.resultado'
+    nombre = "soy.resultado"
     unids = None
 
 
@@ -12,9 +12,9 @@ class SimulMóduloVarPunto(SimulMódulo):
 
 
 class MóduloVarPunto(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloVarPunto
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 modelo = Modelo(MóduloVarPunto())

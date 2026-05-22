@@ -11,5 +11,7 @@ class PonerTrampa(Acción):
         símismo.dens = dens
 
     def __call__(símismo, sim, donde):
-        cambio = xr.where(donde, símismo.dens, 0).expand_dims(dim={EJE_TRAMPA: símismo.trampa})
+        cambio = xr.where(donde, símismo.dens, 0).expand_dims(
+            dim={EJE_TRAMPA: símismo.trampa}
+        )
         sim[Trampas.nombre].poner_valor(var=RES_DENS, val=cambio, rel=True)

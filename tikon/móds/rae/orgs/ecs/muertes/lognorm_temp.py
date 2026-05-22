@@ -7,21 +7,21 @@ from ._plntll_ec import EcuaciónMuertes
 
 
 class T(Parám):
-    nombre = 't'
+    nombre = "t"
     líms = (0, None)
-    unids = 'C'
+    unids = "C"
     apriori = APrioriDist(expon(10, scale=20))
 
 
 class Rho(Parám):
-    nombre = 'rho'
+    nombre = "rho"
     líms = (0, None)
     unids = None
     apriori = APrioriDist(expon(scale=10))
 
 
 class K(Parám):
-    nombre = 'k'
+    nombre = "k"
     líms = (0, 1)
     unids = None
 
@@ -43,18 +43,20 @@ class LogNormTemp(EcuaciónMuertes):
 
     """
 
-    nombre = 'Log Normal Temperatura'
+    nombre = "Log Normal Temperatura"
     cls_ramas = [T, Rho, K]
 
     def eval(símismo, paso, sim):
         cf = símismo.cf
 
-        t_máx = símismo.obt_valor_extern(sim, 'clima.temp_máx')
-        sobrevivencia = cf['k'] * (-0.5 * ((t_máx / cf['t']).fi(np.log) / cf['rho']) ** 2).fi(np.exp)
+        t_máx = símismo.obt_valor_extern(sim, "clima.temp_máx")
+        sobrevivencia = cf["k"] * (
+            -0.5 * ((t_máx / cf["t"]).fi(np.log) / cf["rho"]) ** 2
+        ).fi(np.exp)
 
         return 1 - sobrevivencia
 
     @classmethod
     def requísitos(cls, controles=False):
         if not controles:
-            return {'clima.temp_máx'}
+            return {"clima.temp_máx"}

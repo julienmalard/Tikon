@@ -16,7 +16,7 @@ class Organismo(Coso):
     def __init__(símismo, nombre: str, etapas: Union["Etapa", Iterable["Etapa"]]):
         super().__init__(nombre, ecs=EcsOrgs)
 
-        if ':' in símismo.nombre:
+        if ":" in símismo.nombre:
             raise ValueError('Nombre de organismo no puede contener ":".')
 
         if isinstance(etapas, Etapa):
@@ -25,7 +25,13 @@ class Organismo(Coso):
 
         símismo.etapas = etapas
 
-    def activar_ec(símismo, categ: str, subcateg: str, ec: str, etapas: "Tipo_Resolvable_A_Etapas" = None):
+    def activar_ec(
+        símismo,
+        categ: str,
+        subcateg: str,
+        ec: str,
+        etapas: "Tipo_Resolvable_A_Etapas" = None,
+    ):
         etapas = símismo.resolver_etapas(etapas)
 
         for etp in etapas:
@@ -41,14 +47,21 @@ class Organismo(Coso):
         for etp in símismo:
             etp.desactivar_ec(categ=categ, subcateg=subcateg)
 
-    def espec_apriori(símismo, apriori, categ, sub_categ, ec, prm, índs=None, etapas=None):
+    def espec_apriori(
+        símismo, apriori, categ, sub_categ, ec, prm, índs=None, etapas=None
+    ):
         etapas = símismo.resolver_etapas(etapas)
         for etp in etapas:
             etp.espec_apriori(apriori, categ, sub_categ, ec, prm, índs=índs)
 
     def borrar_aprioris(
-            símismo, categ: str = None, sub_categ: str = None, ec: str = None, prm: str = None, índs=None,
-            etapas=None
+        símismo,
+        categ: str = None,
+        sub_categ: str = None,
+        ec: str = None,
+        prm: str = None,
+        índs=None,
+        etapas=None,
     ):
         etapas = símismo.resolver_etapas(etapas)
         for etp in etapas:
@@ -70,14 +83,20 @@ class Organismo(Coso):
         etps_presa = presa.resolver_etapas(etps_presa)
         etps_símismo = símismo.resolver_etapas(etps_símismo)
         if not contexto:
-            raise ValueError('Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés.')
+            raise ValueError(
+                "Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés."
+            )
 
         for red, e_p, e_s in product(contexto, etps_presa, etps_símismo):
-            red.agregar_relación(RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s))
+            red.agregar_relación(
+                RelaciónPresa(presa=presa, etp_presa=e_p, etp_depred=e_s)
+            )
 
     def parasita(símismo, huésped, etps_entra, etp_emerg, etp_recip, etp_símismo=None):
         if not contexto:
-            raise ValueError('Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés.')
+            raise ValueError(
+                "Debes especificar relaciones tróficas adentro de un bloque `with` con la red de interés."
+            )
 
         etps_entra = huésped.resolver_etapas(etps_entra)
         etp_emerg = huésped.resolver_etapas(etp_emerg)[0]
@@ -88,7 +107,11 @@ class Organismo(Coso):
         etp_símismo = símismo.resolver_etapas(etp_símismo)[0]
 
         obj_rel = RelaciónParas(
-            huésped=huésped, etps_entra=etps_entra, etp_depred=etp_símismo, etp_emerg=etp_emerg, etp_recip=etp_recip
+            huésped=huésped,
+            etps_entra=etps_entra,
+            etp_depred=etp_símismo,
+            etp_emerg=etp_emerg,
+            etp_recip=etp_recip,
         )
         for red in contexto:
             red.agregar_relación(obj_rel)
@@ -130,7 +153,11 @@ class Organismo(Coso):
         try:
             return next(e for e in símismo.etapas if e.nombre == itema)
         except StopIteration:
-            raise KeyError('Etapa {etp} no existe en organismo {org}.'.format(etp=itema, org=símismo))
+            raise KeyError(
+                "Etapa {etp} no existe en organismo {org}.".format(
+                    etp=itema, org=símismo
+                )
+            )
 
     def __iter__(símismo):
         for etp in símismo.etapas:
@@ -155,7 +182,7 @@ class RelaciónOrgs(object):
 
 
 class RelaciónPresa(RelaciónOrgs):
-    tipo = 'presa'
+    tipo = "presa"
 
     def __init__(símismo, presa, etp_presa, etp_depred):
         símismo.presa = presa
@@ -165,7 +192,7 @@ class RelaciónPresa(RelaciónOrgs):
 
 
 class RelaciónParas(RelaciónOrgs):
-    tipo = 'paras'
+    tipo = "paras"
 
     def __init__(símismo, huésped, etps_entra, etp_depred, etp_emerg, etp_recip):
         símismo.huésped = huésped
@@ -175,13 +202,21 @@ class RelaciónParas(RelaciónOrgs):
         símismo.etp_recip = etp_recip
 
         símismo.fantasmas = []
-        etps_en_hués = range(min(huésped.índice(etp) for etp in etps_entra), huésped.índice(etp_emerg) + 1)
+        etps_en_hués = range(
+            min(huésped.índice(etp) for etp in etps_entra),
+            huésped.índice(etp_emerg) + 1,
+        )
 
         for í_etp in reversed(etps_en_hués):
-            símismo.fantasmas.append(EtapaFantasma(
-                etp_depred.org, etp=etp_depred.org[0], org_hués=huésped, etp_hués=huésped[í_etp],
-                sig=símismo.fantasmas[-1] if símismo.fantasmas else etp_recip
-            ))
+            símismo.fantasmas.append(
+                EtapaFantasma(
+                    etp_depred.org,
+                    etp=etp_depred.org[0],
+                    org_hués=huésped,
+                    etp_hués=huésped[í_etp],
+                    sig=símismo.fantasmas[-1] if símismo.fantasmas else etp_recip,
+                )
+            )
         símismo.fantasmas.reverse()
 
         super().__init__([huésped, etp_depred.org])

@@ -15,12 +15,16 @@ class Tiempo(object):
             f_final = _gen_fecha(f_final)
 
         if f_inic >= f_final:
-            raise ValueError('Fecha inicial {inic} superior a fecha final {fin}'.format(inic=f_inic, fin=f_final))
+            raise ValueError(
+                "Fecha inicial {inic} superior a fecha final {fin}".format(
+                    inic=f_inic, fin=f_final
+                )
+            )
 
         símismo.paso = paso
         símismo._n_pasos = (f_final - f_inic).days // paso
 
-        símismo.eje = pd.date_range(f_inic, end=f_final, freq=str(símismo.paso) + 'D')
+        símismo.eje = pd.date_range(f_inic, end=f_final, freq=str(símismo.paso) + "D")
         símismo.i = 0
 
     def avanzar(símismo):
@@ -74,7 +78,9 @@ def _gen_fecha(f):
         return f
     if isinstance(f, str):
         return pd.Timestamp(
-            datetime.strptime('-'.join(உ(x, 'latin') for x in re.split(r'[-/.]', f)), '%Y-%m-%d').date()
+            datetime.strptime(
+                "-".join(உ(x, "latin") for x in re.split(r"[-/.]", f)), "%Y-%m-%d"
+            ).date()
         )
     if isinstance(f, date):
         return pd.Timestamp(f)

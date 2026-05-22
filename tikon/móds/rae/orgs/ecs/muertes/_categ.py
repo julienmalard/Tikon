@@ -11,8 +11,14 @@ from .lluvia_linear import LluviaLinear
 
 
 class EcMuerte(SubcategEcOrg):
-    nombre = 'Ecuación'
-    cls_ramas = [Constante, EcuaciónVacía, LogNormTemp, SigmoidalTemperatura, LluviaLinear]
+    nombre = "Ecuación"
+    cls_ramas = [
+        Constante,
+        EcuaciónVacía,
+        LogNormTemp,
+        SigmoidalTemperatura,
+        LluviaLinear,
+    ]
     _nombre_res = ECS_MRTE
 
 

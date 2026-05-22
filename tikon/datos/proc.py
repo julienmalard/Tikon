@@ -47,14 +47,16 @@ def log_p(o: xr.DataArray, s: xr.DataArray) -> float:
 
 
 def verosimil_gaus(o: xr.DataArray, s: xr.DataArray) -> float:
-    return gaussianLikelihoodMeasErrorOut(o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values)
+    return gaussianLikelihoodMeasErrorOut(
+        o.values, s.median(dim=(EJE_PARÁMS, EJE_ESTOC)).values
+    )
 
 
 # Funciones criterios con incertidumbre:
 def distancia_del_centro(o: xr.DataArray, s: xr.DataArray) -> float:
     distancia = np.abs(o - s.median(dim=(EJE_PARÁMS, EJE_ESTOC)))
     desv = np.maximum(1, s.std(dim=(EJE_PARÁMS, EJE_ESTOC)))
-    return (- distancia / desv).values.mean()
+    return (-distancia / desv).values.mean()
 
 
 def cuantiles(o: xr.DataArray, s: xr.DataArray) -> float:
@@ -63,12 +65,12 @@ def cuantiles(o: xr.DataArray, s: xr.DataArray) -> float:
     desv_típica = np.maximum(s.std(dim=(EJE_PARÁMS, EJE_ESTOC)), 1)
     return np.where(
         cuantil == 1,
-        -(s.min(dim=(EJE_PARÁMS, EJE_ESTOC)) - o)/desv_típica,
+        -(s.min(dim=(EJE_PARÁMS, EJE_ESTOC)) - o) / desv_típica,
         np.where(
             cuantil == 0,
-            -(o - s.max(dim=(EJE_PARÁMS, EJE_ESTOC)))/desv_típica,
-            ajustado
-        )
+            -(o - s.max(dim=(EJE_PARÁMS, EJE_ESTOC))) / desv_típica,
+            ajustado,
+        ),
     ).min()
 
 
@@ -110,7 +112,13 @@ def suma_pesos(pesos):
 
 
 class Procesador(object):
-    def __init__(símismo, f_vals=ens, f_pesos=n_existen, f_combin=prom_vals, f_combin_pesos=suma_pesos):
+    def __init__(
+        símismo,
+        f_vals=ens,
+        f_pesos=n_existen,
+        f_combin=prom_vals,
+        f_combin_pesos=suma_pesos,
+    ):
         símismo.calc = f_vals
         símismo.pesos = f_pesos
         símismo.combin = f_combin

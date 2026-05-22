@@ -7,44 +7,44 @@ rango = (1, 3)
 
 class ResInter(Resultado):
     unids = None
-    nombre = 'res'
+    nombre = "res"
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'coso': sim.ecs.cosos, 'otro': sim.ecs.cosos, **coords}
+        coords = {"coso": sim.ecs.cosos, "otro": sim.ecs.cosos, **coords}
         super().__init__(sim=sim, coords=coords, vars_interés=vars_interés)
 
 
 class ParámInter(Parám):
-    nombre = 'a'
+    nombre = "a"
     unids = None
     líms = rango
-    inter = ['otro']
+    inter = ["otro"]
 
 
 class EcuaciónInter(Ecuación):
-    nombre = 'ec'
+    nombre = "ec"
     cls_ramas = [ParámInter]
-    eje_cosos = 'coso'
-    _nombre_res = 'res'
+    eje_cosos = "coso"
+    _nombre_res = "res"
 
     def eval(símismo, paso, sim):
-        símismo.poner_valor_res(sim, símismo.cf['a'])
+        símismo.poner_valor_res(sim, símismo.cf["a"])
 
 
 class SubCategInter(SubcategEc):
-    nombre = 'subcateg'
+    nombre = "subcateg"
     cls_ramas = [EcuaciónInter, EcuaciónVacía]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class CategInter(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategInter]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class EcsInter(ÁrbolEcs):
-    nombre = 'Ecs inter'
+    nombre = "Ecs inter"
     cls_ramas = [CategInter]
 
 
@@ -63,25 +63,27 @@ class SimulMóduloEcInter(SimulMódulo):
     resultados = [ResInter]
 
 
-coso1 = CosoEcInter('Xsaqär tata')
-coso2 = CosoEcInter('Ütz awäch')
-coso3 = CosoEcInter('Rïn ütz maltyöx')
+coso1 = CosoEcInter("Xsaqär tata")
+coso2 = CosoEcInter("Ütz awäch")
+coso3 = CosoEcInter("Rïn ütz maltyöx")
 
 
 class MóduloEcInter(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloEcInter
     cls_ecs = EcsInter
-    eje_coso = 'coso'
+    eje_coso = "coso"
 
     def __init__(símismo):
         super().__init__(cosos=[coso1, coso2, coso3])
 
     def inter(símismo, modelo, coso, tipo):
         for tp in tipo:
-            if tp == 'otro':
-                return Inter(coso.interacciones, eje='otro', coords=símismo._cosos.values())
+            if tp == "otro":
+                return Inter(
+                    coso.interacciones, eje="otro", coords=símismo._cosos.values()
+                )
 
 
-exper = Exper('exper', Parcela('parcela'))
+exper = Exper("exper", Parcela("parcela"))
 mi_modelo = Modelo(MóduloEcInter())

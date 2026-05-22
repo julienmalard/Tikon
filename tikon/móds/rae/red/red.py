@@ -66,7 +66,7 @@ class SimulRed(SimulMódulo):
                 (id(etp), id(etp.siguiente()))
                 for etp in símismo.etapas
                 if etp.categ_activa(ECS_TRANS, modelo, mód=mód, exper=exper)
-                   and etp.siguiente()
+                and etp.siguiente()
             ]
         )
 
@@ -133,9 +133,7 @@ class SimulRed(SimulMódulo):
         if símismo[RES_COHORTES].activa:
             pobs_coh = símismo[RES_COHORTES].datos[{"comp": 0}]
             if ~np.array_equal(pobs_coh.matr, np.round(pobs_coh.matr)):
-                raise ValueError(
-                    f"Población de cohorte fraccional.\n{mnsg}"
-                )
+                raise ValueError(f"Población de cohorte fraccional.\n{mnsg}")
             pobs_corresp_coh = pobs.loc[
                 frozendict({EJE_ETAPA: pobs_coh.coords_internas[EJE_ETAPA]})
             ]
@@ -159,7 +157,6 @@ class RedAE(Módulo):
         para_resolver = [etp for org in símismo for etp in símismo[org].etapas]
         etapas = []
 
-
         while len(para_resolver):
             resolvables = []  # Para hacer
 
@@ -182,9 +179,7 @@ class RedAE(Módulo):
     def agregar_relación(símismo, relación):
         for org in relación.organismos:
             if org not in símismo.organismos:
-                raise ValueError(
-                    f'Organismo "{org}" no existe en red "{símismo}".'
-                )
+                raise ValueError(f'Organismo "{org}" no existe en red "{símismo}".')
         símismo.relaciones[relación.tipo].append(relación)
 
     def inter(símismo, modelo, coso, tipo: str):

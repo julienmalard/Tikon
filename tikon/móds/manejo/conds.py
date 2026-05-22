@@ -57,7 +57,9 @@ class EntreInclusivo(PruebaCond):
     def __call__(símismo, x):
         (mín, máx) = símismo.líms
 
-        return fnp(np.logical_and, fnp(np.less_equal, x, máx), fnp(np.greater_equal, x, mín))
+        return fnp(
+            np.logical_and, fnp(np.less_equal, x, máx), fnp(np.greater_equal, x, mín)
+        )
 
 
 class EntreExclusivo(PruebaCond):
@@ -87,7 +89,6 @@ class Cada(PruebaCond):
 
 
 class Condición(object):
-
     def __call__(símismo, sim, paso, f):
         raise NotImplementedError
 
@@ -159,13 +160,18 @@ class CondVariable(Condición):
 
     def __call__(símismo, sim, paso, f):
         val_var = símismo.func(
-            sim[símismo.mód].obt_valor(símismo.var).loc[símismo.coords], dim=list(símismo.coords)
+            sim[símismo.mód].obt_valor(símismo.var).loc[símismo.coords],
+            dim=list(símismo.coords),
         )
         cond_verdad = símismo.prueba(val_var)
 
         if símismo.mem is None:
-            símismo.mem = lleno_como(cond_verdad, 0, tipod='int')
-        listos = fnp(np.logical_or, fnp(np.greater_equal, símismo.mem, símismo.espera), fnp(np.equal, símismo.mem, 0))
+            símismo.mem = lleno_como(cond_verdad, 0, tipod="int")
+        listos = fnp(
+            np.logical_or,
+            fnp(np.greater_equal, símismo.mem, símismo.espera),
+            fnp(np.equal, símismo.mem, 0),
+        )
 
         verdad_final = fnp(np.logical_and, listos, cond_verdad)
         símismo.mem = símismo.mem.donde(símismo.mem == 0, símismo.mem + 1)

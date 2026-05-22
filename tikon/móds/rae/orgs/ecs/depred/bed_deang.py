@@ -4,24 +4,24 @@ from ._plntll_ec import EcuaciónDepred
 
 
 class A(Parám):
-    nombre = 'a'
+    nombre = "a"
     líms = (0, 1)
-    inter = ['presa', 'huésped']
-    unids = 'presa depredador -1 ha -1'
+    inter = ["presa", "huésped"]
+    unids = "presa depredador -1 ha -1"
 
 
 class B(Parám):
-    nombre = 'b'
+    nombre = "b"
     líms = (0, None)
-    inter = ['presa', 'huésped']
-    unids = 'presa ha -1'
+    inter = ["presa", "huésped"]
+    unids = "presa ha -1"
 
 
 class C(Parám):
-    nombre = 'c'
+    nombre = "c"
     líms = (0, None)
-    inter = ['presa', 'huésped']
-    unids = 'presa depredador -1'
+    inter = ["presa", "huésped"]
+    unids = "presa depredador -1"
 
 
 class BedDeAng(EcuaciónDepred):
@@ -41,7 +41,8 @@ class BedDeAng(EcuaciónDepred):
     .. [2] D.L. DeAngelis, et al. A model for trophic interaction Ecology, 56 (1975), pp. 881–892
 
     """
-    nombre = 'Beddington-DeAngelis'
+
+    nombre = "Beddington-DeAngelis"
     cls_ramas = [A, B, C]
 
     def eval(símismo, paso, sim):
@@ -50,6 +51,6 @@ class BedDeAng(EcuaciónDepred):
         dens_depred = símismo.dens_pobs(sim)
         dens = símismo.dens_pobs(sim, filtrar=False)
 
-        depred_etp = dens * cf['a'] / (cf['b'] + dens + cf['c'] * dens_depred)
+        depred_etp = dens * cf["a"] / (cf["b"] + dens + cf["c"] * dens_depred)
 
         return depred_etp

@@ -9,45 +9,52 @@ from tikon.ecs.aprioris import APrioriDens
 from tikon.datos import Obs
 from tikon.utils import EJE_TIEMPO, EJE_PARC, EJE_ESTOC
 
-f_inic = '2000-01-01'
+f_inic = "2000-01-01"
 
 
 class A(Parám):
-    nombre = 'a'
+    nombre = "a"
     unids = None
     líms = (None, None)
-    apriori = APrioriDens((0, 3), .90)
-    eje_cosos = 'coso'
+    apriori = APrioriDens((0, 3), 0.90)
+    eje_cosos = "coso"
 
 
 class EcuaciónParám(Ecuación):
-    nombre = 'ec'
-    eje_cosos = 'coso'
+    nombre = "ec"
+    eje_cosos = "coso"
     cls_ramas = [A]
-    _nombre_res = 'res'
+    _nombre_res = "res"
 
     def eval(símismo, paso, sim):
         ant = símismo.obt_valor_res(sim)
         n_estoc = len(ant.coords[EJE_ESTOC])
-        return ant + símismo.cf['a'] + Datos((np.random.random(n_estoc) - 0.5) * 0.1, dims=[EJE_ESTOC],
-                                             coords={EJE_ESTOC: np.arange(n_estoc)})
+        return (
+            ant
+            + símismo.cf["a"]
+            + Datos(
+                (np.random.random(n_estoc) - 0.5) * 0.1,
+                dims=[EJE_ESTOC],
+                coords={EJE_ESTOC: np.arange(n_estoc)},
+            )
+        )
 
 
 class SubCategParám(SubcategEc):
-    nombre = 'subcateg'
+    nombre = "subcateg"
     cls_ramas = [EcuaciónParám, EcuaciónVacía]
-    eje_cosos = 'coso'
-    _nombre_res = 'res'
+    eje_cosos = "coso"
+    _nombre_res = "res"
 
 
 class CategParám(CategEc):
-    nombre = 'categ'
+    nombre = "categ"
     cls_ramas = [SubCategParám]
-    eje_cosos = 'coso'
+    eje_cosos = "coso"
 
 
 class EcsParám(ÁrbolEcs):
-    nombre = 'árbol'
+    nombre = "árbol"
     cls_ramas = [CategParám]
 
 
@@ -57,11 +64,11 @@ class CosoParám(Coso):
 
 
 class Res(Resultado):
-    nombre = 'res'
+    nombre = "res"
     unids = None
 
     def __init__(símismo, sim, coords, vars_interés):
-        coords = {'coso': sim.ecs.cosos, **coords}
+        coords = {"coso": sim.ecs.cosos, **coords}
         super().__init__(sim, coords, vars_interés)
 
 
@@ -73,35 +80,36 @@ class SimulMóduloValid(SimulMódulo):
 
 
 class Módulo1(Módulo):
-    nombre = 'módulo'
+    nombre = "módulo"
     cls_simul = SimulMóduloValid
     cls_ecs = EcsParám
-    eje_coso = 'coso'
+    eje_coso = "coso"
 
 
 class Módulo2(Módulo):
-    nombre = 'módulo 2'
+    nombre = "módulo 2"
     cls_simul = SimulMóduloValid
     cls_ecs = EcsParám
-    eje_coso = 'coso'
+    eje_coso = "coso"
 
 
-coso1 = CosoParám('hola')
-coso2 = CosoParám('salut')
+coso1 = CosoParám("hola")
+coso2 = CosoParám("salut")
 
 
 class MiObs(Obs):
-    mód = 'módulo'
-    var = 'res'
+    mód = "módulo"
+    var = "res"
 
 
 obs = MiObs(
     datos=xr.DataArray(
         np.arange(10),
-        coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq='D')}, dims=[EJE_TIEMPO]
-    ).expand_dims({EJE_PARC: ['parcela'], 'coso': [coso1]})
+        coords={EJE_TIEMPO: pd.date_range(f_inic, periods=10, freq="D")},
+        dims=[EJE_TIEMPO],
+    ).expand_dims({EJE_PARC: ["parcela"], "coso": [coso1]})
 )
-exper = Exper('exper', Parcela('parcela'), obs=obs)
+exper = Exper("exper", Parcela("parcela"), obs=obs)
 módulo1 = Módulo1(coso1)
 módulo2 = Módulo2(coso2)
 modelo = Modelo([módulo1, módulo2])

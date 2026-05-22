@@ -16,7 +16,12 @@ from tikon.ecs.dists.utils import proc_líms
 class PruebaDistAnalítica(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.líms = {'[R,R]': (3, 7), '[R, ∞)': (1, np.inf), '(-∞, R]': (-np.inf, 4), '(-∞, +∞)': (-np.inf, np.inf)}
+        cls.líms = {
+            "[R,R]": (3, 7),
+            "[R, ∞)": (1, np.inf),
+            "(-∞, R]": (-np.inf, 4),
+            "(-∞, +∞)": (-np.inf, np.inf),
+        }
 
     def _verif_en_líms(símismo, trz, líms):
         líms = proc_líms(líms)
@@ -31,15 +36,17 @@ class PruebaDistAnalítica(unittest.TestCase):
     @staticmethod
     def test_transf():
         d_sp = estad.t(df=2, loc=-1, scale=5)
-        trz = DistAnalítica(d_sp, transf=TransfDist('expit', ubic=1, escl=2)).obt_vals(1000)
+        trz = DistAnalítica(d_sp, transf=TransfDist("expit", ubic=1, escl=2)).obt_vals(
+            1000
+        )
         npt.assert_allclose([trz.min(), trz.max()], (1, 3))
 
     def test_de_traza(símismo):
         líms = {
-            '[R,R]': (1, 5),
-            '[R, ∞)': (3, None),
-            '(-∞, R]': (None, 1),
-            '(-∞, +∞)': (None, None),
+            "[R,R]": (1, 5),
+            "[R, ∞)": (3, None),
+            "(-∞, R]": (None, 1),
+            "(-∞, +∞)": (None, None),
         }
         for nmbr, líms in líms.items():
             traza = estad.norm().rvs(30)
@@ -62,11 +69,15 @@ class PruebaDistAnalítica(unittest.TestCase):
 
     def test_de_traza_no_compatible(símismo):
         with símismo.assertRaises(ValueError):
-            DistAnalítica.de_traza(trz=np.random.random(10), líms=(0, None), permitidas=['Beta'])
+            DistAnalítica.de_traza(
+                trz=np.random.random(10), líms=(0, None), permitidas=["Beta"]
+            )
 
     def test_de_traza_no_muy_buena(símismo):
         with warnings.catch_warnings(record=True) as w:
-            DistAnalítica.de_traza(trz=estad.beta(3, 4).rvs(100), líms=(0, 1), permitidas=['Uniforme'])
+            DistAnalítica.de_traza(
+                trz=estad.beta(3, 4).rvs(100), líms=(0, 1), permitidas=["Uniforme"]
+            )
             símismo.assertTrue(len(w), 1)
 
     def test_obt_vals(símismo):
@@ -96,34 +107,62 @@ class PruebaDistAnalítica(unittest.TestCase):
         inf = np.inf
         dens = 0.7
         líms = {
-            '[R,R]': {
-                'teor': (3, 7),
-                'dens': {'ident': (3, 7), 'izq': (3, 6), 'drch': (4, 7), 'dentro': (4, 5), 'fuera': (2, 4)}
+            "[R,R]": {
+                "teor": (3, 7),
+                "dens": {
+                    "ident": (3, 7),
+                    "izq": (3, 6),
+                    "drch": (4, 7),
+                    "dentro": (4, 5),
+                    "fuera": (2, 4),
+                },
             },
-            '[R, ∞)': {
-                'teor': (1, inf),
-                'dens': {'ident': (1, inf), 'izq': (1, 6), 'drch': (4, inf), 'dentro': (4, 5), 'fuera': (0, 4)}
+            "[R, ∞)": {
+                "teor": (1, inf),
+                "dens": {
+                    "ident": (1, inf),
+                    "izq": (1, 6),
+                    "drch": (4, inf),
+                    "dentro": (4, 5),
+                    "fuera": (0, 4),
+                },
             },
-            '(-∞, R]': {
-                'teor': (-inf, 4),
-                'dens': {'ident': (-inf, 4), 'izq': (-inf, 0), 'drch': (0, 4), 'dentro': (2, 3), 'fuera': (0, 5)}
+            "(-∞, R]": {
+                "teor": (-inf, 4),
+                "dens": {
+                    "ident": (-inf, 4),
+                    "izq": (-inf, 0),
+                    "drch": (0, 4),
+                    "dentro": (2, 3),
+                    "fuera": (0, 5),
+                },
             },
-            '(-∞, +∞)': {
-                'teor': (-inf, inf),
-                'dens': {'ident': (-inf, inf), 'izq': (-inf, 6), 'drch': (4, inf), 'dentro': (4, 5)}
-            }}
+            "(-∞, +∞)": {
+                "teor": (-inf, inf),
+                "dens": {
+                    "ident": (-inf, inf),
+                    "izq": (-inf, 6),
+                    "drch": (4, inf),
+                    "dentro": (4, 5),
+                },
+            },
+        }
         for ll, v in líms.items():
-            lm_t = v['teor']
-            for ll_d, lm_d in v['dens'].items():
+            lm_t = v["teor"]
+            for ll_d, lm_d in v["dens"].items():
                 with símismo.subTest(líms_teor=ll, líms_dens=ll_d):
-                    if ll_d in ['ident', 'fuera']:
+                    if ll_d in ["ident", "fuera"]:
                         with símismo.assertRaises(ValueError):
                             DistAnalítica.de_dens(dens, líms_dens=lm_d, líms=lm_t)
                     else:
                         dist = DistAnalítica.de_dens(dens, líms_dens=lm_d, líms=lm_t)
                         trz = dist.obt_vals(10000)
                         símismo._verif_en_líms(trz, lm_t)
-                        npt.assert_allclose(dens, np.mean(np.logical_and(trz > lm_d[0], trz < lm_d[1])), rtol=0.05)
+                        npt.assert_allclose(
+                            dens,
+                            np.mean(np.logical_and(trz > lm_d[0], trz < lm_d[1])),
+                            rtol=0.05,
+                        )
 
     def test_de_dens_0(símismo):
         with símismo.assertRaises(ValueError):
@@ -139,8 +178,10 @@ class PruebaDistAnalítica(unittest.TestCase):
     def test_de_dens_1(símismo):
         for ll, v in símismo.líms.items():
             with símismo.subTest(líms=ll):
-                if ll == '[R,R]':
-                    trz = DistAnalítica.de_dens(1, líms_dens=v, líms=(2, 8)).obt_vals(1000)
+                if ll == "[R,R]":
+                    trz = DistAnalítica.de_dens(1, líms_dens=v, líms=(2, 8)).obt_vals(
+                        1000
+                    )
                     símismo._verif_en_líms(trz, líms=v)
                 else:
                     with símismo.assertRaises(ValueError):
@@ -148,7 +189,7 @@ class PruebaDistAnalítica(unittest.TestCase):
 
     @staticmethod
     def test_conv_dic_transf():
-        dist = DistAnalítica(estad.t(df=3), transf=TransfDist('expit', ubic=1, escl=2))
+        dist = DistAnalítica(estad.t(df=3), transf=TransfDist("expit", ubic=1, escl=2))
         dist2 = Dist.de_dic(dist.a_dic())
         npt.assert_allclose(dist.aprox_líms(95), dist2.aprox_líms(95))
 
@@ -162,25 +203,25 @@ class PruebaDistAnalítica(unittest.TestCase):
 class PruebaTransfDist(unittest.TestCase):
     def test_transf(símismo):
         datos = np.arange(10)
-        for tr in ['lnexp', 'expit', None]:
+        for tr in ["lnexp", "expit", None]:
             with símismo.subTest(tr):
                 transf = TransfDist(tr)
                 npt.assert_allclose(datos, transf.transf_inv(transf.transf(datos)))
 
     def test_ubic(símismo):
         datos = np.arange(-20, 20)
-        transf = TransfDist('expit', ubic=1)
+        transf = TransfDist("expit", ubic=1)
         símismo.assertAlmostEqual(transf.transf(datos).min(), 1)
 
     def test_escala(símismo):
         datos = np.arange(-20, 20)
-        transf = TransfDist('expit', escl=2)
+        transf = TransfDist("expit", escl=2)
         símismo.assertAlmostEqual(transf.transf(datos).max(), 2)
 
     @staticmethod
     def test_conv_dic():
         datos = np.arange(-20, 20)
-        transf = TransfDist('expit', ubic=1, escl=2)
+        transf = TransfDist("expit", ubic=1, escl=2)
         transf2 = TransfDist.de_dic(transf.a_dic())
         npt.assert_equal(transf.transf(datos), transf2.transf(datos))
 
@@ -198,7 +239,9 @@ class PruebaDistTraza(unittest.TestCase):
     def test_aprox_líms(símismo):
         prc = 0.95
         líms = símismo.dist.aprox_líms(prc)
-        npt.assert_allclose(líms, estad.norm.ppf([(1 - prc) / 2, 0.5 + prc / 2]), rtol=.10)
+        npt.assert_allclose(
+            líms, estad.norm.ppf([(1 - prc) / 2, 0.5 + prc / 2]), rtol=0.10
+        )
 
     @staticmethod
     def test_pesos():
@@ -244,27 +287,27 @@ class PruebaMnjdrDists(unittest.TestCase):
     def test_índs(símismo):
         mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índices=['a', 'b'])
-        símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
+        mnjdr.actualizar(dist, índices=["a", "b"])
+        símismo.assertIs(dist, mnjdr.obt_val(["a", "b"]))
 
     def test_índs_no_existen(símismo):
         mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
         mnjdr.actualizar(dist)
-        símismo.assertIsNone(mnjdr.obt_val(índices=['hola'], heredar=False))
-        símismo.assertIs(dist, mnjdr.obt_val(índices=['hola']))
+        símismo.assertIsNone(mnjdr.obt_val(índices=["hola"], heredar=False))
+        símismo.assertIs(dist, mnjdr.obt_val(índices=["hola"]))
 
     def test_índs_herencia(símismo):
         mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índices='a')
-        símismo.assertIs(dist, mnjdr.obt_val(['a', 'b']))
+        mnjdr.actualizar(dist, índices="a")
+        símismo.assertIs(dist, mnjdr.obt_val(["a", "b"]))
 
     def test_índs_sin_herencia(símismo):
         mnjdr = ManejadorDists()
         dist = DistAnalítica(estad.norm())
-        mnjdr.actualizar(dist, índices=['a'])
-        símismo.assertIsNone(mnjdr.obt_val(['a', 'b'], heredar=False))
+        mnjdr.actualizar(dist, índices=["a"])
+        símismo.assertIsNone(mnjdr.obt_val(["a", "b"], heredar=False))
 
     @staticmethod
     def test_conv_dic():
@@ -274,17 +317,22 @@ class PruebaMnjdrDists(unittest.TestCase):
         distb = DistAnalítica(estad.norm(3, 4))
 
         mnjdr.actualizar(dist0)
-        mnjdr.actualizar(dista, índices=['a'])
-        mnjdr.actualizar(distb, índices=['a', 'b'])
+        mnjdr.actualizar(dista, índices=["a"])
+        mnjdr.actualizar(distb, índices=["a", "b"])
         nuevo = ManejadorDists.de_dic(mnjdr.a_dic())
-        p = .95
+        p = 0.95
         npt.assert_equal(mnjdr.obt_val().aprox_líms(p), nuevo.obt_val().aprox_líms(p))
-        npt.assert_equal(mnjdr.obt_val('a').aprox_líms(p), nuevo.obt_val('a').aprox_líms(p))
-        npt.assert_equal(mnjdr.obt_val(['a', 'b']).aprox_líms(p), nuevo.obt_val(['a', 'b']).aprox_líms(p))
+        npt.assert_equal(
+            mnjdr.obt_val("a").aprox_líms(p), nuevo.obt_val("a").aprox_líms(p)
+        )
+        npt.assert_equal(
+            mnjdr.obt_val(["a", "b"]).aprox_líms(p),
+            nuevo.obt_val(["a", "b"]).aprox_líms(p),
+        )
 
 
 class PruebaDib(unittest.TestCase):
     def test_dibujar(símismo):
         dist = DistAnalítica(estad.norm())
-        dib = dibujar_dist(dist, 'Mi distribución')
+        dib = dibujar_dist(dist, "Mi distribución")
         símismo.assertTrue(isinstance(dib.figure, Figura))

@@ -12,7 +12,7 @@ from .triang import Triang
 
 
 class TransProb(SubcategEcOrg):
-    nombre = 'Prob'
+    nombre = "Prob"
     cls_ramas = [Normal, EcuaciónVacía, Cauchy, Gamma, Logística, T, Triang]
     _nombre_res = RES_TRANS
 
