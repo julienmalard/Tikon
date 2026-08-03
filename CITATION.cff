@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Tiko'n
+message: >-
+  Si usa este programa en su investigación, agradeceríamos
+  que incluya la citación siguiente.
+type: software
+authors:
+  - given-names: Julien Jean
+    family-names: Malard-Adam
+    email: julien.malard@mail.mcgill.ca
+    orcid: 'https://orcid.org/0000-0001-6636-6935'
+identifiers:
+  - type: doi
+    value: 10.1016/j.eja.2020.126033
+    description: El artículo original describiendo el programa Tiko'n
+repository-code: 'https://github.com/julienmalard/tikon'
+url: 'https://tikon.rtfd.io'
+abstract: >-
+  Tiko’n es un programa para desarrollar modelos de redes
+  tróficas agroecológicas de manera sencilla, reproducible y
+  divertida. Un modelo de redes tróficas es un modelo que
+  representa las interacciones entre organismos vivos en un
+  campo agrícola (en general insectos y otros artrópodos).
+  Predice el nivel de control biológico natural, las
+  presiones futuras de plagas dado factores como el clima y
+  la presencia de insectos benéficos, y hacia permite
+  predecir cuáles serían los impacto de varias estrategias
+  de manejo de plagas.
+keywords:
+  - agroecología
+  - redes tróficas
+  - biocontrol
+  - dinámicas poblacionales
+license: AGPL-3.0
